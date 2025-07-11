@@ -142,5 +142,5 @@
 }
 
 .animate-ticker {
-  animation: ticker 25s linear infinite;
+  animation: ticker 5s linear infinite;
 }
