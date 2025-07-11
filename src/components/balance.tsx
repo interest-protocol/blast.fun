@@ -9,7 +9,7 @@ const Balance = () => {
     }
 
     return (
-        <Badge variant="default" className="rounded-sm text-sm font-semibold">
+        <Badge variant="default" className="rounded-md text-sm font-semibold">
             {balance} SUI
         </Badge>
     );

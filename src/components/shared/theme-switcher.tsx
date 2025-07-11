@@ -14,8 +14,9 @@ export const ThemeSwitcher = () => {
     return (
         <Button
             size="icon"
-            variant="ghost"
+            variant="outline"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="rounded-xl ease-in-out duration-300 transition-all"
         >
             {theme === "light" ? (
                 <Moon className="h-6 w-6" />
