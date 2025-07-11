@@ -21,8 +21,6 @@ export function WalletList({
     const wallets = useWallets();
     const isMounted = useMounted();
 
-    console.log(wallets)
-
     if (!isMounted) {
         return (
             <div className="flex flex-col gap-2">

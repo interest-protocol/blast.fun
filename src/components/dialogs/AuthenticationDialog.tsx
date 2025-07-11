@@ -9,6 +9,7 @@ import {
 } from '../ui/dialog';
 import { Button } from "../ui/button";
 import { WalletList } from "../shared/wallet-list";
+import { Wallet } from "lucide-react";
 
 // @todo: Replace our dialog trigger with a Link to Twitter/X OAuth route, 
 export function AuthenticationDialog() {
@@ -25,8 +26,11 @@ export function AuthenticationDialog() {
     return (
         <Dialog open={isConnectDialogOpen} onOpenChange={setIsConnectDialogOpen}>
             <DialogTrigger asChild>
-                <Button variant={isConnected ? 'outline' : 'default'} disabled={isConnecting}>
-                    Sign In
+                <Button variant="ghost" disabled={isConnecting}>
+                    <span className="flex flex-grow items-center gap-2">
+                        <Wallet className="w-4 h-4" />
+                        Connect Wallet
+                    </span>
                 </Button>
             </DialogTrigger>
 

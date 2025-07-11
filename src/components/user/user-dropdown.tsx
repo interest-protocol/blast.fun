@@ -7,29 +7,45 @@ import { Button } from "../ui/button";
 import { formatAddress } from "@mysten/sui/utils";
 import { AuthenticationDialog } from "../dialogs/AuthenticationDialog";
 import { UserDetails } from "./user-details";
-import { LogOut } from "lucide-react";
+import { LogOut, RefreshCw } from "lucide-react";
+import { useTwitter } from "@/context/twitter.context";
 
 export function UserDropdown() {
     const [open, setOpen] = useState(false);
-    const { isConnected, address, domain, disconnect } = useWallet();
+
+    const { user, isLoggedIn, isLoading, login, logout } = useTwitter();
+    const { isConnected, address, domain, } = useWallet();
 
     return (
         <Popover
-            open={isConnected && open}
+            open={isLoggedIn && open}
             onOpenChange={setOpen}
         >
             <PopoverTrigger asChild>
-                {isConnected ? (
+                {isLoggedIn ? (
                     <Button
                         variant="outline"
                         className="rounded-xl ease-in-out duration-300 transition-all"
                     >
                         <span className="text-muted-foreground group-hover:text-primary transition-colors duration-300 font-semibold text-sm">
-                            {domain || formatAddress(address || "")}
+                            {user?.username || domain || formatAddress(address || '')}
                         </span>
                     </Button>
                 ) : (
-                    <AuthenticationDialog />
+                    <Button
+                        variant="outline"
+                        className="rounded-xl ease-in-out duration-300 transition-all"
+                        onClick={login}
+                        disabled={isLoading}
+                    >
+                        {isLoading ? (
+                            <RefreshCw className="animate-spin" />
+                        ) : (
+                            <span>
+                                Connect Twitter
+                            </span>
+                        )}
+                    </Button>
                 )}
             </PopoverTrigger>
 
@@ -42,7 +58,11 @@ export function UserDropdown() {
                     {/* Actions */}
                     {/* @todo: in future, we can properly register an array const and do iterable rendering for each item. -matical */}
                     <div className="flex flex-col gap-2">
-                        <Button variant="ghost" onClick={disconnect}>
+                        {!isConnected && (
+                            <AuthenticationDialog />
+                        )}
+
+                        <Button variant="ghost" onClick={logout}>
                             <span className="flex flex-grow items-center gap-2 text-destructive">
                                 <LogOut className="w-4 h-4" />
                                 Log out
