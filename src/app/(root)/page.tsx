@@ -1,8 +1,9 @@
-import OwnedObjects from "@/components/owned-objects";
 import Image from "next/image";
 
-export default function Home() {
+export default function RootPage() {
     return (
-        <h1>root page</h1>
+        <div className="flex flex-row gap-2">
+            <h1>root page</h1>
+        </div>
     );
 }
