@@ -10,11 +10,11 @@ export function UserDetails() {
     const { user, isLoggedIn } = useTwitter();
     const { isConnected, address, domain } = useWallet();
 
-    if (!isLoggedIn || !isConnected || !address || !user) return null;
+    if (!isConnected || !address) return null;
 
     return (
         <>
-            <TwitterUserAvatar user={user} className="h-10 w-10" />
+            {/* <TwitterUserAvatar user={user} className="h-10 w-10" /> */}
 
             <div className="flex flex-col flex-1 min-w-0">
                 <div className="flex items-center gap-2">

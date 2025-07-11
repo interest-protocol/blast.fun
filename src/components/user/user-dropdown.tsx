@@ -14,15 +14,15 @@ export function UserDropdown() {
     const [open, setOpen] = useState(false);
 
     const { user, isLoggedIn, isLoading, login, logout } = useTwitter();
-    const { isConnected, address, domain, } = useWallet();
+    const { isConnected, address, domain, disconnect } = useWallet();
 
     return (
         <Popover
-            open={isLoggedIn && open}
+            open={open && (isConnected || isLoggedIn)}
             onOpenChange={setOpen}
         >
             <PopoverTrigger asChild>
-                {isLoggedIn ? (
+                {isConnected || isLoggedIn ? (
                     <Button
                         variant="outline"
                         className="rounded-xl ease-in-out duration-300 transition-all"
@@ -32,20 +32,7 @@ export function UserDropdown() {
                         </span>
                     </Button>
                 ) : (
-                    <Button
-                        variant="outline"
-                        className="rounded-xl ease-in-out duration-300 transition-all"
-                        onClick={login}
-                        disabled={isLoading}
-                    >
-                        {isLoading ? (
-                            <RefreshCw className="animate-spin" />
-                        ) : (
-                            <span>
-                                Connect Twitter
-                            </span>
-                        )}
-                    </Button>
+                    <AuthenticationDialog />
                 )}
             </PopoverTrigger>
 
@@ -58,14 +45,12 @@ export function UserDropdown() {
                     {/* Actions */}
                     {/* @todo: in future, we can properly register an array const and do iterable rendering for each item. -matical */}
                     <div className="flex flex-col gap-2">
-                        {!isConnected && (
-                            <AuthenticationDialog />
-                        )}
+                        {/* connect twitter button */}
 
-                        <Button variant="ghost" onClick={logout}>
+                        <Button variant="ghost" onClick={disconnect}>
                             <span className="flex flex-grow items-center gap-2 text-destructive">
                                 <LogOut className="w-4 h-4" />
-                                Log out
+                                Disconnect Wallet
                             </span>
                         </Button>
                     </div>

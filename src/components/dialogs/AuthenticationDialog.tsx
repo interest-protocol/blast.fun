@@ -9,12 +9,10 @@ import {
 } from '../ui/dialog';
 import { Button } from "../ui/button";
 import { WalletList } from "../shared/wallet-list";
-import { Wallet } from "lucide-react";
 
 // @todo: Replace our dialog trigger with a Link to Twitter/X OAuth route, 
 export function AuthenticationDialog() {
     const {
-        isConnected,
         isConnecting,
 
         isConnectDialogOpen,
@@ -26,11 +24,8 @@ export function AuthenticationDialog() {
     return (
         <Dialog open={isConnectDialogOpen} onOpenChange={setIsConnectDialogOpen}>
             <DialogTrigger asChild>
-                <Button variant="ghost" disabled={isConnecting}>
-                    <span className="flex flex-grow items-center gap-2">
-                        <Wallet className="w-4 h-4" />
-                        Connect Wallet
-                    </span>
+                <Button variant="outline" className="rounded-xl" disabled={isConnecting}>
+                    Connect Wallet
                 </Button>
             </DialogTrigger>
 
@@ -39,10 +34,10 @@ export function AuthenticationDialog() {
                     <DialogHeader className="text-center">
                         <DialogTitle className="text-xl font-bold">
                             Connect to xPump
-                            {/* todo: replace with a constant */}
                         </DialogTitle>
                         <DialogDescription className="text-sm">
-                            Choose your preferred sign-in method
+                            Connect with one of the available wallet providers
+                            or create a new wallet.
                         </DialogDescription>
                     </DialogHeader>
 
