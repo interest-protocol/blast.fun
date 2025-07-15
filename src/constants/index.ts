@@ -1,8 +1,20 @@
 export const FEE_ADDRESS = '0x0';
 
-export const DEFAULT_TOKEN_TOTAL_SUPPLY = 1_000_000_000;
 export const DEFAULT_TOKEN_DECIMALS = 9;
 
 export const TOTAL_POOL_SUPPLY = 1_000_000_000_000_000_000n;
 export const VIRTUAL_LIQUIDITY = 5_000_000;
 export const TARGET_QUOTE_LIQUIDITY = 5_000_000_000;
+
+export const COIN_CONVENTION_BLACKLIST = [
+    'SUI',
+    'ETH',
+    'USDC',
+    'USDT',
+    'SOL',
+    'BNB',
+    'WBNB',
+    'WETH',
+    'BTC',
+    'WBTC',
+];
