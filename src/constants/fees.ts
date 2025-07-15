@@ -1,0 +1,1 @@
+export const HIDE_IDENTITY_SUI_FEE = 10_000_000_000;

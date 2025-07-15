@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
+    "@interest-protocol/memez-fun-sdk": "^7.0.0",
     "@mysten/dapp-kit": "^0.16.15",
     "@mysten/sui": "^1.36.0",
     "@mysten/wallet-standard": "^0.16.5",
