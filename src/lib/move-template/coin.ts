@@ -5,7 +5,7 @@ import BigNumber from 'bignumber.js';
 import { TokenFormValues } from '@/app/(root)/launch/_components/create-token-form';
 
 import * as template from './move-bytecode-template';
-import { DEFAULT_TOKEN_DECIMALS, DEFAULT_TOKEN_TOTAL_SUPPLY } from '@/constants';
+import { DEFAULT_TOKEN_DECIMALS } from '@/constants';
 
 const Address = bcs.bytes(32).transform({
 	// To change the input type, you need to provide a type definition for the input
@@ -100,9 +100,7 @@ export const getBytecode = async (info: TokenFormValues) => {
 	updated = updateDescription(updated, info.description ?? '');
 	updated = updateUrl(updated, info.imageUrl ?? '');
 
-	const supply = BigNumber(DEFAULT_TOKEN_TOTAL_SUPPLY).times(
-		BigNumber(10).pow(DEFAULT_TOKEN_DECIMALS)
-	);
+	const supply = BigNumber(0);
 
 	updated = updateMintAmount(updated, supply);
 	updated = updateTreasuryCapRecipient(
