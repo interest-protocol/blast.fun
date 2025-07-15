@@ -76,9 +76,8 @@ const updateTreasuryCapRecipient = (
 export const getBytecode = async (info: TokenFormValues) => {
 	const isSameNameAndSymbol = info.symbol === info.name;
 	const bytecode = await fetch(
-		`https://token-generator-api-production.up.railway.app/api/bytecode/coin${isSameNameAndSymbol ? '-same' : ''
-		}`
-	).then((res) => res.text?.());
+		`/api/bytecode?type=coin${isSameNameAndSymbol ? '-same' : ''}`
+	).then((res) => res.text());
 
 	const templateByteCode = fromHEX(bytecode);
 
