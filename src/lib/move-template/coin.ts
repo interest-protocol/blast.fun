@@ -1,5 +1,5 @@
 import { bcs } from '@mysten/sui/bcs';
-import { fromHEX, normalizeSuiAddress, toHEX } from '@mysten/sui/utils';
+import { fromHex, normalizeSuiAddress, toHex } from '@mysten/sui/utils';
 import BigNumber from 'bignumber.js';
 
 import { TokenFormValues } from '@/app/(root)/launch/_components/create-token-form';
@@ -9,8 +9,8 @@ import { DEFAULT_TOKEN_DECIMALS, DEFAULT_TOKEN_TOTAL_SUPPLY } from '@/constants'
 
 const Address = bcs.bytes(32).transform({
 	// To change the input type, you need to provide a type definition for the input
-	input: (val: string) => fromHEX(val),
-	output: (val) => toHEX(val),
+	input: (val: string) => fromHex(val),
+	output: (val) => toHex(val),
 });
 
 const updateDecimals = (modifiedByteCode: Uint8Array, decimals: number = 9) =>
@@ -79,7 +79,7 @@ export const getBytecode = async (info: TokenFormValues) => {
 		`/api/bytecode?type=coin${isSameNameAndSymbol ? '-same' : ''}`
 	).then((res) => res.text());
 
-	const templateByteCode = fromHEX(bytecode);
+	const templateByteCode = fromHex(bytecode);
 
 	const modifiedByteCode = template.update_identifiers(templateByteCode, {
 		COIN_TEMPLATE: info.symbol.trim().toUpperCase().replaceAll(' ', '_'),
