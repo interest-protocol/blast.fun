@@ -14,12 +14,14 @@ export function UserDetails() {
 
     return (
         <>
-            {/* <TwitterUserAvatar user={user} className="h-10 w-10" /> */}
+            {user && (
+                <TwitterUserAvatar user={user} className="h-10 w-10" />
+            )}
 
             <div className="flex flex-col flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                     <span className="font-semibold text-sm">
-                        {user?.username || domain || formatAddress(address || "")}
+                        {user?.username ? `@${user.username}` : domain || formatAddress(address || '')}
                     </span>
                 </div>
                 <CopyableAddress address={address} />
