@@ -37,7 +37,7 @@ export function WalletList({
     }
 
     return (
-        <div className="flex flex-col gap-2">
+        <div className="w-full flex flex-col gap-2">
             {wallets.length > 0 &&
                 wallets.map((wallet) => (
                     <Button
