@@ -40,9 +40,7 @@ export default function CreateTokenButton({ form }: CreateTokenButtonnProps) {
             // const hideIdentityCoin = tx.splitCoins(tx.gas, [String(HIDE_IDENTITY_SUI_FEE)]);
             // tx.transferObjects([hideIdentityCoin], tx.pure.address(FEE_ADDRESS));
 
-            const bytecode = await getBytecode({
-                ...form.getValues()
-            });
+            const bytecode = await getBytecode(form.getValues());
 
             const [upgradeCap] = tx.publish({
                 modules: [[...bytecode]],
