@@ -22,6 +22,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import TokenCreationButton from "./create-token-button";
 import { cn, getBase64 } from "@/utils";
+import { MIST_PER_SUI } from "@mysten/sui/utils";
+import { HIDE_IDENTITY_SUI_FEE } from "@/constants/fees";
 
 const tokenSchema = z.object({
 	name: z.string().min(3, "Minimum 3 characters").max(20, "Maximum 20 characters"),
@@ -304,7 +306,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 											</FormLabel>
 										</div>
 										<p className="font-mono text-xs uppercase text-foreground/60">
-											PAY 10 SUI TO REMAIN [ANONYMOUS]
+											PAY {(Number(HIDE_IDENTITY_SUI_FEE) / Number(MIST_PER_SUI))} SUI TO REMAIN [ANONYMOUS]
 										</p>
 									</div>
 									<FormControl>
