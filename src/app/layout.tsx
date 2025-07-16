@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/providers/theme-provider";
 import { TailwindIndicator } from "@/components/utils/tailwind-indicator";
 import SuiProvider from "@/providers/sui-provider";
 import { TwitterAuthProvider } from "@/context/twitter.context";
+import { SessionProvider } from "next-auth/react";
 
 export const metadata: Metadata = {
     title: "xPump Launchpad",
@@ -32,25 +33,27 @@ export default function RootLayout({
                     defaultTheme="dark"
                     disableTransitionOnChange
                 >
-                    <TwitterAuthProvider>
-                        <SuiProvider>
-                            {children}
+                    <SessionProvider>
+                        <TwitterAuthProvider>
+                            <SuiProvider>
+                                {children}
 
-                            <TailwindIndicator />
-                            <Toaster
-                                position="bottom-center"
-                                reverseOrder={true}
-                                toastOptions={{
-                                    style: {
-                                        backgroundColor: "var(--card)",
-                                        color: "var(--foreground)",
-                                        padding: "12px 12px",
-                                        border: "1px solid var(--border)",
-                                    },
-                                }}
-                            />
-                        </SuiProvider>
-                    </TwitterAuthProvider>
+                                <TailwindIndicator />
+                                <Toaster
+                                    position="bottom-center"
+                                    reverseOrder={true}
+                                    toastOptions={{
+                                        style: {
+                                            backgroundColor: "var(--card)",
+                                            color: "var(--foreground)",
+                                            padding: "12px 12px",
+                                            border: "1px solid var(--border)",
+                                        },
+                                    }}
+                                />
+                            </SuiProvider>
+                        </TwitterAuthProvider>
+                    </SessionProvider>
                 </ThemeProvider>
             </body>
         </html>

@@ -1,7 +1,23 @@
 'use client';
 
 import { createContext, useContext, useReducer, useCallback, useMemo, ReactNode, useEffect } from 'react';
-import { TwitterUser, TwitterAuthState } from '@/types/twitter';
+import { signIn, signOut } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
+
+// Define types locally since we removed twitter.ts
+interface TwitterUser {
+    id: string;
+    username: string;
+    name: string | null;
+    profile_image_url: string | null;
+}
+
+interface TwitterAuthState {
+    user: TwitterUser | null;
+    isLoading: boolean;
+    isLoggedIn: boolean;
+    error: string | null;
+}
 
 type TwitterAuthAction =
     | { type: 'SET_LOADING'; payload: boolean }
@@ -41,22 +57,12 @@ function twitterAuthReducer(state: TwitterAuthState, action: TwitterAuthAction):
 
 export function TwitterAuthProvider({ children }: { children: ReactNode }) {
     const [state, dispatch] = useReducer(twitterAuthReducer, initialState);
+    const { data: session, status } = useSession();
 
     const login = useCallback(async () => {
         try {
             dispatch({ type: 'SET_LOADING', payload: true });
-
-            const response = await fetch('/api/auth/twitter/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to get authorization URL');
-            }
-
-            const { authUrl } = await response.json();
-            window.location.href = authUrl;
+            await signIn('twitter');
         } catch (error) {
             dispatch({
                 type: 'SET_ERROR',
@@ -68,13 +74,7 @@ export function TwitterAuthProvider({ children }: { children: ReactNode }) {
     const logout = useCallback(async () => {
         try {
             dispatch({ type: 'SET_LOADING', payload: true });
-
-            await fetch('/api/auth/twitter/logout', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-            });
-
-            dispatch({ type: 'SET_USER', payload: null });
+            await signOut({ redirect: true, callbackUrl: '/' });
         } catch (error) {
             dispatch({
                 type: 'SET_ERROR',
@@ -84,31 +84,25 @@ export function TwitterAuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const checkAuthStatus = useCallback(async () => {
-        try {
-            dispatch({ type: 'SET_LOADING', payload: true });
-
-            const response = await fetch('/api/auth/twitter/me', {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' },
-            });
-
-            if (response.ok) {
-                const user = await response.json();
-                dispatch({ type: 'SET_USER', payload: user });
-            } else {
-                dispatch({ type: 'SET_USER', payload: null });
-            }
-        } catch (error) {
-            dispatch({
-                type: 'SET_ERROR',
-                payload: error instanceof Error ? error.message : 'Auth check failed'
-            });
-        }
+        // NextAuth handles this automatically via useSession
+        // We'll update state based on session data in useEffect
     }, []);
 
     useEffect(() => {
-        checkAuthStatus();
-    }, [checkAuthStatus])
+        if (status === 'loading') {
+            dispatch({ type: 'SET_LOADING', payload: true });
+        } else if (status === 'authenticated' && session?.user) {
+            const user: TwitterUser = {
+                id: session.user.twitterId || '',
+                username: session.user.username || '',
+                name: session.user.name || '',
+                profile_image_url: session.user.image || null,
+            };
+            dispatch({ type: 'SET_USER', payload: user });
+        } else {
+            dispatch({ type: 'SET_USER', payload: null });
+        }
+    }, [session, status])
 
     const contextValue = useMemo(() => ({
         ...state,
