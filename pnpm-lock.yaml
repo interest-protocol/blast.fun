@@ -23,6 +23,9 @@ importers:
       '@mysten/wallet-standard':
         specifier: ^0.16.5
         version: 0.16.5(typescript@5.8.3)
+      '@prisma/client':
+        specifier: ^6.12.0
+        version: 6.12.0(prisma@6.12.0(typescript@5.8.3))(typescript@5.8.3)
       '@radix-ui/react-avatar':
         specifier: ^1.1.10
         version: 1.1.10(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -618,6 +621,18 @@ packages:
     resolution: {integrity: sha512-iLwY3i/cUnkKARS8eQFuXYKxxpVjVE6iWZyde36AhWsyfX8VhwL43IoVwdr/kTsLk/QOlqEpimEP/QiHQ+v58Q==}
     peerDependencies:
       '@mysten/sui': ^1.15.1
+
+  '@prisma/client@6.12.0':
+    resolution: {integrity: sha512-wn98bJ3Cj6edlF4jjpgXwbnQIo/fQLqqQHPk2POrZPxTlhY3+n90SSIF3LMRVa8VzRFC/Gec3YKJRxRu+AIGVA==}
+    engines: {node: '>=18.18'}
+    peerDependencies:
+      prisma: '*'
+      typescript: '>=5.1.0'
+    peerDependenciesMeta:
+      prisma:
+        optional: true
+      typescript:
+        optional: true
 
   '@prisma/config@6.12.0':
     resolution: {integrity: sha512-HovZWzhWEMedHxmjefQBRZa40P81N7/+74khKFz9e1AFjakcIQdXgMWKgt20HaACzY+d1LRBC+L4tiz71t9fkg==}
@@ -3637,6 +3652,11 @@ snapshots:
   '@polymedia/suitcase-core@0.0.36(@mysten/sui@1.36.0(typescript@5.8.3))':
     dependencies:
       '@mysten/sui': 1.36.0(typescript@5.8.3)
+
+  '@prisma/client@6.12.0(prisma@6.12.0(typescript@5.8.3))(typescript@5.8.3)':
+    optionalDependencies:
+      prisma: 6.12.0(typescript@5.8.3)
+      typescript: 5.8.3
 
   '@prisma/config@6.12.0':
     dependencies:

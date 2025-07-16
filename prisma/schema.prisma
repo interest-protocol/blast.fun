@@ -13,3 +13,20 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model TokenLaunches {
+  id                String @id @default(cuid())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  poolObjectId      String @unique
+  creatorAddress    String
+  twitterUserId     String?
+  twitterUsername   String?
+  hideIdentity      Boolean @default(false)
+  
+  tokenTxHash       String
+  poolTxHash        String
+  
+  @@map("token_launches")
+}

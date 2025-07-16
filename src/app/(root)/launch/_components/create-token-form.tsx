@@ -18,6 +18,7 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import TokenCreationButton from "./create-token-button";
 
 const tokenSchema = z.object({
@@ -28,6 +29,7 @@ const tokenSchema = z.object({
 	website: z.url("Must be a valid URL").optional().or(z.literal("")),
 	telegram: z.url("Must be a valid Telegram URL").optional().or(z.literal("")),
 	twitter: z.url("Must be a valid Twitter/X URL").optional().or(z.literal("")),
+	hideIdentity: z.boolean().default(false),
 });
 
 export type TokenFormValues = z.infer<typeof tokenSchema>;
@@ -43,6 +45,7 @@ export default function CreateTokenForm() {
 			website: "",
 			telegram: "",
 			twitter: "",
+			hideIdentity: false,
 		},
 		mode: 'onBlur'
 	});
@@ -180,6 +183,29 @@ export default function CreateTokenForm() {
 								)}
 							/>
 						</div>
+
+						<FormField
+							control={form.control}
+							name="hideIdentity"
+							render={({ field }) => (
+								<FormItem className="flex flex-row items-center justify-between rounded-md border p-4">
+									<div className="space-y-0.5">
+										<FormLabel>
+											Hide Identity (10 SUI)
+										</FormLabel>
+										<FormDescription>
+											Pay 10 SUI to hide your Twitter username from being displayed as the token creator. Your identity will remain anonymous to other users.
+										</FormDescription>
+									</div>
+									<FormControl>
+										<Switch
+											checked={field.value}
+											onCheckedChange={field.onChange}
+										/>
+									</FormControl>
+								</FormItem>
+							)}
+						/>
 
 						<TokenCreationButton form={form} />
 					</form>

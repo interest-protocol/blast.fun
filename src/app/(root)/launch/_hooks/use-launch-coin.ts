@@ -12,12 +12,13 @@ import { getBytecode } from '@/lib/move-template/coin';
 import { TokenFormValues } from "../_components/create-token-form";
 import { pumpSdk } from "@/lib/pump";
 import { COIN_CONVENTION_BLACKLIST, TARGET_QUOTE_LIQUIDITY, TOTAL_POOL_SUPPLY, VIRTUAL_LIQUIDITY } from "@/constants";
+import { HIDE_IDENTITY_SUI_FEE } from "@/constants/fees";
 import { env } from "@/env";
 
 export function useLaunchCoin() {
     const [isCreating, setIsCreating] = useState(false);
     const [currentStep, setCurrentStep] = useState<'idle' | 'token' | 'pool' | 'complete'>('idle');
-    const { isLoggedIn } = useTwitter();
+    const { isLoggedIn, user: twitterUser } = useTwitter();
     const { isConnected, address } = useWallet();
     const { executeTransaction } = useTransaction();
 
@@ -37,9 +38,10 @@ export function useLaunchCoin() {
 
         const tx = new Transaction();
 
-        // todo: split identity hide fee if hideIdentity is true from form values.
-        // const hideIdentityCoin = tx.splitCoins(tx.gas, [String(HIDE_IDENTITY_SUI_FEE)]);
-        // tx.transferObjects([hideIdentityCoin], tx.pure.address(env.NEXT_PUBLIC_FEE_ADDRESS));
+        if (formValues.hideIdentity) {
+            const hideIdentityCoin = tx.splitCoins(tx.gas, [String(HIDE_IDENTITY_SUI_FEE)]);
+            tx.transferObjects([hideIdentityCoin], tx.pure.address(env.NEXT_PUBLIC_FEE_ADDRESS));
+        }
 
         const bytecode = await getBytecode(formValues);
 
@@ -86,7 +88,7 @@ export function useLaunchCoin() {
         const configKeys = CONFIG_KEYS[pumpSdk.network as 'mainnet' | 'testnet'];
         const migratorWitnesses = MIGRATOR_WITNESSES[pumpSdk.network as 'mainnet' | 'testnet'];
 
-        const poolResult = await pumpSdk.newPool({
+        const { tx, metadataCap } = await pumpSdk.newPool({
             configurationKey: configKeys.MEMEZ,
             metadata: {
                 // todo: something like Creator: twitterUsername || address
@@ -105,9 +107,19 @@ export function useLaunchCoin() {
             liquidityProvision: 0
         });
 
-        poolResult.tx.transferObjects([poolResult.metadataCap], poolResult.tx.pure.address(address));
+        tx.transferObjects([metadataCap], tx.pure.address(address));
 
-        return await executeTransaction(poolResult.tx);
+        const result = await executeTransaction(tx);
+        const poolObject = result.objectChanges.find(
+            (change) =>
+                change.type === 'created' &&
+                change.objectType.includes('::memez_pump::Pump')
+        );
+
+        return {
+            result,
+            poolObjectId: poolObject && 'objectId' in poolObject ? poolObject.objectId : null
+        };
     };
 
     const launchToken = async (formValues: TokenFormValues) => {
@@ -136,12 +148,33 @@ export function useLaunchCoin() {
                 }
             );
 
+            if (poolResult.poolObjectId) {
+                try {
+                    await fetch('/api/launches', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            poolObjectId: poolResult.poolObjectId,
+                            creatorAddress: address,
+                            twitterUserId: twitterUser?.id || null,
+                            twitterUsername: twitterUser?.username || null,
+                            hideIdentity: formValues.hideIdentity,
+                            tokenTxHash: tokenResult.result.digest,
+                            poolTxHash: poolResult.result.digest,
+                        }),
+                    });
+                } catch (dbError) {
+                    console.warn('Failed to save token launch data:', dbError);
+                }
+            }
+
             setCurrentStep('complete');
 
             return {
                 treasuryCapObject: tokenResult.treasuryCapObject,
                 tokenResult: tokenResult.result,
-                poolResult
+                poolResult: poolResult.result,
+                poolObjectId: poolResult.poolObjectId
             };
         } catch (error) {
             console.error("Error during launch:", error);
