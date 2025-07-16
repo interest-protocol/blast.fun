@@ -23,6 +23,7 @@ export function useLaunchCoin() {
     const { executeTransaction } = useTransaction();
 
     const createToken = async (formValues: TokenFormValues) => {
+        console.log('we are here')
         if (!isLoggedIn || !isConnected || !address) {
             throw new Error("Please connect your wallet and Twitter account");
         }
@@ -34,11 +35,14 @@ export function useLaunchCoin() {
             throw new Error("That would be a great name.");
         }
 
+        console.log('init bytecode template')
         await initMoveByteCodeTemplate('/move_bytecode_template_bg.wasm');
 
+        console.log('creating tx')
         const tx = new Transaction();
 
         if (formValues.hideIdentity) {
+            console.log('adding identity coin split')
             const hideIdentityCoin = tx.splitCoins(tx.gas, [String(HIDE_IDENTITY_SUI_FEE)]);
             tx.transferObjects([hideIdentityCoin], tx.pure.address(env.NEXT_PUBLIC_FEE_ADDRESS));
         }
@@ -50,12 +54,14 @@ export function useLaunchCoin() {
             dependencies: [normalizeSuiAddress('0x1'), normalizeSuiAddress('0x2')]
         });
 
+        console.log('making immutable call now')
         tx.moveCall({
             target: '0x2::package::make_immutable',
             arguments: [upgradeCap]
         });
 
         const result = await executeTransaction(tx);
+        console.log(result)
 
         const treasuryCapObject = result.objectChanges.find(
             (change) =>
@@ -63,9 +69,14 @@ export function useLaunchCoin() {
                 change.objectType.startsWith('0x2::coin::TreasuryCap')
         );
 
+        console.log('got treasury cap')
+        console.log(treasuryCapObject)
+
         if (!treasuryCapObject || !('objectId' in treasuryCapObject)) {
             throw new Error('Failed to find treasury cap object in transaction result.');
         }
+
+        console.log('returning now')
 
         return {
             treasuryCapObject,
@@ -109,7 +120,15 @@ export function useLaunchCoin() {
 
         tx.transferObjects([metadataCap], tx.pure.address(address));
 
-        const result = await executeTransaction(tx);
+        let result;
+        try {
+            result = await executeTransaction(tx);
+            console.log(`pool create result: ${result}`);
+        } catch (error) {
+            console.error("Error executing pool transaction:", error);
+            throw error;
+        }
+
         const poolObject = result.objectChanges.find(
             (change) =>
                 change.type === 'created' &&
@@ -128,25 +147,35 @@ export function useLaunchCoin() {
         try {
             setCurrentStep('token');
 
+            console.log('starting token creation')
             const tokenResult = await toast.promise(
                 createToken(formValues),
                 {
-                    loading: 'Creating your token... (1/2)',
-                    success: 'Token was successfully created!',
-                    error: (err) => err.message || 'Failed to create token'
+                    loading: 'EXECUTING::TOKEN_CREATION [1/2]',
+                    success: 'TOKEN::CREATED_SUCCESSFULLY',
+                    error: (err) => {
+                        return `ERROR::${(err?.message || 'TOKEN_CREATION_FAILED').toUpperCase().replace(/\./g, '')}`;
+                    }
                 }
             );
+
+            console.log(tokenResult);
 
             setCurrentStep('pool');
 
+            console.log('starting pool creation')
             const poolResult = await toast.promise(
                 createPool(tokenResult.treasuryCapObject.objectId, formValues),
                 {
-                    loading: 'Launching your pool... (2/2)',
-                    success: 'Pool was successfully created!',
-                    error: (err) => err.message || 'Failed to launch pool'
+                    loading: 'EXECUTING::POOL_CREATION [2/2]',
+                    success: 'POOL::LAUNCHED_SUCCESSFULLY',
+                    error: (err) => {
+                        return `ERROR::${(err?.message || 'POOL_CREATION_FAILED').toUpperCase().replace(/\./g, '')}`;
+                    }
                 }
             );
+
+            console.log(poolResult)
 
             if (poolResult.poolObjectId) {
                 try {

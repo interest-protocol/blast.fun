@@ -15,10 +15,11 @@ import {
     useDisconnectWallet,
     useResolveSuiNSName,
 } from "@mysten/dapp-kit";
-import type { WalletWithRequiredFeatures } from "@mysten/wallet-standard";
+import type { WalletAccount, WalletWithRequiredFeatures } from "@mysten/wallet-standard";
 import toast from "react-hot-toast";
 
 interface WalletContextValue {
+    wallet: WalletAccount | null;
     address: string | null;
     domain: string | null;
 
@@ -89,6 +90,7 @@ export function WalletContextProvider({ children }: { children: ReactNode }) {
 
     const value: WalletContextValue = useMemo(
         () => ({
+            wallet: currentAccount,
             address,
             domain,
 
@@ -101,7 +103,7 @@ export function WalletContextProvider({ children }: { children: ReactNode }) {
             connect,
             disconnect,
         }),
-        [address, domain, isConnected, isConnecting, isConnectDialogOpen, connect, disconnect]
+        [currentAccount, address, domain, isConnected, isConnecting, isConnectDialogOpen, connect, disconnect]
     );
 
     return (
