@@ -1,6 +1,6 @@
 "use client";
 
-import { useWallet } from "@/context/wallet.context";
+import { useApp } from "@/context/app.context";
 import { formatAddress } from "@mysten/sui/utils";
 import { CopyableAddress } from "../shared/copyable-address";
 import { useTwitter } from "@/context/twitter.context";
@@ -8,7 +8,7 @@ import { TwitterUserAvatar } from "./user-avatar";
 
 export function UserDetails() {
     const { user, isLoggedIn } = useTwitter();
-    const { isConnected, address, domain } = useWallet();
+    const { isConnected, address, domain } = useApp();
 
     if (!isConnected || !address) return null;
 

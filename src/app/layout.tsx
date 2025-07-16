@@ -5,7 +5,6 @@ import { geistMono, geistSans } from "@/fonts";
 import { cn } from "@/utils"
 import { ThemeProvider } from "@/providers/theme-provider";
 import { TailwindIndicator } from "@/components/utils/tailwind-indicator";
-import { WalletContextProvider } from "@/context/wallet.context";
 import SuiProvider from "@/providers/sui-provider";
 import { TwitterAuthProvider } from "@/context/twitter.context";
 

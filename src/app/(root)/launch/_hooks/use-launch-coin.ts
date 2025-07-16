@@ -4,7 +4,7 @@ import { normalizeSuiAddress } from "@mysten/sui/utils";
 import { SUI_TYPE_ARG } from "@mysten/sui/utils";
 import toast from "react-hot-toast";
 import { CONFIG_KEYS, MIGRATOR_WITNESSES } from '@interest-protocol/memez-fun-sdk';
-import { useWallet } from "@/context/wallet.context";
+import { useApp } from "@/context/app.context";
 import { useTwitter } from "@/context/twitter.context";
 import { useTransaction } from "@/hooks/sui/use-transaction";
 import initMoveByteCodeTemplate from '@/lib/move-template/move-bytecode-template';
@@ -19,7 +19,7 @@ export function useLaunchCoin() {
     const [isCreating, setIsCreating] = useState(false);
     const [currentStep, setCurrentStep] = useState<'idle' | 'token' | 'pool' | 'complete'>('idle');
     const { isLoggedIn, user: twitterUser } = useTwitter();
-    const { isConnected, address } = useWallet();
+    const { isConnected, address } = useApp();
     const { executeTransaction } = useTransaction();
 
     const createToken = async (formValues: TokenFormValues) => {

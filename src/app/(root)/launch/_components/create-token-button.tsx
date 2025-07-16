@@ -58,10 +58,6 @@ export default function CreateTokenButton({ form }: CreateTokenButtonnProps) {
         }
     };
 
-    const getButtonVariant = () => {
-        return 'default' as const;
-    };
-
     return (
         <div className="space-y-3">
             {isCreating && (
@@ -89,7 +85,7 @@ export default function CreateTokenButton({ form }: CreateTokenButtonnProps) {
                     "w-full font-mono uppercase tracking-wider",
                     isCreating && "animate-pulse"
                 )}
-                variant={getButtonVariant()}
+                variant='default'
                 disabled={isCreating || !form.formState.isValid}
                 onClick={form.handleSubmit(onSubmit)}
             >

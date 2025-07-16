@@ -1,4 +1,4 @@
-import { useWallet } from "@/context/wallet.context";
+import { useApp } from "@/context/app.context";
 import {
     Dialog,
     DialogContent,
@@ -10,7 +10,6 @@ import {
 import { Button } from "../ui/button";
 import { WalletList } from "../shared/wallet-list";
 
-// @todo: Replace our dialog trigger with a Link to Twitter/X OAuth route, 
 export function AuthenticationDialog() {
     const {
         isConnecting,
@@ -19,7 +18,7 @@ export function AuthenticationDialog() {
         setIsConnectDialogOpen,
 
         connect
-    } = useWallet();
+    } = useApp();
 
     return (
         <Dialog open={isConnectDialogOpen} onOpenChange={setIsConnectDialogOpen}>

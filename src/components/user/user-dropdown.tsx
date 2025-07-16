@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { useWallet } from "@/context/wallet.context";
+import { useApp } from "@/context/app.context";
 import { Button } from "../ui/button";
 import { formatAddress } from "@mysten/sui/utils";
 import { AuthenticationDialog } from "../dialogs/AuthenticationDialog";
@@ -15,7 +15,7 @@ export function UserDropdown() {
     const [open, setOpen] = useState(false);
 
     const { user, isLoggedIn, login, logout } = useTwitter();
-    const { isConnected, address, domain, disconnect } = useWallet();
+    const { isConnected, address, domain, disconnect } = useApp();
 
     return (
         <Popover

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useWallet } from "@/context/wallet.context";
+import { useApp } from "@/context/app.context";
 import CreateTokenForm from "./_components/create-token-form";
 import { useTwitter } from "@/context/twitter.context";
 import { WalletList } from '@/components/shared/wallet-list';
@@ -13,7 +13,7 @@ import { TwitterUserAvatar } from "@/components/user/user-avatar";
 import type { TokenFormValues } from "./_components/create-token-form";
 
 export default function LaunchPage() {
-    const { isConnected, isConnecting, connect } = useWallet();
+    const { isConnected, isConnecting, connect } = useApp();
     const { isLoggedIn, login, user } = useTwitter();
     const [tokenData, setTokenData] = useState<Partial<TokenFormValues>>({});
 

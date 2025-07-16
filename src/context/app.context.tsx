@@ -18,7 +18,7 @@ import {
 import type { WalletAccount, WalletWithRequiredFeatures } from "@mysten/wallet-standard";
 import toast from "react-hot-toast";
 
-interface WalletContextValue {
+interface AppContextValue {
     wallet: WalletAccount | null;
     address: string | null;
     domain: string | null;
@@ -33,19 +33,19 @@ interface WalletContextValue {
     disconnect: () => Promise<void>;
 }
 
-const WalletContext = createContext<WalletContextValue | null>(null);
+const AppContext = createContext<AppContextValue | null>(null);
 
-export function useWallet() {
-    const walletContext = useContext(WalletContext);
+export function useApp() {
+    const appContext = useContext(AppContext);
 
-    if (!walletContext) {
-        throw new Error("useWallet must be used within WalletProvider");
+    if (!appContext) {
+        throw new Error("useApp must be used within AppProvider");
     }
 
-    return walletContext;
+    return appContext;
 }
 
-export function WalletContextProvider({ children }: { children: ReactNode }) {
+export function AppContextProvider({ children }: { children: ReactNode }) {
     const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
 
     const { mutateAsync: connectMutation, isPending: isConnecting } = useConnectWallet();
@@ -88,7 +88,7 @@ export function WalletContextProvider({ children }: { children: ReactNode }) {
         }
     }, [isConnected, isConnectDialogOpen]);
 
-    const value: WalletContextValue = useMemo(
+    const value: AppContextValue = useMemo(
         () => ({
             wallet: currentAccount,
             address,
@@ -107,8 +107,8 @@ export function WalletContextProvider({ children }: { children: ReactNode }) {
     );
 
     return (
-        <WalletContext.Provider value={value}>
+        <AppContext.Provider value={value}>
             {children}
-        </WalletContext.Provider>
+        </AppContext.Provider>
     );
 }
