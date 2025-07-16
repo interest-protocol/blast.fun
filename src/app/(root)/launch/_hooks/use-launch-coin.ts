@@ -12,6 +12,7 @@ import { getBytecode } from '@/lib/move-template/coin';
 import { TokenFormValues } from "../_components/create-token-form";
 import { pumpSdk } from "@/lib/pump";
 import { COIN_CONVENTION_BLACKLIST, TARGET_QUOTE_LIQUIDITY, TOTAL_POOL_SUPPLY, VIRTUAL_LIQUIDITY } from "@/constants";
+import { env } from "@/env";
 
 export function useLaunchCoin() {
     const [isCreating, setIsCreating] = useState(false);
@@ -38,7 +39,7 @@ export function useLaunchCoin() {
 
         // todo: split identity hide fee if hideIdentity is true from form values.
         // const hideIdentityCoin = tx.splitCoins(tx.gas, [String(HIDE_IDENTITY_SUI_FEE)]);
-        // tx.transferObjects([hideIdentityCoin], tx.pure.address(FEE_ADDRESS));
+        // tx.transferObjects([hideIdentityCoin], tx.pure.address(env.NEXT_PUBLIC_FEE_ADDRESS));
 
         const bytecode = await getBytecode(formValues);
 

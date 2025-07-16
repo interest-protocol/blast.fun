@@ -1,5 +1,3 @@
-export const FEE_ADDRESS = '0x0';
-
 export const DEFAULT_TOKEN_DECIMALS = 9;
 
 export const TOTAL_POOL_SUPPLY = 1_000_000_000_000_000_000n;
