@@ -10,13 +10,18 @@ export const env = createEnv({
 
         TWITTER_CLIENT_SECRET: z.string().min(1),
         TWITTER_CLIENT_ID: z.string().min(1),
-        
+
         NEXTAUTH_URL: z.string().url().optional(),
     },
     client: {
+        NEXT_PUBLIC_DEFAULT_NETWORK: z.union([
+            z.literal('mainnet'),
+            z.literal('testnet')
+        ]),
         NEXT_PUBLIC_FEE_ADDRESS: z.string().min(1),
     },
     runtimeEnv: {
+        NEXT_PUBLIC_DEFAULT_NETWORK: process.env.NEXT_PUBLIC_DEFAULT_NETWORK,
         NEXT_PUBLIC_FEE_ADDRESS: process.env.NEXT_PUBLIC_FEE_ADDRESS,
 
         AUTH_SECRET: process.env.AUTH_SECRET,
@@ -26,7 +31,7 @@ export const env = createEnv({
 
         TWITTER_CLIENT_SECRET: process.env.TWITTER_CLIENT_SECRET,
         TWITTER_CLIENT_ID: process.env.TWITTER_CLIENT_ID,
-        
+
         NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     }
 });

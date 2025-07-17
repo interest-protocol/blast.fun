@@ -8,6 +8,7 @@ import { Network } from "@/types/network";
 import useNetworkConfig from "@/hooks/use-network-config";
 
 import "@mysten/dapp-kit/dist/index.css";
+import { env } from "@/env";
 
 const queryClient = new QueryClient();
 
@@ -18,7 +19,7 @@ export default function SuiProvider({ children }: { children: ReactNode }) {
         <QueryClientProvider client={queryClient}>
             <SuiClientProvider
                 networks={networkConfig}
-                defaultNetwork={Network.MAINNET}
+                defaultNetwork={env.NEXT_PUBLIC_DEFAULT_NETWORK as Network}
             >
                 <WalletProvider autoConnect slushWallet={{ name: 'xPump Launchpad' }}>
                     <AppContextProvider>
