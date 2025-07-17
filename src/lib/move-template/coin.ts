@@ -73,7 +73,7 @@ const updateTreasuryCapRecipient = (
 		'Address'
 	);
 
-export const getBytecode = async (info: TokenFormValues) => {
+export const getBytecode = async (info: TokenFormValues, recipient: string) => {
 	const isSameNameAndSymbol = info.symbol === info.name;
 	const bytecode = await fetch(
 		`/api/bytecode?type=coin${isSameNameAndSymbol ? '-same' : ''}`
@@ -105,7 +105,7 @@ export const getBytecode = async (info: TokenFormValues) => {
 	updated = updateMintAmount(updated, supply);
 	updated = updateTreasuryCapRecipient(
 		updated,
-		normalizeSuiAddress('0x0')
+		recipient
 	);
 
 	return updated;
