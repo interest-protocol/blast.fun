@@ -1,5 +1,6 @@
 import Header from "@/components/layout/header";
 import { Ticker } from "@/components/shared/ticker";
+import { MobileNav } from "@/components/layout/mobile-nav";
 
 export default function Layout({
     children,
@@ -13,9 +14,11 @@ export default function Layout({
             <Ticker items={['matical has bought 5 SUI of PumpCoin', 'matical has sold 28.224 SUI of PumpCoin', 'test has created PumpCoin']} />
             <Header />
 
-            <main className="flex-1 overflow-y-auto">
+            <main className="flex-1 overflow-y-auto pb-14 md:pb-0">
                 <div className="mx-auto max-w-7xl px-4 py-6">{children}</div>
             </main>
+            
+            <MobileNav />
         </div>
     );
 }

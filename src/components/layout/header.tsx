@@ -6,13 +6,14 @@ import { UserDropdown } from "../user/user-dropdown";
 import Balance from "../balance";
 import { Skull } from "lucide-react";
 import { useApp } from "@/context/app.context";
+import { DesktopNav } from "./desktop-nav";
 
 export default function Header() {
     const { isConnected } = useApp();
 
     return (
         <header className="flex h-14 sticky top-0 border-b-2 bg-background/80 backdrop-blur-md z-50">
-            <div className="3xl:px-0 top-0 z-[90] mx-auto grid h-12 w-full max-w-9xl shrink-0 grid-cols-2 items-center px-3 md:h-14 md:grid-cols-2">
+            <div className="3xl:px-0 top-0 z-[90] mx-auto grid h-12 w-full max-w-9xl shrink-0 grid-cols-3 items-center px-3 md:h-14">
                 <div className="flex items-center gap-2">
                     <Link href="/" className="group flex items-center gap-2">
                         <div className="relative">
@@ -23,6 +24,10 @@ export default function Header() {
                             X::PUMP
                         </span>
                     </Link>
+                </div>
+                
+                <div className="flex justify-center">
+                    <DesktopNav />
                 </div>
 
                 <div className="flex items-center justify-end gap-3">
