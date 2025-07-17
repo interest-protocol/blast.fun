@@ -126,7 +126,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 										<FormControl>
 											<div
 												className={cn(
-													"relative h-[120px] w-[120px] border-2 border-dashed rounded-lg ease-in-out duration-200 transition-all cursor-pointer",
+													"relative h-[120px] w-[120px] border-2 border-dashed rounded-lg ease-in-out duration-200 transition-all",
 													isDragging ? "border-primary bg-primary/5" : "hover:border-primary",
 													imageUrl && "border-solid"
 												)}
@@ -152,7 +152,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 														</Button>
 													</>
 												) : (
-													<label className="flex flex-col items-center justify-center w-full h-full cursor-pointer">
+													<label className="flex flex-col items-center justify-center w-full h-full">
 														<Upload className="w-8 h-8 text-foreground/20 mb-2" />
 														<span className="text-xs font-mono uppercase text-foreground/40">DROP::IMAGE</span>
 														<input
@@ -301,7 +301,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 									<div className="space-y-2">
 										<div className="flex items-center gap-2">
 											<Skull className="h-4 w-4 text-destructive" />
-											<FormLabel className="font-mono text-sm uppercase tracking-wider cursor-pointer">
+											<FormLabel className="font-mono text-sm uppercase tracking-wider">
 												HIDE::IDENTITY
 											</FormLabel>
 										</div>

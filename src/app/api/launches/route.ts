@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const tokenLaunch = await prisma.tokenLaunch.create({
+        const tokenLaunch = await prisma.tokenLaunches.create({
             data: {
                 poolObjectId,
                 creatorAddress,

@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { TwitterUserAvatar } from "@/components/user/user-avatar";
 import type { TokenFormValues } from "./_components/create-token-form";
+import { HIDE_IDENTITY_SUI_FEE } from "@/constants/fees";
+import { MIST_PER_SUI } from "@mysten/sui/utils";
 
 export default function LaunchPage() {
     const { isConnected, isConnecting, connect } = useApp();
@@ -115,7 +117,7 @@ export default function LaunchPage() {
                             <AlertDescription className="font-mono text-xs uppercase">
                                 YOUR TWITTER USERNAME WILL BE PUBLICLY DISPLAYED AS THE TOKEN CREATOR.
                                 <br />
-                                PAY 10 SUI TO REMAIN ANONYMOUS.
+                                PAY {(Number(HIDE_IDENTITY_SUI_FEE) / Number(MIST_PER_SUI))} SUI TO REMAIN ANONYMOUS.
                             </AlertDescription>
                         </Alert>
 

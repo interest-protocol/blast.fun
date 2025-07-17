@@ -1,96 +1,60 @@
 "use client";
 
 import { UseFormReturn } from "react-hook-form";
-import { Wallet, Rocket, CheckCircle2 } from "lucide-react";
+import { Terminal } from "lucide-react";
 import { TokenFormValues } from "./create-token-form";
 import { Button } from "@/components/ui/button";
 import { useLaunchCoin } from "../_hooks/use-launch-coin";
 import { cn } from "@/utils";
+import { useState } from "react";
+import { TerminalDialog } from "./terminal-dialog";
 
-interface CreateTokenButtonnProps {
+interface CreateTokenButtonProps {
     form: UseFormReturn<TokenFormValues>;
 }
 
-export default function CreateTokenButton({ form }: CreateTokenButtonnProps) {
-    const { isCreating, launchToken, currentStep } = useLaunchCoin();
+export default function CreateTokenButton({ form }: CreateTokenButtonProps) {
+    const { isLaunching, logs, result, launchToken } = useLaunchCoin();
+    const [showTerminal, setShowTerminal] = useState(false);
 
     const onSubmit = async (data: TokenFormValues) => {
-        await launchToken(data);
-        form.reset();
-    };
-
-    const getButtonContent = () => {
-        switch (currentStep) {
-            case 'token':
-                return (
-                    <>
-                        <Wallet className="mr-2 h-4 w-4 animate-pulse" />
-                        <span className="font-mono uppercase">
-                            APPROVE::TOKEN_TX
-                            <span className="text-xs ml-2 opacity-60">[1/2]</span>
-                        </span>
-                    </>
-                );
-            case 'pool':
-                return (
-                    <>
-                        <Wallet className="mr-2 h-4 w-4 animate-pulse" />
-                        <span className="font-mono uppercase">
-                            APPROVE::POOL_TX
-                            <span className="text-xs ml-2 opacity-60">[2/2]</span>
-                        </span>
-                    </>
-                );
-            case 'complete':
-                return (
-                    <>
-                        <CheckCircle2 className="mr-2 h-4 w-4" />
-                        <span className="font-mono uppercase">LAUNCH::COMPLETE</span>
-                    </>
-                );
-            default:
-                return (
-                    <>
-                        <Rocket className="mr-2 h-4 w-4" />
-                        <span className="font-mono uppercase">LAUNCH::TOKEN</span>
-                    </>
-                );
+        setShowTerminal(true);
+        try {
+            await launchToken(data);
+            form.reset();
+        } catch (error) {
+            // terminal dialog handles this
         }
     };
 
     return (
-        <div className="space-y-3">
-            {isCreating && (
-                <div className="space-y-2">
-                    <div className="flex items-center justify-between font-mono text-xs uppercase text-foreground/60">
-                        <span>TRANSACTION::PROGRESS</span>
-                        <span>{currentStep === 'token' ? '1/2' : currentStep === 'pool' ? '2/2' : '0/2'}</span>
-                    </div>
-                    <div className="relative h-2 bg-muted rounded-full overflow-hidden">
-                        <div
-                            className={cn(
-                                "absolute inset-y-0 left-0 bg-primary transition-all duration-500",
-                                currentStep === 'token' && "w-1/2",
-                                currentStep === 'pool' && "w-full",
-                                currentStep === 'complete' && "w-full bg-green-500"
-                            )}
-                        />
-                    </div>
-                </div>
-            )}
+        <>
+            <div className="relative group">
+                <div className="absolute inset-0 bg-primary/10 blur-2xl rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <Button
+                    type="submit"
+                    className={cn(
+                        "relative w-full font-mono uppercase tracking-wider transition-all duration-300",
+                        "bg-background hover:bg-background/80 border-2 border-border"
+                    )}
+                    variant="outline"
+                    disabled={!form.formState.isValid}
+                    onClick={form.handleSubmit(onSubmit)}
+                >
+                    <Terminal className="mr-2 h-4 w-4 transition-colors duration-300" />
+                    <span className="relative">
+                        INITIALIZE::DEPLOYMENT
+                    </span>
+                </Button>
+            </div>
 
-            <Button
-                type="submit"
-                className={cn(
-                    "w-full font-mono uppercase tracking-wider",
-                    isCreating && "animate-pulse"
-                )}
-                variant='default'
-                disabled={isCreating || !form.formState.isValid}
-                onClick={form.handleSubmit(onSubmit)}
-            >
-                {getButtonContent()}
-            </Button>
-        </div>
+            <TerminalDialog
+                open={showTerminal}
+                onOpenChange={setShowTerminal}
+                logs={logs}
+                isLaunching={isLaunching}
+                result={result}
+            />
+        </>
     );
 }
