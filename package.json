@@ -10,6 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@apollo/client": "^3.13.8",
     "@auth/prisma-adapter": "^2.10.0",
     "@hookform/resolvers": "^5.1.1",
     "@interest-protocol/memez-fun-sdk": "^7.0.0",
@@ -35,7 +36,10 @@
     "bignumber.js": "^9.3.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cmdk": "^1.1.1",
     "copy-to-clipboard": "^3.3.3",
+    "date-fns": "^4.1.0",
+    "graphql": "^16.11.0",
     "jiti": "^2.4.2",
     "lucide-react": "^0.511.0",
     "motion": "^12.18.1",
@@ -47,6 +51,7 @@
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.60.0",
     "react-hot-toast": "^2.5.2",
+    "react-scan": "^0.4.3",
     "recharts": "^3.0.2",
     "tailwind-merge": "^3.3.0",
     "zod": "^4.0.5",
