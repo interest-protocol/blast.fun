@@ -120,7 +120,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 							<FormField
 								control={form.control}
 								name="imageUrl"
-								render={({ field }) => (
+								render={() => (
 									<FormItem>
 										<FormLabel className="font-mono text-xs uppercase tracking-wider text-foreground/60">IMAGE::UPLOAD</FormLabel>
 										<FormControl>

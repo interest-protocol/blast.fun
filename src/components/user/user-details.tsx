@@ -7,7 +7,7 @@ import { useTwitter } from "@/context/twitter.context";
 import { TwitterUserAvatar } from "./user-avatar";
 
 export function UserDetails() {
-    const { user, isLoggedIn } = useTwitter();
+    const { user } = useTwitter();
     const { isConnected, address, domain } = useApp();
 
     if (!isConnected || !address) return null;

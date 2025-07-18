@@ -91,9 +91,7 @@ export const waitForTx = async (
             });
 
             if (tx) return tx;
-        } catch (error) {
-            // Transaction not found yet, continue polling
-        }
+        } catch (error) { }
 
         await new Promise(resolve => setTimeout(resolve, pollInterval));
     }

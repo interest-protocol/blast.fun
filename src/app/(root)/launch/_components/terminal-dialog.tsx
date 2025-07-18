@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Terminal, X } from "lucide-react";
+import { Terminal } from "lucide-react";
 import { cn } from "@/utils";
 import { LogEntry } from "../_hooks/use-launch-coin";
 import { formatDigest, getTxExplorerUrl } from "@/utils/transaction";

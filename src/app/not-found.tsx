@@ -1,7 +1,6 @@
 import Link from "next/link"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/utils"
-import { Frown } from "lucide-react"
 
 export default function NotFound() {
     return (

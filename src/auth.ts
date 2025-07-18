@@ -8,9 +8,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 	adapter: {
 		...PrismaAdapter(prisma),
 		async createUser(data) {
-			const { username, email, emailVerified, image, ...rest } = data as any
+			const { username, image, ...rest } = data as {
+				username?: string
+				image?: string
+				id: string
+				name?: string
+				email?: string
+				emailVerified?: Date | null
+			}
 
-			return await prisma.user.create({
+			const user = await prisma.user.create({
 				data: {
 					id: rest.id,
 					name: rest.name,
@@ -18,7 +25,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 					twitterId: rest.id,
 					profileImageUrl: image,
 				},
-			}) as any // bypass email requirement
+			})
+
+			return {
+				...user,
+				email: `${user.username}@twitter.local`,
+				emailVerified: null,
+				image: user.profileImageUrl,
+			}
 		},
 		async getUser(id) {
 			const user = await prisma.user.findUnique({ where: { id } })
@@ -32,7 +46,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 				image: user.profileImageUrl,
 			}
 		},
-		async getUserByEmail(email) {
+		async getUserByEmail() {
 			// Email is currently not supported by Twitter/X OAuth 2.0.
 			return null
 		},
@@ -57,7 +71,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 			}
 		},
 		async updateUser(data) {
-			const { email, emailVerified, image, ...rest } = data
+			const { image, ...rest } = data as {
+				id: string
+				name?: string
+				username?: string
+				image?: string | null
+				email?: string
+				emailVerified?: Date | null
+			}
 
 			const updated = await prisma.user.update({
 				where: { id: rest.id },
@@ -81,6 +102,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 			clientSecret: env.TWITTER_CLIENT_SECRET,
 			profile(profile) {
 				return {
+					twitterId: profile.data.id,
 					id: profile.data.id,
 					name: profile.data.name,
 					email: `${profile.data.username}@twitter.local`,
@@ -116,7 +138,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 						username: dbUser.username,
 						name: dbUser.name,
 						image: dbUser.profileImageUrl,
-					} as any
+					}
 				}
 			}
 

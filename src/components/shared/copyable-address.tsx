@@ -1,7 +1,6 @@
 "use client";
 
 import { Copy, Check } from "lucide-react";
-import { Button } from "../ui/button";
 import { formatAddress } from "@mysten/sui/utils";
 import { cn } from "@/utils";
 import { useClipboard } from "@/hooks/use-clipboard";

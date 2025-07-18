@@ -1,5 +1,4 @@
 import useBalance from "@/hooks/sui/use-balance";
-import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 
 const Balance = () => {

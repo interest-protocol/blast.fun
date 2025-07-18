@@ -126,7 +126,9 @@ export function useLaunchCoin() {
 
         // construct our metadata object which will be applied to the pool.
         const metadata = Object.entries({
-            Creator: !formValues.hideIdentity ? (twitterUser?.username || address) : undefined,
+            CreatorWallet: address,
+            CreatorTwitterId: !formValues.hideIdentity && twitterUser?.id,
+            CreatorTwitterName: !formValues.hideIdentity && twitterUser?.username,
             X: formValues.twitter,
             Telegram: formValues.telegram,
             Website: formValues.website,

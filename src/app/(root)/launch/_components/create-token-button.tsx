@@ -19,12 +19,8 @@ export default function CreateTokenButton({ form }: CreateTokenButtonProps) {
 
     const onSubmit = async (data: TokenFormValues) => {
         setShowTerminal(true);
-        try {
-            await launchToken(data);
-            form.reset();
-        } catch (error) {
-            // terminal dialog handles this
-        }
+        await launchToken(data);
+        form.reset();
     };
 
     return (
