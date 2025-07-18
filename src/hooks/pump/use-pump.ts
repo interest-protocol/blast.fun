@@ -15,8 +15,8 @@ interface UsePumpOptions {
 interface UsePumpReturn {
     isLoading: boolean
     error: string | null
-    pump: (amountInSui: string) => Promise<void>
-    dump: (amountInTokens: string) => Promise<void>
+    pump: (amountInSui: string, slippagePercent?: number) => Promise<void>
+    dump: (amountInTokens: string, slippagePercent?: number) => Promise<void>
 }
 
 export function usePump({ pool, decimals = 9 }: UsePumpOptions): UsePumpReturn {
@@ -26,7 +26,7 @@ export function usePump({ pool, decimals = 9 }: UsePumpOptions): UsePumpReturn {
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
-    const pump = async (amountInSui: string) => {
+    const pump = async (amountInSui: string, slippagePercent: number = 15) => {
         if (!isConnected || !address) {
             setError('WALLET::NOT_CONNECTED')
             return
@@ -42,15 +42,26 @@ export function usePump({ pool, decimals = 9 }: UsePumpOptions): UsePumpReturn {
         setError(null)
 
         try {
-            const tx = new Transaction()
-            const amountInMist = Math.floor(amount * Number(MIST_PER_SUI))
+            const amountInMist = BigInt(Math.floor(amount * Number(MIST_PER_SUI)))
 
+            // get quote to calculate expected output
+            const quote = await pumpSdk.quotePump({
+                pool: pool.poolId,
+                amount: amountInMist
+            })
+
+            // calculate minimum amount out with slippage
+            const slippageMultiplier = 1 - (slippagePercent / 100)
+            const minAmountOut = BigInt(Math.floor(Number(quote.memeAmountOut) * slippageMultiplier))
+
+            const tx = new Transaction()
             const quoteCoin = tx.splitCoins(tx.gas, [tx.pure.u64(amountInMist)])
 
             const { memeCoin, tx: pumpTx } = await pumpSdk.pump({
                 tx,
                 pool: pool.poolId,
-                quoteCoin
+                quoteCoin,
+                minAmountOut
             })
 
             pumpTx.transferObjects([memeCoin], address)
@@ -65,7 +76,7 @@ export function usePump({ pool, decimals = 9 }: UsePumpOptions): UsePumpReturn {
         }
     }
 
-    const dump = async (amountInTokens: string) => {
+    const dump = async (amountInTokens: string, slippagePercent: number = 15) => {
         if (!isConnected || !address) {
             setError('WALLET::NOT_CONNECTED')
             return
@@ -81,18 +92,29 @@ export function usePump({ pool, decimals = 9 }: UsePumpOptions): UsePumpReturn {
         setError(null)
 
         try {
-            const tx = new Transaction()
-            const amountInSmallestUnit = Math.floor(amount * Math.pow(10, decimals))
+            const amountInSmallestUnit = BigInt(Math.floor(amount * Math.pow(10, decimals)))
 
+            // get quote to calculate expected output
+            const quote = await pumpSdk.quoteDump({
+                pool: pool.poolId,
+                amount: amountInSmallestUnit
+            })
+
+            // calculate minimum amount out with slippage
+            const slippageMultiplier = 1 - (slippagePercent / 100)
+            const minAmountOut = BigInt(Math.floor(Number(quote.quoteAmountOut) * slippageMultiplier))
+
+            const tx = new Transaction()
             const memeCoin = coinWithBalance({
-                balance: BigInt(amountInSmallestUnit),
+                balance: amountInSmallestUnit,
                 type: pool.coinType
             })(tx)
 
             const { quoteCoin, tx: dumpTx } = await pumpSdk.dump({
                 tx,
                 pool: pool.poolId,
-                memeCoin
+                memeCoin,
+                minAmountOut
             })
 
             dumpTx.transferObjects([quoteCoin], address)

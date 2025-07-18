@@ -38,16 +38,18 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 
     const handleQuickBuy = async (suiAmount: number) => {
         setAmount(suiAmount.toString())
-
-        await pump(suiAmount.toString())
+        const slippageNum = parseFloat(slippage)
+        
+        await pump(suiAmount.toString(), slippageNum)
         setAmount('')
     }
 
     const handleQuickSellPercentage = async (percentage: number) => {
         const tokenAmount = (Number(tokenBalance || 0) / Math.pow(10, decimals)) * (percentage / 100)
         setAmount(tokenAmount.toString())
+        const slippageNum = parseFloat(slippage)
 
-        await dump(tokenAmount.toString())
+        await dump(tokenAmount.toString(), slippageNum)
         setAmount('')
     }
 
@@ -56,10 +58,12 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
             return
         }
 
+        const slippageNum = parseFloat(slippage)
+        
         if (tradeType === 'buy') {
-            await pump(amount)
+            await pump(amount, slippageNum)
         } else {
-            await dump(amount)
+            await dump(amount, slippageNum)
         }
 
         setAmount('')
