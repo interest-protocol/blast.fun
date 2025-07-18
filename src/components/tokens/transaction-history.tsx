@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { ArrowUpRight, ArrowDownRight, RefreshCw, Skull } from 'lucide-react'
-import { formatNumber } from '@/utils/format'
+import { formatAmountWithSuffix } from '@/utils/format'
 import { useQuery } from '@apollo/client'
 import { GET_MARKET_TRADES } from '@/graphql/trades'
 import type { PoolWithMetadata } from '@/types/pool'
@@ -51,7 +51,7 @@ export function TransactionHistory({ pool }: TransactionHistoryProps) {
         const now = new Date()
         const diff = now.getTime() - date.getTime()
         const minutes = Math.floor(diff / 60000)
-        
+
         if (minutes < 1) return 'JUST::NOW'
         if (minutes < 60) return `${minutes}M::AGO`
         if (minutes < 1440) return `${Math.floor(minutes / 60)}H::AGO`
@@ -103,7 +103,7 @@ export function TransactionHistory({ pool }: TransactionHistoryProps) {
                                 const coinAmount = parseFloat(tx.coinAmount) / Math.pow(10, decimals)
                                 const suiAmount = parseFloat(tx.quoteAmount) / 1e9
                                 const timestamp = new Date(tx.time)
-                                
+
                                 return (
                                     <div
                                         key={tx.digest}
@@ -111,11 +111,10 @@ export function TransactionHistory({ pool }: TransactionHistoryProps) {
                                     >
                                         <div className="flex items-start justify-between gap-4">
                                             <div className="flex items-center gap-3">
-                                                <div className={`p-2 rounded-lg ${
-                                                    tx.kind === 'buy' 
-                                                        ? 'bg-green-500/10 text-green-500' 
-                                                        : 'bg-red-500/10 text-red-500'
-                                                }`}>
+                                                <div className={`p-2 rounded-lg ${tx.kind === 'buy'
+                                                    ? 'bg-green-500/10 text-green-500'
+                                                    : 'bg-red-500/10 text-red-500'
+                                                    }`}>
                                                     {tx.kind === 'buy' ? (
                                                         <ArrowUpRight className="w-4 h-4" />
                                                     ) : (
@@ -127,8 +126,8 @@ export function TransactionHistory({ pool }: TransactionHistoryProps) {
                                                         <p className="font-mono text-sm uppercase">
                                                             {tx.kind}
                                                         </p>
-                                                        <Badge 
-                                                            variant="outline" 
+                                                        <Badge
+                                                            variant="outline"
                                                             className="font-mono text-xs uppercase"
                                                         >
                                                             {formatTime(timestamp)}
@@ -141,10 +140,10 @@ export function TransactionHistory({ pool }: TransactionHistoryProps) {
                                             </div>
                                             <div className="text-right">
                                                 <p className="font-mono text-sm">
-                                                    {formatNumber(suiAmount, 4)} SUI
+                                                    {formatAmountWithSuffix(suiAmount)} SUI
                                                 </p>
                                                 <p className="font-mono text-xs text-muted-foreground">
-                                                    {formatNumber(coinAmount, 2)} @ ${formatNumber(parseFloat(tx.price), 6)}
+                                                    {formatAmountWithSuffix(coinAmount)} @ ${formatAmountWithSuffix(parseFloat(tx.price))}
                                                 </p>
                                             </div>
                                         </div>

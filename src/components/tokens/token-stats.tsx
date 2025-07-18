@@ -3,7 +3,7 @@
 import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { formatNumber } from '@/utils/format'
+import { formatAmountWithSuffix } from '@/utils/format'
 import type { PoolWithMetadata } from '@/types/pool'
 import { Zap, Users, TrendingUp, Clock } from 'lucide-react'
 
@@ -16,8 +16,8 @@ export function TokenStats({ pool }: TokenStatsProps) {
     const decimals = metadata?.decimals || 9
 
     // Calculate bonding curve progress - parse bondingCurve from pool data
-    const progress = typeof pool.bondingCurve === 'number' 
-        ? pool.bondingCurve 
+    const progress = typeof pool.bondingCurve === 'number'
+        ? pool.bondingCurve
         : parseFloat(pool.bondingCurve) || 0
     const currentLiquidity = Number(pool.quoteBalance) / Math.pow(10, 9)
     const virtualLiquidity = Number(pool.virtualLiquidity) / Math.pow(10, 9)
@@ -25,19 +25,19 @@ export function TokenStats({ pool }: TokenStatsProps) {
     // Format dates
     const createdDate = new Date(pool.createdAt)
     const lastTradeDate = new Date(pool.lastTradeAt)
-    const timeSinceCreation = isNaN(createdDate.getTime()) 
-        ? 0 
+    const timeSinceCreation = isNaN(createdDate.getTime())
+        ? 0
         : Math.floor((Date.now() - createdDate.getTime()) / 1000 / 60 / 60 / 24)
 
     const stats = [
         {
             label: 'LIQUIDITY::SUI',
-            value: `${formatNumber(currentLiquidity, 2)}`,
+            value: `${formatAmountWithSuffix(currentLiquidity, 2)}`,
             icon: <Zap className="w-4 h-4" />,
         },
         {
             label: 'SUPPLY::REMAINING',
-            value: formatNumber(Number(pool.coinBalance) / Math.pow(10, decimals), 0),
+            value: formatAmountWithSuffix(Number(pool.coinBalance) / Math.pow(10, decimals), 0),
             icon: <TrendingUp className="w-4 h-4" />,
         },
         {
@@ -82,7 +82,7 @@ export function TokenStats({ pool }: TokenStatsProps) {
                     </div>
                     <div className="relative">
                         <Progress value={progress} className="h-3" />
-                        <div 
+                        <div
                             className="absolute inset-0 bg-primary/20 blur-md"
                             style={{ width: `${progress}%` }}
                         />
@@ -96,7 +96,7 @@ export function TokenStats({ pool }: TokenStatsProps) {
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 gap-4">
                     {stats.map((stat, index) => (
-                        <div 
+                        <div
                             key={index}
                             className="p-4 border rounded-lg bg-background/30"
                         >

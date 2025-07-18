@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ExternalLink, Info } from 'lucide-react'
 import type { PoolWithMetadata } from '@/types/pool'
-import { formatNumber } from '@/utils/format'
+import { formatAmountWithSuffix } from '@/utils/format'
 
 interface TokenInfoProps {
     pool: PoolWithMetadata
@@ -31,8 +31,8 @@ export function TokenInfo({ pool }: TokenInfoProps) {
                             BONDING::CURVE
                         </p>
                         <p className="font-mono text-sm">
-                            {typeof pool.bondingCurve === 'number' 
-                                ? pool.bondingCurve.toFixed(2) 
+                            {typeof pool.bondingCurve === 'number'
+                                ? pool.bondingCurve.toFixed(2)
                                 : parseFloat(pool.bondingCurve || '0').toFixed(2)}%
                         </p>
                     </div>
@@ -42,7 +42,7 @@ export function TokenInfo({ pool }: TokenInfoProps) {
                             LIQUIDITY::SUI
                         </p>
                         <p className="font-mono text-sm">
-                            {formatNumber(Number(pool.quoteBalance) / 1e9, 4)} SUI
+                            {formatAmountWithSuffix(Number(pool.quoteBalance) / 1e9, 4)} SUI
                         </p>
                     </div>
 

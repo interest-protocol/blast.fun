@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Skull, Globe, Twitter } from 'lucide-react'
 import type { PoolWithMetadata } from '@/types/pool'
-import { formatNumber } from '@/utils/format'
+import { formatAmountWithSuffix } from '@/utils/format'
 import Link from 'next/link'
 import { formatAddress } from '@mysten/sui/utils'
 
@@ -63,7 +63,7 @@ export function TokenCard({ pool }: TokenCardProps) {
                 MARKET::CAP
               </p>
               <p className="font-mono text-sm uppercase">
-                ${formatNumber(marketCap)}
+                ${formatAmountWithSuffix(marketCap)}
               </p>
             </div>
 
@@ -82,7 +82,7 @@ export function TokenCard({ pool }: TokenCardProps) {
                 LIQUIDITY::POOL
               </p>
               <p className="font-mono text-sm uppercase">
-                {formatNumber(pool.quoteBalance)} SUI
+                {formatAmountWithSuffix(pool.quoteBalance)} SUI
               </p>
             </div>
           </div>

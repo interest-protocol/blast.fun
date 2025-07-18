@@ -16,7 +16,7 @@ export function TokenHeader({ pool }: TokenHeaderProps) {
     const metadata = pool.coinMetadata
 
     return (
-        <div className="bg-background/50 backdrop-blur-sm border rounded-lg p-4">
+        <div className="backdrop-blur-sm border-2 rounded-lg p-4">
             <div className="flex items-center gap-3">
                 {/* Compact Token Avatar */}
                 <Avatar className="w-12 h-12 border">
@@ -46,7 +46,7 @@ export function TokenHeader({ pool }: TokenHeaderProps) {
                             </Badge>
                         )}
                     </div>
-                    
+
                     {/* Contract Address */}
                     <div className="flex items-center gap-1 mt-1">
                         <p className="font-mono text-xs text-muted-foreground">
@@ -66,7 +66,7 @@ export function TokenHeader({ pool }: TokenHeaderProps) {
                             className="h-5 w-5"
                             asChild
                         >
-                            <a 
+                            <a
                                 href={`https://suiscan.xyz/mainnet/coin/${pool.coinType}`}
                                 target="_blank"
                                 rel="noopener noreferrer"

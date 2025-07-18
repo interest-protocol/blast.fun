@@ -1,6 +1,4 @@
 export { TokenHeader } from './token-header'
-export { TokenChart } from './token-chart'
-export { TradingPanel } from './trading-panel'
 export { TokenStats } from './token-stats'
 export { TokenInfo } from './token-info'
 export { TransactionHistory } from './transaction-history'
