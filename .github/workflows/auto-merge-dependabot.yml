@@ -2,8 +2,6 @@ name: Dependabot Auto-merge patch and minor updates
 on:
   pull_request:
     branches: [main]
-    paths:
-      - "frontend/**"
 
 permissions:
   contents: write
