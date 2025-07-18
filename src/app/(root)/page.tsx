@@ -2,7 +2,7 @@
 'use client'
 
 import { useState } from 'react'
-import { usePoolsWithMetadata } from '@/hooks/use-pools-with-metadata'
+import { usePoolsWithMetadata } from '@/hooks/pump/use-pools-with-metadata'
 import { TokenCard } from '@/components/tokens/token-card'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
@@ -122,7 +122,7 @@ export default function DiscoveryPage() {
 
         <TabsContent value="active">
           <TokenGrid tokens={nonBondedPools} isLoading={loading} />
-          
+
           {nonBondedPools.length > 0 && (
             <div className="mt-8 flex items-center justify-between">
               <p className="font-mono text-sm uppercase text-muted-foreground">
@@ -156,7 +156,7 @@ export default function DiscoveryPage() {
 
         <TabsContent value="bonded">
           <TokenGrid tokens={bondedPools} isLoading={loading} />
-          
+
           {bondedPools.length > 0 && (
             <div className="mt-8 flex items-center justify-between">
               <p className="font-mono text-sm uppercase text-muted-foreground">
