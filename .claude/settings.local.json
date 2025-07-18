@@ -4,7 +4,9 @@
       "Bash(rm:*)",
       "Bash(mkdir:*)",
       "Bash(npm run:*)",
-      "Bash(pnpm run:*)"
+      "Bash(pnpm run:*)",
+      "Bash(grep:*)",
+      "Bash(curl:*)"
     ],
     "deny": []
   }

@@ -1,87 +1,40 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { TrendingUp, TrendingDown, Activity, Skull } from 'lucide-react'
 import { formatNumber } from '@/utils/format'
 import type { PoolWithMetadata } from '@/types/pool'
-import { useQuery } from '@apollo/client'
-import { GET_MARKET_TRADES } from '@/graphql/trades'
+import { useSimpleChartData } from '@/hooks/use-simple-chart-data'
+import { PriceChart } from './price-chart'
 
 interface TokenChartProps {
     pool: PoolWithMetadata
 }
 
-interface Trade {
-    time: string
-    price: string
-    volume: number
-    kind: 'buy' | 'sell'
-    quoteAmount: string
-    coinAmount: string
-}
-
 export function TokenChart({ pool }: TokenChartProps) {
     const [chartType, setChartType] = useState<'price' | 'volume'>('price')
-
-    const { data, loading } = useQuery<{
-        marketTrades: {
-            trades: Trade[]
-            total: number
-        }
-    }>(GET_MARKET_TRADES, {
-        variables: {
-            coinType: pool.coinType,
-            page: 1,
-            pageSize: 100,
-            sortBy: { field: 'time', direction: 'DESC' }
-        },
-        pollInterval: 30000, // Refresh every 30 seconds
+    const [timeframe, setTimeframe] = useState('1h')
+    
+    const { 
+        ohlcv, 
+        loading, 
+        error, 
+        latestPrice, 
+        priceChange24h, 
+        volume24h,
+        refetch
+    } = useSimpleChartData({
+        poolId: pool.poolId,
+        enabled: !!pool.poolId
     })
 
-    // Calculate real price and volume data from trades
-    const { currentPrice, priceChange24h, volume24h, marketCap } = useMemo(() => {
-        if (!data?.marketTrades?.trades?.length || !pool) {
-            return {
-                currentPrice: 0,
-                priceChange24h: 0,
-                volume24h: 0,
-                marketCap: 0
-            }
-        }
-
-        const trades = data.marketTrades.trades
-        const latestTrade = trades[0]
-        
-        // Current price from latest trade
-        const currentPrice = latestTrade ? parseFloat(latestTrade.price) : 0
-        
-        // Calculate 24h volume
-        const now = Date.now()
-        const dayAgo = now - 24 * 60 * 60 * 1000
-        const dayTrades = trades.filter(t => new Date(t.time).getTime() > dayAgo)
-        const volume24h = dayTrades.reduce((sum, t) => sum + (parseFloat(t.quoteAmount) / 1e9), 0)
-        
-        // Calculate 24h price change
-        const oldestDayTrade = dayTrades[dayTrades.length - 1]
-        const oldPrice = oldestDayTrade ? parseFloat(oldestDayTrade.price) : currentPrice
-        const priceChange24h = oldPrice > 0 ? ((currentPrice - oldPrice) / oldPrice) * 100 : 0
-        
-        // Calculate market cap
-        const totalSupply = parseFloat(pool.coinBalance) / Math.pow(10, pool.coinMetadata?.decimals || 9)
-        const marketCap = totalSupply * currentPrice
-        
-        return {
-            currentPrice,
-            priceChange24h,
-            volume24h,
-            marketCap
-        }
-    }, [data, pool])
-
+    const currentPrice = latestPrice || 0
     const isPositive = priceChange24h >= 0
+    
+    // Calculate market cap
+    const marketCap = currentPrice * (parseFloat(pool.coinBalance) / Math.pow(10, pool.coinMetadata?.decimals || 9))
 
     return (
         <Card className="border-2 bg-background/50 backdrop-blur-sm shadow-2xl overflow-hidden">
@@ -90,16 +43,24 @@ export function TokenChart({ pool }: TokenChartProps) {
                     <CardTitle className="text-lg font-mono uppercase tracking-wider">
                         CHART::ANALYSIS
                     </CardTitle>
-                    <Tabs value={chartType} onValueChange={(v) => setChartType(v as 'price' | 'volume')}>
-                        <TabsList className="bg-background/50">
-                            <TabsTrigger value="price" className="font-mono text-xs uppercase">
-                                PRICE
-                            </TabsTrigger>
-                            <TabsTrigger value="volume" className="font-mono text-xs uppercase">
-                                VOLUME
-                            </TabsTrigger>
-                        </TabsList>
-                    </Tabs>
+                    <div className="flex gap-2">
+                        <Tabs value={timeframe} onValueChange={setTimeframe}>
+                            <TabsList className="bg-background/50">
+                                <TabsTrigger value="1h" className="font-mono text-xs uppercase px-2">
+                                    1H
+                                </TabsTrigger>
+                                <TabsTrigger value="4h" className="font-mono text-xs uppercase px-2">
+                                    4H
+                                </TabsTrigger>
+                                <TabsTrigger value="1d" className="font-mono text-xs uppercase px-2">
+                                    1D
+                                </TabsTrigger>
+                                <TabsTrigger value="1w" className="font-mono text-xs uppercase px-2">
+                                    1W
+                                </TabsTrigger>
+                            </TabsList>
+                        </Tabs>
+                    </div>
                 </div>
             </CardHeader>
             <CardContent className="p-0">
@@ -134,53 +95,66 @@ export function TokenChart({ pool }: TokenChartProps) {
                 </div>
 
                 {/* Chart Display */}
-                <div className="relative h-64 bg-background/30">
+                <div className="relative bg-background/30">
                     {loading ? (
-                        <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="h-80 flex items-center justify-center">
                             <div className="text-center">
                                 <div className="animate-pulse">
                                     <Activity className="w-12 h-12 mx-auto text-foreground/20 mb-4" />
                                 </div>
                                 <p className="font-mono text-sm uppercase text-muted-foreground">
-                                    LOADING::MARKET_DATA
+                                    LOADING::CHART_DATA
                                 </p>
                             </div>
                         </div>
-                    ) : !data?.marketTrades?.trades?.length ? (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="text-center">
-                                <Skull className="w-12 h-12 mx-auto text-foreground/20 mb-4" />
-                                <p className="font-mono text-sm uppercase text-muted-foreground">
-                                    NO::TRADE_DATA
-                                </p>
-                                <p className="font-mono text-xs uppercase text-muted-foreground/60 mt-2">
-                                    AWAITING::MARKET_ACTIVITY
-                                </p>
-                            </div>
+                    ) : ohlcv.length > 0 ? (
+                        <div className="p-4">
+                            <PriceChart bars={ohlcv} />
                         </div>
                     ) : (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="text-center">
-                                <Activity className="w-12 h-12 mx-auto text-foreground/20 mb-4" />
-                                <p className="font-mono text-sm uppercase text-muted-foreground">
-                                    CHART::COMING_SOON
+                        <div className="p-4">
+                            <div className="h-48 bg-background/50 rounded-lg border-2 border-dashed border-border/50 flex items-center justify-center">
+                                <div className="text-center">
+                                    <Activity className="w-10 h-10 mx-auto text-foreground/20 mb-3" />
+                                    <p className="font-mono text-sm uppercase text-muted-foreground">
+                                        CHART::NO_TRADES
+                                    </p>
+                                    <p className="font-mono text-xs uppercase text-muted-foreground/60 mt-2">
+                                        WAITING::FOR_ACTIVITY
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            {/* Show basic pool stats as fallback */}
+                            <div className="mt-4 p-4 bg-background/30 rounded border">
+                                <p className="font-mono text-xs uppercase text-muted-foreground mb-3">
+                                    POOL::BASIC_INFO
                                 </p>
-                                <p className="font-mono text-xs uppercase text-muted-foreground/60 mt-2">
-                                    TRADES::ACTIVE::{data.marketTrades.total}
-                                </p>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center">
+                                        <span className="font-mono text-xs uppercase text-muted-foreground">SYMBOL</span>
+                                        <span className="font-mono text-sm">{pool.coinMetadata?.symbol || 'N/A'}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="font-mono text-xs uppercase text-muted-foreground">DECIMALS</span>
+                                        <span className="font-mono text-sm">{pool.coinMetadata?.decimals || 9}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="font-mono text-xs uppercase text-muted-foreground">COIN::BALANCE</span>
+                                        <span className="font-mono text-sm">
+                                            {formatNumber(parseFloat(pool.coinBalance) / Math.pow(10, pool.coinMetadata?.decimals || 9))}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="font-mono text-xs uppercase text-muted-foreground">SUI::BALANCE</span>
+                                        <span className="font-mono text-sm">
+                                            {formatNumber(parseFloat(pool.balance) / Math.pow(10, 9))} SUI
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}
-                    
-                    {/* Decorative grid lines */}
-                    <div className="absolute inset-0 opacity-10">
-                        <div className="h-full w-full" style={{
-                            backgroundImage: `
-                                repeating-linear-gradient(0deg, transparent, transparent 39px, currentColor 39px, currentColor 40px),
-                                repeating-linear-gradient(90deg, transparent, transparent 39px, currentColor 39px, currentColor 40px)
-                            `
-                        }} />
-                    </div>
                 </div>
 
                 {/* Stats Grid */}
