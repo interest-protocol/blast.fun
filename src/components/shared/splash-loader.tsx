@@ -4,10 +4,6 @@ import type { ReactNode } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useEffect, useState } from "react";
 
-interface SplashLoaderProps {
-    description?: ReactNode
-}
-
 const systemMessages = [
     "INITIALIZING::SYSTEM",
     "LOADING::PROTOCOLS",
@@ -18,9 +14,7 @@ const systemMessages = [
     "PREPARING::INTERFACE"
 ];
 
-export function SplashLoader({
-    description = "SYSTEM::INITIALIZATION"
-}: SplashLoaderProps) {
+export function SplashLoader() {
     const [messageIndex, setMessageIndex] = useState(0);
     const [progress, setProgress] = useState(0);
     const [glitchText, setGlitchText] = useState("X::PUMP");
@@ -31,7 +25,7 @@ export function SplashLoader({
         }, 800);
 
         const progressInterval = setInterval(() => {
-            setProgress((prev) => Math.min(prev + Math.random() * 15, 100));
+            setProgress((prev) => Math.min(prev + Math.random() * 20, 100));
         }, 200);
 
         const glitchInterval = setInterval(() => {
@@ -50,7 +44,7 @@ export function SplashLoader({
             setGlitchText(glitched);
 
             setTimeout(() => setGlitchText(originalText), 100);
-        }, 3000);
+        }, 1500);
 
         return () => {
             clearInterval(messageInterval);
@@ -63,8 +57,8 @@ export function SplashLoader({
         <div className="fixed z-[1000] inset-0 flex items-center justify-center bg-background overflow-hidden select-none">
             {/* Atmospheric effects */}
             <div className="absolute inset-0">
-                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 blur-3xl rounded-full animate-pulse" />
-                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/5 blur-3xl rounded-full animate-pulse delay-1000" />
+                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/15 blur-3xl rounded-full animate-pulse" />
+                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/10 blur-3xl rounded-full animate-pulse delay-1000" />
             </div>
 
             <div className="relative flex flex-col items-center space-y-8">
@@ -90,12 +84,12 @@ export function SplashLoader({
                 >
                     <div className="h-1 bg-foreground/10 relative overflow-hidden">
                         <motion.div
-                            className="absolute top-0 left-0 h-full bg-primary/60"
+                            className="absolute top-0 left-0 h-full bg-primary/80"
                             style={{ width: `${progress}%` }}
                             transition={{ duration: 0.3 }}
                         />
                     </div>
-                    <p className="font-mono text-xs uppercase text-muted-foreground/60 mt-2 text-center">
+                    <p className="font-mono text-xs uppercase text-muted-foreground/80 mt-2 text-center">
                         PROGRESS::{Math.floor(progress)}%
                     </p>
                 </motion.div>
@@ -110,11 +104,8 @@ export function SplashLoader({
                         transition={{ duration: 0.3 }}
                         className="text-center space-y-2"
                     >
-                        <p className="font-mono text-sm uppercase tracking-wider text-primary/80">
+                        <p className="font-mono font-bold text-sm uppercase tracking-wider text-primary/80">
                             {systemMessages[messageIndex]}
-                        </p>
-                        <p className="font-mono text-xs uppercase text-muted-foreground/60">
-                            {description}
                         </p>
                     </motion.div>
                 </AnimatePresence>
