@@ -10,3 +10,33 @@ export const formatAmount = (amount: string | number | bigint | undefined) => {
 
     return bn.decimalPlaces(2, BigNumber.ROUND_DOWN).toFormat(2);
 };
+
+export const formatAmountWithSuffix = (amount: string | number | bigint | undefined): string => {
+    if (amount == null) return '0';
+
+    const bn = new BigNumber(amount.toString()).shiftedBy(-9);
+    const value = bn.toNumber();
+
+    if (!isFinite(value)) return '0';
+
+    const thresholds = [
+        { min: 1e9, suffix: 'B', divisor: 1e9 },
+        { min: 1e6, suffix: 'M', divisor: 1e6 },
+        { min: 1e3, suffix: 'K', divisor: 1e3 },
+        { min: 1, suffix: '', divisor: 1 },
+        { min: 0, suffix: '', divisor: 1, decimals: 4 }
+    ];
+
+    const { suffix, divisor, decimals: minDecimals } = thresholds.find(t => value >= t.min) || thresholds[thresholds.length - 1];
+    const scaled = value / divisor;
+
+    // get decimal places based on scaled value
+    const decimals = minDecimals !== undefined ? minDecimals :
+        scaled >= 100 ? 0 :
+            scaled >= 10 ? 1 : 2;
+
+    // remove trailing zeros
+    const formatted = parseFloat(scaled.toFixed(decimals)).toString();
+
+    return `${formatted}${suffix}`;
+};
