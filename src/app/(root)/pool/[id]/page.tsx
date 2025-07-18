@@ -9,7 +9,7 @@ export default async function CoinPage({
 
     return (
         <div className="flex flex-col gap-2">
-            <h1>{id} coin page</h1>
+            <h1>{id} pool page</h1>
         </div>
     );
 }

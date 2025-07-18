@@ -8,6 +8,7 @@ import { TailwindIndicator } from "@/components/utils/tailwind-indicator";
 import SuiProvider from "@/providers/sui-provider";
 import { TwitterAuthProvider } from "@/context/twitter.context";
 import { SessionProvider } from "next-auth/react";
+import { ReactScan } from "@/components/utils/react-scan";
 
 export const metadata: Metadata = {
     title: "xPump Launchpad",
@@ -21,6 +22,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en" suppressHydrationWarning>
+            <ReactScan />
             <body
                 className={cn(
                     geistSans.variable,
