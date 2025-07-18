@@ -5,8 +5,9 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Skull, Globe, Twitter } from 'lucide-react'
 import type { PoolWithMetadata } from '@/types/pool'
-import { formatNumber, formatAddress } from '@/utils/format'
+import { formatNumber } from '@/utils/format'
 import Link from 'next/link'
+import { formatAddress } from '@mysten/sui/utils'
 
 interface TokenCardProps {
   pool: PoolWithMetadata
@@ -17,7 +18,7 @@ export function TokenCard({ pool }: TokenCardProps) {
   const coinMetadata = pool.coinMetadata
   const marketCap = parseFloat(pool.quoteBalance) * 2 // Simplified calculation
   const bondingProgress = parseFloat(pool.bondingCurve)
-  
+
   return (
     <Link href={`/pool/${pool.poolId}`}>
       <Card className="border-2 bg-background/50 backdrop-blur-sm shadow-2xl hover:shadow-primary/20 transition-all duration-300 group cursor-pointer">
@@ -54,7 +55,7 @@ export function TokenCard({ pool }: TokenCardProps) {
             )}
           </div>
         </CardHeader>
-        
+
         <CardContent className="pt-4 space-y-4">
           <div className="space-y-2">
             <div className="flex justify-between items-center">
@@ -65,16 +66,17 @@ export function TokenCard({ pool }: TokenCardProps) {
                 ${formatNumber(marketCap)}
               </p>
             </div>
-            
+
             <div className="flex justify-between items-center">
               <p className="font-mono text-xs uppercase text-muted-foreground">
                 CREATOR::ADDRESS
               </p>
               <p className="font-mono text-sm uppercase">
                 {formatAddress(pool.creatorAddress)}
+
               </p>
             </div>
-            
+
             <div className="flex justify-between items-center">
               <p className="font-mono text-xs uppercase text-muted-foreground">
                 LIQUIDITY::POOL
@@ -84,7 +86,7 @@ export function TokenCard({ pool }: TokenCardProps) {
               </p>
             </div>
           </div>
-          
+
           <div className="pt-4 border-t">
             <div className="flex justify-between items-center mb-2">
               <p className="font-mono text-xs uppercase text-muted-foreground">
@@ -96,7 +98,7 @@ export function TokenCard({ pool }: TokenCardProps) {
             </div>
             <Progress value={bondingProgress} className="h-2" />
           </div>
-          
+
           <div className="pt-4 border-t">
             <p className="font-mono text-xs uppercase text-muted-foreground mb-2">
               DESCRIPTION::DATA
@@ -105,7 +107,7 @@ export function TokenCard({ pool }: TokenCardProps) {
               {coinMetadata?.description || 'NO::DESCRIPTION::AVAILABLE'}
             </p>
           </div>
-          
+
           <div className="pt-4 border-t flex items-center gap-4">
             {metadata.twitter && (
               <a
