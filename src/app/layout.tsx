@@ -8,6 +8,7 @@ import { TailwindIndicator } from "@/components/utils/tailwind-indicator";
 import SuiProvider from "@/providers/sui-provider";
 import { TwitterAuthProvider } from "@/context/twitter.context";
 import { SessionProvider } from "next-auth/react";
+import { ApolloProvider } from "@/providers/apollo-provider";
 import { ReactScan } from "@/components/utils/react-scan";
 
 export const metadata: Metadata = {
@@ -37,23 +38,25 @@ export default function RootLayout({
                 >
                     <SessionProvider>
                         <TwitterAuthProvider>
-                            <SuiProvider>
-                                {children}
+                            <ApolloProvider>
+                                <SuiProvider>
+                                    {children}
 
-                                <TailwindIndicator />
-                                <Toaster
-                                    position="bottom-center"
-                                    reverseOrder={true}
-                                    toastOptions={{
-                                        style: {
-                                            backgroundColor: "var(--card)",
-                                            color: "var(--foreground)",
-                                            padding: "12px 12px",
-                                            border: "1px solid var(--border)",
-                                        },
-                                    }}
-                                />
-                            </SuiProvider>
+                                    <TailwindIndicator />
+                                    <Toaster
+                                        position="bottom-center"
+                                        reverseOrder={true}
+                                        toastOptions={{
+                                            style: {
+                                                backgroundColor: "var(--card)",
+                                                color: "var(--foreground)",
+                                                padding: "12px 12px",
+                                                border: "1px solid var(--border)",
+                                            },
+                                        }}
+                                    />
+                                </SuiProvider>
+                            </ApolloProvider>
                         </TwitterAuthProvider>
                     </SessionProvider>
                 </ThemeProvider>
