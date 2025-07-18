@@ -11,23 +11,17 @@ export const GET_POOLS = gql`
 				createdAt
 				creatorAddress
 				metadata
-				virtualLiquidity
-				targetQuoteLiquidity
 				quoteBalance
 				migrated
-				curve
-				coinIpxTreasuryCap
 				canMigrate
-				canonical
-				migrationWitness
 				nsfw
 				lastTradeAt
-				config
-				updatedAt
       		}
+			total
     	}
   	}
 `
+
 
 export const GET_POOL = gql`
 	query GetPool($poolId: String!) {
