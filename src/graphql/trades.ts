@@ -29,30 +29,21 @@ export const GET_MARKET_TRADES = gql`
   }
 `
 
-export const GET_POOL_TRADES = gql`
-  query GetPoolTrades(
-    $poolId: String!
-    $page: Int
-    $pageSize: Int
-  ) {
+export const GET_RECENT_TRADES = gql`
+  query GetRecentTrades($page: Int, $pageSize: Int) {
     marketTrades(
       page: $page
       pageSize: $pageSize
-      sortBy: { field: time, direction: DESC }
-      filters: { poolId: $poolId }
+      sortBy: { field: createdAt, direction: DESC }
     ) {
       trades {
-        time
-        type
-        price
-        volume
-        trader
-        kind
-        quoteAmount
         coinAmount
-        digest
+        quoteAmount
+        trader
+        type
+        kind
+        time
       }
-      total
     }
   }
 `
