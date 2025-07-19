@@ -1,7 +1,6 @@
 'use client';
 
 import { SplashLoader } from "@/components/shared/splash-loader";
-import { TokenInfo } from "@/components/tokens/token-info";
 import { TransactionHistory } from "@/components/tokens/transaction-history";
 import { Card, CardContent } from "@/components/ui/card";
 import { usePoolWithMetadata } from "@/hooks/pump/use-pool-with-metadata";
@@ -49,7 +48,8 @@ export default function Pool({ poolId }: { poolId: string }) {
                         <PoolHeader pool={pool} />
 
                         <div className="space-y-6">
-                            <TransactionHistory pool={pool} />
+                            {/* Tradingview Advanced/Lightweight Chart */}
+                            {/* Component which will handle: Holders, Top Holders, etc */}
                         </div>
                     </div>
                 </div>
@@ -57,7 +57,6 @@ export default function Pool({ poolId }: { poolId: string }) {
                 <div className="lg:col-span-1 space-y-6">
                     <TradingTerminal pool={pool} />
                     <BondingProgress pool={pool} />
-                    <TokenInfo pool={pool} />
                 </div>
             </div>
         </div>
