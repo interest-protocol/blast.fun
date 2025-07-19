@@ -3,6 +3,7 @@ import { apolloClient } from "@/lib/apollo-client"
 import { pumpSdk } from "@/lib/pump"
 import type { GetPoolResponse, GetPoolsResponse, GetPoolsVariables, GetPoolVariables } from "@/types/graphql"
 import type { Pool, PoolWithMetadata } from "@/types/pool"
+import { fetchCoinMetadata } from "../fetch-coin-metadata"
 import { suiClient } from "../sui-client"
 
 /**
@@ -14,7 +15,8 @@ async function enrichPoolWithMetadata(pool: Pool): Promise<PoolWithMetadata> {
 	try {
 		const [pumpPoolData, coinMetadata] = await Promise.allSettled([
 			pumpSdk.getPumpPool(pool.poolId),
-			suiClient.getCoinMetadata({ coinType: pool.coinType }),
+			// fetchCoinMetadata(pool.coinType),
+			suiClient.getCoinMetadata({ coinType: pool.coinType })
 		])
 
 		if (pumpPoolData.status === "fulfilled" && pumpPoolData.value) {
