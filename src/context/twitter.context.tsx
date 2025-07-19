@@ -4,8 +4,7 @@ import { createContext, useContext, useReducer, useCallback, useMemo, ReactNode,
 import { signIn, signOut } from 'next-auth/react';
 import { useSession } from 'next-auth/react';
 
-// Define types locally since we removed twitter.ts
-interface TwitterUser {
+export interface TwitterUser {
     id: string;
     username: string;
     name: string | null;

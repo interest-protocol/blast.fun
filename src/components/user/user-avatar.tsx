@@ -1,6 +1,6 @@
 "use client";
 
-import { TwitterUser } from "@/types/twitter";
+import { TwitterUser } from "@/context/twitter.context";
 import { cn } from "@/utils";
 
 interface UserAvatarProps {
