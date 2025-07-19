@@ -3,9 +3,8 @@ import { fromHex, normalizeSuiAddress, toHex } from "@mysten/sui/utils"
 import BigNumber from "bignumber.js"
 
 import { TokenFormValues } from "@/app/(root)/launch/_components/create-token-form"
-
-import * as template from "./move-bytecode-template"
 import { DEFAULT_TOKEN_DECIMALS } from "@/constants"
+import * as template from "./move-bytecode-template"
 
 const Address = bcs.bytes(32).transform({
 	// To change the input type, you need to provide a type definition for the input
@@ -13,7 +12,7 @@ const Address = bcs.bytes(32).transform({
 	output: (val) => toHex(val),
 })
 
-const updateDecimals = (modifiedByteCode: Uint8Array, decimals: number = 9) =>
+const updateDecimals = (modifiedByteCode: Uint8Array, decimals = 9) =>
 	template.update_constants(
 		modifiedByteCode,
 		bcs.u8().serialize(decimals).toBytes(),

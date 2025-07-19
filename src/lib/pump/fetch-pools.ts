@@ -1,8 +1,8 @@
+import { GET_POOL, GET_POOLS } from "@/graphql/pools"
 import { apolloClient } from "@/lib/apollo-client"
-import { GET_POOLS, GET_POOL } from "@/graphql/pools"
 import { pumpSdk } from "@/lib/pump"
+import type { GetPoolResponse, GetPoolsResponse, GetPoolsVariables, GetPoolVariables } from "@/types/graphql"
 import type { Pool, PoolWithMetadata } from "@/types/pool"
-import type { GetPoolsResponse, GetPoolsVariables, GetPoolResponse, GetPoolVariables } from "@/types/graphql"
 import { suiClient } from "../sui-client"
 
 /**
@@ -42,7 +42,7 @@ async function enrichPoolWithMetadata(pool: Pool): Promise<PoolWithMetadata> {
 /**
  * Fetch multiple pools from GraphQL
  */
-export async function fetchPools(page: number = 1, pageSize: number = 12): Promise<Pool[]> {
+export async function fetchPools(page = 1, pageSize = 12): Promise<Pool[]> {
 	const { data } = await apolloClient.query<GetPoolsResponse, GetPoolsVariables>({
 		query: GET_POOLS,
 		variables: { page, pageSize },
@@ -56,7 +56,7 @@ export async function fetchPools(page: number = 1, pageSize: number = 12): Promi
 /**
  * Fetch multiple pools with metadata
  */
-export async function fetchPoolsWithMetadata(page: number = 1, pageSize: number = 12): Promise<PoolWithMetadata[]> {
+export async function fetchPoolsWithMetadata(page = 1, pageSize = 12): Promise<PoolWithMetadata[]> {
 	const pools = await fetchPools(page, pageSize)
 
 	if (pools.length === 0) return []

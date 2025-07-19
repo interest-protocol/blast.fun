@@ -1,13 +1,13 @@
 "use client"
 
+import { ChevronLeft, ChevronRight, Skull } from "lucide-react"
 import { useState } from "react"
-import { usePoolsWithMetadata } from "@/hooks/pump/use-pools-with-metadata"
 import { TokenCard } from "@/components/tokens/token-card"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Skull, ChevronLeft, ChevronRight } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { usePoolsWithMetadata } from "@/hooks/pump/use-pools-with-metadata"
 
 export default function DiscoveryPage() {
 	const [page, setPage] = useState(1)

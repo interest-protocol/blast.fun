@@ -1,11 +1,11 @@
 "use client"
 
+import { Skull } from "lucide-react"
 import Link from "next/link"
+import { useApp } from "@/context/app.context"
+import Balance from "../balance"
 import { ThemeSwitcher } from "../shared/theme-switcher"
 import { UserDropdown } from "../user/user-dropdown"
-import Balance from "../balance"
-import { Skull } from "lucide-react"
-import { useApp } from "@/context/app.context"
 import { DesktopNav } from "./desktop-nav"
 
 export default function Header() {

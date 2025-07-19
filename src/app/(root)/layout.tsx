@@ -1,6 +1,6 @@
 import Header from "@/components/layout/header"
-import { Ticker } from "@/components/shared/ticker"
 import { MobileNav } from "@/components/layout/mobile-nav"
+import { Ticker } from "@/components/shared/ticker"
 
 export default function Layout({
 	children,

@@ -1,15 +1,15 @@
 import type { Metadata } from "next"
 import "@/app/globals.css"
-import { Toaster } from "react-hot-toast"
-import { geistMono, geistSans } from "@/fonts"
-import { cn } from "@/utils"
-import { ThemeProvider } from "@/providers/theme-provider"
-import { TailwindIndicator } from "@/components/utils/tailwind-indicator"
-import SuiProvider from "@/providers/sui-provider"
-import { TwitterAuthProvider } from "@/context/twitter.context"
 import { SessionProvider } from "next-auth/react"
-import { ApolloProvider } from "@/providers/apollo-provider"
+import { Toaster } from "react-hot-toast"
 import { ReactScan } from "@/components/utils/react-scan"
+import { TailwindIndicator } from "@/components/utils/tailwind-indicator"
+import { TwitterAuthProvider } from "@/context/twitter.context"
+import { geistMono, geistSans } from "@/fonts"
+import { ApolloProvider } from "@/providers/apollo-provider"
+import SuiProvider from "@/providers/sui-provider"
+import { ThemeProvider } from "@/providers/theme-provider"
+import { cn } from "@/utils"
 
 export const metadata: Metadata = {
 	title: "xPump Launchpad",

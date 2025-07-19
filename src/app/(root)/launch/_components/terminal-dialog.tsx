@@ -1,11 +1,11 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
 import { Terminal } from "lucide-react"
-import { cn } from "@/utils"
-import { LogEntry } from "../_hooks/use-launch-coin"
-import { formatDigest, getTxExplorerUrl } from "@/utils/transaction"
+import { useEffect, useRef, useState } from "react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { cn } from "@/utils"
+import { formatDigest, getTxExplorerUrl } from "@/utils/transaction"
+import { LogEntry } from "../_hooks/use-launch-coin"
 
 interface TerminalDialogProps {
 	open: boolean

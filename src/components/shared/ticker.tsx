@@ -1,12 +1,12 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
-import { AlertTriangle } from "lucide-react"
-import { useRecentTrades } from "@/hooks/pump/use-recent-trades"
 import { formatAddress } from "@mysten/sui/utils"
-import { formatMistToSui } from "@/utils/format"
-import { suiClient } from "@/lib/sui-client"
+import { AlertTriangle } from "lucide-react"
+import React, { useEffect, useState } from "react"
+import { useRecentTrades } from "@/hooks/pump/use-recent-trades"
 import type { Trade } from "@/lib/pump/fetch-trades"
+import { suiClient } from "@/lib/sui-client"
+import { formatMistToSui } from "@/utils/format"
 
 interface TradeItemWithMetadata {
 	text: string

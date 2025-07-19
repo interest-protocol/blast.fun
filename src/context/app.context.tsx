@@ -1,8 +1,8 @@
 "use client"
 
-import { createContext, type ReactNode, useContext, useCallback, useMemo, useState, useEffect } from "react"
 import { useConnectWallet, useCurrentAccount, useDisconnectWallet, useResolveSuiNSName } from "@mysten/dapp-kit"
 import type { WalletAccount, WalletWithRequiredFeatures } from "@mysten/wallet-standard"
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react"
 import toast from "react-hot-toast"
 
 interface AppContextValue {

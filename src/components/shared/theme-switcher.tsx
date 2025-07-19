@@ -2,8 +2,8 @@
 
 import { Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
-import { Button } from "../ui/button"
 import { useMounted } from "@/hooks/use-mounted"
+import { Button } from "../ui/button"
 
 export const ThemeSwitcher = () => {
 	const { theme, setTheme } = useTheme()

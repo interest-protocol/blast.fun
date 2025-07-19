@@ -1,13 +1,13 @@
 "use client"
 
-import Image from "next/image"
-import type { WalletWithRequiredFeatures } from "@mysten/wallet-standard"
 import { useWallets } from "@mysten/dapp-kit"
+import type { WalletWithRequiredFeatures } from "@mysten/wallet-standard"
 import { ChevronRight } from "lucide-react"
+import Image from "next/image"
+import { useMounted } from "@/hooks/use-mounted"
+import { getWalletUniqueIdentifier } from "@/utils/wallet"
 import { Button } from "../ui/button"
 import { Skeleton } from "../ui/skeleton"
-import { getWalletUniqueIdentifier } from "@/utils/wallet"
-import { useMounted } from "@/hooks/use-mounted"
 
 type WalletListProps = {
 	onSelect: (wallet: WalletWithRequiredFeatures) => Promise<void>

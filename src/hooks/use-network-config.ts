@@ -1,6 +1,6 @@
-import { Network } from "@/types/network"
 import { createNetworkConfig } from "@mysten/dapp-kit"
 import { getFullnodeUrl } from "@mysten/sui/client"
+import { Network } from "@/types/network"
 
 const useNetworkConfig = () => {
 	return createNetworkConfig({

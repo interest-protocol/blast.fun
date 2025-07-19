@@ -1,9 +1,9 @@
 "use client"
 
-import { Copy, Check } from "lucide-react"
 import { formatAddress } from "@mysten/sui/utils"
-import { cn } from "@/utils"
+import { Check, Copy } from "lucide-react"
 import { useClipboard } from "@/hooks/use-clipboard"
+import { cn } from "@/utils"
 
 interface CopyableAddressProps {
 	address: string

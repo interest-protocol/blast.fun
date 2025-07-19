@@ -1,7 +1,7 @@
 "use client"
 
+import { AnimatePresence, motion } from "motion/react"
 import type { ReactNode } from "react"
-import { motion, AnimatePresence } from "motion/react"
 import { useEffect, useState } from "react"
 
 const systemMessages = [

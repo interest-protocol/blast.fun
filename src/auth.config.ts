@@ -1,8 +1,8 @@
-import { User, type NextAuthConfig } from "next-auth"
-import Twitter from "next-auth/providers/twitter"
 import { PrismaAdapter } from "@auth/prisma-adapter"
-import { prisma } from "@/lib/prisma"
+import { type NextAuthConfig, User } from "next-auth"
+import Twitter from "next-auth/providers/twitter"
 import { env } from "@/env"
+import { prisma } from "@/lib/prisma"
 
 const adapter = {
 	...PrismaAdapter(prisma),

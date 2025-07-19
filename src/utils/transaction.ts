@@ -87,7 +87,7 @@ export const waitForTx = async (digest: string, options: WaitForTxOptions = {}):
 /**
  * Formats transaction digest for display
  */
-export const formatDigest = (digest: string, length: number = 6): string => {
+export const formatDigest = (digest: string, length = 6): string => {
 	if (digest.length <= length * 2) return digest
 	return `${digest.slice(0, length)}...${digest.slice(-length)}`
 }

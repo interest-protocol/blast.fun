@@ -1,12 +1,12 @@
 "use client"
 
+import { Skull } from "lucide-react"
 import { SplashLoader } from "@/components/shared/splash-loader"
 import { Card, CardContent } from "@/components/ui/card"
 import { usePoolWithMetadata } from "@/hooks/pump/use-pool-with-metadata"
-import { Skull } from "lucide-react"
+import { BondingProgress } from "./bonding-progress"
 import { PoolHeader } from "./pool-header"
 import { TradingTerminal } from "./trading-terminal"
-import { BondingProgress } from "./bonding-progress"
 
 export default function Pool({ poolId }: { poolId: string }) {
 	const { data: pool, isLoading, error } = usePoolWithMetadata(poolId)

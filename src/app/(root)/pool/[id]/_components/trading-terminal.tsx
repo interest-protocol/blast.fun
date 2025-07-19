@@ -1,15 +1,15 @@
 "use client"
 
-import React, { useState } from "react"
 import { Zap } from "lucide-react"
+import React, { useState } from "react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import type { PoolWithMetadata } from "@/types/pool"
-import { useTokenBalance } from "@/hooks/sui/use-token-balance"
 import { useApp } from "@/context/app.context"
 import { usePump } from "@/hooks/pump/use-pump"
+import { useTokenBalance } from "@/hooks/sui/use-token-balance"
+import type { PoolWithMetadata } from "@/types/pool"
 
 interface TradingTerminalProps {
 	pool: PoolWithMetadata

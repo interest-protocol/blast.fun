@@ -1,9 +1,9 @@
 "use client"
 
-import { useApp } from "@/context/app.context"
 import { formatAddress } from "@mysten/sui/utils"
-import { CopyableAddress } from "../shared/copyable-address"
+import { useApp } from "@/context/app.context"
 import { useTwitter } from "@/context/twitter.context"
+import { CopyableAddress } from "../shared/copyable-address"
 import { TwitterUserAvatar } from "./user-avatar"
 
 export function UserDetails() {

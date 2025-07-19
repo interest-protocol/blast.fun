@@ -1,10 +1,9 @@
-import { useState } from "react"
-import { Transaction } from "@mysten/sui/transactions"
-import { coinWithBalance } from "@mysten/sui/transactions"
+import { coinWithBalance, Transaction } from "@mysten/sui/transactions"
 import { MIST_PER_SUI } from "@mysten/sui/utils"
-import { pumpSdk } from "@/lib/pump"
-import { useTransaction } from "@/hooks/sui/use-transaction"
+import { useState } from "react"
 import { useApp } from "@/context/app.context"
+import { useTransaction } from "@/hooks/sui/use-transaction"
+import { pumpSdk } from "@/lib/pump"
 import type { PoolWithMetadata } from "@/types/pool"
 
 interface UsePumpOptions {
@@ -26,7 +25,7 @@ export function usePump({ pool, decimals = 9 }: UsePumpOptions): UsePumpReturn {
 	const [isLoading, setIsLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 
-	const pump = async (amountInSui: string, slippagePercent: number = 15) => {
+	const pump = async (amountInSui: string, slippagePercent = 15) => {
 		if (!isConnected || !address) {
 			setError("WALLET::NOT_CONNECTED")
 			return
@@ -76,7 +75,7 @@ export function usePump({ pool, decimals = 9 }: UsePumpOptions): UsePumpReturn {
 		}
 	}
 
-	const dump = async (amountInTokens: string, slippagePercent: number = 15) => {
+	const dump = async (amountInTokens: string, slippagePercent = 15) => {
 		if (!isConnected || !address) {
 			setError("WALLET::NOT_CONNECTED")
 			return

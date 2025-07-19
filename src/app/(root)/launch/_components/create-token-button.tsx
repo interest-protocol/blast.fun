@@ -1,12 +1,12 @@
 "use client"
 
-import { UseFormReturn } from "react-hook-form"
 import { Terminal } from "lucide-react"
-import { TokenFormValues } from "./create-token-form"
-import { Button } from "@/components/ui/button"
-import { useLaunchCoin } from "../_hooks/use-launch-coin"
-import { cn } from "@/utils"
 import { useState } from "react"
+import { UseFormReturn } from "react-hook-form"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/utils"
+import { useLaunchCoin } from "../_hooks/use-launch-coin"
+import { TokenFormValues } from "./create-token-form"
 import { TerminalDialog } from "./terminal-dialog"
 
 interface CreateTokenButtonProps {

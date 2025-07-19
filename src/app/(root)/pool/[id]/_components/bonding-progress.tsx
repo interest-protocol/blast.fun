@@ -1,8 +1,8 @@
 "use client"
 
+import { Target, TrendingUp, Zap } from "lucide-react"
 import React from "react"
 import { Progress } from "@/components/ui/progress"
-import { TrendingUp, Zap, Target } from "lucide-react"
 import type { PoolWithMetadata } from "@/types/pool"
 import { formatAmountWithSuffix } from "@/utils/format"
 

@@ -1,15 +1,15 @@
 "use client"
 
-import { useState } from "react"
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
-import { useApp } from "@/context/app.context"
-import { Button } from "../ui/button"
 import { formatAddress } from "@mysten/sui/utils"
-import { AuthenticationDialog } from "../dialogs/AuthenticationDialog"
-import { UserDetails } from "./user-details"
 import { LogOut, Twitter, Unplug } from "lucide-react"
+import { useState } from "react"
+import { useApp } from "@/context/app.context"
 import { useTwitter } from "@/context/twitter.context"
+import { AuthenticationDialog } from "../dialogs/AuthenticationDialog"
+import { Button } from "../ui/button"
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { TwitterUserAvatar } from "./user-avatar"
+import { UserDetails } from "./user-details"
 
 export function UserDropdown() {
 	const [open, setOpen] = useState(false)

@@ -1,5 +1,5 @@
-import { useCallback, useRef, useState } from "react"
 import copyToClipboard from "copy-to-clipboard"
+import { useCallback, useRef, useState } from "react"
 
 export function useClipboard(timeout = 2000) {
 	const [copied, setCopied] = useState(false)

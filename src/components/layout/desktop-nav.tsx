@@ -2,8 +2,8 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { cn } from "@/utils"
 import { navigationItems } from "@/constants/navigation"
+import { cn } from "@/utils"
 
 export function DesktopNav() {
 	const pathname = usePathname()

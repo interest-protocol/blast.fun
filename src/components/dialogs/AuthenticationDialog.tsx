@@ -1,7 +1,7 @@
 import { useApp } from "@/context/app.context"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog"
-import { Button } from "../ui/button"
 import { WalletList } from "../shared/wallet-list"
+import { Button } from "../ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog"
 
 export function AuthenticationDialog() {
 	const {

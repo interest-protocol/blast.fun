@@ -1,14 +1,14 @@
 "use client"
 
+import { Copy, ExternalLink, Globe, Send, Twitter, User } from "lucide-react"
 import React from "react"
-import { Copy, ExternalLink, Twitter, Globe, Send, User } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import type { PoolWithMetadata } from "@/types/pool"
-import { useClipboard } from "@/hooks/use-clipboard"
-import { formatAmountWithSuffix } from "@/utils/format"
 import { Progress } from "@/components/ui/progress"
+import { useClipboard } from "@/hooks/use-clipboard"
+import type { PoolWithMetadata } from "@/types/pool"
+import { formatAmountWithSuffix } from "@/utils/format"
 
 interface PoolHeaderProps {
 	pool: PoolWithMetadata
@@ -41,7 +41,7 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
 		<div className="border-2 bg-background/50 backdrop-blur-sm shadow-2xl p-2 rounded-xl overflow-hidden">
 			<div className="flex items-center gap-4">
 				{/* Token Avatar */}
-				<Avatar className="w-12 h-12 border border-border">
+				<Avatar className="w-12 h-12 rounded-lg border border-border">
 					<AvatarImage src={metadata?.iconUrl || ""} alt={metadata?.symbol} />
 					<AvatarFallback className="font-mono text-xs uppercase bg-background">
 						{metadata?.symbol?.slice(0, 2) || "??"}

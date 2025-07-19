@@ -1,13 +1,13 @@
 "use client"
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { formatAddress } from "@mysten/sui/utils"
+import { Globe, Skull, Twitter } from "lucide-react"
+import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { Skull, Globe, Twitter } from "lucide-react"
 import type { PoolWithMetadata } from "@/types/pool"
 import { formatAmountWithSuffix } from "@/utils/format"
-import Link from "next/link"
-import { formatAddress } from "@mysten/sui/utils"
 
 interface TokenCardProps {
 	pool: PoolWithMetadata

@@ -44,7 +44,7 @@ export interface MarketTrade {
 
 export class DatafeedService {
 	// Search for symbols by coin type or name
-	async searchSymbols(search: string, limit: number = 20): Promise<SymbolInfo[]> {
+	async searchSymbols(search: string, limit = 20): Promise<SymbolInfo[]> {
 		const url = `${RAILWAY_DATAFEED_URL}/symbols?search=${encodeURIComponent(search)}&limit=${limit}`
 		console.log("🌐 Fetching symbols from:", url)
 
@@ -134,7 +134,7 @@ export class DatafeedService {
 	}
 
 	// Get all available symbols
-	async getAllSymbols(limit: number = 100): Promise<SymbolInfo[]> {
+	async getAllSymbols(limit = 100): Promise<SymbolInfo[]> {
 		try {
 			const url = `${RAILWAY_DATAFEED_URL}/symbols?limit=${limit}`
 			console.log("📋 Fetching all symbols from:", url)
@@ -157,7 +157,7 @@ export class DatafeedService {
 	async getHistory(
 		symbol: string, // This should be the full coin type
 		resolution: string,
-		countback: number = 100
+		countback = 100
 	): Promise<Bar[]> {
 		try {
 			const params = new URLSearchParams({
@@ -216,7 +216,7 @@ export class DatafeedService {
 	}
 
 	// Get real-time market trades from GraphQL
-	async getMarketTrades(coinType: string, limit: number = 50): Promise<MarketTrade[]> {
+	async getMarketTrades(coinType: string, limit = 50): Promise<MarketTrade[]> {
 		try {
 			const query = `
                 query GetMarketTrades($coinType: String!, $limit: Int!) {

@@ -1,6 +1,6 @@
-import { formatAmount } from "@/utils/format"
 import { useCurrentAccount, useSuiClientQuery } from "@mysten/dapp-kit"
 import { useEffect } from "react"
+import { formatAmount } from "@/utils/format"
 
 const DEFAULT_REFETCH_INTERVAL = 3000
 
