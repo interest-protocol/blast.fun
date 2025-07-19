@@ -1,3 +1,4 @@
+import { MIST_PER_SUI } from "@mysten/sui/utils";
 import BigNumber from "bignumber.js";
 
 export const formatAmount = (amount: string | number | bigint | undefined) => {
@@ -9,6 +10,15 @@ export const formatAmount = (amount: string | number | bigint | undefined) => {
     bn = bn.shiftedBy(-9);
 
     return bn.decimalPlaces(2, BigNumber.ROUND_DOWN).toFormat(2);
+};
+
+export const formatMistToSui = (mist: bigint | number | undefined): string => {
+    if (!mist) return '0.00';
+
+    const mistBigInt = BigInt(mist);
+    const suiValue = Number(mistBigInt) / Number(MIST_PER_SUI);
+
+    return suiValue.toFixed(2);
 };
 
 export const formatAmountWithSuffix = (amount: string | number | bigint | undefined): string => {
