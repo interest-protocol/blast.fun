@@ -63,7 +63,7 @@ export function BondingProgress({ pool }: BondingProgressProps) {
                             </p>
                         </div>
                         <p className="font-mono text-sm font-bold">
-                            {formatAmountWithSuffix(currentLiquidity)}
+                            {currentLiquidity.toLocaleString()} SUI
                         </p>
                     </div>
 
@@ -75,7 +75,7 @@ export function BondingProgress({ pool }: BondingProgressProps) {
                             </p>
                         </div>
                         <p className="font-mono text-sm font-bold">
-                            {formatAmountWithSuffix(targetLiquidity)}
+                            {targetLiquidity.toLocaleString()} SUI
                         </p>
                     </div>
 
@@ -87,29 +87,9 @@ export function BondingProgress({ pool }: BondingProgressProps) {
                             </p>
                         </div>
                         <p className="font-mono text-sm font-bold">
-                            {formatAmountWithSuffix(remainingLiquidity)}
+                            {remainingLiquidity.toLocaleString()} SUI
                         </p>
                     </div>
-                </div>
-
-                {/* Status */}
-                <div className="text-center">
-                    {progress < 100 ? (
-                        <p className="font-mono text-xs uppercase text-muted-foreground">
-                            {remainingLiquidity.toFixed(2)} SUI NEEDED TO COMPLETE
-                        </p>
-                    ) : (
-                        <div className="space-y-1">
-                            <p className="font-mono text-xs uppercase text-green-500">
-                                BONDING::COMPLETE
-                            </p>
-                            {!pool.migrated && (
-                                <p className="font-mono text-xs uppercase text-yellow-500">
-                                    MIGRATION::PENDING
-                                </p>
-                            )}
-                        </div>
-                    )}
                 </div>
             </div>
         </div>
