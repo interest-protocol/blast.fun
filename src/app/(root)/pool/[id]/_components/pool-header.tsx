@@ -56,7 +56,7 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
 						</h1>
 						<span className="font-mono text-sm text-muted-foreground">${metadata?.symbol || "[???]"}</span>
 						{pool.migrated && (
-							<Badge variant="secondary" className="font-mono text-xs uppercase h-5">
+							<Badge variant="default" className="font-mono text-xs uppercase h-5">
 								Migrated
 							</Badge>
 						)}
@@ -64,25 +64,7 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
 
 					{/* Contract and Creator on same line */}
 					<div className="flex items-center gap-4 mt-1">
-						<div className="flex items-center gap-1">
-							<p className="font-mono text-xs text-muted-foreground">
-								{pool.coinType.slice(0, 6)}...{pool.coinType.slice(-4)}
-							</p>
-							<Button variant="ghost" size="icon" className="h-4 w-4" onClick={() => copy(pool.coinType)}>
-								<Copy className="h-3 w-3" />
-							</Button>
-							<Button variant="ghost" size="icon" className="h-4 w-4" asChild>
-								<a
-									href={`https://suiscan.xyz/mainnet/coin/${pool.coinType}`}
-									target="_blank"
-									rel="noopener noreferrer"
-								>
-									<ExternalLink className="h-3 w-3" />
-								</a>
-							</Button>
-						</div>
-
-						<div className="flex items-center gap-1 text-xs font-mono text-muted-foreground">
+						<div className="flex items-center gap-1 text-xs font-mono font-bold text-muted-foreground">
 							<span>by</span>
 							{showTwitterCreator ? (
 								<a
@@ -91,7 +73,7 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
 									rel="noopener noreferrer"
 									className="hover:underline text-foreground flex items-center gap-1"
 								>
-									<Twitter className="h-3 w-3" />@{creatorTwitterName}
+									@{creatorTwitterName}
 								</a>
 							) : (
 								<span className="text-foreground">
