@@ -38,6 +38,26 @@ const adapter = {
         }
     },
 
+    async getUserByAccount({ providerAccountId, provider }: { providerAccountId: string; provider: string }) {
+        const account = await prisma.account.findUnique({
+            where: {
+                provider_providerAccountId: {
+                    provider,
+                    providerAccountId,
+                },
+            },
+            include: { user: true },
+        })
+
+        if (!account?.user) return null
+
+        return {
+            ...account.user,
+            email: `${account.user.username}@twitter.local`,
+            emailVerified: null
+        }
+    },
+
     async updateUser(data: any) {
         const { image, ...rest } = data;
 
