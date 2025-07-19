@@ -125,7 +125,7 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
                             Market Cap
                         </p>
                         <p className="font-mono text-sm font-bold">
-                            ${formatAmountWithSuffix(marketCap)}
+                            ${marketCap.toLocaleString()}
                         </p>
                     </div>
 
@@ -135,7 +135,7 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
                             Liquidity
                         </p>
                         <p className="font-mono text-sm font-bold">
-                            {formatAmountWithSuffix(currentLiquidity)} SUI
+                            {currentLiquidity.toLocaleString()} SUI
                         </p>
                     </div>
 
