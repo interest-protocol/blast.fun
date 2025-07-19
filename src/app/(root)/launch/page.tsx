@@ -1,7 +1,7 @@
 "use client"
 
 import { MIST_PER_SUI } from "@mysten/sui/utils"
-import { RefreshCw, Skull } from "lucide-react"
+import { Loader2, Skull } from "lucide-react"
 import { useState } from "react"
 import { WalletList } from "@/components/shared/wallet-list"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -16,85 +16,103 @@ import CreateTokenForm from "./_components/create-token-form"
 
 export default function LaunchPage() {
 	const { isConnected, isConnecting, connect } = useApp()
-	const { isLoggedIn, login, user } = useTwitter()
+	const { isLoggedIn, isLoading, login, user } = useTwitter()
 	const [tokenData, setTokenData] = useState<Partial<TokenFormValues>>({})
 
 	if (!isConnected) {
 		return (
-			<div className="container max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[calc(100vh-12rem)] p-6">
+			<div className="container max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[calc(100vh-12rem)]">
 				{isConnecting && (
-					<div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
-						<Card className="border-0 shadow-none bg-transparent">
-							<CardContent className="flex flex-col items-center space-y-4 pt-6">
-								<div className="relative">
-									<RefreshCw className="h-12 w-12 animate-spin text-primary" />
-									<div className="absolute inset-0 animate-ping">
-										<RefreshCw className="h-12 w-12 text-primary opacity-20" />
-									</div>
+					<div className="fixed inset-0 bg-background/95 backdrop-blur-md z-50 flex items-center justify-center">
+						<div className="flex flex-col items-center space-y-6">
+							<div className="relative">
+								<div className="absolute inset-0 bg-primary/20 blur-2xl animate-pulse" />
+								<Loader2 className="h-16 w-16 animate-spin text-foreground/60 relative" />
+								<div className="absolute inset-0 animate-ping">
+									<Loader2 className="h-16 w-16 text-primary opacity-10" />
 								</div>
-								<p className="text-sm text-muted-foreground animate-pulse">Connecting to wallet...</p>
-							</CardContent>
-						</Card>
+							</div>
+							<div className="text-center space-y-2">
+								<p className="text-sm font-mono uppercase text-foreground/80 animate-pulse tracking-wider">
+									WALLET::CONNECTING
+								</p>
+								<p className="text-xs font-mono uppercase text-muted-foreground/60">
+									ESTABLISHING_SECURE_CONNECTION...
+								</p>
+							</div>
+						</div>
 					</div>
 				)}
 
-				<Card className="w-full border-2 shadow-xl">
-					<CardHeader className="text-center space-y-6">
-						<div className="space-y-2">
-							<CardTitle className="text-3xl font-bold tracking-tight sm:text-4xl">
-								Connect Your Wallet
-							</CardTitle>
-							<CardDescription className="text-base max-w-md mx-auto">
-								You need to connect a wallet to launch new coins. Select your preferred wallet from the
-								options below.
-							</CardDescription>
+				<div className="w-full space-y-8 text-center">
+					<div className="space-y-6">
+						<h1 className="text-4xl font-bold font-mono uppercase tracking-wider text-foreground/80 sm:text-5xl">
+							WALLET::REQUIRED
+						</h1>
+						<p className="text-sm font-mono uppercase max-w-md mx-auto text-muted-foreground">
+							CONNECT_WALLET_TO_LAUNCH_TOKENS
+						</p>
+					</div>
+
+					<div className="w-full max-w-md mx-auto space-y-4">
+						<div className="border-t border-foreground/10 pt-6">
+							<p className="text-xs font-mono text-muted-foreground/60 mb-6 uppercase">
+								AVAILABLE::WALLETS
+							</p>
+							<WalletList onSelect={connect} isConnecting={isConnecting} />
 						</div>
-					</CardHeader>
-					<CardContent>
-						<WalletList onSelect={connect} isConnecting={isConnecting} />
-					</CardContent>
-				</Card>
+					</div>
+				</div>
 			</div>
 		)
 	}
 
 	if (!isLoggedIn) {
 		return (
-			<div className="container max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[calc(100vh-12rem)] p-6">
-				{isConnecting && (
-					<div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
-						<Card className="border-0 shadow-none bg-transparent">
-							<CardContent className="flex flex-col items-center space-y-4 pt-6">
-								<div className="relative">
-									<RefreshCw className="h-12 w-12 animate-spin text-primary" />
-									<div className="absolute inset-0 animate-ping">
-										<RefreshCw className="h-12 w-12 text-primary opacity-20" />
-									</div>
+			<div className="container max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[calc(100vh-12rem)]">
+				{isLoading && (
+					<div className="fixed inset-0 bg-background/95 backdrop-blur-md z-50 flex items-center justify-center">
+						<div className="flex flex-col items-center space-y-6">
+							<div className="relative">
+								<div className="absolute inset-0 bg-primary/20 blur-2xl animate-pulse" />
+								<Loader2 className="h-16 w-16 animate-spin text-foreground/60 relative" />
+								<div className="absolute inset-0 animate-ping">
+									<Loader2 className="h-16 w-16 text-primary opacity-10" />
 								</div>
-								<p className="text-sm text-muted-foreground animate-pulse">Connecting to wallet...</p>
-							</CardContent>
-						</Card>
+							</div>
+							<div className="text-center space-y-2">
+								<p className="text-sm font-mono uppercase text-foreground/80 animate-pulse tracking-wider">
+									IDENTITY::VERIFYING
+								</p>
+								<p className="text-xs font-mono uppercase text-muted-foreground/60">
+									AUTHENTICATING_SOCIAL_CREDENTIALS...
+								</p>
+							</div>
+						</div>
 					</div>
 				)}
 
-				<Card className="w-full border-2 shadow-xl">
-					<CardHeader className="text-center space-y-6">
-						<div className="space-y-2">
-							<CardTitle className="text-3xl font-bold tracking-tight sm:text-4xl">
-								Connect Your X/Twitter
-							</CardTitle>
-							<CardDescription className="text-base max-w-md mx-auto">
-								You need to sign in with X/Twitter to launch coins. When creating tokens you can choose to
-								hide your identity.
-							</CardDescription>
+				<div className="w-full space-y-8 text-center">
+					<div className="space-y-6">
+						<h1 className="text-4xl font-bold font-mono uppercase tracking-wider text-foreground/80 sm:text-5xl">
+							IDENTITY::REQUIRED
+						</h1>
+						<p className="text-sm font-mono uppercase max-w-md mx-auto text-muted-foreground">
+							TWITTER_AUTH_REQUIRED_FOR_TOKEN_LAUNCH
+						</p>
+					</div>
+
+					<div className="w-full max-w-md mx-auto space-y-6">
+						<div className="border-t border-foreground/10 pt-8">
+							<p className="text-xs font-mono text-muted-foreground/60 mb-6 uppercase">
+								SOCIAL::AUTHENTICATION
+							</p>
+							<Button className="w-full font-mono uppercase tracking-wider py-6 text-base border-2 border-foreground/20 hover:border-primary/50 transition-all duration-300" onClick={login}>
+								CONNECT::TWITTER
+							</Button>
 						</div>
-					</CardHeader>
-					<CardContent>
-						<Button className="w-full" onClick={login}>
-							Connect with X/Twitter
-						</Button>
-					</CardContent>
-				</Card>
+					</div>
+				</div>
 			</div>
 		)
 	}
