@@ -1,5 +1,5 @@
-import { apolloClient } from '@/lib/apollo-client'
-import { GET_RECENT_TRADES } from '@/graphql/trades'
+import { apolloClient } from "@/lib/apollo-client"
+import { GET_RECENT_TRADES } from "@/graphql/trades"
 
 export interface Trade {
 	coinAmount: string
@@ -23,8 +23,8 @@ export async function fetchRecentTrades(page: number = 1, pageSize: number = 10)
 	const { data } = await apolloClient.query<RecentTradesData>({
 		query: GET_RECENT_TRADES,
 		variables: { page, pageSize },
-		errorPolicy: 'all',
-		fetchPolicy: 'network-only'
+		errorPolicy: "all",
+		fetchPolicy: "network-only",
 	})
 
 	return data?.marketTrades?.trades ?? []

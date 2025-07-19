@@ -1,29 +1,33 @@
-import { useSuiClientQuery } from '@mysten/dapp-kit';
-import { useApp } from '@/context/app.context';
+import { useSuiClientQuery } from "@mysten/dapp-kit"
+import { useApp } from "@/context/app.context"
 
 export interface IUseTokenBalanceResponse {
-    balance: string;
-    error: Error | null;
-    refetch: () => void;
+	balance: string
+	error: Error | null
+	refetch: () => void
 }
 
 export const useTokenBalance = (coinType?: string): IUseTokenBalanceResponse => {
-    const { address } = useApp();
-    
-    const { data, error, refetch } = useSuiClientQuery('getBalance', {
-        owner: address || '',
-        coinType: coinType,
-    }, {
-        enabled: !!address && !!coinType,
-    });
+	const { address } = useApp()
 
-    const balance = data?.totalBalance || '0';
+	const { data, error, refetch } = useSuiClientQuery(
+		"getBalance",
+		{
+			owner: address || "",
+			coinType: coinType,
+		},
+		{
+			enabled: !!address && !!coinType,
+		}
+	)
 
-    return {
-        balance,
-        error,
-        refetch: async () => {
-            refetch();
-        },
-    };
-};
+	const balance = data?.totalBalance || "0"
+
+	return {
+		balance,
+		error,
+		refetch: async () => {
+			refetch()
+		},
+	}
+}

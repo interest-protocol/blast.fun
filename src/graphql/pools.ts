@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client'
+import { gql } from "@apollo/client"
 
 export const GET_POOLS = gql`
 	query GetPools($page: Int!, $pageSize: Int!) {
@@ -21,7 +21,6 @@ export const GET_POOLS = gql`
     	}
   	}
 `
-
 
 export const GET_POOL = gql`
 	query GetPool($poolId: String!) {

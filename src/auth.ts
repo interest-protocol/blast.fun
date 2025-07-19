@@ -2,12 +2,7 @@ import NextAuth from "next-auth"
 import { prisma } from "@/lib/prisma"
 import authConfig from "@/auth.config"
 
-export const {
-	handlers,
-	auth,
-	signIn,
-	signOut
-} = NextAuth({
+export const { handlers, auth, signIn, signOut } = NextAuth({
 	...authConfig,
 	pages: {
 		signIn: "/",
@@ -23,8 +18,8 @@ export const {
 						twitterId: true,
 						username: true,
 						name: true,
-						profileImageUrl: true
-					}
+						profileImageUrl: true,
+					},
 				})
 
 				if (dbUser) {

@@ -1,6 +1,6 @@
 export enum Network {
-    LOCALNET = "localnet",
-    DEVNET = "devnet",
-    TESTNET = "testnet",
-    MAINNET = "mainnet",
+	LOCALNET = "localnet",
+	DEVNET = "devnet",
+	TESTNET = "testnet",
+	MAINNET = "mainnet",
 }

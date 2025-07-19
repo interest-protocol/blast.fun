@@ -1,9 +1,9 @@
-import { apolloClient } from '@/lib/apollo-client'
-import { GET_POOLS, GET_POOL } from '@/graphql/pools'
-import { pumpSdk } from '@/lib/pump'
-import type { Pool, PoolWithMetadata } from '@/types/pool'
-import type { GetPoolsResponse, GetPoolsVariables, GetPoolResponse, GetPoolVariables } from '@/types/graphql'
-import { suiClient } from '../sui-client'
+import { apolloClient } from "@/lib/apollo-client"
+import { GET_POOLS, GET_POOL } from "@/graphql/pools"
+import { pumpSdk } from "@/lib/pump"
+import type { Pool, PoolWithMetadata } from "@/types/pool"
+import type { GetPoolsResponse, GetPoolsVariables, GetPoolResponse, GetPoolVariables } from "@/types/graphql"
+import { suiClient } from "../sui-client"
 
 /**
  * Fetches metadata for a single pool
@@ -14,14 +14,14 @@ async function enrichPoolWithMetadata(pool: Pool): Promise<PoolWithMetadata> {
 	try {
 		const [pumpPoolData, coinMetadata] = await Promise.allSettled([
 			pumpSdk.getPumpPool(pool.poolId),
-			suiClient.getCoinMetadata({ coinType: pool.coinType })
+			suiClient.getCoinMetadata({ coinType: pool.coinType }),
 		])
 
-		if (pumpPoolData.status === 'fulfilled' && pumpPoolData.value) {
+		if (pumpPoolData.status === "fulfilled" && pumpPoolData.value) {
 			enhancedPool.pumpPoolData = pumpPoolData.value
 		}
 
-		if (coinMetadata.status === 'fulfilled' && coinMetadata.value) {
+		if (coinMetadata.status === "fulfilled" && coinMetadata.value) {
 			const metadata = coinMetadata.value
 			enhancedPool.coinMetadata = {
 				name: metadata.name,
@@ -46,8 +46,8 @@ export async function fetchPools(page: number = 1, pageSize: number = 12): Promi
 	const { data } = await apolloClient.query<GetPoolsResponse, GetPoolsVariables>({
 		query: GET_POOLS,
 		variables: { page, pageSize },
-		errorPolicy: 'all',
-		fetchPolicy: 'network-only'
+		errorPolicy: "all",
+		fetchPolicy: "network-only",
 	})
 
 	return data?.pools?.pools ?? []
@@ -61,7 +61,7 @@ export async function fetchPoolsWithMetadata(page: number = 1, pageSize: number 
 
 	if (pools.length === 0) return []
 
-	return Promise.all(pools.map(pool => enrichPoolWithMetadata(pool)))
+	return Promise.all(pools.map((pool) => enrichPoolWithMetadata(pool)))
 }
 
 /**
@@ -71,8 +71,8 @@ export async function fetchPool(poolId: string): Promise<Pool> {
 	const { data } = await apolloClient.query<GetPoolResponse, GetPoolVariables>({
 		query: GET_POOL,
 		variables: { poolId },
-		errorPolicy: 'all',
-		fetchPolicy: 'network-only'
+		errorPolicy: "all",
+		fetchPolicy: "network-only",
 	})
 
 	if (!data?.pool) {
