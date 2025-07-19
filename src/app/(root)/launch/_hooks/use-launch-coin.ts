@@ -13,6 +13,7 @@ import initMoveByteCodeTemplate from "@/lib/move-template/move-bytecode-template
 import { pumpSdk } from "@/lib/pump"
 import { getCreatedObjectByType, getTxExplorerUrl } from "@/utils/transaction"
 import { TokenFormValues } from "../_components/create-token-form"
+import { useConfetti } from "@/components/shared/confetti"
 
 interface LaunchResult {
 	treasuryCapObjectId: string
@@ -31,9 +32,11 @@ export function useLaunchCoin() {
 	const [isLaunching, setIsLaunching] = useState(false)
 	const [logs, setLogs] = useState<LogEntry[]>([])
 	const [result, setResult] = useState<LaunchResult | null>(null)
+
 	const { isLoggedIn, user: twitterUser } = useTwitter()
 	const { isConnected, address } = useApp()
 	const { executeTransaction } = useTransaction()
+	const { confettiPlayer } = useConfetti()
 
 	const addLog = (message: string, type: LogEntry["type"] = "info") => {
 		const timestamp = new Date().toLocaleTimeString("en-US", {
@@ -94,7 +97,7 @@ export function useLaunchCoin() {
 		if (!treasuryCapObjectId) {
 			throw new Error(
 				`Failed to find treasury cap in transaction ${formatDigest(result.digest)}. ` +
-					`View transaction: ${getTxExplorerUrl(result.digest)}`
+				`View transaction: ${getTxExplorerUrl(result.digest)}`
 			)
 		}
 
@@ -168,7 +171,7 @@ export function useLaunchCoin() {
 		if (!poolObjectId) {
 			throw new Error(
 				`Failed to find pool object in transaction ${formatDigest(result.digest)}. ` +
-					`View transaction: ${getTxExplorerUrl(result.digest)}`
+				`View transaction: ${getTxExplorerUrl(result.digest)}`
 			)
 		}
 
@@ -241,6 +244,7 @@ export function useLaunchCoin() {
 			}
 
 			setResult(launchResult)
+			confettiPlayer.current("Confetti from left and right")
 			addLog("LAUNCH::COMPLETE", "success")
 
 			return launchResult
