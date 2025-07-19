@@ -18,8 +18,8 @@ importers:
         specifier: ^5.1.1
         version: 5.1.1(react-hook-form@7.60.0(react@19.1.0))
       '@interest-protocol/memez-fun-sdk':
-        specifier: ^7.0.0
-        version: 7.0.0(@mysten/bcs@1.6.4)(typescript@5.8.3)
+        specifier: ^7.2.0
+        version: 7.2.0(@mysten/bcs@1.6.4)(typescript@5.8.3)
       '@mysten/dapp-kit':
         specifier: ^0.16.15
         version: 0.16.15(@tanstack/react-query@5.82.0(react@19.1.0))(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(immer@10.1.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3)
@@ -781,11 +781,11 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@interest-protocol/acl-sdk@7.0.0':
-    resolution: {integrity: sha512-uR2TrNM2DMWm3tSXz/oPPRz3t7yZn+NXHt8bDuzRpFGhbaSwr+AEsoSUcF+mnqAbYm+y9fQXuQEjwZGBzOuxjw==}
+  '@interest-protocol/acl-sdk@7.1.0':
+    resolution: {integrity: sha512-pT5RwsB4sDSCyiATh8GdV2IRqiggHWmgftzHOVgXt7BvfmRQqNcf5wOY/BNAJI/Sjuk65Y/4xmnEklCZaP4Qmw==}
 
-  '@interest-protocol/memez-fun-sdk@7.0.0':
-    resolution: {integrity: sha512-qAxbxX7ZLriILzvkTEPnp4MYMrN36GGTSM9jXEvUJbX5ZPoBy+1/INeOpFmpWaDqfjdE5+d6Uay+VUtMuk/5cA==}
+  '@interest-protocol/memez-fun-sdk@7.2.0':
+    resolution: {integrity: sha512-/rpkUrVB7j1hzbnPFkev6/fsXi+/i8JyCbTf0x+BekffxRb47DSgdphplrhvUkx4yJ/luW6YCCQf2hPa1dFGlQ==}
 
   '@isaacs/fs-minipass@4.0.1':
     resolution: {integrity: sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w==}
@@ -4131,7 +4131,7 @@ snapshots:
   '@img/sharp-win32-x64@0.34.3':
     optional: true
 
-  '@interest-protocol/acl-sdk@7.0.0(typescript@5.8.3)':
+  '@interest-protocol/acl-sdk@7.1.0(typescript@5.8.3)':
     dependencies:
       '@mysten/sui': 1.36.0(typescript@5.8.3)
       '@polymedia/suitcase-core': 0.0.36(@mysten/sui@1.36.0(typescript@5.8.3))
@@ -4141,10 +4141,10 @@ snapshots:
       - '@gql.tada/vue-support'
       - typescript
 
-  '@interest-protocol/memez-fun-sdk@7.0.0(@mysten/bcs@1.6.4)(typescript@5.8.3)':
+  '@interest-protocol/memez-fun-sdk@7.2.0(@mysten/bcs@1.6.4)(typescript@5.8.3)':
     dependencies:
       '@cetusprotocol/cetus-sui-clmm-sdk': 5.4.0(@mysten/bcs@1.6.4)(@mysten/sui@1.36.0(typescript@5.8.3))
-      '@interest-protocol/acl-sdk': 7.0.0(typescript@5.8.3)
+      '@interest-protocol/acl-sdk': 7.1.0(typescript@5.8.3)
       '@mysten/sui': 1.36.0(typescript@5.8.3)
       '@polymedia/suitcase-core': 0.0.36(@mysten/sui@1.36.0(typescript@5.8.3))
       ramda: 0.30.1
