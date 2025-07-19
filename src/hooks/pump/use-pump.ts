@@ -105,6 +105,8 @@ export function usePump({ pool, decimals = 9 }: UsePumpOptions): UsePumpReturn {
             const minAmountOut = BigInt(Math.floor(Number(quote.quoteAmountOut) * slippageMultiplier))
 
             const tx = new Transaction()
+            tx.setSender(address);
+
             const memeCoin = coinWithBalance({
                 balance: amountInSmallestUnit,
                 type: pool.coinType
