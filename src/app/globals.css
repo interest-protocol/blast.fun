@@ -144,3 +144,7 @@
 .animate-ticker {
 	animation: ticker 8s linear infinite;
 }
+
+.group:hover .animate-ticker {
+	animation-play-state: paused;
+}

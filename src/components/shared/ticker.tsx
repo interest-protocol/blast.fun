@@ -12,6 +12,28 @@ interface TradeItemWithMetadata {
 	text: string
 	isBuy: boolean
 	iconUrl?: string
+	symbol: string
+}
+
+function TokenAvatar({ iconUrl, symbol }: { iconUrl?: string; symbol: string }) {
+	const [imageError, setImageError] = useState(false)
+
+	if (!iconUrl || imageError) {
+		return (
+			<div className="w-4 h-4 rounded-full bg-foreground/20 flex items-center justify-center text-[10px] font-bold">
+				{symbol[0]?.toUpperCase() || "?"}
+			</div>
+		)
+	}
+
+	return (
+		<img
+			src={iconUrl}
+			alt={symbol}
+			className="w-4 h-4 rounded-full"
+			onError={() => setImageError(true)}
+		/>
+	)
 }
 
 export function Ticker() {
@@ -48,9 +70,10 @@ export function Ticker() {
 					}
 
 					return {
-						text: `${formattedAddress} ${action} ${suiAmount} SUI OF ${symbol}`,
+						text: `${formattedAddress} ${action} ${suiAmount} SUI OF`,
 						isBuy,
 						iconUrl,
+						symbol,
 					}
 				})
 			)
@@ -65,7 +88,7 @@ export function Ticker() {
 	if (displayItems.length === 0 && !isLoading) return null
 
 	return (
-		<div className="w-full overflow-hidden bg-destructive/10 border-y-2 border-destructive/20 py-2 relative select-none">
+		<div className="w-full overflow-hidden bg-destructive/10 border-y-2 border-destructive/20 py-2 relative select-none group">
 			{/* indicators on edges */}
 			<div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-destructive/20 to-transparent z-10 flex items-center justify-start pl-2">
 				<AlertTriangle className="h-4 w-4 text-destructive animate-pulse" />
@@ -82,8 +105,9 @@ export function Ticker() {
 							key={index}
 							className="mx-8 font-mono text-sm uppercase tracking-wider text-foreground/80 flex items-center gap-2"
 						>
-							{item.iconUrl && <img src={item.iconUrl} alt="token" className="w-4 h-4 rounded-full" />}
 							<span className="text-foreground/60">{item.text}</span>
+							<TokenAvatar iconUrl={item.iconUrl} symbol={item.symbol} />
+							<span className="text-foreground/60">{item.symbol}</span>
 						</span>
 					))}
 				</div>
@@ -94,8 +118,9 @@ export function Ticker() {
 							className="mx-8 font-mono text-sm uppercase tracking-wider text-foreground/80 flex items-center gap-2"
 						>
 							<span className="text-destructive/60">ALERT::</span>
-							{item.iconUrl && <img src={item.iconUrl} alt="token" className="w-4 h-4 rounded-full" />}
 							<span className="text-foreground/60">{item.text}</span>
+							<TokenAvatar iconUrl={item.iconUrl} symbol={item.symbol} />
+							<span className="text-foreground/60">{item.symbol}</span>
 						</span>
 					))}
 				</div>
