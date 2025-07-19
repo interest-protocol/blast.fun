@@ -1,7 +1,6 @@
 'use client';
 
 import { SplashLoader } from "@/components/shared/splash-loader";
-import { TransactionHistory } from "@/components/tokens/transaction-history";
 import { Card, CardContent } from "@/components/ui/card";
 import { usePoolWithMetadata } from "@/hooks/pump/use-pool-with-metadata";
 import { Skull } from "lucide-react";
