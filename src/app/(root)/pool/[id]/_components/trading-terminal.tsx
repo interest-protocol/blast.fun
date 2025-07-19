@@ -25,7 +25,7 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 	const metadata = pool.coinMetadata
 	const decimals = metadata?.decimals || 9
 
-	const { isLoading, error, pump, dump } = usePump({
+	const { isLoading, error, success, pump, dump } = usePump({
 		pool,
 		decimals,
 	})
@@ -164,6 +164,13 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 								))}
 							</div>
 						</details>
+
+						{/* Success Display */}
+						{success && (
+							<Alert className="py-2 border-green-500/50 bg-green-500/10">
+								<AlertDescription className="font-mono text-xs text-green-500">{success}</AlertDescription>
+							</Alert>
+						)}
 
 						{/* Error Display */}
 						{error && (

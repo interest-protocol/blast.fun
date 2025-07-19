@@ -1,10 +1,12 @@
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions"
 import { MIST_PER_SUI } from "@mysten/sui/utils"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useApp } from "@/context/app.context"
 import { useTransaction } from "@/hooks/sui/use-transaction"
+import { playSound } from "@/lib/audio"
 import { pumpSdk } from "@/lib/pump"
 import type { PoolWithMetadata } from "@/types/pool"
+import { formatMistToSui } from "@/utils/format"
 
 interface UsePumpOptions {
 	pool: PoolWithMetadata
@@ -14,6 +16,7 @@ interface UsePumpOptions {
 interface UsePumpReturn {
 	isLoading: boolean
 	error: string | null
+	success: string | null
 	pump: (amountInSui: string, slippagePercent?: number) => Promise<void>
 	dump: (amountInTokens: string, slippagePercent?: number) => Promise<void>
 }
@@ -24,6 +27,17 @@ export function usePump({ pool, decimals = 9 }: UsePumpOptions): UsePumpReturn {
 
 	const [isLoading, setIsLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
+	const [success, setSuccess] = useState<string | null>(null)
+
+	// auto-clear success message after 5 seconds
+	useEffect(() => {
+		if (success) {
+			const timer = setTimeout(() => {
+				setSuccess(null)
+			}, 5000)
+			return () => clearTimeout(timer)
+		}
+	}, [success])
 
 	const pump = async (amountInSui: string, slippagePercent = 15) => {
 		if (!isConnected || !address) {
@@ -39,6 +53,7 @@ export function usePump({ pool, decimals = 9 }: UsePumpOptions): UsePumpReturn {
 
 		setIsLoading(true)
 		setError(null)
+		setSuccess(null)
 
 		try {
 			const amountInMist = BigInt(Math.floor(amount * Number(MIST_PER_SUI)))
@@ -66,6 +81,13 @@ export function usePump({ pool, decimals = 9 }: UsePumpOptions): UsePumpReturn {
 			pumpTx.transferObjects([memeCoin], address)
 
 			await executeTransaction(pumpTx)
+
+			// play buy sound
+			playSound('buy')
+
+			// show success message
+			const tokenAmount = Number(quote.memeAmountOut) / Math.pow(10, decimals)
+			setSuccess(`ORDER::FILLED - Bought ${tokenAmount.toFixed(2)} ${pool.coinMetadata?.symbol || 'TOKEN'} for ${amount} SUI`)
 		} catch (err) {
 			const errorMessage = err instanceof Error ? err.message : "UNKNOWN_ERROR"
 			setError(errorMessage)
@@ -89,6 +111,7 @@ export function usePump({ pool, decimals = 9 }: UsePumpOptions): UsePumpReturn {
 
 		setIsLoading(true)
 		setError(null)
+		setSuccess(null)
 
 		try {
 			const amountInSmallestUnit = BigInt(Math.floor(amount * Math.pow(10, decimals)))
@@ -121,6 +144,12 @@ export function usePump({ pool, decimals = 9 }: UsePumpOptions): UsePumpReturn {
 			dumpTx.transferObjects([quoteCoin], address)
 
 			await executeTransaction(dumpTx)
+
+			// play sell sound
+			playSound('sell')
+
+			// show success message
+			setSuccess(`ORDER::FILLED - Sold ${amount} ${pool.coinMetadata?.symbol || 'TOKEN'} for ${formatMistToSui(quote.quoteAmountOut)} SUI`)
 		} catch (err) {
 			const errorMessage = err instanceof Error ? err.message : "UNKNOWN_ERROR"
 			setError(errorMessage)
@@ -133,6 +162,7 @@ export function usePump({ pool, decimals = 9 }: UsePumpOptions): UsePumpReturn {
 	return {
 		isLoading,
 		error,
+		success,
 		pump,
 		dump,
 	}
