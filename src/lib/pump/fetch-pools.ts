@@ -3,6 +3,7 @@ import { GET_POOLS, GET_POOL } from '@/graphql/pools'
 import { pumpSdk } from '@/lib/pump'
 import type { Pool, PoolWithMetadata } from '@/types/pool'
 import type { GetPoolsResponse, GetPoolsVariables, GetPoolResponse, GetPoolVariables } from '@/types/graphql'
+import { suiClient } from '../sui-client'
 
 /**
  * Fetches metadata for a single pool
@@ -13,7 +14,7 @@ async function enrichPoolWithMetadata(pool: Pool): Promise<PoolWithMetadata> {
 	try {
 		const [pumpPoolData, coinMetadata] = await Promise.allSettled([
 			pumpSdk.getPumpPool(pool.poolId),
-			pumpSdk.client.getCoinMetadata({ coinType: pool.coinType })
+			suiClient.getCoinMetadata({ coinType: pool.coinType })
 		])
 
 		if (pumpPoolData.status === 'fulfilled' && pumpPoolData.value) {
@@ -57,7 +58,7 @@ export async function fetchPools(page: number = 1, pageSize: number = 12): Promi
  */
 export async function fetchPoolsWithMetadata(page: number = 1, pageSize: number = 12): Promise<PoolWithMetadata[]> {
 	const pools = await fetchPools(page, pageSize)
-	
+
 	if (pools.length === 0) return []
 
 	return Promise.all(pools.map(pool => enrichPoolWithMetadata(pool)))
