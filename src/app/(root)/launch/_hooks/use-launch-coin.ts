@@ -67,7 +67,7 @@ export function useLaunchCoin() {
 		}
 
 		addLog("INITIALIZING::WASM_MODULE")
-		await initMoveByteCodeTemplate("/move_bytecode_template_bg.wasm")
+		await initMoveByteCodeTemplate("/bytecode/move_bytecode_template_bg.wasm")
 
 		addLog("COMPILING::BYTECODE")
 
