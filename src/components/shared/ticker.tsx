@@ -5,35 +5,19 @@ import { AlertTriangle } from "lucide-react"
 import React, { useEffect, useState } from "react"
 import { useRecentTrades } from "@/hooks/pump/use-recent-trades"
 import type { Trade } from "@/lib/pump/fetch-trades"
+import { apolloClient } from "@/lib/apollo-client"
 import { suiClient } from "@/lib/sui-client"
 import { formatMistToSui } from "@/utils/format"
+import { TokenLink } from '@/components/tokens/token-link'
+import { GET_POOL_BY_COIN_TYPE } from "@/graphql/pools"
 
 interface TradeItemWithMetadata {
 	text: string
 	isBuy: boolean
 	iconUrl?: string
 	symbol: string
-}
-
-function TokenAvatar({ iconUrl, symbol }: { iconUrl?: string; symbol: string }) {
-	const [imageError, setImageError] = useState(false)
-
-	if (!iconUrl || imageError) {
-		return (
-			<div className="w-4 h-4 rounded-full bg-foreground/20 flex items-center justify-center text-[10px] font-bold">
-				{symbol[0]?.toUpperCase() || "?"}
-			</div>
-		)
-	}
-
-	return (
-		<img
-			src={iconUrl}
-			alt={symbol}
-			className="w-4 h-4 rounded-full"
-			onError={() => setImageError(true)}
-		/>
-	)
+	poolId?: string
+	coinType: string
 }
 
 export function Ticker() {
@@ -55,14 +39,27 @@ export function Ticker() {
 
 					let symbol = "[UNKNOWN]"
 					let iconUrl: string | undefined
+					let poolId: string | undefined
 
-					// fetch coin metadata if we have a coin type
+					// fetch coin metadata and pool if we have a coin type
 					if (trade.type && trade.type !== "BUY" && trade.type !== "SELL") {
 						try {
 							const metadata = await suiClient.getCoinMetadata({ coinType: trade.type })
 							if (metadata) {
 								symbol = metadata.symbol
 								iconUrl = metadata.iconUrl ?? undefined
+							}
+
+							// fetch pool id based on the coin type
+							try {
+								const { data } = await apolloClient.query({
+									query: GET_POOL_BY_COIN_TYPE,
+									variables: { coinType: trade.type },
+									errorPolicy: "ignore",
+								})
+								poolId = data?.coinPool?.poolId
+							} catch (poolError) {
+								console.debug("Pool not found for coin type:", trade.type)
 							}
 						} catch (error) {
 							console.error("Failed to fetch coin metadata:", error)
@@ -74,6 +71,8 @@ export function Ticker() {
 						isBuy,
 						iconUrl,
 						symbol,
+						poolId,
+						coinType: trade.type,
 					}
 				})
 			)
@@ -106,11 +105,15 @@ export function Ticker() {
 							className="mx-8 font-mono text-sm uppercase tracking-wider text-foreground/80 flex items-center gap-2"
 						>
 							<span className="text-foreground/60">{item.text}</span>
-							<TokenAvatar iconUrl={item.iconUrl} symbol={item.symbol} />
-							<span className="text-foreground/60">{item.symbol}</span>
+							<TokenLink
+								iconUrl={item.iconUrl}
+								symbol={item.symbol}
+								poolId={item.poolId}
+							/>
 						</span>
 					))}
 				</div>
+
 				<div className="flex animate-ticker whitespace-nowrap" aria-hidden="true">
 					{[...displayItems, ...displayItems].map((item, index) => (
 						<span
@@ -119,8 +122,11 @@ export function Ticker() {
 						>
 							<span className="text-destructive/60">ALERT::</span>
 							<span className="text-foreground/60">{item.text}</span>
-							<TokenAvatar iconUrl={item.iconUrl} symbol={item.symbol} />
-							<span className="text-foreground/60">{item.symbol}</span>
+							<TokenLink
+								iconUrl={item.iconUrl}
+								symbol={item.symbol}
+								poolId={item.poolId}
+							/>
 						</span>
 					))}
 				</div>
