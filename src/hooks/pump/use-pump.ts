@@ -62,7 +62,7 @@ export function usePump({ pool, decimals = 9 }: UsePumpOptions): UsePumpReturn {
                 pool: pool.poolId,
                 quoteCoin,
                 minAmountOut
-            })
+            } as any)
 
             pumpTx.transferObjects([memeCoin], address)
 
@@ -115,7 +115,7 @@ export function usePump({ pool, decimals = 9 }: UsePumpOptions): UsePumpReturn {
                 pool: pool.poolId,
                 memeCoin,
                 minAmountOut
-            })
+            } as any)
 
             dumpTx.transferObjects([quoteCoin], address)
 

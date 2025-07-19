@@ -15,15 +15,15 @@ export default function DiscoveryPage() {
   const [bondedPage, setBondedPage] = useState(1)
   const pageSize = 12
 
-  const { pools, loading, error, refetch, hasMore } = usePoolsWithMetadata({
+  const { data: pools = [], isLoading, error } = usePoolsWithMetadata({
     page,
     pageSize,
-    pollInterval: 60000, // Refresh every minute
   })
 
   // Separate pools into bonded and non-bonded
   const bondedPools = pools.filter(pool => parseFloat(pool.bondingCurve) >= 100)
   const nonBondedPools = pools.filter(pool => parseFloat(pool.bondingCurve) < 100)
+  const hasMore = pools.length === pageSize
 
   const LoadingSkeleton = () => (
     <Card className="border-2 bg-background/50 backdrop-blur-sm shadow-2xl">
@@ -121,7 +121,7 @@ export default function DiscoveryPage() {
         </TabsList>
 
         <TabsContent value="active">
-          <TokenGrid tokens={nonBondedPools} isLoading={loading} />
+          <TokenGrid tokens={nonBondedPools} isLoading={isLoading} />
 
           {nonBondedPools.length > 0 && (
             <div className="mt-8 flex items-center justify-between">
@@ -133,7 +133,7 @@ export default function DiscoveryPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1 || loading}
+                  disabled={page === 1 || isLoading}
                   className="font-mono uppercase"
                 >
                   <ChevronLeft className="w-4 h-4 mr-1" />
@@ -143,7 +143,7 @@ export default function DiscoveryPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => setPage(p => p + 1)}
-                  disabled={!hasMore || loading}
+                  disabled={!hasMore || isLoading}
                   className="font-mono uppercase"
                 >
                   NEXT
@@ -155,7 +155,7 @@ export default function DiscoveryPage() {
         </TabsContent>
 
         <TabsContent value="bonded">
-          <TokenGrid tokens={bondedPools} isLoading={loading} />
+          <TokenGrid tokens={bondedPools} isLoading={isLoading} />
 
           {bondedPools.length > 0 && (
             <div className="mt-8 flex items-center justify-between">

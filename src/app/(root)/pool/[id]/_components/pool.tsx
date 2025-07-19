@@ -9,11 +9,9 @@ import { TradingTerminal } from "./trading-terminal";
 import { BondingProgress } from "./bonding-progress";
 
 export default function Pool({ poolId }: { poolId: string }) {
-    const { pool, loading, error } = usePoolWithMetadata(poolId, {
-        skip: !poolId
-    });
+    const { data: pool, isLoading, error } = usePoolWithMetadata(poolId);
 
-    if (loading) {
+    if (isLoading) {
         return (
             <SplashLoader />
         )
