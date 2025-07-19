@@ -30,7 +30,7 @@ export const GET_MARKET_TRADES = gql`
 `
 
 export const GET_RECENT_TRADES = gql`
-  query GetRecentTrades($page: Int, $pageSize: Int) {
+  query GetRecentTrades($page: Int!, $pageSize: Int!) {
     marketTrades(
       page: $page
       pageSize: $pageSize
