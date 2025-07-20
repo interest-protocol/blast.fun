@@ -3,15 +3,15 @@ import { z } from "zod"
 
 export const env = createEnv({
 	server: {
+		NEXTAUTH_URL: z.string().url().optional(),
 		AUTH_SECRET: z.string().min(1),
 		DATABASE_URL: z.string().min(1),
 
 		TWITTER_API_IO_KEY: z.string().min(1),
-
 		TWITTER_CLIENT_SECRET: z.string().min(1),
 		TWITTER_CLIENT_ID: z.string().min(1),
 
-		NEXTAUTH_URL: z.string().url().optional(),
+		NEXA_API_KEY: z.string().min(1),
 	},
 	client: {
 		NEXT_PUBLIC_DEFAULT_NETWORK: z.union([z.literal("mainnet"), z.literal("testnet")]),
@@ -23,14 +23,14 @@ export const env = createEnv({
 		NEXT_PUBLIC_FEE_ADDRESS: process.env.NEXT_PUBLIC_FEE_ADDRESS,
 		NEXT_PUBLIC_GRAPHQL_API_URL: process.env.NEXT_PUBLIC_GRAPHQL_API_URL,
 
+		NEXTAUTH_URL: process.env.NEXTAUTH_URL,
 		AUTH_SECRET: process.env.AUTH_SECRET,
 		DATABASE_URL: process.env.DATABASE_URL,
 
 		TWITTER_API_IO_KEY: process.env.TWITTER_API_IO_KEY,
-
 		TWITTER_CLIENT_SECRET: process.env.TWITTER_CLIENT_SECRET,
 		TWITTER_CLIENT_ID: process.env.TWITTER_CLIENT_ID,
 
-		NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+		NEXA_API_KEY: process.env.NEXA_API_KEY,
 	},
 })
