@@ -10,6 +10,7 @@ import { ApolloProvider } from "@/providers/apollo-provider"
 import SuiProvider from "@/providers/sui-provider"
 import { ThemeProvider } from "@/providers/theme-provider"
 import { cn } from "@/utils"
+import { TooltipProvider } from "@/components/ui/tooltip"
 
 export const metadata: Metadata = {
 	title: "xPump",
@@ -27,29 +28,31 @@ export default function RootLayout({
 			<ReactScan />
 			<body className={cn(geistSans.variable, geistMono.variable, "antialiased")}>
 				<ThemeProvider attribute="class" defaultTheme="dark" disableTransitionOnChange>
-					<SessionProvider>
-						<TwitterAuthProvider>
-							<ApolloProvider>
-								<SuiProvider>
-									{children}
+					<TooltipProvider>
+						<SessionProvider>
+							<TwitterAuthProvider>
+								<ApolloProvider>
+									<SuiProvider>
+										{children}
 
-									<TailwindIndicator />
-									<Toaster
-										position="bottom-center"
-										reverseOrder={true}
-										toastOptions={{
-											style: {
-												backgroundColor: "var(--card)",
-												color: "var(--foreground)",
-												padding: "12px 12px",
-												border: "1px solid var(--border)",
-											},
-										}}
-									/>
-								</SuiProvider>
-							</ApolloProvider>
-						</TwitterAuthProvider>
-					</SessionProvider>
+										<TailwindIndicator />
+										<Toaster
+											position="bottom-center"
+											reverseOrder={true}
+											toastOptions={{
+												style: {
+													backgroundColor: "var(--card)",
+													color: "var(--foreground)",
+													padding: "12px 12px",
+													border: "1px solid var(--border)",
+												},
+											}}
+										/>
+									</SuiProvider>
+								</ApolloProvider>
+							</TwitterAuthProvider>
+						</SessionProvider>
+					</TooltipProvider>
 				</ThemeProvider>
 			</body>
 		</html>
