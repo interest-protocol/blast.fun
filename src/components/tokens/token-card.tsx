@@ -42,17 +42,17 @@ export function TokenCard({ pool }: TokenCardProps) {
 
 	return (
 		<Link href={`/pool/${pool.poolId}`}>
-			<div className="border-b bg-background/50 backdrop-blur-sm hover:bg-background/80 transition-all duration-300 group cursor-pointer p-2">
+			<div className="border-b group p-2">
 				<div className="flex gap-3">
 					{/* Token Image */}
 					<div className="flex-shrink-0">
 						<div className="relative">
-							<div className="absolute inset-0 bg-primary/20 blur-md rounded opacity-0 group-hover:opacity-100 transition-opacity" />
+							<div className="absolute inset-0 bg-gradient-to-r from-purple-500/30 to-blue-500/30 blur-md rounded opacity-0 group-hover:opacity-100 transition-all duration-300" />
 							<TokenAvatar
 								iconUrl={coinMetadata?.iconUrl || undefined}
 								symbol={coinMetadata?.symbol}
 								name={coinMetadata?.name}
-								className="relative w-12 h-12 rounded border"
+								className="relative w-16 h-16 rounded border"
 							/>
 						</div>
 					</div>
@@ -60,22 +60,22 @@ export function TokenCard({ pool }: TokenCardProps) {
 					{/* Content Area */}
 					<div className="flex-1 min-w-0 space-y-1">
 						{/* Header */}
-						<div className="flex items-center gap-2">
-							<h3 className="font-mono text-sm uppercase tracking-wider text-foreground/80 truncate">
+						<div className="flex items-start gap-1">
+							<h3 className="font-mono font-bold text-md uppercase tracking-wider text-foreground/80 truncate">
 								{coinMetadata?.name || "[UNNAMED]"}
 							</h3>
 							<p className="font-mono text-xs uppercase text-muted-foreground">
-								${coinMetadata?.symbol || "[???]"}
+								{coinMetadata?.symbol || "[???]"}
 							</p>
 						</div>
 
 						{/* Stats */}
-						<div className="flex items-center gap-3 text-xs font-mono">
+						<div className="flex items-center gap-3 font-semibold text-xs font-mono">
 							<Tooltip>
 								<TooltipTrigger asChild>
 									<div className="flex items-center gap-1">
 										<span className="text-muted-foreground uppercase">MC:</span>
-										<span className="text-foreground">${formatAmountWithSuffix(marketCap)}</span>
+										<span className="text-green-500">${formatAmountWithSuffix(marketCap)}</span>
 									</div>
 								</TooltipTrigger>
 								<TooltipContent>
@@ -87,7 +87,7 @@ export function TokenCard({ pool }: TokenCardProps) {
 								<TooltipTrigger asChild>
 									<div className="flex items-center gap-1">
 										<span className="text-muted-foreground uppercase">LIQ:</span>
-										<span className="text-foreground">{formatAmountWithSuffix(pool.quoteBalance)}</span>
+										<span className="text-blue-500">{formatAmountWithSuffix(pool.quoteBalance)}</span>
 									</div>
 								</TooltipTrigger>
 								<TooltipContent>
@@ -99,7 +99,7 @@ export function TokenCard({ pool }: TokenCardProps) {
 								<TooltipTrigger asChild>
 									<div className="flex items-center gap-1">
 										<span className="text-muted-foreground uppercase">BOND:</span>
-										<span className="text-foreground">{bondingProgress.toFixed(0)}%</span>
+										<span className={bondingProgress >= 80 ? "text-orange-500" : bondingProgress >= 50 ? "text-yellow-500" : "text-purple-500"}>{bondingProgress.toFixed(0)}%</span>
 									</div>
 								</TooltipTrigger>
 								<TooltipContent>
@@ -124,7 +124,7 @@ export function TokenCard({ pool }: TokenCardProps) {
 															href={link.href}
 															target="_blank"
 															rel="noopener noreferrer"
-															className="text-muted-foreground hover:text-foreground transition-colors"
+															className="text-muted-foreground hover:text-primary transition-colors"
 															onClick={(e) => e.stopPropagation()}
 														>
 															<Icon className="w-3 h-3" />

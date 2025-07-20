@@ -27,7 +27,7 @@ export function TokenAvatar({
 		return (
 			<div
 				className={cn(
-					"flex items-center justify-center bg-background/50 border border-dashed text-foreground/40 font-mono font-bold",
+					"flex items-center justify-center shadow-md bg-background/50 border border-dashed text-foreground/40 font-mono font-bold",
 					className,
 					fallbackClassName
 				)}
