@@ -1,28 +1,7 @@
 'use client';
 
 import Link from "next/link";
-import { useState } from "react";
-
-function TokenAvatar({ iconUrl, symbol }: { iconUrl?: string; symbol: string }) {
-	const [imageError, setImageError] = useState(false)
-
-	if (!iconUrl || imageError) {
-		return (
-			<div className="w-4 h-4 rounded-md bg-card flex items-center justify-center text-[10px] font-bold">
-				{symbol[0]?.toUpperCase() || "?"}
-			</div>
-		)
-	}
-
-	return (
-		<img
-			src={iconUrl}
-			alt={symbol}
-			className="w-4 h-4 rounded-md"
-			onError={() => setImageError(true)}
-		/>
-	)
-}
+import { TokenAvatar } from "./token-avatar";
 
 export function TokenLink({
 	iconUrl,
@@ -36,7 +15,12 @@ export function TokenLink({
 	if (!poolId) {
 		return (
 			<div className="flex items-center gap-2">
-				<TokenAvatar iconUrl={iconUrl} symbol={symbol} />
+				<TokenAvatar 
+					iconUrl={iconUrl} 
+					symbol={symbol}
+					className="w-4 h-4 rounded-md"
+					fallbackClassName="text-[10px] bg-card"
+				/>
 				<span className="text-foreground/60">{symbol}</span>
 			</div>
 		)
@@ -47,7 +31,12 @@ export function TokenLink({
 			href={`/pool/${poolId}`}
 			className="flex items-center gap-2 hover:opacity-80 transition-opacity"
 		>
-			<TokenAvatar iconUrl={iconUrl} symbol={symbol} />
+			<TokenAvatar 
+				iconUrl={iconUrl} 
+				symbol={symbol}
+				className="w-4 h-4 rounded-md"
+				fallbackClassName="text-[10px] bg-card"
+			/>
 			<span className="text-foreground/60 transition-colors">{symbol}</span>
 		</Link>
 	)
