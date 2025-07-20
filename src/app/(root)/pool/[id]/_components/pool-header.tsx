@@ -108,7 +108,7 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
 					<div className="flex gap-1">
 						{pool.metadata?.X && (
 							<Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-								<a href={`https://twitter.com/${pool.metadata.X}`} target="_blank" rel="noopener noreferrer">
+								<a href={pool.metadata.X} target="_blank" rel="noopener noreferrer">
 									<Twitter className="h-4 w-4" />
 								</a>
 							</Button>
