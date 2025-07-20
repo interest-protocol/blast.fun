@@ -16,7 +16,7 @@ async function enrichPoolWithMetadata(pool: Pool): Promise<PoolWithMetadata> {
 		const [pumpPoolData, coinMetadata] = await Promise.allSettled([
 			pumpSdk.getPumpPool(pool.poolId),
 			// fetchCoinMetadata(pool.coinType),
-			suiClient.getCoinMetadata({ coinType: pool.coinType })
+			suiClient.getCoinMetadata({ coinType: pool.coinType }),
 		])
 
 		if (pumpPoolData.status === "fulfilled" && pumpPoolData.value) {

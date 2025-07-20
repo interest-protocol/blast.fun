@@ -57,9 +57,7 @@ export default function LaunchPage() {
 
 					<div className="w-full max-w-md mx-auto space-y-4">
 						<div className="border-t border-foreground/10 pt-6">
-							<p className="text-xs font-mono text-muted-foreground/60 mb-6 uppercase">
-								AVAILABLE::WALLETS
-							</p>
+							<p className="text-xs font-mono text-muted-foreground/60 mb-6 uppercase">AVAILABLE::WALLETS</p>
 							<WalletList onSelect={connect} isConnecting={isConnecting} />
 						</div>
 					</div>
@@ -108,7 +106,10 @@ export default function LaunchPage() {
 							<p className="text-xs font-mono text-muted-foreground/60 mb-6 uppercase">
 								SOCIAL::AUTHENTICATION
 							</p>
-							<Button className="w-full font-mono uppercase tracking-wider py-6 text-base border-2 border-foreground/20 hover:border-primary/50 transition-all duration-300" onClick={login}>
+							<Button
+								className="w-full font-mono uppercase tracking-wider py-6 text-base border-2 border-foreground/20 hover:border-primary/50 transition-all duration-300"
+								onClick={login}
+							>
 								CONNECT::TWITTER
 							</Button>
 						</div>
@@ -174,7 +175,9 @@ export default function LaunchPage() {
 												<h3 className="text-xl font-mono font-bold tracking-tight">
 													{tokenData.name || "[UNNAMED]"}
 												</h3>
-												<p className="text-lg font-mono text-primary">${tokenData.symbol || "???"}</p>
+												<p className="text-lg font-mono text-primary">
+													${tokenData.symbol || "???"}
+												</p>
 											</div>
 										</div>
 

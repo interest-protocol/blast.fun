@@ -97,7 +97,7 @@ export function useLaunchCoin() {
 		if (!treasuryCapObjectId) {
 			throw new Error(
 				`Failed to find treasury cap in transaction ${formatDigest(result.digest)}. ` +
-				`View transaction: ${getTxExplorerUrl(result.digest)}`
+					`View transaction: ${getTxExplorerUrl(result.digest)}`
 			)
 		}
 
@@ -171,7 +171,7 @@ export function useLaunchCoin() {
 		if (!poolObjectId) {
 			throw new Error(
 				`Failed to find pool object in transaction ${formatDigest(result.digest)}. ` +
-				`View transaction: ${getTxExplorerUrl(result.digest)}`
+					`View transaction: ${getTxExplorerUrl(result.digest)}`
 			)
 		}
 

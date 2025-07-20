@@ -8,7 +8,7 @@ import type { Trade } from "@/lib/pump/fetch-trades"
 import { apolloClient } from "@/lib/apollo-client"
 import { suiClient } from "@/lib/sui-client"
 import { formatMistToSui } from "@/utils/format"
-import { TokenLink } from '@/components/tokens/token-link'
+import { TokenLink } from "@/components/tokens/token-link"
 import { GET_POOL_BY_COIN_TYPE } from "@/graphql/pools"
 
 interface TradeItemWithMetadata {
@@ -105,11 +105,7 @@ export function Ticker() {
 							className="mx-8 font-mono text-sm uppercase tracking-wider text-foreground/80 flex items-center gap-2"
 						>
 							<span className="text-foreground/60">{item.text}</span>
-							<TokenLink
-								iconUrl={item.iconUrl}
-								symbol={item.symbol}
-								poolId={item.poolId}
-							/>
+							<TokenLink iconUrl={item.iconUrl} symbol={item.symbol} poolId={item.poolId} />
 						</span>
 					))}
 				</div>
@@ -122,11 +118,7 @@ export function Ticker() {
 						>
 							<span className="text-destructive/60">ALERT::</span>
 							<span className="text-foreground/60">{item.text}</span>
-							<TokenLink
-								iconUrl={item.iconUrl}
-								symbol={item.symbol}
-								poolId={item.poolId}
-							/>
+							<TokenLink iconUrl={item.iconUrl} symbol={item.symbol} poolId={item.poolId} />
 						</span>
 					))}
 				</div>

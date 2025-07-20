@@ -16,7 +16,7 @@ export function TokenAvatar({
 	symbol,
 	name,
 	className = "w-12 h-12 rounded",
-	fallbackClassName = ""
+	fallbackClassName = "",
 }: TokenAvatarProps) {
 	const [imageError, setImageError] = useState(false)
 

@@ -32,12 +32,8 @@ export default function DiscoveryPage() {
 			<div className="h-[calc(100vh-theme(spacing.16)-theme(spacing.12)-theme(spacing.14))] md:h-[calc(100vh-theme(spacing.16)-theme(spacing.12))] flex items-center justify-center">
 				<div className="text-center">
 					<Skull className="w-12 h-12 mx-auto text-destructive mb-4" />
-					<p className="font-mono text-sm uppercase text-destructive">
-						ERROR::LOADING::DATA
-					</p>
-					<p className="font-mono text-xs uppercase text-destructive/60 mt-2">
-						{error.message}
-					</p>
+					<p className="font-mono text-sm uppercase text-destructive">ERROR::LOADING::DATA</p>
+					<p className="font-mono text-xs uppercase text-destructive/60 mt-2">{error.message}</p>
 				</div>
 			</div>
 		)

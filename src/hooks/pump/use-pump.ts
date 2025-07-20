@@ -83,11 +83,13 @@ export function usePump({ pool, decimals = 9 }: UsePumpOptions): UsePumpReturn {
 			await executeTransaction(pumpTx)
 
 			// play buy sound
-			playSound('buy')
+			playSound("buy")
 
 			// show success message
 			const tokenAmount = Number(quote.memeAmountOut) / Math.pow(10, decimals)
-			setSuccess(`ORDER::FILLED - Bought ${tokenAmount.toFixed(2)} ${pool.coinMetadata?.symbol || 'TOKEN'} for ${amount} SUI`)
+			setSuccess(
+				`ORDER::FILLED - Bought ${tokenAmount.toFixed(2)} ${pool.coinMetadata?.symbol || "TOKEN"} for ${amount} SUI`
+			)
 		} catch (err) {
 			const errorMessage = err instanceof Error ? err.message : "UNKNOWN_ERROR"
 			setError(errorMessage)
@@ -146,10 +148,12 @@ export function usePump({ pool, decimals = 9 }: UsePumpOptions): UsePumpReturn {
 			await executeTransaction(dumpTx)
 
 			// play sell sound
-			playSound('sell')
+			playSound("sell")
 
 			// show success message
-			setSuccess(`ORDER::FILLED - Sold ${amount} ${pool.coinMetadata?.symbol || 'TOKEN'} for ${formatMistToSui(quote.quoteAmountOut)} SUI`)
+			setSuccess(
+				`ORDER::FILLED - Sold ${amount} ${pool.coinMetadata?.symbol || "TOKEN"} for ${formatMistToSui(quote.quoteAmountOut)} SUI`
+			)
 		} catch (err) {
 			const errorMessage = err instanceof Error ? err.message : "UNKNOWN_ERROR"
 			setError(errorMessage)

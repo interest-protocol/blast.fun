@@ -23,13 +23,13 @@ export function TokenCard({ pool }: TokenCardProps) {
 	const socialLinks = [
 		{ href: metadata.X, icon: Twitter, tooltip: "X::TWITTER" },
 		{ href: metadata.Telegram, icon: Send, tooltip: "TELEGRAM" },
-		{ href: metadata.Website, icon: Globe, tooltip: "WEBSITE" }
-	].filter(link => link.href)
+		{ href: metadata.Website, icon: Globe, tooltip: "WEBSITE" },
+	].filter((link) => link.href)
 
 	let createdDate = "[UNKNOWN]"
 	if (pool.createdAt) {
 		try {
-			const timestamp = typeof pool.createdAt === 'string' ? parseInt(pool.createdAt) : pool.createdAt
+			const timestamp = typeof pool.createdAt === "string" ? parseInt(pool.createdAt) : pool.createdAt
 			const date = new Date(timestamp)
 
 			if (!isNaN(date.getTime())) {
