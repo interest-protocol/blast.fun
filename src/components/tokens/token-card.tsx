@@ -1,11 +1,11 @@
 "use client"
 
-import { formatAddress } from "@mysten/sui/utils"
-import { Globe, Skull, Twitter } from "lucide-react"
+import { formatDistance } from "date-fns"
+import { Globe, Send, Twitter } from "lucide-react"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { TokenAvatar } from "./token-avatar"
 import type { PoolWithMetadata } from "@/types/pool"
 import { formatAmountWithSuffix } from "@/utils/format"
 
@@ -16,108 +16,133 @@ interface TokenCardProps {
 export function TokenCard({ pool }: TokenCardProps) {
 	const metadata = pool.metadata || {}
 	const coinMetadata = pool.coinMetadata
-	const marketCap = parseFloat(pool.quoteBalance) * 2 // Simplified calculation
+	const marketCap = parseFloat(pool.quoteBalance) * 2
 	const bondingProgress = parseFloat(pool.bondingCurve)
+
+	// social links configuration
+	const socialLinks = [
+		{ href: metadata.X, icon: Twitter, tooltip: "X::TWITTER" },
+		{ href: metadata.Telegram, icon: Send, tooltip: "TELEGRAM" },
+		{ href: metadata.Website, icon: Globe, tooltip: "WEBSITE" }
+	].filter(link => link.href)
+
+	let createdDate = "[UNKNOWN]"
+	if (pool.createdAt) {
+		try {
+			const timestamp = typeof pool.createdAt === 'string' ? parseInt(pool.createdAt) : pool.createdAt
+			const date = new Date(timestamp)
+
+			if (!isNaN(date.getTime())) {
+				createdDate = formatDistance(date, new Date(), { addSuffix: true })
+			}
+		} catch (error) {
+			console.warn("Invalid date format for createdAt:", pool.createdAt)
+		}
+	}
 
 	return (
 		<Link href={`/pool/${pool.poolId}`}>
-			<Card className="border-2 bg-background/50 backdrop-blur-sm shadow-2xl hover:shadow-primary/20 transition-all duration-300 group cursor-pointer">
-				<CardHeader className="pb-4 border-b">
-					<div className="flex items-start justify-between gap-4">
-						<div className="flex items-center gap-3">
-							<div className="relative">
-								<div className="absolute inset-0 bg-primary/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-								{coinMetadata?.iconUrl ? (
-									<img
-										src={coinMetadata.iconUrl}
-										alt={coinMetadata.name || "Token"}
-										className="relative w-12 h-12 rounded-lg object-cover border-2"
-									/>
-								) : (
-									<div className="relative w-12 h-12 rounded-lg border-2 border-dashed bg-background/50 flex items-center justify-center">
-										<Skull className="w-6 h-6 text-foreground/20" />
+			<div className="border-b bg-background/50 backdrop-blur-sm hover:bg-background/80 transition-all duration-300 group cursor-pointer p-2">
+				<div className="flex gap-3">
+					{/* Token Image */}
+					<div className="flex-shrink-0">
+						<div className="relative">
+							<div className="absolute inset-0 bg-primary/20 blur-md rounded opacity-0 group-hover:opacity-100 transition-opacity" />
+							<TokenAvatar
+								iconUrl={coinMetadata?.iconUrl || undefined}
+								symbol={coinMetadata?.symbol}
+								name={coinMetadata?.name}
+								className="relative w-12 h-12 rounded border"
+							/>
+						</div>
+					</div>
+
+					{/* Content Area */}
+					<div className="flex-1 min-w-0 space-y-1">
+						{/* Header */}
+						<div className="flex items-center gap-2">
+							<h3 className="font-mono text-sm uppercase tracking-wider text-foreground/80 truncate">
+								{coinMetadata?.name || "[UNNAMED]"}
+							</h3>
+							<p className="font-mono text-xs uppercase text-muted-foreground">
+								${coinMetadata?.symbol || "[???]"}
+							</p>
+						</div>
+
+						{/* Stats */}
+						<div className="flex items-center gap-3 text-xs font-mono">
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<div className="flex items-center gap-1">
+										<span className="text-muted-foreground uppercase">MC:</span>
+										<span className="text-foreground">${formatAmountWithSuffix(marketCap)}</span>
 									</div>
-								)}
-							</div>
-							<div>
-								<h3 className="font-mono text-sm uppercase tracking-wider">
-									{coinMetadata?.symbol || "[UNNAMED]"}
-								</h3>
-								<p className="font-mono text-xs uppercase text-muted-foreground">
-									{coinMetadata?.name || "[REDACTED]"}
-								</p>
-							</div>
+								</TooltipTrigger>
+								<TooltipContent>
+									<p className="font-mono text-xs uppercase">MARKET::CAP</p>
+								</TooltipContent>
+							</Tooltip>
+
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<div className="flex items-center gap-1">
+										<span className="text-muted-foreground uppercase">LIQ:</span>
+										<span className="text-foreground">{formatAmountWithSuffix(pool.quoteBalance)}</span>
+									</div>
+								</TooltipTrigger>
+								<TooltipContent>
+									<p className="font-mono text-xs uppercase">LIQUIDITY::POOL</p>
+								</TooltipContent>
+							</Tooltip>
+
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<div className="flex items-center gap-1">
+										<span className="text-muted-foreground uppercase">BOND:</span>
+										<span className="text-foreground">{bondingProgress.toFixed(0)}%</span>
+									</div>
+								</TooltipTrigger>
+								<TooltipContent>
+									<p className="font-mono text-xs uppercase">BONDING::PROGRESS</p>
+								</TooltipContent>
+							</Tooltip>
 						</div>
-						{pool.nsfw && (
-							<Badge variant="destructive" className="font-mono text-xs uppercase">
-								NSFW::CONTENT
-							</Badge>
-						)}
-					</div>
-				</CardHeader>
 
-				<CardContent className="pt-4 space-y-4">
-					<div className="space-y-2">
-						<div className="flex justify-between items-center">
-							<p className="font-mono text-xs uppercase text-muted-foreground">MARKET::CAP</p>
-							<p className="font-mono text-sm uppercase">${formatAmountWithSuffix(marketCap)}</p>
+						{/* Social Links */}
+						<div className="flex items-center gap-2 text-xs font-mono text-muted-foreground">
+							<span className="text-foreground/60">{createdDate}</span>
+							{socialLinks.length > 0 && (
+								<>
+									<span>•</span>
+									<div className="flex items-center gap-1">
+										{socialLinks.map((link, index) => {
+											const Icon = link.icon
+											return (
+												<Tooltip key={index}>
+													<TooltipTrigger asChild>
+														<a
+															href={link.href}
+															target="_blank"
+															rel="noopener noreferrer"
+															className="text-muted-foreground hover:text-foreground transition-colors"
+															onClick={(e) => e.stopPropagation()}
+														>
+															<Icon className="w-3 h-3" />
+														</a>
+													</TooltipTrigger>
+													<TooltipContent>
+														<p className="font-mono text-xs uppercase">{link.tooltip}</p>
+													</TooltipContent>
+												</Tooltip>
+											)
+										})}
+									</div>
+								</>
+							)}
 						</div>
-
-						<div className="flex justify-between items-center">
-							<p className="font-mono text-xs uppercase text-muted-foreground">CREATOR::ADDRESS</p>
-							<p className="font-mono text-sm uppercase">{formatAddress(pool.creatorAddress)}</p>
-						</div>
-
-						<div className="flex justify-between items-center">
-							<p className="font-mono text-xs uppercase text-muted-foreground">LIQUIDITY::POOL</p>
-							<p className="font-mono text-sm uppercase">{formatAmountWithSuffix(pool.quoteBalance)} SUI</p>
-						</div>
 					</div>
-
-					<div className="pt-4 border-t">
-						<div className="flex justify-between items-center mb-2">
-							<p className="font-mono text-xs uppercase text-muted-foreground">BONDING::PROGRESS</p>
-							<p className="font-mono text-xs uppercase">{bondingProgress.toFixed(2)}%</p>
-						</div>
-						<Progress value={bondingProgress} className="h-2" />
-					</div>
-
-					<div className="pt-4 border-t">
-						<p className="font-mono text-xs uppercase text-muted-foreground mb-2">DESCRIPTION::DATA</p>
-						<p className="font-mono text-xs line-clamp-3 text-foreground/80">
-							{coinMetadata?.description || "NO::DESCRIPTION::AVAILABLE"}
-						</p>
-					</div>
-
-					<div className="pt-4 border-t flex items-center gap-4">
-						{metadata.twitter && (
-							<a
-								href={metadata.twitter}
-								target="_blank"
-								rel="noopener noreferrer"
-								className="text-muted-foreground hover:text-foreground transition-colors"
-								onClick={(e) => e.stopPropagation()}
-							>
-								<Twitter className="w-4 h-4" />
-							</a>
-						)}
-						{metadata.website && (
-							<a
-								href={metadata.website}
-								target="_blank"
-								rel="noopener noreferrer"
-								className="text-muted-foreground hover:text-foreground transition-colors"
-								onClick={(e) => e.stopPropagation()}
-							>
-								<Globe className="w-4 h-4" />
-							</a>
-						)}
-						<p className="font-mono text-xs uppercase text-muted-foreground ml-auto">
-							TOKEN::ID::{pool.poolId.slice(0, 8)}
-						</p>
-					</div>
-				</CardContent>
-			</Card>
+				</div>
+			</div>
 		</Link>
 	)
 }
