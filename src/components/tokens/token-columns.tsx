@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useMemo } from "react"
+import { useMemo } from "react"
 import { TokenCard } from "./token-card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import type { PoolWithMetadata } from "@/types/pool"
@@ -12,7 +12,6 @@ interface TokenColumnsProps {
 }
 
 export function TokenColumns({ pools, isRefreshing }: TokenColumnsProps) {
-	// Use useMemo to optimize categorization
 	const { newPools, nearMaxBonding, migratedPools } = useMemo(() => {
 		const categorized = {
 			new: [] as PoolWithMetadata[],
@@ -25,31 +24,29 @@ export function TokenColumns({ pools, isRefreshing }: TokenColumnsProps) {
 
 			if (pool.migrated) {
 				categorized.migrated.push(pool)
-			} else if (bondingProgress >= 90) {
+			} else if (bondingProgress >= 75) {
 				categorized.nearMax.push(pool)
 			} else {
 				categorized.new.push(pool)
 			}
 		})
 
-		// Sort by creation date (newest first for new pools)
+		// sort by creation date (newest first for new pools)
 		categorized.new.sort((a, b) => {
-			// createdAt is Unix timestamp in milliseconds
 			const dateA = typeof a.createdAt === "string" ? parseInt(a.createdAt) : a.createdAt || 0
 			const dateB = typeof b.createdAt === "string" ? parseInt(b.createdAt) : b.createdAt || 0
 			return dateB - dateA
 		})
 
-		// Sort by bonding progress (highest first for near max)
+		// sort by bonding progress (highest first for near max)
 		categorized.nearMax.sort((a, b) => {
 			const progressA = parseFloat(a.bondingCurve)
 			const progressB = parseFloat(b.bondingCurve)
 			return progressB - progressA
 		})
 
-		// Sort migrated by creation date (newest first)
+		// sort migrated by creation date (newest first)
 		categorized.migrated.sort((a, b) => {
-			// createdAt is Unix timestamp in milliseconds
 			const dateA = typeof a.createdAt === "string" ? parseInt(a.createdAt) : a.createdAt || 0
 			const dateB = typeof b.createdAt === "string" ? parseInt(b.createdAt) : b.createdAt || 0
 			return dateB - dateA
@@ -71,12 +68,12 @@ export function TokenColumns({ pools, isRefreshing }: TokenColumnsProps) {
 
 	return (
 		<div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full max-h-full">
-			{/* New Pools Column */}
+			{/* New Tokens Column */}
 			<div className="flex flex-col h-full max-h-full">
 				<div className="border-2 bg-background/50 backdrop-blur-sm rounded-lg p-2 mb-2">
 					<div className="flex items-center justify-between">
 						<div>
-							<h2 className="font-mono text-sm uppercase tracking-wider text-foreground/80">NEW::POOLS</h2>
+							<h2 className="font-mono text-sm uppercase tracking-wider text-foreground/80">NEW::TOKENS</h2>
 							<p className="font-mono text-xs uppercase text-muted-foreground">RECENTLY::CREATED</p>
 						</div>
 						{isRefreshing && <RefreshCw className="w-3 h-3 text-muted-foreground animate-spin" />}
@@ -88,7 +85,7 @@ export function TokenColumns({ pools, isRefreshing }: TokenColumnsProps) {
 							{newPools.length > 0 ? (
 								newPools.map((pool) => <TokenCard key={pool.poolId} pool={pool} />)
 							) : (
-								<EmptyState message="NO::NEW::POOLS::AVAILABLE" />
+								<EmptyState message="NO::NEW::TOKENS::AVAILABLE" />
 							)}
 						</div>
 					</ScrollArea>
@@ -98,8 +95,8 @@ export function TokenColumns({ pools, isRefreshing }: TokenColumnsProps) {
 			{/* Near Max Bonding Column */}
 			<div className="flex flex-col h-full max-h-full">
 				<div className="border-2 bg-background/50 backdrop-blur-sm rounded-lg p-2 mb-2">
-					<h2 className="font-mono text-sm uppercase tracking-wider text-foreground/80">BONDING::NEAR::MAX</h2>
-					<p className="font-mono text-xs uppercase text-muted-foreground">90%::OR::HIGHER</p>
+					<h2 className="font-mono text-sm uppercase tracking-wider text-foreground/80">NEAR::GRADUATION</h2>
+					<p className="font-mono text-xs uppercase text-muted-foreground">75%::OR::HIGHER</p>
 				</div>
 				<div className="flex-1 border-2 bg-background/50 backdrop-blur-sm rounded-lg overflow-hidden">
 					<ScrollArea className="h-full">
@@ -107,7 +104,7 @@ export function TokenColumns({ pools, isRefreshing }: TokenColumnsProps) {
 							{nearMaxBonding.length > 0 ? (
 								nearMaxBonding.map((pool) => <TokenCard key={pool.poolId} pool={pool} />)
 							) : (
-								<EmptyState message="NO::POOLS::NEAR::MAX::BONDING" />
+								<EmptyState message="NO::TOKENS::NEAR::GRADUATION" />
 							)}
 						</div>
 					</ScrollArea>
@@ -117,8 +114,8 @@ export function TokenColumns({ pools, isRefreshing }: TokenColumnsProps) {
 			{/* Migrated Pools Column */}
 			<div className="flex flex-col h-full max-h-full">
 				<div className="border-2 bg-background/50 backdrop-blur-sm rounded-lg p-2 mb-2">
-					<h2 className="font-mono text-sm uppercase tracking-wider text-foreground/80">MIGRATED::POOLS</h2>
-					<p className="font-mono text-xs uppercase text-muted-foreground">SUCCESSFULLY::LAUNCHED</p>
+					<h2 className="font-mono text-sm uppercase tracking-wider text-foreground/80">MIGRATED::TOKENS</h2>
+					<p className="font-mono text-xs uppercase text-muted-foreground">SUCCESSFULLY::MIGRATED</p>
 				</div>
 				<div className="flex-1 border-2 bg-background/50 backdrop-blur-sm rounded-lg overflow-hidden">
 					<ScrollArea className="h-full">
@@ -126,7 +123,7 @@ export function TokenColumns({ pools, isRefreshing }: TokenColumnsProps) {
 							{migratedPools.length > 0 ? (
 								migratedPools.map((pool) => <TokenCard key={pool.poolId} pool={pool} />)
 							) : (
-								<EmptyState message="NO::MIGRATED::POOLS::YET" />
+								<EmptyState message="NO::MIGRATED::TOKENS::YET" />
 							)}
 						</div>
 					</ScrollArea>
