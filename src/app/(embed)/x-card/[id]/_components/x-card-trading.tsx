@@ -17,6 +17,7 @@ import { useTokenBalance } from "@/hooks/sui/use-token-balance"
 import type { PoolWithMetadata } from "@/types/pool"
 import { formatAmountWithSuffix } from "@/utils/format"
 import { CopyableAddress } from "@/components/shared/copyable-address"
+import { CopyableToken } from "@/components/shared/copyable-token"
 
 interface XCardTradingProps {
 	pool: PoolWithMetadata
@@ -96,7 +97,7 @@ export function XCardTrading({ pool }: XCardTradingProps) {
 		<div className="flex-1 overflow-auto bg-background">
 			{/* Header */}
 			<div className="sticky top-0 z-10 bg-background/90 backdrop-blur-sm border-b border-border">
-				<div className="p-4">
+				<div className="p-2">
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-3">
 							{/* Avatar */}
@@ -114,14 +115,7 @@ export function XCardTrading({ pool }: XCardTradingProps) {
 									<h1 className="font-mono font-bold text-lg uppercase tracking-wider text-foreground/90">
 										{metadata?.name || "[UNNAMED]"}
 									</h1>
-									<Badge variant="outline" className="font-mono text-xs uppercase">
-										${metadata?.symbol || "[???]"}
-									</Badge>
-									{pool.migrated && (
-										<Badge variant="default" className="font-mono text-xs uppercase">
-											MIGRATED
-										</Badge>
-									)}
+									<CopyableToken symbol={metadata?.symbol || "[???]"} coinType={pool.coinType} />
 								</div>
 								<div className="flex items-center gap-2 text-xs">
 									<span className="font-mono uppercase text-muted-foreground">Created by</span>
@@ -315,7 +309,7 @@ export function XCardTrading({ pool }: XCardTradingProps) {
 								{/* Slippage */}
 								<details className="group">
 									<summary className="cursor-pointer font-mono text-xs uppercase text-muted-foreground hover:text-foreground">
-										SLIPPAGE::TOLERANCE::{slippage}%
+										SLIPPAGE::{slippage}%
 									</summary>
 									<div className="mt-2 grid grid-cols-4 gap-2">
 										{["5", "10", "15", "20"].map((value) => (
@@ -341,7 +335,7 @@ export function XCardTrading({ pool }: XCardTradingProps) {
 								)}
 
 								{error && (
-									<Alert variant="destructive" className="py-2">
+									<Alert variant="destructive" className="flex items-center py-2">
 										<Skull className="h-4 w-4" />
 										<AlertDescription className="font-mono text-xs uppercase">
 											ERROR::{error}

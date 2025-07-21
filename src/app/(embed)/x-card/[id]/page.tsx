@@ -26,7 +26,7 @@ export default function XCardPage({ params }: { params: Promise<{ id: string }> 
 			<div className="fixed inset-0 flex flex-col">
 				<EmbedHeader />
 				<div className="flex-1 flex items-center justify-center">
-					<div className="text-center text-white">
+					<div className="text-center">
 						<p className="font-mono text-sm uppercase">ERROR::POOL_NOT_FOUND</p>
 						<p className="font-mono text-xs uppercase opacity-60 mt-2">
 							POOL_ID::{id || "[UNKNOWN]"}
