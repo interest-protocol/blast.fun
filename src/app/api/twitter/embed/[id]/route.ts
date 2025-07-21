@@ -3,9 +3,9 @@ import { NextRequest, NextResponse } from "next/server"
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const { id } = params
+    const { id } = await params
     const appUrl = env.VERCEL_URL || "http://localhost:3000"
 
     const html = `<!DOCTYPE html>
