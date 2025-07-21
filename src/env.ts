@@ -5,7 +5,7 @@ export const env = createEnv({
 	server: {
 		VERCEL_URL: z.string().optional(),
 
-		NEXTAUTH_URL: z.string().url().optional(),
+		NEXTAUTH_URL: z.url().optional(),
 		AUTH_SECRET: z.string().min(1),
 		DATABASE_URL: z.string().min(1),
 
@@ -16,7 +16,7 @@ export const env = createEnv({
 		NEXA_API_KEY: z.string().min(1),
 	},
 	client: {
-		NEXT_PUBLIC_APP_URL: z.string().min(1),
+		NEXT_PUBLIC_APP_URL: z.string().optional(),
 		NEXT_PUBLIC_DEFAULT_NETWORK: z.union([z.literal("mainnet"), z.literal("testnet")]),
 		NEXT_PUBLIC_FEE_ADDRESS: z.string().min(1),
 		NEXT_PUBLIC_GRAPHQL_API_URL: z.string().url(),
