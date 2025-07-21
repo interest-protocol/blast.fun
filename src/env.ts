@@ -3,6 +3,8 @@ import { z } from "zod"
 
 export const env = createEnv({
 	server: {
+		VERCEL_URL: z.string().optional(),
+
 		NEXTAUTH_URL: z.string().url().optional(),
 		AUTH_SECRET: z.string().min(1),
 		DATABASE_URL: z.string().min(1),
@@ -22,6 +24,8 @@ export const env = createEnv({
 		NEXT_PUBLIC_DEFAULT_NETWORK: process.env.NEXT_PUBLIC_DEFAULT_NETWORK,
 		NEXT_PUBLIC_FEE_ADDRESS: process.env.NEXT_PUBLIC_FEE_ADDRESS,
 		NEXT_PUBLIC_GRAPHQL_API_URL: process.env.NEXT_PUBLIC_GRAPHQL_API_URL,
+
+		VERCEL_URL: process.env.VERCEL_URL,
 
 		NEXTAUTH_URL: process.env.NEXTAUTH_URL,
 		AUTH_SECRET: process.env.AUTH_SECRET,
