@@ -14,6 +14,7 @@ interface TokenCardProps {
 }
 
 export function TokenCard({ pool }: TokenCardProps) {
+	// @todo: fix the marketcap calculation..
 	const metadata = pool.metadata || {}
 	const coinMetadata = pool.coinMetadata
 	const marketCap = parseFloat(pool.quoteBalance) * 2

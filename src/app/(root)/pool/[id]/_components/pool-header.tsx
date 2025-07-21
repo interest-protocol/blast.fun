@@ -1,34 +1,24 @@
 "use client"
 
-import { Copy, ExternalLink, Globe, Send, Twitter, User } from "lucide-react"
+import { Globe, Send, Twitter } from "lucide-react"
 import React from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { useClipboard } from "@/hooks/use-clipboard"
 import type { PoolWithMetadata } from "@/types/pool"
 import { formatAmountWithSuffix } from "@/utils/format"
+import { formatAddress } from "@mysten/sui/utils"
 
 interface PoolHeaderProps {
 	pool: PoolWithMetadata
 }
 
 export function PoolHeader({ pool }: PoolHeaderProps) {
-	const { copy } = useClipboard()
+	// @todo: fix the marketcap calculation..
 	const metadata = pool.coinMetadata
-	const decimals = metadata?.decimals || 9
-
 	const supply = pool.coinBalance
-
-	console.log(pool)
-
-	// Calculate bonding curve progress
-	const progress = typeof pool.bondingCurve === "number" ? pool.bondingCurve : parseFloat(pool.bondingCurve) || 0
-
-	// Calculate market cap (approximate based on liquidity and progress)
 	const currentLiquidity = Number(pool.quoteBalance) / Math.pow(10, 9)
-	const marketCap = currentLiquidity * (100 / (progress || 1)) // Rough estimate
+	const marketCap = parseFloat(pool.quoteBalance) * 2
 
 	// Format creator info from metadata
 	// Priority: CreatorTwitterName (if CreatorTwitterId exists) > CreatorWallet > pool.creatorAddress
@@ -62,7 +52,6 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
 						)}
 					</div>
 
-					{/* Contract and Creator on same line */}
 					<div className="flex items-center gap-4 mt-1">
 						<div className="flex items-center gap-1 text-xs font-mono font-bold text-muted-foreground">
 							<span>by</span>
@@ -77,28 +66,25 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
 								</a>
 							) : (
 								<span className="text-foreground">
-									{creatorWallet.slice(0, 6)}...{creatorWallet.slice(-4)}
+									{formatAddress(creatorWallet)}
 								</span>
 							)}
 						</div>
 					</div>
 				</div>
 
-				{/* Stats Section */}
+				{/* Stats */}
 				<div className="flex items-center gap-6">
-					{/* Market Cap */}
 					<div>
 						<p className="font-mono text-xs uppercase text-muted-foreground">Market Cap</p>
 						<p className="font-mono text-sm font-bold">${marketCap.toLocaleString()}</p>
 					</div>
 
-					{/* Liquidity */}
 					<div>
 						<p className="font-mono text-xs uppercase text-muted-foreground">Liquidity</p>
 						<p className="font-mono text-sm font-bold">{currentLiquidity.toLocaleString()} SUI</p>
 					</div>
 
-					{/* Supply */}
 					<div>
 						<p className="font-mono text-xs uppercase text-muted-foreground">Supply</p>
 						<p className="font-mono text-sm font-bold">{formatAmountWithSuffix(supply)}</p>
