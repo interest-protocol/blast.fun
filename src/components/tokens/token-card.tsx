@@ -52,7 +52,7 @@ export function TokenCard({ pool }: TokenCardProps) {
 								iconUrl={coinMetadata?.iconUrl || undefined}
 								symbol={coinMetadata?.symbol}
 								name={coinMetadata?.name}
-								className="relative w-11 h-11 rounded-lg border-2 border-border/30 group-hover:border-primary/40 transition-all duration-200"
+								className="relative w-14 h-14 rounded-lg border-2 border-border/30 group-hover:border-primary/40 transition-all duration-200"
 							/>
 						</div>
 					</div>
