@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ExternalLink, Twitter, Globe, Send, Skull, Zap, TrendingUp, TrendingDown } from "lucide-react"
+import { ExternalLink, Twitter, Globe, Send, Skull, Zap, TrendingUp, TrendingDown, BarChart3, Droplets, Coins, Activity } from "lucide-react"
 import { useCurrentAccount } from "@mysten/dapp-kit"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -9,9 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Progress } from "@/components/ui/progress"
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { usePump } from "@/hooks/pump/use-pump"
 import { useTokenBalance } from "@/hooks/sui/use-token-balance"
 import type { PoolWithMetadata } from "@/types/pool"
@@ -37,13 +35,6 @@ export function XCardTrading({ pool }: XCardTradingProps) {
 		pool,
 		decimals,
 	})
-
-	// check if we're in Twitter's iframe
-	const [isTwitterEmbed, setIsTwitterEmbed] = useState(false)
-	useEffect(() => {
-		const isEmbed = window.self !== window.top
-		setIsTwitterEmbed(isEmbed)
-	}, [])
 
 	// quick buy amounts in SUI
 	const quickBuyAmounts = [0.5, 1, 5, 10]
@@ -95,41 +86,42 @@ export function XCardTrading({ pool }: XCardTradingProps) {
 
 	return (
 		<div className="flex-1 overflow-auto bg-background">
-			{/* Header */}
-			<div className="sticky top-0 z-10 bg-background/90 backdrop-blur-sm border-b border-border">
-				<div className="p-2">
+			{/* Token Header */}
+			<div className="sticky top-0 z-10 bg-gradient-to-b from-background via-background/95 to-background/90 backdrop-blur-sm border-b border-border">
+				<div className="px-4 py-3 space-y-3">
+					{/* Token Info Row */}
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-3">
-							{/* Avatar */}
-							<div className="relative">
-								<div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse" />
-								<Avatar className="relative w-14 h-14 rounded-lg border-2 border-border/50">
-									<AvatarImage src={metadata?.iconUrl || ""} alt={metadata?.symbol} />
-									<AvatarFallback className="font-mono text-xs uppercase bg-background text-foreground/80">
-										{metadata?.symbol?.slice(0, 2) || "[??]"}
+							{/* Avatar with glow effect */}
+							<div className="relative group">
+								<div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-purple-500/30 blur-2xl rounded-full opacity-60 group-hover:opacity-100 transition-opacity duration-500" />
+								<Avatar className="relative w-16 h-16 rounded-xl border-2 border-primary/20 group-hover:border-primary/40 transition-all duration-300 shadow-lg">
+									<AvatarImage src={metadata?.iconUrl || ""} alt={metadata?.symbol} className="object-cover" />
+									<AvatarFallback className="font-mono text-sm uppercase bg-gradient-to-br from-primary/20 to-purple-500/20 text-foreground">
+										{metadata?.symbol?.slice(0, 2) || "??"}
 									</AvatarFallback>
 								</Avatar>
 							</div>
-							<div>
+							<div className="space-y-1">
 								<div className="flex items-center gap-2">
-									<h1 className="font-mono font-bold text-lg uppercase tracking-wider text-foreground/90">
+									<h1 className="font-mono font-bold text-xl uppercase tracking-wider text-foreground">
 										{metadata?.name || "[UNNAMED]"}
 									</h1>
-									<CopyableToken symbol={metadata?.symbol || "[???]"} coinType={pool.coinType} />
+									<CopyableToken symbol={metadata?.symbol || "[???]"} coinType={pool.coinType} className="px-2 py-0.5 bg-primary/10 rounded-md" />
 								</div>
 								<div className="flex items-center gap-2 text-xs">
-									<span className="font-mono uppercase text-muted-foreground">Created by</span>
+									<span className="font-mono uppercase text-muted-foreground/80">Created by</span>
 									{showTwitterCreator ? (
 										<a
 											href={`https://twitter.com/${creatorTwitterName}`}
 											target="_blank"
 											rel="noopener noreferrer"
-											className="font-mono uppercase text-primary hover:underline"
+											className="font-mono uppercase text-primary hover:text-primary/80 transition-colors"
 										>
 											@{creatorTwitterName}
 										</a>
 									) : (
-										<CopyableAddress address={creatorWallet} className="font-mono uppercase text-foreground/80 hover:text-foreground" />
+										<CopyableAddress address={creatorWallet} className="font-mono uppercase text-foreground/60 hover:text-foreground/80" />
 									)}
 								</div>
 							</div>
@@ -138,36 +130,69 @@ export function XCardTrading({ pool }: XCardTradingProps) {
 						<div className="flex items-center gap-2">
 							{/* Social Links */}
 							{pool.metadata?.X && (
-								<Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+								<Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10" asChild>
 									<a href={pool.metadata.X} target="_blank" rel="noopener noreferrer">
 										<Twitter className="h-4 w-4" />
 									</a>
 								</Button>
 							)}
 							{pool.metadata?.Telegram && (
-								<Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+								<Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10" asChild>
 									<a href={pool.metadata.Telegram} target="_blank" rel="noopener noreferrer">
 										<Send className="h-4 w-4" />
 									</a>
 								</Button>
 							)}
 							{pool.metadata?.Website && (
-								<Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+								<Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10" asChild>
 									<a href={pool.metadata.Website} target="_blank" rel="noopener noreferrer">
 										<Globe className="h-4 w-4" />
 									</a>
 								</Button>
 							)}
-							{isTwitterEmbed && (
-								<Button
-									variant="outline"
-									size="sm"
-									onClick={openInNewTab}
-									className="font-mono text-xs uppercase"
-								>
-									<ExternalLink className="w-4 h-4" />
-								</Button>
-							)}
+
+							{/* redirect to real page */}
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={openInNewTab}
+								className="font-mono text-xs uppercase hover:bg-primary/10 hover:border-primary/40"
+							>
+								<ExternalLink className="w-4 h-4" />
+							</Button>
+						</div>
+					</div>
+
+					{/* Market Stats Grid */}
+					<div className="grid grid-cols-3 gap-2">
+						<div className="bg-gradient-to-br from-green-500/10 to-green-600/5 rounded-lg p-2 border border-green-500/20">
+							<div className="flex items-center gap-1.5">
+								<BarChart3 className="w-3 h-3 text-green-500/60" />
+								<span className="text-[10px] font-mono uppercase text-green-500/80">Market Cap</span>
+							</div>
+							<p className="font-mono font-bold text-sm text-green-500 mt-0.5">
+								${formatAmountWithSuffix(marketCap)}
+							</p>
+						</div>
+
+						<div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 rounded-lg p-2 border border-blue-500/20">
+							<div className="flex items-center gap-1.5">
+								<Droplets className="w-3 h-3 text-blue-500/60" />
+								<span className="text-[10px] font-mono uppercase text-blue-500/80">Liquidity</span>
+							</div>
+							<p className="font-mono font-bold text-sm text-blue-500 mt-0.5">
+								{formatAmountWithSuffix(pool.quoteBalance)} SUI
+							</p>
+						</div>
+
+						<div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 rounded-lg p-2 border border-purple-500/20">
+							<div className="flex items-center gap-1.5">
+								<Coins className="w-3 h-3 text-purple-500/60" />
+								<span className="text-[10px] font-mono uppercase text-purple-500/80">Supply</span>
+							</div>
+							<p className="font-mono font-bold text-sm text-purple-500 mt-0.5">
+								{formatAmountWithSuffix(pool.coinBalance)}
+							</p>
 						</div>
 					</div>
 				</div>
@@ -175,52 +200,6 @@ export function XCardTrading({ pool }: XCardTradingProps) {
 
 			{/* Main Content */}
 			<div className="max-w-md mx-auto p-4 space-y-4">
-				<Card className="border-2 bg-background/50 backdrop-blur-sm shadow-2xl">
-					<CardContent className="p-4 !pt-0 !pb-0 space-y-4">
-						<div className="font-mono text-xs uppercase text-muted-foreground tracking-wider">
-							MARKET::STATISTICS
-						</div>
-						<div className="grid grid-cols-2 gap-4">
-							<div className="space-y-1">
-								<p className="text-xs font-mono uppercase text-muted-foreground">MARKET::CAP</p>
-								<p className="font-mono font-bold text-lg text-foreground/90">
-									${formatAmountWithSuffix(marketCap)}
-								</p>
-							</div>
-							<div className="space-y-1">
-								<p className="text-xs font-mono uppercase text-muted-foreground">LIQUIDITY::POOL</p>
-								<p className="font-mono font-bold text-lg text-foreground/90">
-									{formatAmountWithSuffix(pool.quoteBalance)} SUI
-								</p>
-							</div>
-							<div className="space-y-1">
-								<p className="text-xs font-mono uppercase text-muted-foreground">TOKEN::SUPPLY</p>
-								<p className="font-mono font-bold text-lg text-foreground/90">
-									{formatAmountWithSuffix(pool.coinBalance)}
-								</p>
-							</div>
-							<div className="space-y-1">
-								<p className="text-xs font-mono uppercase text-muted-foreground">BONDING::PROGRESS</p>
-								<p className="font-mono font-bold text-lg text-foreground/90">
-									{bondingProgress.toFixed(2)}%
-								</p>
-							</div>
-						</div>
-
-						<div className="space-y-2">
-							<div className="flex justify-between text-xs font-mono uppercase">
-								<span className="text-muted-foreground">BONDING::CURVE</span>
-								<span className="text-foreground/80">{bondingProgress.toFixed(2)}% COMPLETE</span>
-							</div>
-							<div className="relative">
-								<div className="absolute inset-0 bg-primary/20 blur-md rounded-full" />
-								<Progress value={bondingProgress} className="relative h-3 bg-secondary/20" />
-							</div>
-						</div>
-					</CardContent>
-				</Card>
-
-				{/* Trading Terminal */}
 				<Card className="border-2 bg-background/50 backdrop-blur-sm shadow-2xl">
 					<CardContent className="p-4 !pt-0 !pb-0">
 						<Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -328,16 +307,17 @@ export function XCardTrading({ pool }: XCardTradingProps) {
 
 								{success && (
 									<Alert className="py-2 border-green-500/50 bg-green-500/10">
-										<AlertDescription className="font-mono text-xs uppercase text-green-500">
+										<AlertDescription className="flex items-center gap-2 font-mono text-xs uppercase text-green-500">
+											<Zap className="h-4 w-4 flex-shrink-0" />
 											TRANSACTION::SUCCESS - {success}
 										</AlertDescription>
 									</Alert>
 								)}
 
 								{error && (
-									<Alert variant="destructive" className="flex items-center py-2">
-										<Skull className="h-4 w-4" />
-										<AlertDescription className="font-mono text-xs uppercase">
+									<Alert variant="destructive" className="py-2">
+										<AlertDescription className="flex items-center gap-2 font-mono text-xs uppercase">
+											<Skull className="h-4 w-4 flex-shrink-0" />
 											ERROR::{error}
 										</AlertDescription>
 									</Alert>
@@ -382,7 +362,8 @@ export function XCardTrading({ pool }: XCardTradingProps) {
 					<p className="font-mono font-bold text-xs uppercase text-muted-foreground">
 						xpump.fun • Powered by Sui
 					</p>
-					{isTwitterEmbed && (
+
+					{/* {isTwitterEmbed && (
 						<a
 							href={`https://twitter.com/intent/tweet?text=PUMPING::${metadata?.symbol}::ON::@xpump!&url=${window.location.origin}/pool/${pool.poolId}`}
 							target="_blank"
@@ -392,7 +373,7 @@ export function XCardTrading({ pool }: XCardTradingProps) {
 							<Twitter className="w-3 h-3" />
 							SHARE::TOKEN
 						</a>
-					)}
+					)} */}
 				</div>
 			</div>
 		</div>
