@@ -12,23 +12,37 @@ export async function GET(
 <html>
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    
+
+    <!-- Twitter Cache Busting -->
+    <meta name="twitter:cache" content="no-cache">
+    <meta name="twitter:dnt" content="on">
+    <meta name="twitter:timestamp" content="${Date.now()}">
+
+    <!-- Cache Control -->
+    <meta name="robots" content="noarchive">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
     <!-- Twitter Player Card Tags -->
     <meta name="twitter:card" content="player" />
-    <meta name="twitter:site" content="@xpump" />
-    <meta name="twitter:title" content="Trade on xPump" />
-    <meta name="twitter:description" content="Connect wallet and trade tokens directly" />
+    <meta name="twitter:creator" content="@xpumpfun">
+    <meta name="twitter:site" content="@xpumpfun" />
+    <meta name="twitter:image" content="${appUrl}/embed/xpump-twitter-logo.png" />
+    <meta name="twitter:title" content="Trade memecoins on xPump directly within X." />
+    <meta name="twitter:description" content="Buy & sell memecoins with any crypto on xPump directly within X." />
+
+    <meta name="twitter:url" content="${appUrl}/x-card/${id}" />
     <meta name="twitter:player" content="${appUrl}/x-card/${id}" />
-    <meta name="twitter:player:width" content="480" />
-    <meta name="twitter:player:height" content="720" />
-    <meta name="twitter:image" content="${appUrl}/api/og?poolId=${id}" />
-    
+    <meta name="twitter:player:width" content="800" />
+    <meta name="twitter:player:height" content="1500" />
+
     <!-- OpenGraph tags -->
-    <meta property="og:title" content="Trade on xPump" />
+    <meta property="og:type" content="video.movie" />
+    <meta property="og:title" content="Trade memecoins on xPump directly within X." />
     <meta property="og:description" content="Connect wallet and trade tokens directly" />
-    <meta property="og:image" content="${appUrl}/api/og?poolId=${id}" />
-    <meta property="og:type" content="video.other" />
+    <meta property="og:image" content="${appUrl}/embed/xpump-twitter-logo.png" />
+    <meta property="og:url" content="${appUrl}/x-card/${id}" />
     
     <title>xPump Trading</title>
 </head>
