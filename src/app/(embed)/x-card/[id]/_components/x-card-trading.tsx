@@ -185,14 +185,22 @@ export function XCardTrading({ pool }: XCardTradingProps) {
 							</p>
 						</div>
 
-						<div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 rounded-lg p-2 border border-purple-500/20">
+						<div className={`bg-gradient-to-br ${bondingProgress >= 80 ? 'from-orange-500/10 to-orange-600/5 border-orange-500/20' : bondingProgress >= 50 ? 'from-yellow-500/10 to-yellow-600/5 border-yellow-500/20' : 'from-purple-500/10 to-purple-600/5 border-purple-500/20'} rounded-lg p-2 border`}>
 							<div className="flex items-center gap-1.5">
-								<Coins className="w-3 h-3 text-purple-500/60" />
-								<span className="text-[10px] font-mono uppercase text-purple-500/80">Supply</span>
+								<Activity className={`w-3 h-3 ${bondingProgress >= 80 ? 'text-orange-500/60' : bondingProgress >= 50 ? 'text-yellow-500/60' : 'text-purple-500/60'}`} />
+								<span className={`text-[10px] font-mono uppercase ${bondingProgress >= 80 ? 'text-orange-500/80' : bondingProgress >= 50 ? 'text-yellow-500/80' : 'text-purple-500/80'}`}>Bonding</span>
 							</div>
-							<p className="font-mono font-bold text-sm text-purple-500 mt-0.5">
-								{formatAmountWithSuffix(pool.coinBalance)}
-							</p>
+							<div className="flex items-center gap-1.5 mt-0.5">
+								<div className="flex-1 h-1.5 bg-black/20 rounded-full overflow-hidden">
+									<div
+										className={`h-full transition-all duration-500 ${bondingProgress >= 80 ? 'bg-orange-500' : bondingProgress >= 50 ? 'bg-yellow-500' : 'bg-purple-500'}`}
+										style={{ width: `${bondingProgress}%` }}
+									/>
+								</div>
+								<span className={`font-mono font-bold text-sm ${bondingProgress >= 80 ? 'text-orange-500' : bondingProgress >= 50 ? 'text-yellow-500' : 'text-purple-500'}`}>
+									{bondingProgress.toFixed(0)}%
+								</span>
+							</div>
 						</div>
 					</div>
 				</div>
