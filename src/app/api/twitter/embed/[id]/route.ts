@@ -19,7 +19,7 @@ export async function GET(
     <meta name="twitter:site" content="@xpump" />
     <meta name="twitter:title" content="Trade on xPump" />
     <meta name="twitter:description" content="Connect wallet and trade tokens directly" />
-    <meta name="twitter:player" content="${appUrl}/embed/x-card/${id}" />
+    <meta name="twitter:player" content="${appUrl}/x-card/${id}" />
     <meta name="twitter:player:width" content="480" />
     <meta name="twitter:player:height" content="720" />
     <meta name="twitter:image" content="${appUrl}/api/og?poolId=${id}" />
@@ -36,7 +36,7 @@ export async function GET(
     <script>
         const trackingId = Math.random().toString(36).substring(7);
         setTimeout(() => {
-            window.location.href = "${appUrl}/embed/x-card/${id}?ref=twitter&t=" + Date.now();
+            window.location.href = "${appUrl}/x-card/${id}?ref=twitter&t=" + Date.now();
         }, 100);
     </script>
     <div style="display: flex; align-items: center; justify-content: center; height: 100vh; background: #000; color: #fff; font-family: monospace;">
