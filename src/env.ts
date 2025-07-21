@@ -16,11 +16,13 @@ export const env = createEnv({
 		NEXA_API_KEY: z.string().min(1),
 	},
 	client: {
+		NEXT_PUBLIC_APP_URL: z.string().min(1),
 		NEXT_PUBLIC_DEFAULT_NETWORK: z.union([z.literal("mainnet"), z.literal("testnet")]),
 		NEXT_PUBLIC_FEE_ADDRESS: z.string().min(1),
 		NEXT_PUBLIC_GRAPHQL_API_URL: z.string().url(),
 	},
 	runtimeEnv: {
+		NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
 		NEXT_PUBLIC_DEFAULT_NETWORK: process.env.NEXT_PUBLIC_DEFAULT_NETWORK,
 		NEXT_PUBLIC_FEE_ADDRESS: process.env.NEXT_PUBLIC_FEE_ADDRESS,
 		NEXT_PUBLIC_GRAPHQL_API_URL: process.env.NEXT_PUBLIC_GRAPHQL_API_URL,

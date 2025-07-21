@@ -6,7 +6,7 @@ export async function GET(
     { params }: { params: Promise<{ id: string }> }
 ) {
     const { id } = await params
-    const appUrl = env.VERCEL_URL || "http://localhost:3000"
+    const appUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
 
     const html = `<!DOCTYPE html>
 <html>
