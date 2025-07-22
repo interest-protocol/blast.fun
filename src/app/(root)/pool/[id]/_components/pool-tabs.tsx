@@ -33,7 +33,7 @@ export function PoolTabs({ pool }: PoolTabsProps) {
 					rel="noopener noreferrer"
 					className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/30 hover:bg-muted/50 transition-colors"
 				>
-					<span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/70 hidden sm:inline">
+					<span className="font-mono text-xs font-bold uppercase tracking-wider text-muted-foreground/70 hidden sm:inline">
 						Data by
 					</span>
 					<Image
