@@ -35,8 +35,8 @@ export function PoolTabs({ pool }: PoolTabsProps) {
 						POSITIONS
 					</TabsTrigger>
 					<TabsTrigger
-						value="holders"
-						className="font-mono uppercase text-xs tracking-wider data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+						value="top-traders"
+						className="font-mono uppercase text-[10px] sm:text-xs tracking-wider data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
 					>
 						HOLDERS
 					</TabsTrigger>
