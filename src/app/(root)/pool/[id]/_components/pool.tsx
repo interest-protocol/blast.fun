@@ -8,6 +8,7 @@ import { BondingProgress } from "./bonding-progress"
 import { PoolHeader } from "./pool-header"
 import { TradingTerminal } from "./trading-terminal"
 import { PoolTabs } from "./pool-tabs"
+import { CoinOHLCV } from "./coin-ohlcv"
 
 export default function Pool({ poolId }: { poolId: string }) {
 	const { data: pool, isLoading, error } = usePoolWithMetadata(poolId)
@@ -42,7 +43,8 @@ export default function Pool({ poolId }: { poolId: string }) {
 						<PoolHeader pool={pool} />
 
 						<div className="space-y-6">
-							<PriceChart pool={pool} />
+							<CoinOHLCV pool={pool} />
+							<PoolTabs pool={pool} />
 						</div>
 					</div>
 				</div>

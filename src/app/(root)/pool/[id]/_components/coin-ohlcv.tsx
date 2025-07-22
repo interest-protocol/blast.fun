@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Activity, Skull } from "lucide-react"
 import { useCoinOHLCV } from "@/hooks/datafeed/use-coin-ohlcv"
 
-interface PriceChartProps {
+interface CoinOHLCVProps {
 	pool: PoolWithMetadata
 }
 
@@ -22,7 +22,7 @@ const RESOLUTIONS = [
 	{ value: "1M", label: "1M" },
 ] as const
 
-export function PriceChart({ pool }: PriceChartProps) {
+export function CoinOHLCV({ pool }: CoinOHLCVProps) {
 	const [resolution, setResolution] = useState("2")
 	const containerRef = useRef<HTMLDivElement>(null)
 	const chartRef = useRef<IChartApi | null>(null)
