@@ -73,33 +73,44 @@ export async function GET(
 			}
 		}
 
-		// band the values
-		const bandTrustedFollowers = (count: number): string => {
+		// band the values with ranges
+		const bandValue = (count: number, thresholds: number[]): string => {
 			if (count === 0) return "0";
-			if (count < 10) return "<10";
-			if (count < 50) return "<50";
-			if (count < 100) return "<100";
-			if (count < 250) return "<250";
-			if (count < 500) return "<500";
-			if (count < 1000) return "<1K";
-			if (count < 5000) return "<5K";
-			if (count < 10000) return "<10K";
-			return ">10K";
+
+			const formatNumber = (num: number): string => {
+				if (num >= 1000000) {
+					return `${num / 1000000}M`;
+				} else if (num >= 1000) {
+					return `${num / 1000}K`;
+				} else {
+					return `${num}`;
+				}
+			};
+
+			for (let i = 0; i < thresholds.length; i++) {
+				if (count < thresholds[i]) {
+					// for the first threshold, just show < threshold
+					if (i === 0) {
+						return `<${formatNumber(thresholds[i])}`;
+					}
+
+					// else show range: previous threshold - current threshold
+					const prevThreshold = thresholds[i - 1];
+					return `${formatNumber(prevThreshold)}-${formatNumber(thresholds[i])}`;
+				}
+			}
+
+			// if count exceeds all thresholds, return > last threshold
+			const lastThreshold = thresholds[thresholds.length - 1];
+			return `>${formatNumber(lastThreshold)}`;
 		};
 
-		const bandFollowerCount = (count: number): string => {
-			if (count === 0) return "0";
-			if (count < 100) return "<100";
-			if (count < 500) return "<500";
-			if (count < 1000) return "<1K";
-			if (count < 5000) return "<5K";
-			if (count < 10000) return "<10K";
-			if (count < 50000) return "<50K";
-			if (count < 100000) return "<100K";
-			if (count < 500000) return "<500K";
-			if (count < 1000000) return "<1M";
-			return ">1M";
-		};
+		// define thresholds for different metrics
+		const trustedFollowerThresholds = [10, 50, 100, 250, 500, 1000, 5000, 10000, 25000];
+		const followerThresholds = [100, 500, 1000, 5000, 10000, 25000, 50000, 100000, 500000, 1000000];
+
+		const bandTrustedFollowers = (count: number): string => bandValue(count, trustedFollowerThresholds);
+		const bandFollowerCount = (count: number): string => bandValue(count, followerThresholds);
 
 		// only return banded values as to not leak the creator of this token
 		return NextResponse.json({
