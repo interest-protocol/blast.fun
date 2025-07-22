@@ -9,6 +9,7 @@ import type { PoolWithMetadata } from "@/types/pool"
 import { formatAmountWithSuffix, calculateMarketCap } from "@/utils/format"
 import { formatAddress } from "@mysten/sui/utils"
 import { CopyableToken } from "../shared/copyable-token"
+import { CreatorHoverCard } from "@/components/creator/creator-hover-card"
 
 interface TokenCardProps {
 	pool: PoolWithMetadata
@@ -137,21 +138,26 @@ export function TokenCard({ pool }: TokenCardProps) {
 									<span className="text-muted-foreground/40 hidden sm:inline">·</span>
 									<div className="flex items-center gap-1">
 										<span className="text-muted-foreground/60 uppercase tracking-wide hidden sm:inline">by</span>
-										{showTwitterCreator ? (
-											<a
-												href={`https://twitter.com/${creatorTwitterName}`}
-												target="_blank"
-												rel="noopener noreferrer"
-												className="hover:underline text-foreground/70 hover:text-foreground transition-colors"
-												onClick={(e) => e.stopPropagation()}
-											>
-												@{creatorTwitterName}
-											</a>
-										) : (
-											<span className="text-foreground/70">
-												{formatAddress(creatorWallet)}
-											</span>
-										)}
+										<CreatorHoverCard
+											twitterHandle={showTwitterCreator ? creatorTwitterName : undefined}
+											walletAddress={!showTwitterCreator ? creatorWallet : undefined}
+										>
+											{showTwitterCreator ? (
+												<a
+													href={`https://twitter.com/${creatorTwitterName}`}
+													target="_blank"
+													rel="noopener noreferrer"
+													className="hover:underline text-foreground/70 hover:text-foreground transition-colors"
+													onClick={(e) => e.stopPropagation()}
+												>
+													@{creatorTwitterName}
+												</a>
+											) : (
+												<span className="text-foreground/70 hover:text-foreground transition-colors">
+													{formatAddress(creatorWallet)}
+												</span>
+											)}
+										</CreatorHoverCard>
 									</div>
 								</div>
 								{socialLinks.length > 0 && (

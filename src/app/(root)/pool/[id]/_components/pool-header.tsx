@@ -9,6 +9,7 @@ import type { PoolWithMetadata } from "@/types/pool"
 import { formatAmountWithSuffix, calculateMarketCap } from "@/utils/format"
 import { formatAddress } from "@mysten/sui/utils"
 import { CopyableToken } from "@/components/shared/copyable-token"
+import { CreatorHoverCard } from "@/components/creator/creator-hover-card"
 
 interface PoolHeaderProps {
 	pool: PoolWithMetadata
@@ -65,20 +66,25 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
 
 						<div className="flex items-center gap-1 text-xs font-mono font-bold text-muted-foreground">
 							<span>by</span>
-							{showTwitterCreator ? (
-								<a
-									href={`https://twitter.com/${creatorTwitterName}`}
-									target="_blank"
-									rel="noopener noreferrer"
-									className="hover:underline text-foreground"
-								>
-									@{creatorTwitterName}
-								</a>
-							) : (
-								<span className="text-foreground">
-									{formatAddress(creatorWallet)}
-								</span>
-							)}
+							<CreatorHoverCard
+								twitterHandle={showTwitterCreator ? creatorTwitterName : undefined}
+								walletAddress={!showTwitterCreator ? creatorWallet : undefined}
+							>
+								{showTwitterCreator ? (
+									<a
+										href={`https://twitter.com/${creatorTwitterName}`}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="hover:underline text-foreground"
+									>
+										@{creatorTwitterName}
+									</a>
+								) : (
+									<span className="text-foreground hover:text-foreground/80 transition-colors">
+										{formatAddress(creatorWallet)}
+									</span>
+								)}
+							</CreatorHoverCard>
 						</div>
 					</div>
 				</div>
