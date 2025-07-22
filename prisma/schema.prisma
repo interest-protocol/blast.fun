@@ -16,8 +16,8 @@ model User {
   username        String
   name            String?
   profileImageUrl String?
-  sessions        Session[]
   accounts        Account[]
+  sessions        Session[]
   tokenLaunches   TokenLaunches[]
 
   @@index([twitterId])
@@ -30,15 +30,14 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@index([userId])
@@ -71,12 +70,12 @@ model TokenLaunches {
   updatedAt       DateTime @updatedAt
   poolObjectId    String   @unique
   creatorAddress  String
-  twitterUserId   String?
-  twitterUsername String?
+  twitterUserId   String
+  twitterUsername String
   hideIdentity    Boolean  @default(false)
   tokenTxHash     String
   poolTxHash      String
-  user            User?    @relation(fields: [twitterUserId], references: [twitterId])
+  user            User     @relation(fields: [twitterUserId], references: [twitterId], onDelete: SetNull)
 
   @@map("token_launches")
 }

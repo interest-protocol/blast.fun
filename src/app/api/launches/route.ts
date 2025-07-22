@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
 
 		const { poolObjectId, creatorAddress, twitterUserId, twitterUsername, hideIdentity, tokenTxHash, poolTxHash } = body
 
-		if (!poolObjectId || !creatorAddress || !tokenTxHash || !poolTxHash) {
+		if (!poolObjectId || !creatorAddress || !tokenTxHash || !poolTxHash || !twitterUserId || !twitterUsername) {
 			return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
 		}
 
