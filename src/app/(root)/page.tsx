@@ -64,7 +64,7 @@ export default function DiscoveryPage() {
 	}
 
 	return (
-		<div className="h-[calc(100vh-theme(spacing.16)-theme(spacing.12)-theme(spacing.14))] md:h-[calc(100vh-theme(spacing.16)-theme(spacing.12))] -mx-6 -my-6 p-4 overflow-hidden">
+		<div className="h-[calc(100vh-theme(spacing.16)-theme(spacing.12)-theme(spacing.14))] md:h-[calc(100vh-theme(spacing.16)-theme(spacing.12))] -mx-6 -my-6 p-4">
 			<TokenColumns pools={pools} isRefreshing={isFetching} />
 		</div>
 	)
