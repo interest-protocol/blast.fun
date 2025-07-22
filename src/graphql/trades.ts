@@ -3,14 +3,13 @@ import { gql } from "@apollo/client"
 export const GET_MARKET_TRADES = gql`
   query GetMarketTrades(
     $coinType: String!
-    $page: Int
-    $pageSize: Int
-    $sortBy: SortBy
+    $page: Int!
+    $pageSize: Int!
   ) {
     marketTrades(
       page: $page
       pageSize: $pageSize
-      sortBy: $sortBy
+      sortBy: { field: createdAt, direction: DESC }
       filters: { coinType: $coinType }
     ) {
       trades {

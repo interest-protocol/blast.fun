@@ -7,6 +7,7 @@ import { usePoolWithMetadata } from "@/hooks/pump/use-pool-with-metadata"
 import { BondingProgress } from "./bonding-progress"
 import { PoolHeader } from "./pool-header"
 import { TradingTerminal } from "./trading-terminal"
+import { PoolTabs } from "./pool-tabs"
 
 export default function Pool({ poolId }: { poolId: string }) {
 	const { data: pool, isLoading, error } = usePoolWithMetadata(poolId)
