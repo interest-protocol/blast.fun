@@ -51,32 +51,34 @@ export function PoolTabs({ pool }: PoolTabsProps) {
 				</Link>
 			</div>
 			<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-				<TabsList className="grid w-full grid-cols-4 bg-background/50 m-3 sm:m-4 mb-0">
-					<TabsTrigger
-						value="trades"
-						className="font-mono uppercase text-[10px] sm:text-xs tracking-wider data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
-					>
-						TRADES
-					</TabsTrigger>
-					<TabsTrigger
-						value="positions"
-						className="font-mono uppercase text-[10px] sm:text-xs tracking-wider data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
-					>
-						POSITIONS
-					</TabsTrigger>
-					<TabsTrigger
-						value="holders"
-						className="font-mono uppercase text-[10px] sm:text-xs tracking-wider data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
-					>
-						HOLDERS
-					</TabsTrigger>
-					<TabsTrigger
-						value="top-traders"
-						className="font-mono uppercase text-[10px] sm:text-xs tracking-wider data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
-					>
-						TOP::TRADERS
-					</TabsTrigger>
-				</TabsList>
+				<div className="p-3 sm:p-4 pb-0">
+					<TabsList className="grid w-full grid-cols-4 bg-background/50">
+						<TabsTrigger
+							value="trades"
+							className="font-mono uppercase text-[10px] sm:text-xs tracking-wider data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+						>
+							TRADES
+						</TabsTrigger>
+						<TabsTrigger
+							value="positions"
+							className="font-mono uppercase text-[10px] sm:text-xs tracking-wider data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+						>
+							POSITIONS
+						</TabsTrigger>
+						<TabsTrigger
+							value="holders"
+							className="font-mono uppercase text-[10px] sm:text-xs tracking-wider data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+						>
+							HOLDERS
+						</TabsTrigger>
+						<TabsTrigger
+							value="top-traders"
+							className="font-mono uppercase text-[10px] sm:text-xs tracking-wider data-[state=active]:bg-primary/20 data-[state=active]:text-primary px-2"
+						>
+							TOP TRADERS
+						</TabsTrigger>
+					</TabsList>
+				</div>
 				<TabsContent value="trades" className="mt-0">
 					<TradesTab pool={pool} />
 				</TabsContent>
