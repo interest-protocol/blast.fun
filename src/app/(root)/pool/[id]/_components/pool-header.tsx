@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import type { PoolWithMetadata } from "@/types/pool"
 import { formatAmountWithSuffix } from "@/utils/format"
 import { formatAddress } from "@mysten/sui/utils"
+import { CopyableToken } from "@/components/shared/copyable-token"
 
 interface PoolHeaderProps {
 	pool: PoolWithMetadata
@@ -44,7 +45,9 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
 						<h1 className="text-lg font-bold font-mono uppercase tracking-wider">
 							{metadata?.name || "[UNNAMED]"}
 						</h1>
-						<span className="font-mono text-sm text-muted-foreground">${metadata?.symbol || "[???]"}</span>
+
+						<CopyableToken symbol={metadata?.symbol || "[???]"} coinType={pool.coinType} />
+
 						{pool.migrated && (
 							<Badge variant="default" className="font-mono text-xs uppercase h-5">
 								Migrated
