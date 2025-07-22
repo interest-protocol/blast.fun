@@ -71,11 +71,11 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 
 	return (
 		<div className="border-2 bg-background/50 backdrop-blur-sm rounded-lg">
-			<div className="p-4 border-b">
-				<h3 className="text-lg font-mono uppercase tracking-wider">TRADE::TERMINAL</h3>
+			<div className="p-3 sm:p-4 border-b">
+				<h3 className="text-base sm:text-lg font-mono uppercase tracking-wider">TRADE::TERMINAL</h3>
 			</div>
 
-			<div className="p-4 space-y-4">
+			<div className="p-3 sm:p-4 space-y-4">
 				<Tabs value={tradeType} onValueChange={(v) => setTradeType(v as "buy" | "sell")}>
 					<TabsList className="grid w-full grid-cols-2 bg-background/50">
 						<TabsTrigger
