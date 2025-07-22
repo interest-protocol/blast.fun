@@ -41,7 +41,7 @@ export function TokenAvatar({
 		<img
 			src={iconUrl}
 			alt={symbol || name || "Token"}
-			className={cn("object-cover", className)}
+			className={cn("shadow-md object-cover", className)}
 			onError={() => setImageError(true)}
 		/>
 	)

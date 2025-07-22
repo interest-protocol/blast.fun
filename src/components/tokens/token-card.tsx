@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { TokenAvatar } from "./token-avatar"
 import type { PoolWithMetadata } from "@/types/pool"
 import { formatAmountWithSuffix } from "@/utils/format"
+import { formatAddress } from "@mysten/sui/utils"
 import { CopyableToken } from "../shared/copyable-token"
 
 interface TokenCardProps {
@@ -19,6 +20,12 @@ export function TokenCard({ pool }: TokenCardProps) {
 	const coinMetadata = pool.coinMetadata
 	const marketCap = parseFloat(pool.quoteBalance) * 2
 	const bondingProgress = parseFloat(pool.bondingCurve)
+
+	// Creator info from metadata
+	const creatorTwitterId = metadata.CreatorTwitterId
+	const creatorTwitterName = metadata.CreatorTwitterName
+	const creatorWallet = metadata.CreatorWallet || pool.creatorAddress
+	const showTwitterCreator = creatorTwitterId && creatorTwitterName
 
 	// social links configuration
 	const socialLinks = [
@@ -43,109 +50,138 @@ export function TokenCard({ pool }: TokenCardProps) {
 
 	return (
 		<Link href={`/pool/${pool.poolId}`}>
-			<div className="border-b border-border/40 group p-2 hover:bg-accent/5 transition-all duration-200">
-				<div className="flex gap-2.5">
-					{/* Token Image */}
-					<div className="flex-shrink-0">
-						<div className="relative">
-							<div className="absolute inset-0 bg-primary/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-							<TokenAvatar
-								iconUrl={coinMetadata?.iconUrl || undefined}
-								symbol={coinMetadata?.symbol}
-								name={coinMetadata?.name}
-								className="relative w-14 h-14 rounded-lg border-2 border-border/30 group-hover:border-primary/40 transition-all duration-200"
-							/>
+			<div className="relative border-b border-border/40 group hover:bg-accent/5 transition-all duration-200 overflow-hidden">
+				{/* Bonding Progress Gradient */}
+				<div className="absolute inset-0 opacity-[0.05] group-hover:opacity-[0.08] transition-opacity duration-500">
+					<div
+						className={`h-full transition-all duration-1000 ${bondingProgress >= 80 ? "bg-gradient-to-r from-orange-500 to-orange-400" : bondingProgress >= 50 ? "bg-gradient-to-r from-yellow-500 to-yellow-400" : "bg-gradient-to-r from-purple-500 to-purple-400"}`}
+						style={{ width: `${bondingProgress}%` }}
+					/>
+				</div>
+
+				{/* Content */}
+				<div className="relative p-2">
+					<div className="flex gap-2.5">
+						<div className="flex-shrink-0">
+							<div className="relative">
+								<div className="absolute inset-0 bg-primary/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+								<TokenAvatar
+									iconUrl={coinMetadata?.iconUrl || undefined}
+									symbol={coinMetadata?.symbol}
+									name={coinMetadata?.name}
+									className="relative w-14 h-14 rounded-xl border-2 border-border/20 group-hover:border-primary/30 transition-all duration-300 shadow-sm"
+								/>
+							</div>
 						</div>
-					</div>
 
-					{/* Content Area */}
-					<div className="flex-1 min-w-0 space-y-1">
-						{/* Header */}
-						<div className="flex items-center gap-2">
-							<h3 className="font-mono font-bold text-sm uppercase tracking-wider text-foreground/90 truncate">
-								{coinMetadata?.name || "[UNNAMED]"}
-							</h3>
-							<CopyableToken symbol={coinMetadata?.symbol || "[???]"} coinType={pool.coinType} className="ml-auto" />
-						</div>
+						{/* Content Area */}
+						<div className="flex-1 min-w-0 space-y-1">
+							{/* Header */}
+							<div className="flex items-center gap-2">
+								<h3 className="font-mono font-bold text-sm uppercase tracking-wider text-foreground/90 truncate">
+									{coinMetadata?.name || "[UNNAMED]"}
+								</h3>
+								<CopyableToken symbol={coinMetadata?.symbol || "[???]"} coinType={pool.coinType} className="ml-auto" />
+							</div>
 
-						{/* Stats */}
-						<div className="flex items-center gap-2.5 text-xs font-mono">
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<div className="flex items-center gap-1">
-										<span className="text-muted-foreground/80 uppercase tracking-wider">MC</span>
-										<span className="font-medium text-green-500/80">${formatAmountWithSuffix(marketCap)}</span>
-									</div>
-								</TooltipTrigger>
-								<TooltipContent>
-									<p className="text-xs font-mono uppercase">MARKET::CAP</p>
-								</TooltipContent>
-							</Tooltip>
-
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<div className="flex items-center gap-1">
-										<span className="text-muted-foreground/80 uppercase tracking-wider">LIQ</span>
-										<span className="font-medium text-blue-500/80">${formatAmountWithSuffix(pool.quoteBalance)}</span>
-									</div>
-								</TooltipTrigger>
-								<TooltipContent>
-									<p className="text-xs font-mono uppercase">LIQUIDITY::POOL</p>
-								</TooltipContent>
-							</Tooltip>
-
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<div className="flex items-center gap-1">
-										<span className="text-muted-foreground/80 uppercase tracking-wider">BOND</span>
+							{/* Stats */}
+							<div className="flex items-center gap-3 text-xs font-mono">
+								<Tooltip>
+									<TooltipTrigger asChild>
 										<div className="flex items-center gap-1">
-											<div className="w-14 h-1 bg-secondary/40 rounded-full overflow-hidden">
-												<div
-													className={`h-full transition-all duration-500 ${bondingProgress >= 80 ? "bg-orange-500/70" : bondingProgress >= 50 ? "bg-yellow-500/70" : "bg-purple-500/70"}`}
-													style={{ width: `${bondingProgress}%` }}
-												/>
-											</div>
-											<span className={`font-medium ${bondingProgress >= 80 ? "text-orange-500/80" : bondingProgress >= 50 ? "text-yellow-500/80" : "text-purple-500/80"}`}>{bondingProgress.toFixed(0)}%</span>
+											<span className="text-muted-foreground/60 uppercase tracking-wider text-[10px]">MC</span>
+											<span className="font-semibold text-green-500/90">${formatAmountWithSuffix(marketCap)}</span>
 										</div>
-									</div>
-								</TooltipTrigger>
-								<TooltipContent>
-									<p className="text-xs font-mono uppercase">BONDING::CURVE::PROGRESS</p>
-								</TooltipContent>
-							</Tooltip>
-						</div>
+									</TooltipTrigger>
+									<TooltipContent>
+										<p className="text-xs font-mono uppercase">MARKET::CAP</p>
+									</TooltipContent>
+								</Tooltip>
 
-						{/* Social Links & Date */}
-						<div className="flex items-center gap-1.5 text-xs font-mono">
-							<span className="text-muted-foreground/80 uppercase font-semibold tracking-tight">{createdDate}</span>
-							{socialLinks.length > 0 && (
-								<>
-									<span className="text-muted-foreground">•</span>
-									<div className="flex items-center gap-0.5">
-										{socialLinks.map((link, index) => {
-											const Icon = link.icon
-											return (
-												<Tooltip key={index}>
-													<TooltipTrigger asChild>
-														<a
-															href={link.href}
-															target="_blank"
-															rel="noopener noreferrer"
-															className="text-muted-foreground/80 hover:text-foreground/80 transition-colors p-0.5 hover:bg-accent/30 rounded"
-															onClick={(e) => e.stopPropagation()}
-														>
-															<Icon className="w-3 h-3" />
-														</a>
-													</TooltipTrigger>
-													<TooltipContent>
-														<p className="text-xs font-mono uppercase">{link.tooltip}</p>
-													</TooltipContent>
-												</Tooltip>
-											)
-										})}
-									</div>
-								</>
-							)}
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<div className="flex items-center gap-1">
+											<span className="text-muted-foreground/60 uppercase tracking-wider text-[10px]">LIQ</span>
+											<span className="font-semibold text-blue-500/90">${formatAmountWithSuffix(pool.quoteBalance)}</span>
+										</div>
+									</TooltipTrigger>
+									<TooltipContent>
+										<p className="text-xs font-mono uppercase">LIQUIDITY::POOL</p>
+									</TooltipContent>
+								</Tooltip>
+
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<div className="flex items-center gap-1">
+											<span className="text-muted-foreground/60 uppercase tracking-wider text-[10px]">BOND</span>
+											<div className="flex items-center gap-1.5">
+												<div className="w-16 h-1.5 bg-secondary/30 rounded-full overflow-hidden">
+													<div
+														className={`h-full transition-all duration-500 ${bondingProgress >= 80 ? "bg-gradient-to-r from-orange-500 to-orange-400" : bondingProgress >= 50 ? "bg-gradient-to-r from-yellow-500 to-yellow-400" : "bg-gradient-to-r from-purple-500 to-purple-400"}`}
+														style={{ width: `${bondingProgress}%` }}
+													/>
+												</div>
+												<span className={`font-semibold ${bondingProgress >= 80 ? "text-orange-500/90" : bondingProgress >= 50 ? "text-yellow-500/90" : "text-purple-500/90"}`}>{bondingProgress.toFixed(0)}%</span>
+											</div>
+										</div>
+									</TooltipTrigger>
+									<TooltipContent>
+										<p className="text-xs font-mono uppercase">BONDING::CURVE::PROGRESS</p>
+									</TooltipContent>
+								</Tooltip>
+							</div>
+
+							{/* Creator, Date & Social Links */}
+							<div className="flex items-center gap-1.5 text-xs font-mono">
+								<span className="text-muted-foreground/60 uppercase font-medium tracking-wide">{createdDate}</span>
+								<span className="text-muted-foreground/40">·</span>
+								<div className="flex items-center gap-1">
+									<span className="text-muted-foreground/60 uppercase tracking-wide">by</span>
+									{showTwitterCreator ? (
+										<a
+											href={`https://twitter.com/${creatorTwitterName}`}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="hover:underline text-foreground/70 hover:text-foreground transition-colors"
+											onClick={(e) => e.stopPropagation()}
+										>
+											@{creatorTwitterName}
+										</a>
+									) : (
+										<span className="text-foreground/70">
+											{formatAddress(creatorWallet)}
+										</span>
+									)}
+								</div>
+								{socialLinks.length > 0 && (
+									<>
+										<span className="text-muted-foreground/40">·</span>
+										<div className="flex items-center gap-1">
+											{socialLinks.map((link, index) => {
+												const Icon = link.icon
+												return (
+													<Tooltip key={index}>
+														<TooltipTrigger asChild>
+															<a
+																href={link.href}
+																target="_blank"
+																rel="noopener noreferrer"
+																className="text-muted-foreground/60 hover:text-foreground/80 transition-all p-0.5 hover:bg-accent/20 rounded-md"
+																onClick={(e) => e.stopPropagation()}
+															>
+																<Icon className="w-3 h-3" />
+															</a>
+														</TooltipTrigger>
+														<TooltipContent>
+															<p className="text-xs font-mono uppercase">{link.tooltip}</p>
+														</TooltipContent>
+													</Tooltip>
+												)
+											})}
+										</div>
+									</>
+								)}
+							</div>
 						</div>
 					</div>
 				</div>
