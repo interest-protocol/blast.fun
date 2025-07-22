@@ -114,12 +114,9 @@ export function TerminalDialog({ open, onOpenChange, logs, isLaunching, result }
 										</div>
 										<div className="mt-2 space-y-1">
 											<div className="text-green-500">DEPLOYMENT::COMPLETE</div>
-											<div className="text-muted-foreground">
-												POOL::ADDRESS::{formatDigest(result.poolObjectId)}
-											</div>
 											<div>
 												<a
-													href={getTxExplorerUrl(result.poolTxDigest, "testnet")}
+													href={getTxExplorerUrl(result.poolTxDigest)}
 													target="_blank"
 													rel="noopener noreferrer"
 													className="text-primary hover:underline"

@@ -1,6 +1,6 @@
 import { CONFIG_KEYS, MIGRATOR_WITNESSES } from "@interest-protocol/memez-fun-sdk"
 import { Transaction } from "@mysten/sui/transactions"
-import { formatDigest, normalizeSuiAddress, SUI_TYPE_ARG } from "@mysten/sui/utils"
+import { formatAddress, formatDigest, normalizeSuiAddress, SUI_TYPE_ARG } from "@mysten/sui/utils"
 import { useState } from "react"
 import { COIN_CONVENTION_BLACKLIST, TARGET_QUOTE_LIQUIDITY, TOTAL_POOL_SUPPLY, VIRTUAL_LIQUIDITY } from "@/constants"
 import { HIDE_IDENTITY_SUI_FEE } from "@/constants/fees"
@@ -97,7 +97,7 @@ export function useLaunchCoin() {
 		if (!treasuryCapObjectId) {
 			throw new Error(
 				`Failed to find treasury cap in transaction ${formatDigest(result.digest)}. ` +
-					`View transaction: ${getTxExplorerUrl(result.digest)}`
+				`View transaction: ${getTxExplorerUrl(result.digest)}`
 			)
 		}
 
@@ -171,7 +171,7 @@ export function useLaunchCoin() {
 		if (!poolObjectId) {
 			throw new Error(
 				`Failed to find pool object in transaction ${formatDigest(result.digest)}. ` +
-					`View transaction: ${getTxExplorerUrl(result.digest)}`
+				`View transaction: ${getTxExplorerUrl(result.digest)}`
 			)
 		}
 
@@ -222,11 +222,11 @@ export function useLaunchCoin() {
 
 		try {
 			const tokenResult = await createToken(formValues)
-			addLog(`TREASURY::CAP::${tokenResult.treasuryCapObjectId.slice(0, 16)}...`)
+			addLog(`TREASURY::CAP::${formatAddress(tokenResult.treasuryCapObjectId)}`)
 
 			addLog("POOL::INITIALIZATION")
 			const poolResult = await createPool(tokenResult.treasuryCapObjectId, formValues)
-			addLog(`POOL::ID::${poolResult.poolObjectId.slice(0, 16)}...`)
+			addLog(`POOL::ID::${formatAddress(poolResult.poolObjectId)}`)
 
 			addLog("DATABASE::SYNC")
 			await saveLaunchData({
