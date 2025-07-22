@@ -2,7 +2,7 @@
 
 import { formatAddress } from "@mysten/sui/utils"
 import { AlertTriangle } from "lucide-react"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useMemo } from "react"
 import { useRecentTrades } from "@/hooks/pump/use-recent-trades"
 import type { Trade } from "@/lib/pump/fetch-trades"
 import { apolloClient } from "@/lib/apollo-client"
@@ -21,7 +21,7 @@ interface TradeItemWithMetadata {
 }
 
 export function Ticker() {
-	const { data, isLoading } = useRecentTrades({ pageSize: 20 })
+	const { data, isLoading } = useRecentTrades({ pageSize: 10 })
 	const [tradeItems, setTradeItems] = useState<TradeItemWithMetadata[]>([])
 
 	const trades = data || []
@@ -83,7 +83,8 @@ export function Ticker() {
 		enrichTradesWithMetadata()
 	}, [trades])
 
-	const displayItems = tradeItems
+	const displayItems = useMemo(() => tradeItems, [tradeItems])
+	
 	if (displayItems.length === 0 && !isLoading) return null
 
 	return (
@@ -99,11 +100,14 @@ export function Ticker() {
 			{/* content */}
 			<div className="relative flex">
 				<div className="flex animate-ticker whitespace-nowrap">
-					{[...displayItems, ...displayItems].map((item, index) => (
+					{displayItems.map((item, index) => (
 						<span
 							key={index}
-							className="mx-8 font-mono text-sm uppercase tracking-wider text-foreground/80 flex items-center gap-2"
+							className="mx-8 font-mono text-xs uppercase tracking-wider text-foreground/80 flex items-center gap-2"
 						>
+							<span className={item.isBuy ? "text-green-500/80" : "text-red-500/80"}>
+								{item.isBuy ? "↑" : "↓"}
+							</span>
 							<span className="text-foreground/60">{item.text}</span>
 							<TokenLink iconUrl={item.iconUrl} symbol={item.symbol} poolId={item.poolId} />
 						</span>
@@ -111,12 +115,14 @@ export function Ticker() {
 				</div>
 
 				<div className="flex animate-ticker whitespace-nowrap" aria-hidden="true">
-					{[...displayItems, ...displayItems].map((item, index) => (
+					{displayItems.map((item, index) => (
 						<span
 							key={`duplicate-${index}`}
-							className="mx-8 font-mono text-sm uppercase tracking-wider text-foreground/80 flex items-center gap-2"
+							className="mx-8 font-mono text-xs uppercase tracking-wider text-foreground/80 flex items-center gap-2"
 						>
-							<span className="text-destructive/60">ALERT::</span>
+							<span className={item.isBuy ? "text-green-500/80" : "text-red-500/80"}>
+								{item.isBuy ? "↑" : "↓"}
+							</span>
 							<span className="text-foreground/60">{item.text}</span>
 							<TokenLink iconUrl={item.iconUrl} symbol={item.symbol} poolId={item.poolId} />
 						</span>
