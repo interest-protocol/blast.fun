@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PoolWithMetadata } from "@/types/pool"
 import { TradesTab } from "./tabs/trades-tab"
+import { HoldersTab } from "./tabs/holders-tab"
 import { PositionsTab } from "./tabs/positions-tab"
 import { TopTradersTab } from "./tabs/top-traders-tab"
 
@@ -34,6 +35,12 @@ export function PoolTabs({ pool }: PoolTabsProps) {
 						POSITIONS
 					</TabsTrigger>
 					<TabsTrigger
+						value="holders"
+						className="font-mono uppercase text-xs tracking-wider data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+					>
+						HOLDERS
+					</TabsTrigger>
+					<TabsTrigger
 						value="top-traders"
 						className="font-mono uppercase text-xs tracking-wider data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
 					>
@@ -45,6 +52,9 @@ export function PoolTabs({ pool }: PoolTabsProps) {
 				</TabsContent>
 				<TabsContent value="positions" className="mt-0">
 					<PositionsTab pool={pool} />
+				</TabsContent>
+				<TabsContent value="holders" className="mt-0">
+					<HoldersTab pool={pool} />
 				</TabsContent>
 				<TabsContent value="top-traders" className="mt-0">
 					<TopTradersTab pool={pool} />
