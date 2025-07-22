@@ -35,41 +35,42 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
 	}
 
 	return (
-		<div className="border-2 bg-background/50 backdrop-blur-sm shadow-2xl p-2 rounded-xl overflow-hidden">
-			<div className="flex items-center gap-4">
-				{/* Token Avatar */}
-				<Avatar className="w-12 h-12 rounded-lg border border-border">
-					<AvatarImage src={metadata?.iconUrl || ""} alt={metadata?.symbol} />
-					<AvatarFallback className="font-mono text-xs uppercase bg-background">
-						{metadata?.symbol?.slice(0, 2) || "??"}
-					</AvatarFallback>
-				</Avatar>
+		<div className="border-2 bg-background/50 backdrop-blur-sm shadow-2xl p-3 sm:p-2 rounded-xl overflow-hidden">
+			<div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+				{/* Token Avatar and Info - Mobile First Row */}
+				<div className="flex items-center gap-3 w-full sm:w-auto">
+					<Avatar className="w-12 h-12 rounded-lg border border-border flex-shrink-0">
+						<AvatarImage src={metadata?.iconUrl || ""} alt={metadata?.symbol} />
+						<AvatarFallback className="font-mono text-xs uppercase bg-background">
+							{metadata?.symbol?.slice(0, 2) || "??"}
+						</AvatarFallback>
+					</Avatar>
 
-				{/* Token Info */}
-				<div className="flex-1">
-					<div className="flex items-center gap-2">
-						<h1 className="text-lg font-bold font-mono uppercase tracking-wider">
-							{metadata?.name || "[UNNAMED]"}
-						</h1>
+					{/* Token Info */}
+					<div className="flex-1 min-w-0">
+						<div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+							<h1 className="text-base sm:text-lg font-bold font-mono uppercase tracking-wider truncate">
+								{metadata?.name || "[UNNAMED]"}
+							</h1>
 
-						<CopyableToken symbol={metadata?.symbol || "[???]"} coinType={pool.coinType} />
+							<div className="flex items-center gap-2">
+								<CopyableToken symbol={metadata?.symbol || "[???]"} coinType={pool.coinType} className="text-xs" />
+								{pool.migrated && (
+									<Badge variant="default" className="font-mono text-xs uppercase h-5">
+										Migrated
+									</Badge>
+								)}
+							</div>
+						</div>
 
-						{pool.migrated && (
-							<Badge variant="default" className="font-mono text-xs uppercase h-5">
-								Migrated
-							</Badge>
-						)}
-					</div>
-
-					<div className="flex items-center gap-4">
-						<div className="flex items-center gap-1 text-xs font-mono font-bold text-muted-foreground">
+						<div className="flex items-center gap-1 text-xs font-mono font-bold text-muted-foreground mt-1">
 							<span>by</span>
 							{showTwitterCreator ? (
 								<a
 									href={`https://twitter.com/${creatorTwitterName}`}
 									target="_blank"
 									rel="noopener noreferrer"
-									className="hover:underline text-foreground flex items-center gap-1"
+									className="hover:underline text-foreground"
 								>
 									@{creatorTwitterName}
 								</a>
@@ -82,25 +83,28 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
 					</div>
 				</div>
 
-				{/* Stats */}
-				<div className="flex items-center gap-6">
-					<div>
-						<p className="font-mono text-xs uppercase text-muted-foreground">Market Cap</p>
-						<p className="font-mono text-sm font-bold">${marketCap.toLocaleString()}</p>
-					</div>
+				{/* Stats and Social - Mobile Second Row */}
+				<div className="flex flex-col sm:flex-row sm:flex-1 sm:justify-end gap-3 sm:gap-6 w-full sm:w-auto">
+					{/* Stats Grid */}
+					<div className="grid grid-cols-3 gap-3 sm:flex sm:items-center sm:gap-6">
+						<div>
+							<p className="font-mono text-[10px] sm:text-xs uppercase text-muted-foreground">Market Cap</p>
+							<p className="font-mono text-xs sm:text-sm font-bold">${formatAmountWithSuffix(marketCap)}</p>
+						</div>
 
-					<div>
-						<p className="font-mono text-xs uppercase text-muted-foreground">Liquidity</p>
-						<p className="font-mono text-sm font-bold">{currentLiquidity.toLocaleString()} SUI</p>
-					</div>
+						<div>
+							<p className="font-mono text-[10px] sm:text-xs uppercase text-muted-foreground">Liquidity</p>
+							<p className="font-mono text-xs sm:text-sm font-bold">{currentLiquidity.toLocaleString()} SUI</p>
+						</div>
 
-					<div>
-						<p className="font-mono text-xs uppercase text-muted-foreground">Supply</p>
-						<p className="font-mono text-sm font-bold">{formatAmountWithSuffix(supply)}</p>
+						<div>
+							<p className="font-mono text-[10px] sm:text-xs uppercase text-muted-foreground">Supply</p>
+							<p className="font-mono text-xs sm:text-sm font-bold">{formatAmountWithSuffix(supply)}</p>
+						</div>
 					</div>
 
 					{/* Social Links */}
-					<div className="flex gap-1">
+					<div className="flex gap-1 justify-end">
 						<Button
 							variant="ghost"
 							size="icon"

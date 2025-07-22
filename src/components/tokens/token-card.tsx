@@ -59,8 +59,8 @@ export function TokenCard({ pool }: TokenCardProps) {
 				</div>
 
 				{/* Content */}
-				<div className="relative p-2">
-					<div className="flex gap-2.5">
+				<div className="relative p-3 sm:p-2">
+					<div className="flex gap-3 sm:gap-2.5">
 						<div className="flex-shrink-0">
 							<div className="relative">
 								<div className="absolute inset-0 bg-primary/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -68,7 +68,7 @@ export function TokenCard({ pool }: TokenCardProps) {
 									iconUrl={coinMetadata?.iconUrl || undefined}
 									symbol={coinMetadata?.symbol}
 									name={coinMetadata?.name}
-									className="relative w-14 h-14 rounded-xl border-2 border-border/20 group-hover:border-primary/30 transition-all duration-300 shadow-sm"
+									className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl border-2 border-border/20 group-hover:border-primary/30 transition-all duration-300 shadow-sm"
 								/>
 							</div>
 						</div>
@@ -77,19 +77,19 @@ export function TokenCard({ pool }: TokenCardProps) {
 						<div className="flex-1 min-w-0 space-y-1">
 							{/* Header */}
 							<div className="flex items-center gap-2">
-								<h3 className="font-mono font-bold text-sm uppercase tracking-wider text-foreground/90 truncate">
+								<h3 className="font-mono font-bold text-xs sm:text-sm uppercase tracking-wider text-foreground/90 truncate">
 									{coinMetadata?.name || "[UNNAMED]"}
 								</h3>
-								<CopyableToken symbol={coinMetadata?.symbol || "[???]"} coinType={pool.coinType} className="ml-auto" />
+								<CopyableToken symbol={coinMetadata?.symbol || "[???]"} coinType={pool.coinType} className="ml-auto text-xs" />
 							</div>
 
 							{/* Stats */}
-							<div className="flex items-center gap-3 text-xs font-mono">
+							<div className="flex items-center gap-2 sm:gap-3 text-xs font-mono">
 								<Tooltip>
 									<TooltipTrigger asChild>
 										<div className="flex items-center gap-1">
-											<span className="text-muted-foreground/60 uppercase tracking-wider text-[10px]">MC</span>
-											<span className="font-semibold text-green-500/90">${formatAmountWithSuffix(marketCap)}</span>
+											<span className="text-muted-foreground/60 uppercase tracking-wider text-[9px] sm:text-[10px]">MC</span>
+											<span className="font-semibold text-green-500/90 text-[11px] sm:text-xs">${formatAmountWithSuffix(marketCap)}</span>
 										</div>
 									</TooltipTrigger>
 									<TooltipContent>
@@ -100,8 +100,8 @@ export function TokenCard({ pool }: TokenCardProps) {
 								<Tooltip>
 									<TooltipTrigger asChild>
 										<div className="flex items-center gap-1">
-											<span className="text-muted-foreground/60 uppercase tracking-wider text-[10px]">LIQ</span>
-											<span className="font-semibold text-blue-500/90">${formatAmountWithSuffix(pool.quoteBalance)}</span>
+											<span className="text-muted-foreground/60 uppercase tracking-wider text-[9px] sm:text-[10px]">LIQ</span>
+											<span className="font-semibold text-blue-500/90 text-[11px] sm:text-xs">${formatAmountWithSuffix(pool.quoteBalance)}</span>
 										</div>
 									</TooltipTrigger>
 									<TooltipContent>
@@ -111,16 +111,16 @@ export function TokenCard({ pool }: TokenCardProps) {
 
 								<Tooltip>
 									<TooltipTrigger asChild>
-										<div className="flex items-center gap-1">
-											<span className="text-muted-foreground/60 uppercase tracking-wider text-[10px]">BOND</span>
-											<div className="flex items-center gap-1.5">
-												<div className="w-16 h-1.5 bg-secondary/30 rounded-full overflow-hidden">
+										<div className="flex items-center gap-1 sm:gap-1.5">
+											<span className="text-muted-foreground/60 uppercase tracking-wider text-[9px] sm:text-[10px] hidden sm:inline">BOND</span>
+											<div className="flex items-center gap-1 sm:gap-1.5">
+												<div className="w-12 sm:w-16 h-1.5 bg-secondary/30 rounded-full overflow-hidden">
 													<div
 														className={`h-full transition-all duration-500 ${bondingProgress >= 80 ? "bg-gradient-to-r from-orange-500 to-orange-400" : bondingProgress >= 50 ? "bg-gradient-to-r from-yellow-500 to-yellow-400" : "bg-gradient-to-r from-purple-500 to-purple-400"}`}
 														style={{ width: `${bondingProgress}%` }}
 													/>
 												</div>
-												<span className={`font-semibold ${bondingProgress >= 80 ? "text-orange-500/90" : bondingProgress >= 50 ? "text-yellow-500/90" : "text-purple-500/90"}`}>{bondingProgress.toFixed(0)}%</span>
+												<span className={`font-semibold text-[11px] sm:text-xs ${bondingProgress >= 80 ? "text-orange-500/90" : bondingProgress >= 50 ? "text-yellow-500/90" : "text-purple-500/90"}`}>{bondingProgress.toFixed(0)}%</span>
 											</div>
 										</div>
 									</TooltipTrigger>
@@ -131,30 +131,32 @@ export function TokenCard({ pool }: TokenCardProps) {
 							</div>
 
 							{/* Creator, Date & Social Links */}
-							<div className="flex items-center gap-1.5 text-xs font-mono">
-								<span className="text-muted-foreground/60 uppercase font-medium tracking-wide">{createdDate}</span>
-								<span className="text-muted-foreground/40">·</span>
-								<div className="flex items-center gap-1">
-									<span className="text-muted-foreground/60 uppercase tracking-wide">by</span>
-									{showTwitterCreator ? (
-										<a
-											href={`https://twitter.com/${creatorTwitterName}`}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="hover:underline text-foreground/70 hover:text-foreground transition-colors"
-											onClick={(e) => e.stopPropagation()}
-										>
-											@{creatorTwitterName}
-										</a>
-									) : (
-										<span className="text-foreground/70">
-											{formatAddress(creatorWallet)}
-										</span>
-									)}
+							<div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs font-mono">
+								<div className="flex items-center gap-1.5">
+									<span className="text-muted-foreground/60 uppercase font-medium tracking-wide">{createdDate}</span>
+									<span className="text-muted-foreground/40 hidden sm:inline">·</span>
+									<div className="flex items-center gap-1">
+										<span className="text-muted-foreground/60 uppercase tracking-wide hidden sm:inline">by</span>
+										{showTwitterCreator ? (
+											<a
+												href={`https://twitter.com/${creatorTwitterName}`}
+												target="_blank"
+												rel="noopener noreferrer"
+												className="hover:underline text-foreground/70 hover:text-foreground transition-colors"
+												onClick={(e) => e.stopPropagation()}
+											>
+												@{creatorTwitterName}
+											</a>
+										) : (
+											<span className="text-foreground/70">
+												{formatAddress(creatorWallet)}
+											</span>
+										)}
+									</div>
 								</div>
 								{socialLinks.length > 0 && (
-									<>
-										<span className="text-muted-foreground/40">·</span>
+									<div className="flex items-center gap-1">
+										<span className="text-muted-foreground/40 hidden sm:inline">·</span>
 										<div className="flex items-center gap-1">
 											{socialLinks.map((link, index) => {
 												const Icon = link.icon
@@ -178,7 +180,7 @@ export function TokenCard({ pool }: TokenCardProps) {
 												)
 											})}
 										</div>
-									</>
+									</div>
 								)}
 							</div>
 						</div>

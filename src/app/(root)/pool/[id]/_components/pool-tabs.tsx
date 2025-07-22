@@ -17,20 +17,20 @@ export function PoolTabs({ pool }: PoolTabsProps) {
 
 	return (
 		<div className="border-2 bg-background/50 backdrop-blur-sm shadow-2xl rounded-xl overflow-hidden">
-			<div className="p-4 border-b">
-				<h3 className="text-lg font-mono uppercase tracking-wider">MARKET::DATA</h3>
+			<div className="p-3 sm:p-4 border-b">
+				<h3 className="text-base sm:text-lg font-mono uppercase tracking-wider">MARKET::DATA</h3>
 			</div>
 			<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-				<TabsList className="grid w-full grid-cols-4 bg-background/50 m-4 mb-0">
+				<TabsList className="grid w-full grid-cols-3 bg-background/50 m-3 sm:m-4 mb-0">
 					<TabsTrigger
 						value="trades"
-						className="font-mono uppercase text-xs tracking-wider data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+						className="font-mono uppercase text-[10px] sm:text-xs tracking-wider data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
 					>
 						TRADES
 					</TabsTrigger>
 					<TabsTrigger
 						value="positions"
-						className="font-mono uppercase text-xs tracking-wider data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+						className="font-mono uppercase text-[10px] sm:text-xs tracking-wider data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
 					>
 						POSITIONS
 					</TabsTrigger>
@@ -42,7 +42,7 @@ export function PoolTabs({ pool }: PoolTabsProps) {
 					</TabsTrigger>
 					<TabsTrigger
 						value="top-traders"
-						className="font-mono uppercase text-xs tracking-wider data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+						className="font-mono uppercase text-[10px] sm:text-xs tracking-wider data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
 					>
 						TOP::TRADERS
 					</TabsTrigger>

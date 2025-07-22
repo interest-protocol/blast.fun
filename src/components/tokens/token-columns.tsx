@@ -69,12 +69,12 @@ export function TokenColumns({ pools, isRefreshing }: TokenColumnsProps) {
 	return (
 		<div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full max-h-full">
 			{/* New Tokens Column */}
-			<div className="flex flex-col h-full max-h-full">
+			<div className="flex flex-col h-[400px] lg:h-full max-h-full">
 				<div className="border-2 bg-background/50 backdrop-blur-sm rounded-lg p-2 mb-2">
 					<div className="flex items-center justify-between">
 						<div>
-							<h2 className="font-mono text-sm uppercase tracking-wider text-foreground/80">NEW::TOKENS</h2>
-							<p className="font-mono text-xs uppercase text-muted-foreground">RECENTLY::CREATED</p>
+							<h2 className="font-mono text-xs sm:text-sm uppercase tracking-wider text-foreground/80">NEW::TOKENS</h2>
+							<p className="font-mono text-[10px] sm:text-xs uppercase text-muted-foreground">RECENTLY::CREATED</p>
 						</div>
 						{isRefreshing && <RefreshCw className="w-3 h-3 text-muted-foreground animate-spin" />}
 					</div>
@@ -93,10 +93,10 @@ export function TokenColumns({ pools, isRefreshing }: TokenColumnsProps) {
 			</div>
 
 			{/* Near Max Bonding Column */}
-			<div className="flex flex-col h-full max-h-full">
+			<div className="flex flex-col h-[400px] lg:h-full max-h-full">
 				<div className="border-2 bg-background/50 backdrop-blur-sm rounded-lg p-2 mb-2">
-					<h2 className="font-mono text-sm uppercase tracking-wider text-foreground/80">NEAR::GRADUATION</h2>
-					<p className="font-mono text-xs uppercase text-muted-foreground">75%::OR::HIGHER</p>
+					<h2 className="font-mono text-xs sm:text-sm uppercase tracking-wider text-foreground/80">NEAR::GRADUATION</h2>
+					<p className="font-mono text-[10px] sm:text-xs uppercase text-muted-foreground">75%::OR::HIGHER</p>
 				</div>
 				<div className="flex-1 border-2 bg-background/50 backdrop-blur-sm rounded-lg overflow-hidden">
 					<ScrollArea className="h-full">
@@ -112,10 +112,10 @@ export function TokenColumns({ pools, isRefreshing }: TokenColumnsProps) {
 			</div>
 
 			{/* Migrated Pools Column */}
-			<div className="flex flex-col h-full max-h-full">
+			<div className="flex flex-col h-[400px] lg:h-full max-h-full">
 				<div className="border-2 bg-background/50 backdrop-blur-sm rounded-lg p-2 mb-2">
-					<h2 className="font-mono text-sm uppercase tracking-wider text-foreground/80">MIGRATED::TOKENS</h2>
-					<p className="font-mono text-xs uppercase text-muted-foreground">SUCCESSFULLY::MIGRATED</p>
+					<h2 className="font-mono text-xs sm:text-sm uppercase tracking-wider text-foreground/80">MIGRATED::TOKENS</h2>
+					<p className="font-mono text-[10px] sm:text-xs uppercase text-muted-foreground">SUCCESSFULLY::MIGRATED</p>
 				</div>
 				<div className="flex-1 border-2 bg-background/50 backdrop-blur-sm rounded-lg overflow-hidden">
 					<ScrollArea className="h-full">
