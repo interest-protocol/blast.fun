@@ -21,7 +21,7 @@ export function PoolTabs({ pool }: PoolTabsProps) {
 				<h3 className="text-base sm:text-lg font-mono uppercase tracking-wider">MARKET::DATA</h3>
 			</div>
 			<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-				<TabsList className="grid w-full grid-cols-3 bg-background/50 m-3 sm:m-4 mb-0">
+				<TabsList className="grid w-full grid-cols-4 bg-background/50 m-3 sm:m-4 mb-0">
 					<TabsTrigger
 						value="trades"
 						className="font-mono uppercase text-[10px] sm:text-xs tracking-wider data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
@@ -35,7 +35,7 @@ export function PoolTabs({ pool }: PoolTabsProps) {
 						POSITIONS
 					</TabsTrigger>
 					<TabsTrigger
-						value="top-traders"
+						value="holders"
 						className="font-mono uppercase text-[10px] sm:text-xs tracking-wider data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
 					>
 						HOLDERS
