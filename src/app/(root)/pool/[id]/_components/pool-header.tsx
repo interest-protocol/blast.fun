@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { PoolWithMetadata } from "@/types/pool"
-import { formatAmountWithSuffix } from "@/utils/format"
+import { formatAmountWithSuffix, calculateMarketCap } from "@/utils/format"
 import { formatAddress } from "@mysten/sui/utils"
 import { CopyableToken } from "@/components/shared/copyable-token"
 
@@ -15,11 +15,10 @@ interface PoolHeaderProps {
 }
 
 export function PoolHeader({ pool }: PoolHeaderProps) {
-	// @todo: fix the marketcap calculation..
 	const metadata = pool.coinMetadata
 	const supply = pool.coinBalance
 	const currentLiquidity = Number(pool.quoteBalance) / Math.pow(10, 9)
-	const marketCap = parseFloat(pool.quoteBalance) * 2
+	const marketCap = calculateMarketCap(pool)
 
 	// Format creator info from metadata
 	// Priority: CreatorTwitterName (if CreatorTwitterId exists) > CreatorWallet > pool.creatorAddress

@@ -52,3 +52,27 @@ export const formatAmountWithSuffix = (amount: string | number | bigint | undefi
 
 	return `${formatted}${suffix}`
 }
+
+export function calculateTokenPrice(pool: { quoteBalance: string; coinBalance: string; coinMetadata?: { decimals?: number } }): number {
+	const quoteBalance = parseFloat(pool.quoteBalance)
+	const coinBalance = parseFloat(pool.coinBalance)
+	const decimals = pool.coinMetadata?.decimals || 9
+	
+	if (coinBalance === 0 || isNaN(coinBalance) || isNaN(quoteBalance)) return 0
+	
+	// For bonding curve AMMs, the price is the ratio of reserves
+	// Price = (quote balance / coin balance) * (10^decimals / 10^9)
+	// This gives us the price of 1 token in SUI
+	const price = (quoteBalance / coinBalance) * (Math.pow(10, decimals) / Math.pow(10, 9))
+	
+	return price
+}
+
+export function calculateMarketCap(pool: { quoteBalance: string; coinBalance: string; coinMetadata?: { decimals?: number } }): number {
+	const price = calculateTokenPrice(pool)
+	// Market cap = 1 billion * price (in SUI)
+	// Convert to smallest unit (MIST) for formatAmountWithSuffix
+	const marketCapInSui = 1_000_000_000 * price
+	const marketCapInMist = marketCapInSui * Math.pow(10, 9)
+	return marketCapInMist
+}

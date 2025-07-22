@@ -13,7 +13,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { usePump } from "@/hooks/pump/use-pump"
 import { useTokenBalance } from "@/hooks/sui/use-token-balance"
 import type { PoolWithMetadata } from "@/types/pool"
-import { formatAmountWithSuffix } from "@/utils/format"
+import { formatAmountWithSuffix, calculateMarketCap } from "@/utils/format"
 import { CopyableAddress } from "@/components/shared/copyable-address"
 import { CopyableToken } from "@/components/shared/copyable-token"
 
@@ -75,9 +75,8 @@ export function XCardTrading({ pool }: XCardTradingProps) {
 		window.open(`${window.location.origin}/pool/${pool.poolId}`, "_blank")
 	}
 
-	// @todo: fix the marketcap calculation..
 	const bondingProgress = parseFloat(pool.bondingCurve)
-	const marketCap = parseFloat(pool.quoteBalance) * 2
+	const marketCap = calculateMarketCap(pool)
 
 	const creatorTwitterId = pool.metadata?.CreatorTwitterId
 	const creatorTwitterName = pool.metadata?.CreatorTwitterName
