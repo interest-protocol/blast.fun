@@ -51,6 +51,12 @@ export function usePump({ pool, decimals = 9 }: UsePumpOptions): UsePumpReturn {
 			return
 		}
 
+		// check if the pool is at max bonding, ready to migrate.
+		if (pool.canMigrate || parseInt(pool.bondingCurve) >= 100) {
+			setError('TOKEN::MIGRATING')
+			return
+		}
+
 		setIsLoading(true)
 		setError(null)
 		setSuccess(null)
