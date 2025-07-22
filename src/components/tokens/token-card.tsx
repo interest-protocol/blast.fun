@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { TokenAvatar } from "./token-avatar"
 import type { PoolWithMetadata } from "@/types/pool"
-import { formatAmountWithSuffix } from "@/utils/format"
+import { formatAmountWithSuffix, calculateMarketCap } from "@/utils/format"
 import { formatAddress } from "@mysten/sui/utils"
 import { CopyableToken } from "../shared/copyable-token"
 
@@ -15,10 +15,9 @@ interface TokenCardProps {
 }
 
 export function TokenCard({ pool }: TokenCardProps) {
-	// @todo: fix the marketcap calculation..
 	const metadata = pool.metadata || {}
 	const coinMetadata = pool.coinMetadata
-	const marketCap = parseFloat(pool.quoteBalance) * 2
+	const marketCap = calculateMarketCap(pool)
 	const bondingProgress = parseFloat(pool.bondingCurve)
 
 	// Creator info from metadata

@@ -6,7 +6,8 @@
       "Bash(npm run:*)",
       "Bash(pnpm run:*)",
       "Bash(grep:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": []
   }
