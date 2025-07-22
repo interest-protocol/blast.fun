@@ -27,7 +27,7 @@ export function CopyableToken({ symbol, coinType, className }: CopyableTokenProp
                 copy(coinType)
             }}
         >
-            <span className="font-mono text-xs uppercase text-muted-foreground">{symbol}</span>
+            <span className="font-mono text-xs uppercase">{symbol}</span>
 
             {copied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
         </div>
