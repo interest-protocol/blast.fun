@@ -14,8 +14,9 @@ import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { HIDE_IDENTITY_SUI_FEE } from "@/constants/fees"
-import { cn, getBase64 } from "@/utils"
+import { cn } from "@/utils"
 import TokenCreationButton from "./create-token-button"
+import { getBase64 } from "../launch.utils"
 
 const tokenSchema = z.object({
 	name: z.string().min(3, "Minimum 3 characters").max(20, "Maximum 20 characters"),
