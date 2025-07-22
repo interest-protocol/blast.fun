@@ -1,6 +1,6 @@
 "use client"
 
-import { Zap } from "lucide-react"
+import { Zap, Terminal } from "lucide-react"
 import React, { useState } from "react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -72,7 +72,10 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 	return (
 		<div className="border-2 bg-background/50 backdrop-blur-sm rounded-lg">
 			<div className="p-3 sm:p-4 border-b">
-				<h3 className="text-base sm:text-lg font-mono uppercase tracking-wider">TRADE::TERMINAL</h3>
+				<h3 className="text-base sm:text-lg font-mono uppercase tracking-wider flex items-center gap-2">
+					<Terminal className="w-4 h-4 text-primary/60" />
+					TRADE::TERMINAL
+				</h3>
 			</div>
 
 			<div className="p-3 sm:p-4 space-y-4">
