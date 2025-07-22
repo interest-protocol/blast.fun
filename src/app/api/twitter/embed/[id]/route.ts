@@ -30,7 +30,7 @@ export async function GET(
     <meta name="twitter:site" content="@xpumpfun" />
     <meta name="twitter:image" content="${appUrl}/embed/xpump-twitter-logo.png" />
     <meta name="twitter:title" content="Trade memecoins on xPump directly within X." />
-    <meta name="twitter:description" content="Buy & sell memecoins with any crypto on xPump directly within X." />
+    <meta name="twitter:description" content="Buy & sell memecoins on xPump directly within X. Just click me and you'll see!" />
 
     <meta name="twitter:url" content="${appUrl}/x-card/${id}" />
     <meta name="twitter:player" content="${appUrl}/x-card/${id}" />
@@ -46,20 +46,6 @@ export async function GET(
     
     <title>xPump Trading</title>
 </head>
-<body>
-    <script>
-        const trackingId = Math.random().toString(36).substring(7);
-        setTimeout(() => {
-            window.location.href = "${appUrl}/x-card/${id}?ref=twitter&t=" + Date.now();
-        }, 100);
-    </script>
-    <div style="display: flex; align-items: center; justify-content: center; height: 100vh; background: #000; color: #fff; font-family: monospace;">
-        <div style="text-align: center;">
-            <div style="font-size: 24px; margin-bottom: 10px;">LOADING::XPUMP</div>
-            <div style="font-size: 14px; opacity: 0.7;">Initializing trading terminal...</div>
-        </div>
-    </div>
-</body>
 </html>`
 
     return new NextResponse(html, {
