@@ -31,7 +31,7 @@ export function PoolTabs({ pool }: PoolTabsProps) {
 					href="https://nexa.xyz"
 					target="_blank"
 					rel="noopener noreferrer"
-					className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/30 hover:bg-muted/50 transition-colors"
+					className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/30 hover:bg-muted/50 transition-colors group"
 				>
 					<span className="font-mono text-xs font-bold uppercase tracking-wider text-muted-foreground/70 hidden sm:inline">
 						Data by
@@ -45,7 +45,7 @@ export function PoolTabs({ pool }: PoolTabsProps) {
 						alt="Nexa"
 						width={40}
 						height={10}
-						className="h-2.5 w-auto opacity-60 hover:opacity-80 transition-opacity"
+						className="h-2.5 w-auto opacity-60 group-hover:opacity-80 transition-opacity"
 						priority
 					/>
 				</Link>

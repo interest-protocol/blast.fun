@@ -294,7 +294,7 @@ export function XCardTrading({ pool }: XCardTradingProps) {
 
 								{/* Slippage */}
 								<details className="group">
-									<summary className="cursor-pointer font-mono text-xs uppercase text-muted-foreground hover:text-foreground">
+									<summary className="font-mono text-xs uppercase text-muted-foreground transition-colors hover:text-foreground">
 										SLIPPAGE::{slippage}%
 									</summary>
 									<div className="mt-2 grid grid-cols-4 gap-2">

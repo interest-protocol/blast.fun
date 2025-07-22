@@ -18,7 +18,7 @@ export function CopyableToken({ symbol, coinType, className }: CopyableTokenProp
         <div
             className={cn(
                 "flex items-center gap-1 transition-all duration-300",
-                "text-muted-foreground hover:text-foreground cursor-pointer",
+                "text-muted-foreground hover:text-foreground",
                 className
             )}
             onClick={(e) => {

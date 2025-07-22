@@ -37,7 +37,7 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
 
 	return (
 		<div className="border-2 bg-background/50 backdrop-blur-sm shadow-2xl p-3 sm:p-2 rounded-xl overflow-hidden">
-			<div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+			<div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 select-none">
 				{/* Token Avatar and Info - Mobile First Row */}
 				<div className="flex items-center gap-3 w-full sm:w-auto">
 					<Avatar className="w-12 h-12 rounded-lg border border-border flex-shrink-0">

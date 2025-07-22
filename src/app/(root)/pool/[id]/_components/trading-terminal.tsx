@@ -149,8 +149,8 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 						</div>
 
 						{/* Slippage Settings - Collapsible */}
-						<details className="group">
-							<summary className="cursor-pointer font-mono text-xs uppercase text-muted-foreground hover:text-foreground">
+						<details className="group select-none">
+							<summary className="font-mono text-xs uppercase text-muted-foreground transition-colors hover:text-foreground">
 								SLIPPAGE::{slippage}%
 							</summary>
 							<div className="mt-2 grid grid-cols-4 gap-2">
@@ -184,11 +184,10 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 
 						{/* Trade Button */}
 						<Button
-							className={`w-full font-mono uppercase tracking-wider transition-all duration-300 ${
-								tradeType === "buy"
-									? "bg-green-500 hover:bg-green-600 text-white"
-									: "bg-red-500 hover:bg-red-600 text-white"
-							}`}
+							className={`w-full font-mono uppercase tracking-wider transition-all duration-300 ${tradeType === "buy"
+								? "bg-green-500 hover:bg-green-600 text-white"
+								: "bg-red-500 hover:bg-red-600 text-white"
+								}`}
 							size="lg"
 							onClick={handleTrade}
 							disabled={!isConnected || isLoading || !amount}
