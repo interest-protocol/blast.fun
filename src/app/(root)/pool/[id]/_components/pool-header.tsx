@@ -63,7 +63,7 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
 							</div>
 						</div>
 
-						<div className="flex items-center gap-1 text-xs font-mono font-bold text-muted-foreground mt-1">
+						<div className="flex items-center gap-1 text-xs font-mono font-bold text-muted-foreground">
 							<span>by</span>
 							{showTwitterCreator ? (
 								<a
