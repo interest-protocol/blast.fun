@@ -41,8 +41,7 @@ export default function Pool({ poolId }: { poolId: string }) {
 						<PoolHeader pool={pool} />
 
 						<div className="space-y-6">
-							{/* Tradingview Advanced/Lightweight Chart */}
-							{/* Component which will handle: Holders, Top Holders, etc */}
+							<PriceChart pool={pool} />
 						</div>
 					</div>
 				</div>
