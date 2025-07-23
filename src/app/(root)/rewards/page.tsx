@@ -1,6 +1,11 @@
 "use client"
 
+import { constructMetadata } from "@/lib/metadata";
 import { Skull } from "lucide-react"
+
+export const metadata = constructMetadata({
+	title: "Rewards",
+});
 
 export default function RewardsPage() {
 	return (
