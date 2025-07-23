@@ -57,9 +57,9 @@ export function CreatorHoverCard({
 							{/* Tokens Launched */}
 							<div className="relative group flex-1">
 								<div className="absolute inset-0 bg-primary/10 blur-md rounded opacity-0 group-hover:opacity-100 transition-opacity" />
-								<div className="relative p-3 border border-foreground/20 bg-background/50 backdrop-blur-sm rounded transition-all group-hover:border-foreground/40">
-									<Rocket className="h-4 w-4 text-primary/80 mb-1.5" />
-									<p className="font-mono text-lg font-bold text-foreground/80">
+								<div className="relative p-2.5 border border-foreground/20 bg-background/50 backdrop-blur-sm rounded transition-all group-hover:border-foreground/40">
+									<Rocket className="h-4 w-4 text-primary/80 mb-1" />
+									<p className="font-mono text-sm font-bold text-foreground/80 whitespace-nowrap">
 										{data.launchCount}
 									</p>
 									<p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -71,9 +71,9 @@ export function CreatorHoverCard({
 							{/* Trusted Followers */}
 							<div className="relative group flex-1">
 								<div className="absolute inset-0 bg-green-500/10 blur-md rounded opacity-0 group-hover:opacity-100 transition-opacity" />
-								<div className="relative p-3 border border-foreground/20 bg-background/50 backdrop-blur-sm rounded transition-all group-hover:border-foreground/40">
-									<UserCheck className="h-4 w-4 text-green-500/80 mb-1.5" />
-									<p className="font-mono text-lg font-bold text-foreground/80">
+								<div className="relative p-2.5 border border-foreground/20 bg-background/50 backdrop-blur-sm rounded transition-all group-hover:border-foreground/40">
+									<UserCheck className="h-4 w-4 text-green-500/80 mb-1" />
+									<p className="font-mono text-sm font-bold text-foreground/80 whitespace-nowrap">
 										{data.trustedFollowers}
 									</p>
 									<p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -85,9 +85,9 @@ export function CreatorHoverCard({
 							{/* Total Followers */}
 							<div className="relative group flex-1">
 								<div className="absolute inset-0 bg-blue-500/10 blur-md rounded opacity-0 group-hover:opacity-100 transition-opacity" />
-								<div className="relative p-3 border border-foreground/20 bg-background/50 backdrop-blur-sm rounded transition-all group-hover:border-foreground/40">
-									<Users className="h-4 w-4 text-blue-500/80 mb-1.5" />
-									<p className="font-mono text-lg font-bold text-foreground/80">
+								<div className="relative p-2.5 border border-foreground/20 bg-background/50 backdrop-blur-sm rounded transition-all group-hover:border-foreground/40">
+									<Users className="h-4 w-4 text-blue-500/80 mb-1" />
+									<p className="font-mono text-sm font-bold text-foreground/80 whitespace-nowrap">
 										{data.followers}
 									</p>
 									<p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
