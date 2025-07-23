@@ -1,5 +1,3 @@
-"use client"
-
 import { constructMetadata } from "@/lib/metadata";
 import { Skull } from "lucide-react"
 
