@@ -49,10 +49,10 @@ export function TokenCard({ pool }: TokenCardProps) {
 	}
 
 	return (
-		<Link href={`/pool/${pool.poolId}`}>
-			<div className="relative border-b border-border/40 group hover:bg-accent/5 transition-all duration-200 overflow-hidden">
+		<Link href={`/pool/${pool.poolId}`} className="cursor-default">
+			<div className="relative border-b border-border/40 group hover:bg-accent/15 transition-all duration-300 overflow-hidden">
 				{/* Bonding Progress Gradient */}
-				<div className="absolute inset-0 opacity-[0.05] group-hover:opacity-[0.08] transition-opacity duration-500">
+				<div className="absolute inset-0 opacity-[0.05] group-hover:opacity-[0.08] transition-opacity duration-300">
 					<div
 						className={`h-full transition-all duration-1000 ${bondingProgress >= 80 ? "bg-gradient-to-r from-orange-500 to-orange-400" : bondingProgress >= 50 ? "bg-gradient-to-r from-yellow-500 to-yellow-400" : "bg-gradient-to-r from-purple-500 to-purple-400"}`}
 						style={{ width: `${bondingProgress}%` }}
@@ -143,15 +143,16 @@ export function TokenCard({ pool }: TokenCardProps) {
 											walletAddress={!showTwitterCreator ? creatorWallet : undefined}
 										>
 											{showTwitterCreator ? (
-												<a
-													href={`https://twitter.com/${creatorTwitterName}`}
-													target="_blank"
-													rel="noopener noreferrer"
-													className="hover:underline text-foreground/70 hover:text-foreground transition-colors"
-													onClick={(e) => e.stopPropagation()}
+												<button
+													onClick={(e) => {
+														e.stopPropagation()
+														e.preventDefault()
+														window.open(`https://twitter.com/${creatorTwitterName}`, "_blank", "noopener,noreferrer")
+													}}
+													className="hover:underline text-foreground/70 hover:text-foreground transition-colors text-left"
 												>
 													@{creatorTwitterName}
-												</a>
+												</button>
 											) : (
 												<span className="text-foreground/70 hover:text-foreground transition-colors">
 													{formatAddress(creatorWallet)}
@@ -169,15 +170,16 @@ export function TokenCard({ pool }: TokenCardProps) {
 												return (
 													<Tooltip key={index}>
 														<TooltipTrigger asChild>
-															<a
-																href={link.href}
-																target="_blank"
-																rel="noopener noreferrer"
+															<button
+																onClick={(e) => {
+																	e.stopPropagation()
+																	e.preventDefault()
+																	window.open(link.href, "_blank", "noopener,noreferrer")
+																}}
 																className="text-muted-foreground/60 hover:text-foreground/80 transition-all p-0.5 hover:bg-accent/20 rounded-md"
-																onClick={(e) => e.stopPropagation()}
 															>
 																<Icon className="w-3 h-3" />
-															</a>
+															</button>
 														</TooltipTrigger>
 														<TooltipContent>
 															<p className="text-xs font-mono uppercase">{link.tooltip}</p>
