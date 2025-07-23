@@ -3,8 +3,7 @@ import { apolloClient } from "@/lib/apollo-client"
 import { pumpSdk } from "@/lib/pump"
 import type { GetPoolResponse, GetPoolsResponse, GetPoolsVariables, GetPoolVariables } from "@/types/graphql"
 import type { Pool, PoolWithMetadata } from "@/types/pool"
-import { fetchCoinMetadata } from "../fetch-coin-metadata"
-import { suiClient } from "../sui-client"
+import { fetchCoinMetadata, fetchCoinsMetadata } from "../fetch-coin-metadata"
 
 /**
  * Fetches metadata for a single pool
@@ -15,8 +14,7 @@ async function enrichPoolWithMetadata(pool: Pool): Promise<PoolWithMetadata> {
 	try {
 		const [pumpPoolData, coinMetadata] = await Promise.allSettled([
 			pumpSdk.getPumpPool(pool.poolId),
-			// fetchCoinMetadata(pool.coinType),
-			suiClient.getCoinMetadata({ coinType: pool.coinType }),
+			fetchCoinMetadata(pool.coinType),
 		])
 
 		if (pumpPoolData.status === "fulfilled" && pumpPoolData.value) {
@@ -63,7 +61,41 @@ export async function fetchPoolsWithMetadata(page = 1, pageSize = 12): Promise<P
 
 	if (pools.length === 0) return []
 
-	return Promise.all(pools.map((pool) => enrichPoolWithMetadata(pool)))
+	// batch fetch coin metadata for all pools
+	const coinTypes = pools.map(pool => pool.coinType)
+	const metadataMap = await fetchCoinsMetadata(coinTypes, coinTypes.length)
+
+	const enrichedPools = await Promise.all(
+		pools.map(async (pool) => {
+			const enhancedPool: PoolWithMetadata = { ...pool }
+
+			try {
+				const pumpPoolData = await pumpSdk.getPumpPool(pool.poolId)
+				if (pumpPoolData) {
+					enhancedPool.pumpPoolData = pumpPoolData
+				}
+
+				// fetch coin metadata from batch result
+				const metadata = metadataMap.get(pool.coinType)
+				if (metadata) {
+					enhancedPool.coinMetadata = {
+						name: metadata.name,
+						symbol: metadata.symbol,
+						description: metadata.description ?? null,
+						iconUrl: metadata.iconUrl ?? null,
+						decimals: metadata.decimals,
+						id: metadata.id ?? null,
+					}
+				}
+			} catch (error) {
+				console.error(`Failed to fetch metadata for pool ${pool.poolId}:`, error)
+			}
+
+			return enhancedPool
+		})
+	)
+
+	return enrichedPools
 }
 
 /**
