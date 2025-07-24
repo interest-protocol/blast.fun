@@ -5,6 +5,9 @@ export const env = createEnv({
 	server: {
 		VERCEL_URL: z.string().optional(),
 
+		// temp
+		SITE_ACCESS_PASSWORD: z.string().min(1),
+
 		NEXTAUTH_URL: z.url().optional(),
 		AUTH_SECRET: z.string().min(1),
 		DATABASE_URL: z.string().min(1),
@@ -28,6 +31,9 @@ export const env = createEnv({
 		NEXT_PUBLIC_GRAPHQL_API_URL: process.env.NEXT_PUBLIC_GRAPHQL_API_URL,
 
 		VERCEL_URL: process.env.VERCEL_URL,
+
+		// temp
+		SITE_ACCESS_PASSWORD: process.env.SITE_ACCESS_PASSWORD,
 
 		NEXTAUTH_URL: process.env.NEXTAUTH_URL,
 		AUTH_SECRET: process.env.AUTH_SECRET,
