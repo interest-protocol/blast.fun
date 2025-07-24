@@ -12,7 +12,7 @@ export const formatAmount = (amount: string | number | bigint | undefined) => {
 	return bn.decimalPlaces(2, BigNumber.ROUND_DOWN).toFormat(2)
 }
 
-export const formatMistToSui = (mist: bigint | number | undefined): string => {
+export const formatMistToSui = (mist: string | number | bigint | undefined): string => {
 	if (!mist) return "0.00"
 
 	const mistBigInt = BigInt(mist)
@@ -57,14 +57,14 @@ export function calculateTokenPrice(pool: { quoteBalance: string; coinBalance: s
 	const quoteBalance = parseFloat(pool.quoteBalance)
 	const coinBalance = parseFloat(pool.coinBalance)
 	const decimals = pool.coinMetadata?.decimals || 9
-	
+
 	if (coinBalance === 0 || isNaN(coinBalance) || isNaN(quoteBalance)) return 0
-	
+
 	// For bonding curve AMMs, the price is the ratio of reserves
 	// Price = (quote balance / coin balance) * (10^decimals / 10^9)
 	// This gives us the price of 1 token in SUI
 	const price = (quoteBalance / coinBalance) * (Math.pow(10, decimals) / Math.pow(10, 9))
-	
+
 	return price
 }
 
