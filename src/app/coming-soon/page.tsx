@@ -19,10 +19,9 @@ export default function ComingSoonPage() {
 			setInterval(() => {
 				const glitchVariations = [
 					"COMING::SOON",
-					"AWAITING::RELEASE",
 					"ACCESS::DENIED",
-					"SYSTEM::LOCKED",
-					"AWAITING::AUTHORIZATION",
+					"AWAITING::INPUT",
+					"X::PUMP"
 				];
 				setGlitchText(glitchVariations[Math.floor(Math.random() * glitchVariations.length)]);
 			}, 3000),
