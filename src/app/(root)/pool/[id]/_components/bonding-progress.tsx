@@ -21,7 +21,7 @@ export function BondingProgress({ pool }: BondingProgressProps) {
 	const remainingLiquidity = Math.max(0, targetLiquidity - currentLiquidity)
 
 	return (
-		<div className="border-2 bg-background/50 backdrop-blur-sm rounded-lg">
+		<div className="border-2 shadow-lg rounded-xl overflow-hidden">
 			<div className="p-4 border-b">
 				<h3 className="text-lg font-mono uppercase tracking-wider flex items-center gap-2">
 					<TrendingUp className="w-4 h-4 text-primary/60" />

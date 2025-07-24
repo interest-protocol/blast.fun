@@ -123,7 +123,7 @@ export function CoinOHLCV({ pool }: CoinOHLCVProps) {
 	const hasData = chartData.length > 0
 
 	return (
-		<div className="border-2 bg-background/50 backdrop-blur-sm shadow-2xl rounded-xl overflow-hidden">
+		<div className="border-2 shadow-lg rounded-xl overflow-hidden">
 			<div className="p-4 border-b flex items-center justify-between">
 				<h3 className="text-lg font-mono uppercase tracking-wider flex items-center gap-2">
 					<Activity className={`w-4 h-4 ${isRefetching ? "text-primary animate-pulse" : "text-primary/60"}`} />

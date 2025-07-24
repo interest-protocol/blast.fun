@@ -21,7 +21,7 @@ export function PoolTabs({ pool }: PoolTabsProps) {
 	const { resolvedTheme } = useTheme()
 
 	return (
-		<div className="border-2 bg-background/50 backdrop-blur-sm shadow-2xl rounded-xl overflow-hidden">
+		<div className="border-2 shadow-lg rounded-xl overflow-hidden">
 			<div className="p-3 sm:p-4 border-b flex items-center justify-between">
 				<h3 className="text-base sm:text-lg font-mono uppercase tracking-wider flex items-center gap-2">
 					<BarChart3 className="w-4 h-4 text-primary/60" />
