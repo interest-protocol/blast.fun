@@ -61,7 +61,9 @@ export default function RootLayout({
 				</ThemeProvider>
 			</body>
 
-			<GoogleAnalytics gaId="G-6Q54LT2EPG" />
+			{process.env.NEXT_PUBLIC_VERCEL_ENV === "production" && (
+				<GoogleAnalytics gaId="G-6Q54LT2EPG" />
+			)}
 		</html>
 	)
 }

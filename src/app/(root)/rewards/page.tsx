@@ -14,7 +14,7 @@ export default function RewardsPage() {
 					COMING::SOON
 				</h1>
 				<p className="font-mono text-sm uppercase text-muted-foreground">
-					REWARDS::PROGRAM::UNDER::CONSTRUCTION
+					REWARDS_PROGRAM_UNDER_CONSTRUCTION
 				</p>
 			</div>
 		</div>
