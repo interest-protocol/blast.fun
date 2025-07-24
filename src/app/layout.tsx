@@ -1,5 +1,7 @@
-import type { Metadata } from "next"
 import "@/app/globals.css"
+
+import type { Metadata } from "next"
+import { GoogleAnalytics } from '@next/third-parties/google'
 import { SessionProvider } from "next-auth/react"
 import { Toaster } from "react-hot-toast"
 import { ReactScan } from "@/components/utils/react-scan"
@@ -58,6 +60,8 @@ export default function RootLayout({
 					</TooltipProvider>
 				</ThemeProvider>
 			</body>
+
+			<GoogleAnalytics gaId="G-6Q54LT2EPG" />
 		</html>
 	)
 }
