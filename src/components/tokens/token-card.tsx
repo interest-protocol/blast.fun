@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { TokenAvatar } from "./token-avatar"
 import type { PoolWithMetadata } from "@/types/pool"
-import { formatAmountWithSuffix, calculateMarketCap } from "@/utils/format"
+import { formatAmountWithSuffix, calculateMarketCap, formatMistToSui } from "@/utils/format"
 import { formatAddress } from "@mysten/sui/utils"
 import { CopyableToken } from "../shared/copyable-token"
 import { CreatorHoverCard } from "@/components/creator/creator-hover-card"
@@ -102,7 +102,7 @@ export function TokenCard({ pool }: TokenCardProps) {
 									<TooltipTrigger asChild>
 										<div className="flex items-center gap-1">
 											<span className="text-muted-foreground/60 uppercase tracking-wider text-[9px] sm:text-[10px]">LIQ</span>
-											<span className="font-semibold text-blue-500/90 text-[11px] sm:text-xs">${formatAmountWithSuffix(pool.quoteBalance)}</span>
+											<span className="font-semibold text-blue-500/90 text-[11px] sm:text-xs">{formatMistToSui(pool.quoteBalance)} SUI</span>
 										</div>
 									</TooltipTrigger>
 									<TooltipContent>
