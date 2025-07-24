@@ -7,9 +7,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { PoolWithMetadata } from "@/types/pool"
 import { formatAmountWithSuffix, calculateMarketCap } from "@/utils/format"
-import { formatAddress } from "@mysten/sui/utils"
 import { CopyableToken } from "@/components/shared/copyable-token"
 import { CreatorHoverCard } from "@/components/creator/creator-hover-card"
+import { CreatorDisplay } from "@/components/creator/creator-display"
 
 interface PoolHeaderProps {
 	pool: PoolWithMetadata
@@ -68,22 +68,15 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
 							<span>by</span>
 							<CreatorHoverCard
 								twitterHandle={showTwitterCreator ? creatorTwitterName : undefined}
-								walletAddress={!showTwitterCreator ? creatorWallet : undefined}
+								walletAddress={creatorWallet}
 							>
-								{showTwitterCreator ? (
-									<a
-										href={`https://twitter.com/${creatorTwitterName}`}
-										target="_blank"
-										rel="noopener noreferrer"
-										className="hover:underline text-foreground"
-									>
-										@{creatorTwitterName}
-									</a>
-								) : (
-									<span className="text-foreground hover:text-foreground/80 transition-colors">
-										{formatAddress(creatorWallet)}
-									</span>
-								)}
+								<span>
+									<CreatorDisplay
+										twitterHandle={showTwitterCreator ? creatorTwitterName : undefined}
+										walletAddress={creatorWallet}
+										className="text-foreground hover:text-foreground/80 transition-colors"
+									/>
+								</span>
 							</CreatorHoverCard>
 						</div>
 					</div>

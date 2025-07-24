@@ -7,9 +7,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { TokenAvatar } from "./token-avatar"
 import type { PoolWithMetadata } from "@/types/pool"
 import { formatAmountWithSuffix, calculateMarketCap, formatMistToSui } from "@/utils/format"
-import { formatAddress } from "@mysten/sui/utils"
 import { CopyableToken } from "../shared/copyable-token"
 import { CreatorHoverCard } from "@/components/creator/creator-hover-card"
+import { CreatorDisplay } from "@/components/creator/creator-display"
 
 interface TokenCardProps {
 	pool: PoolWithMetadata
@@ -140,24 +140,15 @@ export function TokenCard({ pool }: TokenCardProps) {
 										<span className="text-muted-foreground/60 uppercase tracking-wide hidden sm:inline">by</span>
 										<CreatorHoverCard
 											twitterHandle={showTwitterCreator ? creatorTwitterName : undefined}
-											walletAddress={!showTwitterCreator ? creatorWallet : undefined}
+											walletAddress={creatorWallet}
 										>
-											{showTwitterCreator ? (
-												<button
-													onClick={(e) => {
-														e.stopPropagation()
-														e.preventDefault()
-														window.open(`https://twitter.com/${creatorTwitterName}`, "_blank", "noopener,noreferrer")
-													}}
-													className="hover:underline text-foreground/70 hover:text-foreground transition-colors text-left"
-												>
-													@{creatorTwitterName}
-												</button>
-											) : (
-												<span className="text-foreground/70 hover:text-foreground transition-colors">
-													{formatAddress(creatorWallet)}
-												</span>
-											)}
+											<span>
+												<CreatorDisplay
+													twitterHandle={showTwitterCreator ? creatorTwitterName : undefined}
+													walletAddress={creatorWallet}
+													className="text-foreground/70 hover:text-foreground transition-colors text-left"
+												/>
+											</span>
 										</CreatorHoverCard>
 									</div>
 								</div>
