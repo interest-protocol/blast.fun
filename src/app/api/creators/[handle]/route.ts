@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isValidSuiAddress } from "@mysten/sui/utils";
+import { formatAmountWithSuffix } from "@/utils/format";
 
 export async function GET(
 	request: NextRequest,
@@ -73,36 +74,32 @@ export async function GET(
 			}
 		}
 
+		// helper to format numbers using formatAmountWithSuffix
+		// multiply by 10^9 since formatAmountWithSuffix shifts by -9
+		const formatFollowerCount = (num: number): string => {
+			return formatAmountWithSuffix(BigInt(num) * BigInt(10 ** 9));
+		};
+
 		// band the values with ranges
 		const bandValue = (count: number, thresholds: number[]): string => {
 			if (count === 0) return "0";
-
-			const formatNumber = (num: number): string => {
-				if (num >= 1000000) {
-					return `${num / 1000000}M`;
-				} else if (num >= 1000) {
-					return `${num / 1000}K`;
-				} else {
-					return `${num}`;
-				}
-			};
 
 			for (let i = 0; i < thresholds.length; i++) {
 				if (count < thresholds[i]) {
 					// for the first threshold, just show < threshold
 					if (i === 0) {
-						return `<${formatNumber(thresholds[i])}`;
+						return `<${formatFollowerCount(thresholds[i])}`;
 					}
 
 					// else show range: previous threshold - current threshold
 					const prevThreshold = thresholds[i - 1];
-					return `${formatNumber(prevThreshold)}-${formatNumber(thresholds[i])}`;
+					return `${formatFollowerCount(prevThreshold)}-${formatFollowerCount(thresholds[i])}`;
 				}
 			}
 
 			// if count exceeds all thresholds, return > last threshold
 			const lastThreshold = thresholds[thresholds.length - 1];
-			return `>${formatNumber(lastThreshold)}`;
+			return `>${formatFollowerCount(lastThreshold)}`;
 		};
 
 		// define thresholds for different metrics
@@ -112,11 +109,16 @@ export async function GET(
 		const bandTrustedFollowers = (count: number): string => bandValue(count, trustedFollowerThresholds);
 		const bandFollowerCount = (count: number): string => bandValue(count, followerThresholds);
 
-		// only return banded values as to not leak the creator of this token
+		// only band values for wallet addresses (hidden identities)
+		// show exact values for unhidden accounts (twitter handles)
 		return NextResponse.json({
 			launchCount: launchCount,
-			trustedFollowers: bandTrustedFollowers(trustedFollowerCount),
-			followers: bandFollowerCount(followerCount),
+			trustedFollowers: isWalletAddress 
+				? bandTrustedFollowers(trustedFollowerCount) 
+				: formatFollowerCount(trustedFollowerCount),
+			followers: isWalletAddress 
+				? bandFollowerCount(followerCount) 
+				: formatFollowerCount(followerCount),
 		});
 	} catch (error) {
 		console.error("Error fetching creator data:", error);
