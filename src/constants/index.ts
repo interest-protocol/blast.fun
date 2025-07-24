@@ -3,7 +3,7 @@ import type { SiteConfig } from "@/types/app"
 export const siteConfig: SiteConfig = {
     name: 'xPump',
     description: 'Launch, trade and explore everything memecoins on xPump.',
-    url: 'https://xpump.lol',
+    url: 'https://xpump.fun',
     image: "/logo/xpump-logo.png",
     links: {
         twitter: "https://twitter.com/xpumpfun"
@@ -21,9 +21,9 @@ export const COIN_CONVENTION_BLACKLIST = ["SUI", "ETH", "USDC", "USDT", "SOL", "
 export const BASE_DOMAIN = (() => {
     switch (process.env.NEXT_PUBLIC_VERCEL_ENV) {
         case "production":
-            return "https://xpump.lol";
+            return "https://xpump.fun";
         case "preview":
-            return "https://staging.xpump.lol";
+            return "https://staging.xpump.fun";
         default:
             return "http://localhost:3000";
     }
