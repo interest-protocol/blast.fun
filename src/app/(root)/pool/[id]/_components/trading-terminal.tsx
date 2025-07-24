@@ -10,6 +10,7 @@ import { useApp } from "@/context/app.context"
 import { usePump } from "@/hooks/pump/use-pump"
 import { useTokenBalance } from "@/hooks/sui/use-token-balance"
 import type { PoolWithMetadata } from "@/types/pool"
+import { usePortfolio } from "@/hooks/nexa/use-portfolio"
 
 interface TradingTerminalProps {
 	pool: PoolWithMetadata
@@ -22,12 +23,17 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 	const [slippage, setSlippage] = useState("15")
 
 	const { balance: tokenBalance } = useTokenBalance(pool.coinType)
+	const { balance: actualBalance } = usePortfolio(pool.coinType)
 	const metadata = pool.coinMetadata
 	const decimals = metadata?.decimals || 9
+
+	// use balance from nexa if available, otherwise fall back to token balance
+	const effectiveBalance = actualBalance !== "0" ? actualBalance : tokenBalance
 
 	const { isLoading, error, success, pump, dump } = usePump({
 		pool,
 		decimals,
+		actualBalance: effectiveBalance,
 	})
 
 	// quick buy amounts in SUI
@@ -45,7 +51,7 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 	}
 
 	const handleQuickSellPercentage = async (percentage: number) => {
-		const tokenAmount = (Number(tokenBalance || 0) / Math.pow(10, decimals)) * (percentage / 100)
+		const tokenAmount = (Number(effectiveBalance || 0) / Math.pow(10, decimals)) * (percentage / 100)
 		setAmount(tokenAmount.toString())
 		const slippageNum = parseFloat(slippage)
 
@@ -96,6 +102,13 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 					</TabsList>
 
 					<TabsContent value={tradeType} className="space-y-4 mt-4">
+						{/* Balance Display - Only show for sell tab */}
+						{tradeType === "sell" && effectiveBalance && (
+							<div className="font-mono text-xs text-muted-foreground">
+								BALANCE::{(Number(effectiveBalance) / Math.pow(10, decimals)).toFixed(2)} {metadata?.symbol || "TOKEN"}
+							</div>
+						)}
+
 						{/* Quick Buy Buttons - Only show for buy tab */}
 						{tradeType === "buy" && (
 							<div className="grid grid-cols-4 gap-2">
@@ -124,7 +137,7 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 										size="sm"
 										className="font-mono text-xs border-border/50 hover:border-red-500/50 hover:text-red-500"
 										onClick={() => handleQuickSellPercentage(percentage)}
-										disabled={isLoading || !isConnected || !tokenBalance}
+										disabled={isLoading || !isConnected || !effectiveBalance}
 									>
 										{percentage}%
 									</Button>

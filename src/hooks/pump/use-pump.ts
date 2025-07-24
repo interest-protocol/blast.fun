@@ -11,6 +11,7 @@ import { formatMistToSui } from "@/utils/format"
 interface UsePumpOptions {
 	pool: PoolWithMetadata
 	decimals?: number
+	actualBalance?: string
 }
 
 interface UsePumpReturn {
@@ -21,7 +22,7 @@ interface UsePumpReturn {
 	dump: (amountInTokens: string, slippagePercent?: number) => Promise<void>
 }
 
-export function usePump({ pool, decimals = 9 }: UsePumpOptions): UsePumpReturn {
+export function usePump({ pool, decimals = 9, actualBalance }: UsePumpOptions): UsePumpReturn {
 	const { address, isConnected } = useApp()
 	const { executeTransaction } = useTransaction()
 
@@ -137,8 +138,13 @@ export function usePump({ pool, decimals = 9 }: UsePumpOptions): UsePumpReturn {
 			const tx = new Transaction()
 			tx.setSender(address)
 
+			// use actual balance if available to ensure we can merge all coins
+			const balanceToUse = actualBalance
+				? BigInt(actualBalance)
+				: amountInSmallestUnit
+
 			const memeCoin = coinWithBalance({
-				balance: amountInSmallestUnit,
+				balance: balanceToUse,
 				type: pool.coinType,
 			})(tx)
 
