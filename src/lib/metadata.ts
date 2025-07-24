@@ -27,7 +27,15 @@ export function constructMetadata({
             url: siteConfig.url,
             title,
             description,
-            siteName: siteConfig.name
+            siteName: siteConfig.name,
+            images: [
+                {
+                    url: image,
+                    width: 150,
+                    height: 150,
+                    type: 'image/png'
+                }
+            ]
         },
         twitter: {
             card: 'summary_large_image',
