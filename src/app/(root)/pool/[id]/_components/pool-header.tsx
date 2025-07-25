@@ -1,6 +1,6 @@
 "use client"
 
-import { Globe, Send, Share2, Twitter } from "lucide-react"
+import { Globe, Send, Twitter } from "lucide-react"
 import React from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -27,13 +27,6 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
 	const creatorTwitterName = pool.metadata?.CreatorTwitterName
 	const creatorWallet = pool.metadata?.CreatorWallet || pool.creatorAddress
 	const showTwitterCreator = creatorTwitterId && creatorTwitterName
-
-	const handleShare = () => {
-		const embedUrl = `${window.location.origin}/api/twitter/embed/${pool.poolId}`
-		const shareText = `Come check out ${metadata?.name || "[???]"} on @xpumpfun! You can even trade directly from twitter.`
-		const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(embedUrl)}`
-		window.open(twitterUrl, "_blank", "noopener,noreferrer")
-	}
 
 	return (
 		<div className="border-2 shadow-lg rounded-xl p-3 sm:p-2 overflow-hidden">
@@ -104,15 +97,6 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
 
 					{/* Social Links */}
 					<div className="flex gap-1 justify-end">
-						<Button
-							variant="ghost"
-							size="icon"
-							className="h-8 w-8"
-							onClick={handleShare}
-							title="Share on Twitter"
-						>
-							<Share2 className="h-4 w-4" />
-						</Button>
 						{pool.metadata?.X && (
 							<Button variant="ghost" size="icon" className="h-8 w-8" asChild>
 								<a href={pool.metadata.X} target="_blank" rel="noopener noreferrer">
