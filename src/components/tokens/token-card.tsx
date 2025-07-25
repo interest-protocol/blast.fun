@@ -49,7 +49,7 @@ export function TokenCard({ pool }: TokenCardProps) {
 	}
 
 	return (
-		<Link href={`/pool/${pool.poolId}`} className="cursor-default">
+		<Link href={`/meme/${pool.poolId}`} className="cursor-default">
 			<div className="relative border-b border-border/40 group hover:bg-accent/15 transition-all duration-300 overflow-hidden">
 				{/* Bonding Progress Gradient */}
 				<div className="absolute inset-0 opacity-[0.05] group-hover:opacity-[0.08] transition-opacity duration-300">

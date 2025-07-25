@@ -74,7 +74,7 @@ export function XCardTrading({ pool, referrerWallet }: XCardTradingProps) {
 	}
 
 	const openInNewTab = () => {
-		window.open(`${window.location.origin}/pool/${pool.poolId}`, "_blank")
+		window.open(`${window.location.origin}/meme/${pool.poolId}`, "_blank")
 	}
 
 	const bondingProgress = parseFloat(pool.bondingCurve)
@@ -371,18 +371,6 @@ export function XCardTrading({ pool, referrerWallet }: XCardTradingProps) {
 					<p className="font-mono font-bold text-xs uppercase text-muted-foreground">
 						xpump.fun • Powered by Sui
 					</p>
-
-					{/* {isTwitterEmbed && (
-						<a
-							href={`https://twitter.com/intent/tweet?text=PUMPING::${metadata?.symbol}::ON::@xpump!&url=${window.location.origin}/pool/${pool.poolId}`}
-							target="_blank"
-							rel="noopener noreferrer"
-							className="inline-flex items-center gap-1 font-mono text-xs uppercase text-primary hover:text-primary/80"
-						>
-							<Twitter className="w-3 h-3" />
-							SHARE::TOKEN
-						</a>
-					)} */}
 				</div>
 			</div>
 		</div>
