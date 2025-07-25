@@ -1,10 +1,10 @@
 "use client"
 
 import { useEffect } from "react"
-import { Skull } from "lucide-react"
 import { TokenColumns } from "@/components/tokens/token-columns"
 import { Skeleton } from "@/components/ui/skeleton"
 import { usePoolsWithMetadata } from "@/hooks/pump/use-pools-with-metadata"
+import { Logo } from "@/components/ui/logo"
 
 export default function DiscoveryPage() {
 	const {
@@ -31,7 +31,7 @@ export default function DiscoveryPage() {
 		return (
 			<div className="h-[calc(100vh-theme(spacing.16)-theme(spacing.12)-theme(spacing.14))] md:h-[calc(100vh-theme(spacing.16)-theme(spacing.12))] flex items-center justify-center">
 				<div className="text-center">
-					<Skull className="w-12 h-12 mx-auto text-destructive mb-4" />
+					<Logo className="w-12 h-12 mx-auto text-destructive mb-4" />
 					<p className="font-mono text-sm uppercase text-destructive">ERROR::LOADING::DATA</p>
 					<p className="font-mono text-xs uppercase text-destructive/60 mt-2">{error.message}</p>
 				</div>

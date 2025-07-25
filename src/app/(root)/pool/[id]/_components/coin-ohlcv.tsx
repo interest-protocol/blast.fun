@@ -4,8 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { createChart, ColorType, IChartApi, ISeriesApi, Time, CandlestickSeries } from "lightweight-charts"
 import { PoolWithMetadata } from "@/types/pool"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Activity, Skull } from "lucide-react"
+import { Activity } from "lucide-react"
 import { useCoinOHLCV } from "@/hooks/datafeed/use-coin-ohlcv"
+import { Logo } from "@/components/ui/logo"
 
 interface CoinOHLCVProps {
 	pool: PoolWithMetadata
@@ -155,7 +156,7 @@ export function CoinOHLCV({ pool }: CoinOHLCVProps) {
 
 					{!isLoading && (error || !hasData) && (
 						<div className="absolute inset-0 bg-background/90 rounded-lg flex flex-col items-center justify-center">
-							<Skull className="w-12 h-12 text-foreground/20 mb-4" />
+							<Logo className="w-12 h-12 text-foreground/20 mb-4" />
 							<p className="font-mono text-sm uppercase text-muted-foreground">
 								{error ? "ERROR::LOADING::DATA" : "NO::DATA::AVAILABLE"}
 							</p>

@@ -2,11 +2,12 @@
 
 import { PoolWithMetadata } from "@/types/pool"
 import { formatDistanceToNow } from "date-fns"
-import { Skull, Activity, ExternalLink } from "lucide-react"
+import { Activity, ExternalLink } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useTrades } from "@/hooks/pump/use-trades"
 import { formatAddress } from "@mysten/sui/utils"
 import { getTxExplorerUrl } from "@/utils/transaction"
+import { Logo } from "@/components/ui/logo"
 
 interface TradesTabProps {
 	pool: PoolWithMetadata
@@ -51,7 +52,7 @@ export function TradesTab({ pool }: TradesTabProps) {
 	if (error) {
 		return (
 			<div className="p-8 text-center">
-				<Skull className="w-12 h-12 mx-auto text-foreground/20 mb-4" />
+				<Logo className="w-12 h-12 mx-auto text-foreground/20 mb-4" />
 				<p className="font-mono text-sm uppercase text-destructive">ERROR::LOADING::TRADES</p>
 				<p className="font-mono text-xs uppercase text-muted-foreground/60 mt-2">CHECK_CONNECTION</p>
 			</div>

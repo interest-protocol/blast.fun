@@ -1,6 +1,6 @@
 "use client"
 
-import { Skull } from "lucide-react"
+import { Logo } from "@/components/ui/logo"
 import { SplashLoader } from "@/components/shared/splash-loader"
 import { Card, CardContent } from "@/components/ui/card"
 import { usePoolWithMetadata } from "@/hooks/pump/use-pool-with-metadata"
@@ -24,7 +24,7 @@ export default function Pool({ poolId }: { poolId: string }) {
 				<Card className="border-2 bg-background/50 backdrop-blur-sm shadow-2xl">
 					<CardContent className="py-12">
 						<div className="text-center">
-							<Skull className="w-12 h-12 mx-auto text-foreground/20 mb-4" />
+							<Logo className="w-12 h-12 mx-auto text-foreground/20 mb-4" />
 							<p className="font-mono text-sm uppercase text-muted-foreground">ERROR::POOL_NOT_FOUND</p>
 							<p className="font-mono text-xs uppercase text-muted-foreground/60 mt-2">
 								POOL_ID::{poolId || "[UNKNOWN]"}

@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Skull } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Logo } from "@/components/ui/logo";
 
 export default function ComingSoonPage() {
 	const [password, setPassword] = useState("");
@@ -79,7 +79,7 @@ export default function ComingSoonPage() {
 					<div className="text-center space-y-4">
 						<div className="relative inline-block">
 							<div className="absolute inset-0 bg-primary/30 blur-2xl rounded-full animate-pulse" />
-							<Skull className="relative w-24 h-24 mx-auto text-foreground/80 animate-float-slow" />
+							<Logo className="relative w-24 h-24 mx-auto text-foreground/80 animate-float-slow" />
 						</div>
 
 						<h1 className="glitch-effect text-4xl font-bold font-mono uppercase tracking-wider text-foreground/90">
@@ -128,7 +128,7 @@ export default function ComingSoonPage() {
 					{/* Error message */}
 					{error && (
 						<Alert variant="destructive" className="border-2">
-							<Skull className="h-4 w-4" />
+							<Logo className="h-4 w-4" />
 							<AlertTitle className="font-mono uppercase">ACCESS::DENIED</AlertTitle>
 							<AlertDescription className="font-mono text-xs uppercase">
 								INVALID_CREDENTIALS._TRY_AGAIN.

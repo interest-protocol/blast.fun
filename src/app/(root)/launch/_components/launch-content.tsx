@@ -1,7 +1,7 @@
 "use client"
 
 import { MIST_PER_SUI } from "@mysten/sui/utils"
-import { Loader2, Skull } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { useState } from "react"
 import { WalletList } from "@/components/shared/wallet-list"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -14,6 +14,7 @@ import { useTwitter } from "@/context/twitter.context"
 import type { TokenFormValues } from "./create-token-form"
 import CreateTokenForm from "./create-token-form"
 import { ConfettiProvider } from "@/components/shared/confetti"
+import { Logo } from "@/components/ui/logo"
 
 export default function LaunchContent() {
 	const { isConnected, isConnecting, connect } = useApp()
@@ -130,7 +131,7 @@ export default function LaunchContent() {
 					<div className="lg:col-span-2">
 						<div className="space-y-4">
 							<Alert variant="destructive" className="shadow-md">
-								<Skull className="h-4 w-4" />
+								<Logo className="h-4 w-4" />
 								<AlertTitle className="font-mono uppercase">IDENTITY::WARNING</AlertTitle>
 								<AlertDescription className="font-mono text-xs uppercase">
 									YOUR TWITTER USERNAME WILL BE PUBLICLY DISPLAYED AS THE TOKEN CREATOR.
@@ -164,7 +165,7 @@ export default function LaunchContent() {
 												</div>
 											) : (
 												<div className="w-20 h-20 rounded-lg bg-foreground/5 border-2 border-dashed flex items-center justify-center">
-													<Skull className="w-8 h-8 text-muted-foreground" />
+													<Logo className="w-8 h-8 text-muted-foreground" />
 												</div>
 											)}
 
@@ -216,7 +217,7 @@ export default function LaunchContent() {
 												</p>
 												<div className="flex items-center gap-3">
 													<div className="h-10 w-10 rounded-full bg-foreground/10 border-2 flex items-center justify-center">
-														<Skull className="h-5 w-5 text-foreground/40" />
+														<Logo className="h-5 w-5 text-foreground/40" />
 													</div>
 													<div>
 														<p className="font-mono text-sm uppercase text-foreground/80">
@@ -232,7 +233,7 @@ export default function LaunchContent() {
 									</div>
 								) : (
 									<div className="text-center py-8">
-										<Skull className="w-12 h-12 mx-auto text-foreground/20 mb-4" />
+										<Logo className="w-12 h-12 mx-auto text-foreground/20 mb-4" />
 										<p className="font-mono text-sm uppercase text-muted-foreground">AWAITING::INPUT</p>
 										<p className="font-mono text-xs uppercase text-muted-foreground/60 mt-2">
 											FILL_FORM_TO_PREVIEW

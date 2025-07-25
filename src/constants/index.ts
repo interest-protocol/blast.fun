@@ -15,7 +15,7 @@ export const siteConfig: SiteConfig = {
     name: 'xPump',
     description: 'Launch, trade and explore everything memecoins on xPump.',
     url: 'https://xpump.fun',
-    image: `${BASE_DOMAIN}/logo/xpump-logo.png`,
+    image: `${BASE_DOMAIN}/logo/xpump-bg.png`,
     links: {
         twitter: "https://twitter.com/xpumpfun"
     }

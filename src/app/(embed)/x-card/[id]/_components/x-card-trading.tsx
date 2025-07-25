@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ExternalLink, Twitter, Globe, Send, Skull, Zap, TrendingUp, TrendingDown, BarChart3, Droplets, Coins, Activity } from "lucide-react"
+import { ExternalLink, Twitter, Globe, Send, Zap, TrendingUp, TrendingDown, BarChart3, Droplets, Coins, Activity } from "lucide-react"
 import { useCurrentAccount } from "@mysten/dapp-kit"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -16,6 +16,7 @@ import type { PoolWithMetadata } from "@/types/pool"
 import { formatAmountWithSuffix, calculateMarketCap } from "@/utils/format"
 import { CopyableAddress } from "@/components/shared/copyable-address"
 import { CopyableToken } from "@/components/shared/copyable-token"
+import { Logo } from "@/components/ui/logo"
 
 interface XCardTradingProps {
 	pool: PoolWithMetadata
@@ -325,7 +326,7 @@ export function XCardTrading({ pool, referrerWallet }: XCardTradingProps) {
 								{error && (
 									<Alert variant="destructive" className="py-2">
 										<AlertDescription className="flex items-center gap-2 font-mono text-xs uppercase">
-											<Skull className="h-4 w-4 flex-shrink-0" />
+											<Logo className="h-4 w-4 flex-shrink-0" />
 											ERROR::{error}
 										</AlertDescription>
 									</Alert>
@@ -351,7 +352,7 @@ export function XCardTrading({ pool, referrerWallet }: XCardTradingProps) {
 									</Button>
 								) : (
 									<div className="text-center space-y-2">
-										<Skull className="w-8 h-8 mx-auto text-foreground/20" />
+										<Logo className="w-8 h-8 mx-auto text-foreground/20" />
 										<p className="font-mono text-xs uppercase text-muted-foreground">
 											WALLET::NOT_CONNECTED
 										</p>

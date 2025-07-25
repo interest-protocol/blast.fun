@@ -4,8 +4,9 @@ import { PoolWithMetadata } from "@/types/pool"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Progress } from "@/components/ui/progress"
 import { useHolders } from "@/hooks/pump/use-holders"
-import { Trophy, Skull, Users } from "lucide-react"
+import { Trophy, Users } from "lucide-react"
 import { formatAddress } from "@mysten/sui/utils"
+import { Logo } from "@/components/ui/logo"
 
 interface HoldersTabProps {
 	pool: PoolWithMetadata
@@ -33,7 +34,7 @@ export function HoldersTab({ pool }: HoldersTabProps) {
 	if (error) {
 		return (
 			<div className="p-8 text-center">
-				<Skull className="w-12 h-12 mx-auto text-foreground/20 mb-4" />
+				<Logo className="w-12 h-12 mx-auto text-foreground/20 mb-4" />
 				<p className="font-mono text-sm uppercase text-destructive">ERROR::LOADING::HOLDERS</p>
 				<p className="font-mono text-xs uppercase text-muted-foreground/60 mt-2">DATA_UNAVAILABLE</p>
 			</div>

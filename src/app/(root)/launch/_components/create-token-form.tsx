@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { MIST_PER_SUI } from "@mysten/sui/utils"
-import { Skull, Upload, X } from "lucide-react"
+import { Upload, X } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import toast from "react-hot-toast"
@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { HIDE_IDENTITY_SUI_FEE } from "@/constants/fees"
 import { cn } from "@/utils"
 import TokenCreationButton from "./create-token-button"
+import { Logo } from "@/components/ui/logo"
 import { getBase64 } from "../launch.utils"
 
 const tokenSchema = z.object({
@@ -319,7 +320,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 								<FormItem className="flex flex-row items-center justify-between rounded-lg border-2 p-4 bg-destructive/5">
 									<div className="space-y-2">
 										<div className="flex items-center gap-2">
-											<Skull className="h-4 w-4 text-destructive" />
+											<Logo className="h-4 w-4 text-destructive" />
 											<FormLabel className="font-mono text-sm uppercase tracking-wider">
 												HIDE::IDENTITY
 											</FormLabel>

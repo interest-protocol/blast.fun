@@ -33,7 +33,7 @@ export async function GET(
     <meta name="twitter:card" content="player" />
     <meta name="twitter:creator" content="@xpumpfun">
     <meta name="twitter:site" content="@xpumpfun" />
-    <meta name="twitter:image" content="${appUrl}/logo/xpump-logo.png" />
+    <meta name="twitter:image" content="${appUrl}/logo/xpump-bg.png" />
     <meta name="twitter:title" content="Trade memecoins on xPump directly within X." />
     <meta name="twitter:description" content="Buy & sell memecoins on xPump directly within X. Just click me and you'll see!" />
 
@@ -46,7 +46,7 @@ export async function GET(
     <meta property="og:type" content="video.movie" />
     <meta property="og:title" content="Trade memecoins on xPump directly within X." />
     <meta property="og:description" content="Connect wallet and trade tokens directly" />
-    <meta property="og:image" content="${appUrl}/logo/xpump-logo.png" />
+    <meta property="og:image" content="${appUrl}/logo/xpump-bg.png" />
     <meta property="og:url" content="${xCardUrl}" />
     
     <title>xPump Trading</title>
