@@ -79,3 +79,17 @@ model TokenLaunches {
 
   @@map("token_launches")
 }
+
+model Referral {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  walletAddress String   @unique
+  referralCode  String   @unique
+  totalEarned   BigInt   @default(0)
+  totalTrades   Int      @default(0)
+
+  @@index([walletAddress])
+  @@index([referralCode])
+  @@map("referrals")
+}
