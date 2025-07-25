@@ -9,6 +9,7 @@ import { PoolHeader } from "./pool-header"
 import { TradingTerminal } from "./trading-terminal"
 import { PoolTabs } from "./pool-tabs"
 import { CoinOHLCV } from "./coin-ohlcv"
+import { ReferralShare } from "./referral-share"
 
 export default function Pool({ poolId }: { poolId: string }) {
 	const { data: pool, isLoading, error } = usePoolWithMetadata(poolId)
@@ -50,6 +51,7 @@ export default function Pool({ poolId }: { poolId: string }) {
 				</div>
 
 				<div className="lg:col-span-1 space-y-2 sm:space-y-4 order-1 lg:order-2">
+					<ReferralShare pool={pool} />
 					<TradingTerminal pool={pool} />
 					<BondingProgress pool={pool} />
 				</div>
