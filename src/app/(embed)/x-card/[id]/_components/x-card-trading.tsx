@@ -19,9 +19,10 @@ import { CopyableToken } from "@/components/shared/copyable-token"
 
 interface XCardTradingProps {
 	pool: PoolWithMetadata
+	referrerWallet?: string | null
 }
 
-export function XCardTrading({ pool }: XCardTradingProps) {
+export function XCardTrading({ pool, referrerWallet }: XCardTradingProps) {
 	const account = useCurrentAccount()
 	const { balance: tokenBalance } = useTokenBalance(pool.coinType)
 	const metadata = pool.coinMetadata
