@@ -32,17 +32,7 @@ export function TradesTab({ pool }: TradesTabProps) {
 
 	const formatTimeAgo = (timestamp: string) => {
 		const date = new Date(parseInt(timestamp))
-		const time = formatDistanceToNow(date, { addSuffix: false })
-
-		return time
-			.replace(" minutes", "m")
-			.replace(" minute", "m")
-			.replace(" hours", "h")
-			.replace(" hour", "h")
-			.replace(" days", "d")
-			.replace(" day", "d")
-			.replace(" seconds", "s")
-			.replace(" second", "s")
+		return formatDistanceToNow(date, { addSuffix: true })
 	}
 
 	if (isLoading) {
