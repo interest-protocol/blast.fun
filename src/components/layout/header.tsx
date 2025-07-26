@@ -7,6 +7,7 @@ import { ThemeSwitcher } from "../shared/theme-switcher"
 import { UserDropdown } from "../user/user-dropdown"
 import { DesktopNav } from "./desktop-nav"
 import { Logo } from "../ui/logo"
+import { AudioToggle } from "../audio/audio-toggle"
 
 export default function Header() {
 	const { isConnected } = useApp()
@@ -37,6 +38,7 @@ export default function Header() {
 
 					<UserDropdown />
 					<div className="hidden sm:block h-6 w-[1px] bg-foreground/20" />
+					<AudioToggle />
 					<ThemeSwitcher />
 				</div>
 			</div>
