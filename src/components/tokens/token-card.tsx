@@ -90,7 +90,7 @@ export function TokenCard({ pool }: TokenCardProps) {
 									<TooltipTrigger asChild>
 										<div className="flex items-center gap-1">
 											<span className="text-muted-foreground/60 uppercase tracking-wider text-[9px] sm:text-[10px]">MC</span>
-											<span className="font-semibold text-green-500/90 text-[11px] sm:text-xs">${formatAmountWithSuffix(marketCap)}</span>
+											<span className="font-semibold text-green-500/90 text-[11px] sm:text-xs transition-all duration-300">${formatAmountWithSuffix(marketCap)}</span>
 										</div>
 									</TooltipTrigger>
 									<TooltipContent>
@@ -102,7 +102,7 @@ export function TokenCard({ pool }: TokenCardProps) {
 									<TooltipTrigger asChild>
 										<div className="flex items-center gap-1">
 											<span className="text-muted-foreground/60 uppercase tracking-wider text-[9px] sm:text-[10px]">LIQ</span>
-											<span className="font-semibold text-blue-500/90 text-[11px] sm:text-xs">{formatMistToSui(pool.quoteBalance)} SUI</span>
+											<span className="font-semibold text-blue-500/90 text-[11px] sm:text-xs transition-all duration-300">{formatMistToSui(pool.quoteBalance)} SUI</span>
 										</div>
 									</TooltipTrigger>
 									<TooltipContent>
