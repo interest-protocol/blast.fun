@@ -1,25 +1,23 @@
 "use client"
 
-import { MIST_PER_SUI } from "@mysten/sui/utils"
-import { Loader2 } from "lucide-react"
-import { useState } from "react"
+import { Loader2, ShieldCheck } from "lucide-react"
+import { useState, useCallback } from "react"
 import { WalletList } from "@/components/shared/wallet-list"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { TwitterUserAvatar } from "@/components/user/user-avatar"
-import { HIDE_IDENTITY_SUI_FEE } from "@/constants/fees"
 import { useApp } from "@/context/app.context"
 import { useTwitter } from "@/context/twitter.context"
 import type { TokenFormValues } from "./create-token-form"
 import CreateTokenForm from "./create-token-form"
 import { ConfettiProvider } from "@/components/shared/confetti"
 import { Logo } from "@/components/ui/logo"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 export default function LaunchContent() {
 	const { isConnected, isConnecting, connect } = useApp()
 	const { isLoggedIn, isLoading, login, user } = useTwitter()
 	const [tokenData, setTokenData] = useState<Partial<TokenFormValues>>({})
+	const [protectionActive, setProtectionActive] = useState(false)
 
 	if (!isConnected) {
 		return (
@@ -130,26 +128,28 @@ export default function LaunchContent() {
 				<div className="grid lg:grid-cols-3 gap-8 items-start">
 					<div className="lg:col-span-2">
 						<div className="space-y-4">
-							<Alert variant="destructive" className="shadow-md">
-								<Logo className="h-4 w-4" />
-								<AlertTitle className="font-mono uppercase">IDENTITY::WARNING</AlertTitle>
-								<AlertDescription className="font-mono text-xs uppercase">
-									YOUR TWITTER USERNAME WILL BE PUBLICLY DISPLAYED AS THE TOKEN CREATOR.
-									<br />
-									PAY {Number(HIDE_IDENTITY_SUI_FEE) / Number(MIST_PER_SUI)} SUI TO REMAIN ANONYMOUS.
-								</AlertDescription>
-							</Alert>
 
-							<CreateTokenForm onFormChange={setTokenData} />
+							<CreateTokenForm
+								onFormChange={useCallback((data: any) => {
+									setTokenData(data)
+
+									const hasProtection = !!(data.requireTwitter || data.maxBuyAmount)
+									setProtectionActive(hasProtection)
+								}, [])}
+							/>
 						</div>
 					</div>
 
 					<div className="lg:col-span-1">
-						<Card className="border-2 bg-background/50 backdrop-blur-sm shadow-xl">
-							<CardHeader className="pb-4 border-b">
-								<CardTitle className="text-lg font-mono uppercase tracking-wider">TOKEN::PREVIEW</CardTitle>
-							</CardHeader>
-							<CardContent>
+						<div className="border-2 shadow-lg rounded-xl">
+							<div className="p-4 border-b">
+								<h3 className="text-lg font-mono uppercase tracking-wider text-foreground/80">
+									TOKEN::PREVIEW
+								</h3>
+							</div>
+
+							<div className="p-4 space-y-4">
+
 								{tokenData.imageUrl || tokenData.name || tokenData.symbol ? (
 									<div className="space-y-6">
 										{/* Token Display */}
@@ -165,14 +165,28 @@ export default function LaunchContent() {
 												</div>
 											) : (
 												<div className="w-20 h-20 rounded-lg bg-foreground/5 border-2 border-dashed flex items-center justify-center">
-													<Logo className="w-8 h-8 text-muted-foreground" />
+													<Logo className="w-8 h-8 animate-pulse" />
 												</div>
 											)}
 
 											<div className="flex-1 space-y-1">
-												<h3 className="text-xl font-mono font-bold tracking-tight">
-													{tokenData.name || "[UNNAMED]"}
-												</h3>
+												<div className="flex items-center gap-2">
+													<h3 className="text-xl font-mono font-bold tracking-tight">
+														{tokenData.name || "[UNNAMED]"}
+													</h3>
+
+													{protectionActive && (
+														<Tooltip>
+															<TooltipTrigger asChild>
+																<ShieldCheck className="h-5 w-5 text-green-400/80" />
+															</TooltipTrigger>
+															<TooltipContent>
+																This token has anti-sniper protections active.
+															</TooltipContent>
+														</Tooltip>
+													)}
+												</div>
+
 												<p className="text-lg font-mono text-primary">
 													${tokenData.symbol || "???"}
 												</p>
@@ -195,7 +209,7 @@ export default function LaunchContent() {
 														<div className="absolute inset-0 bg-primary/20 blur-md rounded-full opacity-0 group-hover:opacity-100 duration-300 ease-in-out transition-opacity" />
 														<TwitterUserAvatar
 															user={user}
-															className="relative h-10 w-10 rounded-full border-2"
+															className="relative h-10 w-10 rounded-lg border-2"
 														/>
 													</div>
 													<div>
@@ -216,8 +230,8 @@ export default function LaunchContent() {
 													CREATOR::IDENTITY
 												</p>
 												<div className="flex items-center gap-3">
-													<div className="h-10 w-10 rounded-full bg-foreground/10 border-2 flex items-center justify-center">
-														<Logo className="h-5 w-5 text-foreground/40" />
+													<div className="h-10 w-10 rounded-lg bg-foreground/10 border-2 flex items-center justify-center">
+														<Logo className="h-5 w-5" />
 													</div>
 													<div>
 														<p className="font-mono text-sm uppercase text-foreground/80">
@@ -233,15 +247,15 @@ export default function LaunchContent() {
 									</div>
 								) : (
 									<div className="text-center py-8">
-										<Logo className="w-12 h-12 mx-auto text-foreground/20 mb-4" />
+										<Logo className="w-12 h-12 mx-auto mb-4 animate-bounce" />
 										<p className="font-mono text-sm uppercase text-muted-foreground">AWAITING::INPUT</p>
 										<p className="font-mono text-xs uppercase text-muted-foreground/60 mt-2">
 											FILL_FORM_TO_PREVIEW
 										</p>
 									</div>
 								)}
-							</CardContent>
-						</Card>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
