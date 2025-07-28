@@ -62,7 +62,7 @@ export function TokenColumns({ pools, isRefreshing }: TokenColumnsProps) {
 
 	const EmptyState = ({ message }: { message: string }) => (
 		<div className="flex flex-col items-center justify-center py-8 px-4">
-			<Logo className="w-8 h-8 text-foreground/20 mb-2" />
+			<Logo className="w-8 h-8 mb-2" />
 			<p className="font-mono text-xs uppercase text-muted-foreground text-center">{message}</p>
 		</div>
 	)

@@ -156,7 +156,7 @@ export function CoinOHLCV({ pool }: CoinOHLCVProps) {
 
 					{!isLoading && (error || !hasData) && (
 						<div className="absolute inset-0 bg-background/90 rounded-lg flex flex-col items-center justify-center">
-							<Logo className="w-12 h-12 text-foreground/20 mb-4" />
+							<Logo className="w-12 h-12 mx-auto mb-4 animate-bounce" />
 							<p className="font-mono text-sm uppercase text-muted-foreground">
 								{error ? "ERROR::LOADING::DATA" : "NO::DATA::AVAILABLE"}
 							</p>

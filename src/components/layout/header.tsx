@@ -17,8 +17,8 @@ export default function Header() {
 			<div className="3xl:px-0 top-0 z-[90] mx-auto flex w-full max-w-9xl shrink-0 items-center justify-between px-3 lg:grid lg:grid-cols-3">
 				<div className="flex items-center gap-2">
 					<Link href="/" className="group flex items-center gap-2">
-						<Logo className="h-8 w-8 group-hover:text-foreground/80 transition-colors duration-300" />
-						<span className="font-mono font-bold text-lg sm:text-xl uppercase tracking-wider group-hover:text-foreground/80 transition-colors duration-300">
+						<Logo className="h-8 w-8 group-hover:text-foreground/70" />
+						<span className="font-mono font-bold text-lg sm:text-xl uppercase tracking-wider group-hover:text-foreground/70 transition-colors duration-300">
 							XPUMP.FUN
 						</span>
 					</Link>

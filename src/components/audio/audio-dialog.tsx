@@ -154,8 +154,8 @@ export function AudioDialog({ open, onOpenChange }: AudioDialogProps) {
 
 					{!localEnabled && (
 						<div className="text-center py-2">
-							<Logo className="w-6 h-6 mx-auto text-foreground/20 mb-1.5" />
-							<p className="font-mono text-[10px] uppercase text-muted-foreground">
+							<Logo className="w-8 h-8 mx-auto mb-2" />
+							<p className="font-mono text-xs uppercase text-muted-foreground">
 								AUDIO::DISABLED
 							</p>
 						</div>

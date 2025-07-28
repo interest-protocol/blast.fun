@@ -21,17 +21,13 @@ export default function Pool({ poolId }: { poolId: string }) {
 	if (error || !pool) {
 		return (
 			<div className="container mx-auto px-4 py-8">
-				<Card className="border-2 bg-background/50 backdrop-blur-sm shadow-2xl">
-					<CardContent className="py-12">
-						<div className="text-center">
-							<Logo className="w-12 h-12 mx-auto text-foreground/20 mb-4" />
-							<p className="font-mono text-sm uppercase text-muted-foreground">ERROR::POOL_NOT_FOUND</p>
-							<p className="font-mono text-xs uppercase text-muted-foreground/60 mt-2">
-								POOL_ID::{poolId || "[UNKNOWN]"}
-							</p>
-						</div>
-					</CardContent>
-				</Card>
+				<div className="text-center">
+					<Logo className="w-12 h-12 mx-auto mb-4 animate-bounce" />
+					<h1 className="font-mono font-semibold text-xl uppercase text-muted-foreground">POOL_NOT_FOUND</h1>
+					<p className="font-mono text-xs uppercase text-muted-foreground/60 mt-2">
+						{poolId || "[UNKNOWN]"}
+					</p>
+				</div>
 			</div>
 		)
 	}

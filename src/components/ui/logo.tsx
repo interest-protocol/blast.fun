@@ -7,7 +7,7 @@ interface LogoProps {
 export function Logo({ className }: LogoProps) {
 	return (
 		<svg
-			className={cn("fill-current", className)}
+			className={cn("text-foreground/80 transition-all duration-300 fill-current", className)}
 			xmlns="http://www.w3.org/2000/svg"
 			viewBox="150 150 500 500"
 		>
