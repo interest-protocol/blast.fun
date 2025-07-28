@@ -104,7 +104,7 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
 
 					{/* Social Links */}
 					<div className="flex gap-1 justify-end">
-						<Button
+						{/* <Button
 							variant="ghost"
 							size="icon"
 							className="h-8 w-8"
@@ -112,7 +112,7 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
 							title="Share on Twitter"
 						>
 							<Share2 className="h-4 w-4" />
-						</Button>
+						</Button> */}
 						{pool.metadata?.X && (
 							<Button variant="ghost" size="icon" className="h-8 w-8" asChild>
 								<a href={pool.metadata.X} target="_blank" rel="noopener noreferrer">
