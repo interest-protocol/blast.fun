@@ -122,7 +122,7 @@ export function useLaunchCoin() {
 
 		const network = pumpSdk.network as "mainnet" | "testnet"
 		const configKey = CONFIG_KEYS[network]?.MEMEZ
-		const migrationWitness = MIGRATOR_WITNESSES[network]?.TEST
+		const migrationWitness = MIGRATOR_WITNESSES[network]?.XPUMP
 
 		if (!configKey || !migrationWitness) {
 			throw new Error(`Invalid network configuration for ${network}`)
