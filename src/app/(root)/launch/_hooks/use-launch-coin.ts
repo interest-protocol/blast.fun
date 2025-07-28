@@ -144,13 +144,17 @@ export function useLaunchCoin() {
 			{} as Record<string, string>
 		)
 
+		// should pool be protected based on any protection settings
+		const isProtected = !!(formValues.requireTwitter || formValues.maxHoldingPercent)
+
 		const { tx, metadataCap } = await pumpSdk.newPool({
 			configurationKey: configKey,
 			metadata,
 			memeCoinTreasuryCap: treasuryCapObjectId,
 			migrationWitness: migrationWitness,
 			totalSupply: TOTAL_POOL_SUPPLY,
-			useTokenStandard: false,
+			isProtected,
+			developer: address,
 			quoteCoinType: SUI_TYPE_ARG,
 			burnTax: 0,
 			virtualLiquidity: VIRTUAL_LIQUIDITY,
@@ -187,6 +191,10 @@ export function useLaunchCoin() {
 		tokenTxHash: string
 		poolTxHash: string
 		hideIdentity: boolean
+		protectionSettings?: {
+			requireTwitter: boolean
+			maxHoldingPercent?: string
+		}
 	}): Promise<void> => {
 		try {
 			const response = await fetch("/api/launches", {
@@ -200,6 +208,7 @@ export function useLaunchCoin() {
 					hideIdentity: launchData.hideIdentity,
 					tokenTxHash: launchData.tokenTxHash,
 					poolTxHash: launchData.poolTxHash,
+					protectionSettings: launchData.protectionSettings,
 				}),
 			})
 
@@ -228,12 +237,20 @@ export function useLaunchCoin() {
 			const poolResult = await createPool(tokenResult.treasuryCapObjectId, formValues)
 			addLog(`POOL::ID::${formatAddress(poolResult.poolObjectId)}`)
 
-			addLog("DATABASE::SYNC")
+			addLog("CLEANING::UP", "info")
+
+			// save token launch data now
+			const protectionSettings = (formValues.requireTwitter || formValues.maxHoldingPercent) ? {
+				requireTwitter: formValues.requireTwitter,
+				maxHoldingPercent: formValues.maxHoldingPercent,
+			} : undefined
+
 			await saveLaunchData({
 				poolObjectId: poolResult.poolObjectId,
 				tokenTxHash: tokenResult.txDigest,
 				poolTxHash: poolResult.txDigest,
 				hideIdentity: formValues.hideIdentity,
+				protectionSettings,
 			})
 
 			const launchResult = {

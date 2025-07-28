@@ -5,7 +5,16 @@ export async function POST(request: NextRequest) {
 	try {
 		const body = await request.json()
 
-		const { poolObjectId, creatorAddress, twitterUserId, twitterUsername, hideIdentity, tokenTxHash, poolTxHash } = body
+		const {
+			poolObjectId,
+			creatorAddress,
+			twitterUserId,
+			twitterUsername,
+			hideIdentity,
+			tokenTxHash,
+			poolTxHash,
+			protectionSettings
+		} = body
 
 		if (!poolObjectId || !creatorAddress || !tokenTxHash || !poolTxHash || !twitterUserId || !twitterUsername) {
 			return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
@@ -22,6 +31,18 @@ export async function POST(request: NextRequest) {
 				poolTxHash,
 			},
 		})
+
+		if (protectionSettings) {
+			await prisma.tokenProtectionSettings.create({
+				data: {
+					poolId: poolObjectId,
+					settings: {
+						requireTwitter: protectionSettings.requireTwitter || false,
+						maxHoldingPercent: protectionSettings.maxHoldingPercent || null,
+					},
+				},
+			})
+		}
 
 		return NextResponse.json({ success: true, id: tokenLaunch.id })
 	} catch (error) {
