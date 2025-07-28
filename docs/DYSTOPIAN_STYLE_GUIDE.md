@@ -54,7 +54,7 @@ When implementing a dystopian UI, follow these specific design patterns:
 ### Empty State
 ```tsx
 <div className="text-center py-8">
-  <Logo className="w-12 h-12 mx-auto text-foreground/20 mb-4" />
+  <Logo className="w-12 h-12 mx-auto mb-4" />
   <p className="font-mono text-sm uppercase text-muted-foreground">
     AWAITING::INPUT
   </p>
