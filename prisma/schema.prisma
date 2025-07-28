@@ -93,3 +93,14 @@ model Referral {
   @@index([referralCode])
   @@map("referrals")
 }
+
+model TokenProtectionSettings {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  poolId    String   @unique
+  settings  Json
+
+  @@index([poolId])
+  @@map("token_protection_settings")
+}
