@@ -41,34 +41,18 @@ export function XCardTrading({ pool }: XCardTradingProps) {
 	const quickSellPercentages = [25, 50, 100]
 
 	const handleQuickBuy = async (suiAmount: number) => {
-		setAmount(suiAmount.toString())
-		const slippageNum = parseFloat(slippage)
-		await pump(suiAmount.toString(), slippageNum)
-		setAmount("")
+		// Disabled - do nothing
+		return
 	}
 
 	const handleQuickSellPercentage = async (percentage: number) => {
-		const tokenAmount = (Number(tokenBalance || 0) / Math.pow(10, decimals)) * (percentage / 100)
-		setAmount(tokenAmount.toString())
-		const slippageNum = parseFloat(slippage)
-		await dump(tokenAmount.toString(), slippageNum)
-		setAmount("")
+		// Disabled - do nothing
+		return
 	}
 
 	const handleTrade = async () => {
-		if (!amount || parseFloat(amount) <= 0) {
-			return
-		}
-
-		const slippageNum = parseFloat(slippage)
-
-		if (activeTab === "buy") {
-			await pump(amount, slippageNum)
-		} else {
-			await dump(amount, slippageNum)
-		}
-
-		setAmount("")
+		// Disabled - do nothing
+		return
 	}
 
 	const openInNewTab = () => {
@@ -207,7 +191,14 @@ export function XCardTrading({ pool }: XCardTradingProps) {
 
 			{/* Main Content */}
 			<div className="max-w-md mx-auto p-4 space-y-4">
-				<Card className="border-2 bg-background/50 backdrop-blur-sm shadow-2xl">
+				{/* Maintenance Alert */}
+				<Alert variant="destructive" className="border-2">
+					<AlertDescription className="font-mono text-xs uppercase">
+						TRADING::DISABLED - THIS FEATURE IS CURRENTLY UNDER MAINTENANCE
+					</AlertDescription>
+				</Alert>
+
+				<Card className="border-2 bg-background/50 backdrop-blur-sm shadow-2xl opacity-50">
 					<CardContent className="p-4 !pt-0 !pb-0">
 						<Tabs value={activeTab} onValueChange={setActiveTab}>
 							<TabsList className="grid w-full grid-cols-2 bg-background/50">
@@ -239,7 +230,7 @@ export function XCardTrading({ pool }: XCardTradingProps) {
 													size="sm"
 													className="font-mono text-xs uppercase border-border/50 hover:border-green-500/50 hover:text-green-500 hover:bg-green-500/10"
 													onClick={() => handleQuickBuy(quickAmount)}
-													disabled={isLoading || !account}
+													disabled={true}
 												>
 													{quickAmount} SUI
 												</Button>
@@ -259,7 +250,7 @@ export function XCardTrading({ pool }: XCardTradingProps) {
 													size="sm"
 													className="font-mono text-xs uppercase border-border/50 hover:border-red-500/50 hover:text-red-500 hover:bg-red-500/10"
 													onClick={() => handleQuickSellPercentage(percentage)}
-													disabled={isLoading || !account || !tokenBalance}
+													disabled={true}
 												>
 													{percentage}%
 												</Button>
@@ -280,7 +271,7 @@ export function XCardTrading({ pool }: XCardTradingProps) {
 											value={amount}
 											onChange={(e) => setAmount(e.target.value)}
 											className="relative bg-background/50 border-2 border-border/50 text-foreground text-lg h-12 font-mono focus:border-primary/50"
-											disabled={isLoading}
+											disabled={true}
 										/>
 									</div>
 								</div>
@@ -333,7 +324,7 @@ export function XCardTrading({ pool }: XCardTradingProps) {
 								{account ? (
 									<Button
 										onClick={handleTrade}
-										disabled={!amount || isLoading || parseFloat(amount) <= 0}
+										disabled={true}
 										className={`w-full h-12 font-mono uppercase tracking-wider font-bold transition-all duration-300 ${activeTab === "buy"
 											? "bg-green-500 hover:bg-green-600 text-white shadow-[0_0_20px_rgba(34,197,94,0.5)]"
 											: "bg-red-500 hover:bg-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.5)]"
