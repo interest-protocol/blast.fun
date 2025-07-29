@@ -42,7 +42,7 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 
 	// quick buy/sell amounts in SUI/%'s
 	const quickBuyAmounts = [0.5, 1, 5, 10]
-	const quickSellPercentages = [25, 50, 75, 100]
+	const quickSellPercentages = [10, 25, 50, 75, 100]
 
 	const handleQuickBuy = async (suiAmount: number) => {
 		setAmount(suiAmount.toString())
@@ -140,7 +140,7 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 						{tradeType === "sell" && effectiveBalance && (
 							<div className="space-y-3">
 								<p className="font-mono text-xs uppercase text-muted-foreground">QUICK::SELL</p>
-								<div className="grid grid-cols-4 gap-2">
+								<div className="grid grid-cols-5 gap-2">
 									{quickSellPercentages.map((percentage) => (
 										<Button
 											key={percentage}
