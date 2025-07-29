@@ -62,12 +62,22 @@ export function ReferralShare({ pool }: ReferralShareProps) {
 
     if (!isConnected) {
         return (
-            <div className="relative">
-                <div className="absolute inset-0 bg-red-500/20 blur-xl rounded-xl" />
-                <div className="relative border-2 border-red-500/50 rounded-xl p-4 bg-background/95 backdrop-blur-sm shadow-lg">
-                    <p className="font-mono text-xs uppercase text-muted-foreground text-center">
-                        WALLET::NOT_CONNECTED
-                    </p>
+            <div className="border-2 border-dashed border-muted-foreground/30 rounded-lg bg-background/50 backdrop-blur-sm p-4">
+                <div className="flex items-center gap-4">
+                    <div className="relative">
+                        <div className="absolute inset-0 bg-green-500/20 blur-md" />
+                        <div className="relative bg-green-500/10 border border-green-500/50 rounded p-2">
+                            <Twitter className="w-5 h-5 text-green-500" />
+                        </div>
+                    </div>
+                    <div className="flex-1 space-y-1">
+                        <p className="font-mono text-xs uppercase text-foreground/80">
+                            REFERRAL::EARN [10%] COMMISSION
+                        </p>
+                        <p className="font-mono text-[10px] uppercase text-muted-foreground">
+                            CONNECT::WALLET TO SHARE & EARN
+                        </p>
+                    </div>
                 </div>
             </div>
         )
@@ -75,97 +85,99 @@ export function ReferralShare({ pool }: ReferralShareProps) {
 
     if (!refCode) {
         return (
-            <div className="relative">
-                <div className="absolute inset-0 bg-red-500/20 blur-xl rounded-xl" />
-                <div className="relative border-2 border-red-500/50 rounded-xl p-6 bg-background/95 backdrop-blur-sm shadow-lg">
-                    <div className="space-y-4">
-                        <div className="text-center space-y-2">
-                            <div className="flex items-center justify-center gap-2">
-                                <Twitter className="w-5 h-5 text-red-500" />
-                                <p className="font-mono text-sm uppercase text-foreground">
-                                    EARN 10% ON X/TWITTER TRADES
-                                </p>
-                            </div>
+            <div className="border-2 border-primary/30 rounded-lg bg-background/50 backdrop-blur-sm">
+                <div className="p-4 border-b border-primary/20">
+                    <div className="flex items-center gap-3">
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-primary/20 blur-sm" />
+                            <Twitter className="relative w-4 h-4 text-primary/80" />
+                        </div>
+                        <div>
+                            <p className="font-mono text-xs uppercase text-foreground/80">
+                                REFERRAL::SETUP
+                            </p>
                             <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                                CREATE EMBEDDABLE TRADING TERMINALS FOR X/TWITTER
+                                EARN [10%] ON TWITTER TRADES
                             </p>
                         </div>
-
-                        <div className="space-y-3">
-                            <Input
-                                value={inputCode}
-                                onChange={(e) => setInputCode(e.target.value)}
-                                placeholder="choose-your-code"
-                                className="font-mono text-sm border-red-500/30 focus:border-red-500/50"
-                                maxLength={20}
-                                pattern="[a-zA-Z0-9_-]+"
-                            />
-                            {error && (
-                                <p className="font-mono text-[10px] uppercase text-red-500">{error}</p>
-                            )}
-
-                            <Button
-                                onClick={handleInitializeReferral}
-                                disabled={isInitializing || isLoading || inputCode.length < 3}
-                                className="w-full font-mono uppercase bg-red-500 hover:bg-red-600 text-white"
-                            >
-                                {isInitializing || isLoading ? (
-                                    <>
-                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                        CREATING...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Zap className="h-4 w-4 mr-2" />
-                                        CREATE REFERRAL LINK
-                                    </>
-                                )}
-                            </Button>
-                        </div>
                     </div>
+                </div>
+
+                <div className="p-4 space-y-3">
+                    <Input
+                        value={inputCode}
+                        onChange={(e) => setInputCode(e.target.value)}
+                        placeholder="ENTER::REFERRAL_CODE"
+                        className="font-mono text-xs placeholder:text-muted-foreground/40 bg-background/50 border-muted-foreground/30"
+                        maxLength={20}
+                        pattern="[a-zA-Z0-9_-]+"
+                    />
+
+                    {error && (
+                        <p className="font-mono text-[10px] uppercase text-destructive/80">
+                            ERROR::{error}
+                        </p>
+                    )}
+
+                    <Button
+                        onClick={handleInitializeReferral}
+                        disabled={isInitializing || isLoading || inputCode.length < 3}
+                        className="w-full font-mono text-xs uppercase bg-primary/20 hover:bg-primary/30 border border-primary/50"
+                        variant="outline"
+                    >
+                        {isInitializing || isLoading ? (
+                            <>
+                                <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                                INITIALIZING...
+                            </>
+                        ) : (
+                            <>
+                                <Zap className="h-3 w-3 mr-2" />
+                                ACTIVATE::REFERRAL
+                            </>
+                        )}
+                    </Button>
                 </div>
             </div>
         )
     }
 
     return (
-        <div className="relative">
-            <div className="absolute inset-0 bg-blue-500/10 blur-xl rounded-xl" />
-            <div className="relative border-2 border-blue-500/50 rounded-xl p-4 bg-background/95 backdrop-blur-sm shadow-lg">
-                <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <div className="relative">
-                                <div className="absolute inset-0 bg-blue-500/40 blur-md rounded-full" />
-                                <div className="relative w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-                            </div>
-                            <p className="font-mono text-xs uppercase text-blue-500">
-                                REFERRAL::ACTIVE
-                            </p>
-                        </div>
-                        <span className="font-mono text-xs uppercase text-muted-foreground">
-                            {refCode}
-                        </span>
+        <div className="border-2 p-3 space-y-2 border-dashed shadow-lg rounded-xl overflow-hidden border-green-500/50 dark:border-green-500/30">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 font-semibold">
+                    <div className="relative">
+                        <div className="absolute inset-0 bg-green-500/40 blur-sm animate-pulse" />
+                        <div className="relative w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                     </div>
-
-                    <div className="flex gap-2">
-                        <Button
-                            onClick={handleCopy}
-                            variant="outline"
-                            className="flex-1 font-mono uppercase text-xs border-blue-500/30 hover:border-blue-500/50"
-                            disabled={!refCode}
-                        >
-                            COPY LINK
-                        </Button>
-                        <Button
-                            onClick={handleTweet}
-                            className="flex-1 font-mono uppercase text-xs bg-blue-500 hover:bg-blue-600 text-white"
-                            disabled={!refCode}
-                        >
-                            SHARE ON X
-                        </Button>
-                    </div>
+                    <p className="font-mono text-[10px] uppercase text-green-500 dark:text-green-500/80">
+                        REFERRAL::ACTIVE
+                    </p>
                 </div>
+
+                <span className="font-mono font-semibold text-[10px] uppercase text-muted-foreground">
+                    CODE::[{refCode}]
+                </span>
+            </div>
+
+            <div className="flex gap-2">
+                <Button
+                    onClick={handleCopy}
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 font-mono uppercase text-[10px]"
+                >
+                    <Copy className="h-3 w-3 mr-1" />
+                    COPY
+                </Button>
+                <Button
+                    onClick={handleTweet}
+                    size="sm"
+                    className="flex-1 font-mono uppercase text-[10px]"
+                >
+                    <Twitter className="h-3 w-3 mr-1" />
+                    SHARE
+                </Button>
             </div>
         </div>
     )
