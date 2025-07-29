@@ -16,6 +16,7 @@ export const GET_POOLS = gql`
 				canMigrate
 				nsfw
 				lastTradeAt
+				publicKey
       		}
 			total
     	}
@@ -45,6 +46,7 @@ export const GET_POOL = gql`
 			lastTradeAt
 			config
 			updatedAt
+			publicKey
 		}
 	}
 `

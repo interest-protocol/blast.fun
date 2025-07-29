@@ -20,6 +20,7 @@ export interface Pool {
 	config: any
 	updatedAt: string
 	isProtected?: boolean
+	publicKey?: string
 }
 
 export interface CoinMetadata {
