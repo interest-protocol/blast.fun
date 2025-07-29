@@ -211,10 +211,20 @@ export function usePump({ pool, decimals = 9, actualBalance, referrerWallet }: U
 			const tx = new Transaction()
 			tx.setSender(address)
 
-			// use actual balance if available to ensure we can merge all coins
-			const balanceToUse = actualBalance
-				? BigInt(actualBalance)
-				: amountInSmallestUnit
+			let balanceToUse: bigint
+			if (actualBalance) {
+				const actualBalanceBigInt = BigInt(actualBalance)
+
+				// If 99% or more of balance, use full balance to avoid dust
+				const threshold = (actualBalanceBigInt * 99n) / 100n
+				if (amountInSmallestUnit >= threshold) {
+					balanceToUse = actualBalanceBigInt
+				} else {
+					balanceToUse = amountInSmallestUnit
+				}
+			} else {
+				balanceToUse = amountInSmallestUnit
+			}
 
 			const memeCoin = coinWithBalance({
 				balance: balanceToUse,
