@@ -6,6 +6,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { cn } from "@/utils"
 import { formatDigest } from "@/utils/transaction"
 import { LogEntry } from "../_hooks/use-launch-coin"
+import { QuickBuy } from "./quick-buy"
 
 interface TerminalDialogProps {
 	open: boolean
@@ -119,6 +120,9 @@ export function TerminalDialog({ open, onOpenChange, logs, isLaunching, result, 
 										</div>
 										<div className="mt-2 space-y-1">
 											<div className="text-green-500">DEPLOYMENT::COMPLETE</div>
+										</div>
+										<div className="mt-4">
+											<QuickBuy poolObjectId={result.poolObjectId} />
 										</div>
 									</>
 								)}
