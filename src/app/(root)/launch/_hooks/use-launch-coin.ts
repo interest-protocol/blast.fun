@@ -32,6 +32,11 @@ export function useLaunchCoin() {
 	const [isLaunching, setIsLaunching] = useState(false)
 	const [logs, setLogs] = useState<LogEntry[]>([])
 	const [result, setResult] = useState<LaunchResult | null>(null)
+	const [pendingToken, setPendingToken] = useState<{
+		treasuryCapObjectId: string
+		txDigest: string
+		formValues: TokenFormValues
+	} | null>(null)
 
 	const { isLoggedIn, user: twitterUser } = useTwitter()
 	const { isConnected, address } = useApp()
@@ -233,6 +238,13 @@ export function useLaunchCoin() {
 			const tokenResult = await createToken(formValues)
 			addLog(`TREASURY::CAP::${formatAddress(tokenResult.treasuryCapObjectId)}`)
 
+			// store pending token info in case pool creation fails
+			setPendingToken({
+				treasuryCapObjectId: tokenResult.treasuryCapObjectId,
+				txDigest: tokenResult.txDigest,
+				formValues
+			})
+
 			addLog("POOL::INITIALIZATION")
 			const poolResult = await createPool(tokenResult.treasuryCapObjectId, formValues)
 			addLog(`POOL::ID::${formatAddress(poolResult.poolObjectId)}`)
@@ -264,9 +276,77 @@ export function useLaunchCoin() {
 			confettiPlayer.current("Confetti from left and right")
 			addLog("LAUNCH::COMPLETE", "success")
 
+			// clear pending token on success
+			setPendingToken(null)
+
 			return launchResult
 		} catch (error) {
 			addLog(`ERROR::${error instanceof Error ? error.message.toUpperCase() : "UNKNOWN"}`, "error")
+
+			// if pool creation failed but we have a treasury cap, show recovery option
+			if (pendingToken) {
+				addLog("RECOVERY::AVAILABLE - Treasury cap saved for retry", "warning")
+			}
+
+			throw error
+		} finally {
+			setTimeout(() => {
+				setIsLaunching(false)
+			}, 3000)
+		}
+	}
+
+	const resumeLaunch = async (): Promise<LaunchResult> => {
+		if (!pendingToken) {
+			throw new Error("No pending launch to resume")
+		}
+
+		setIsLaunching(true)
+		setLogs([])
+		setResult(null)
+
+		addLog("RESUMING::LAUNCH", "info")
+		addLog(`TREASURY::CAP::${formatAddress(pendingToken.treasuryCapObjectId)}`)
+		addLog(`TOKEN::${pendingToken.formValues.symbol.toUpperCase()}`)
+
+		try {
+			addLog("POOL::INITIALIZATION::RETRY")
+			const poolResult = await createPool(pendingToken.treasuryCapObjectId, pendingToken.formValues)
+			addLog(`POOL::ID::${formatAddress(poolResult.poolObjectId)}`)
+
+			addLog("CLEANING::UP", "info")
+
+			const protectionSettings = (pendingToken.formValues.requireTwitter || pendingToken.formValues.maxHoldingPercent) ? {
+				requireTwitter: pendingToken.formValues.requireTwitter,
+				maxHoldingPercent: pendingToken.formValues.maxHoldingPercent,
+			} : undefined
+
+			await saveLaunchData({
+				poolObjectId: poolResult.poolObjectId,
+				tokenTxHash: pendingToken.txDigest,
+				poolTxHash: poolResult.txDigest,
+				hideIdentity: pendingToken.formValues.hideIdentity,
+				protectionSettings,
+			})
+
+			const launchResult = {
+				treasuryCapObjectId: pendingToken.treasuryCapObjectId,
+				tokenTxDigest: pendingToken.txDigest,
+				poolObjectId: poolResult.poolObjectId,
+				poolTxDigest: poolResult.txDigest,
+			}
+
+			setResult(launchResult)
+			confettiPlayer.current("Confetti from left and right")
+			addLog("LAUNCH::COMPLETE", "success")
+
+			// clear pending token on success
+			setPendingToken(null)
+
+			return launchResult
+		} catch (error) {
+			addLog(`ERROR::${error instanceof Error ? error.message.toUpperCase() : "UNKNOWN"}`, "error")
+			addLog("RECOVERY::STILL_AVAILABLE", "warning")
 			throw error
 		} finally {
 			setTimeout(() => {
@@ -280,6 +360,8 @@ export function useLaunchCoin() {
 		logs,
 		result,
 		launchToken,
+		resumeLaunch,
+		pendingToken,
 		addLog,
 	}
 }
