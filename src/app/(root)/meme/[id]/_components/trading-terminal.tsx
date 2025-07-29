@@ -53,11 +53,15 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 	}
 
 	const handleQuickSellPercentage = async (percentage: number) => {
-		const tokenAmount = (Number(effectiveBalance || 0) / Math.pow(10, decimals)) * (percentage / 100)
-		setAmount(tokenAmount.toString())
+		if (!effectiveBalance) return
+
+		const balanceInDisplayUnit = Number(effectiveBalance) / Math.pow(10, decimals)
+		const tokenAmountToSell = balanceInDisplayUnit * (percentage / 100)
+
+		setAmount(tokenAmountToSell.toString())
 		const slippageNum = parseFloat(slippage)
 
-		await dump(tokenAmount.toString(), slippageNum)
+		await dump(tokenAmountToSell.toString(), slippageNum)
 		setAmount("")
 	}
 
