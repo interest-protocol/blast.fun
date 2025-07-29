@@ -191,12 +191,20 @@ export function usePump({ pool, decimals = 9, actualBalance, referrerWallet }: U
 			return
 		}
 
+		const amountInSmallestUnit = BigInt(Math.floor(amount * Math.pow(10, decimals)))
+		if (actualBalance) {
+			const actualBalanceBigInt = BigInt(actualBalance)
+			if (amountInSmallestUnit > actualBalanceBigInt) {
+				setError(`You don't have enough for this. You only have ${(Number(actualBalance) / Math.pow(10, decimals)).toFixed(4)} ${pool.coinMetadata?.symbol || "TOKEN"}`)
+				return
+			}
+		}
+
 		setIsLoading(true)
 		setError(null)
 		setSuccess(null)
 
 		try {
-			const amountInSmallestUnit = BigInt(Math.floor(amount * Math.pow(10, decimals)))
 
 			// get quote to calculate expected output
 			const quote = await pumpSdk.quoteDump({
