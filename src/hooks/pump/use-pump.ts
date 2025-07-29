@@ -1,5 +1,5 @@
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions"
-import { MIST_PER_SUI } from "@mysten/sui/utils"
+import { MIST_PER_SUI, fromHex } from "@mysten/sui/utils"
 import { useState, useEffect } from "react"
 import { useApp } from "@/context/app.context"
 import { useTransaction } from "@/hooks/sui/use-transaction"
@@ -7,11 +7,15 @@ import { playSound } from "@/lib/audio"
 import { pumpSdk } from "@/lib/pump"
 import type { PoolWithMetadata } from "@/types/pool"
 import { formatMistToSui } from "@/utils/format"
+import { useTwitter } from "@/context/twitter.context"
+import { TOTAL_POOL_SUPPLY } from "@/constants"
+import { fetchCoinBalance } from "@/lib/fetch-portfolio"
 
 interface UsePumpOptions {
 	pool: PoolWithMetadata
 	decimals?: number
 	actualBalance?: string
+	referrerWallet?: string | null
 }
 
 interface UsePumpReturn {
@@ -22,9 +26,10 @@ interface UsePumpReturn {
 	dump: (amountInTokens: string, slippagePercent?: number) => Promise<void>
 }
 
-export function usePump({ pool, decimals = 9, actualBalance }: UsePumpOptions): UsePumpReturn {
+export function usePump({ pool, decimals = 9, actualBalance, referrerWallet }: UsePumpOptions): UsePumpReturn {
 	const { address, isConnected } = useApp()
 	const { executeTransaction } = useTransaction()
+	const { user: twitterUser } = useTwitter()
 
 	const [isLoading, setIsLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
@@ -39,6 +44,39 @@ export function usePump({ pool, decimals = 9, actualBalance }: UsePumpOptions): 
 			return () => clearTimeout(timer)
 		}
 	}, [success])
+
+	const getProtectedPoolSignature = async (amount: string) => {
+		if (!pool.isProtected) return null
+
+		try {
+			const response = await fetch("/api/token-protection/signature", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					poolId: pool.poolId,
+					amount,
+					walletAddress: address,
+					twitterId: twitterUser?.id || null,
+				}),
+			})
+
+			if (!response.ok) {
+				const error = await response.json()
+				if (error.requiresTwitter) {
+					throw new Error("You must be authenticated with twitter to interact with this token.")
+				}
+				throw new Error(error.message || "SIGNATURE::FAILED")
+			}
+
+			const data = await response.json()
+			return data
+		} catch (error) {
+			if (error instanceof Error) {
+				throw error
+			}
+			throw new Error("SIGNATURE::VALIDATION_FAILED")
+		}
+	}
 
 	const pump = async (amountInSui: string, slippagePercent = 15) => {
 		if (!isConnected || !address) {
@@ -63,9 +101,41 @@ export function usePump({ pool, decimals = 9, actualBalance }: UsePumpOptions): 
 		setSuccess(null)
 
 		try {
-			const amountInMist = BigInt(Math.floor(amount * Number(MIST_PER_SUI)))
+			if (pool.isProtected) {
+				try {
+					const response = await fetch(`/api/token-protection/settings/${pool.poolId}`)
+					if (response.ok) {
+						const { settings } = await response.json()
 
-			// get quote to calculate expected output
+						if (settings?.maxHoldingPercent) {
+							const currentBalance = await fetchCoinBalance(address, pool.coinType)
+							const currentBalanceBigInt = BigInt(currentBalance)
+
+							const amountInMist = BigInt(Math.floor(amount * Number(MIST_PER_SUI)))
+							const quote = await pumpSdk.quotePump({
+								pool: pool.poolId,
+								amount: amountInMist,
+							})
+
+							// total balance after purchase
+							const totalBalanceAfter = currentBalanceBigInt + quote.memeAmountOut
+							const percentageAfter = (totalBalanceAfter * 100n) / TOTAL_POOL_SUPPLY
+
+							// check if it exceeds the max holding percentage
+							const maxPercent = BigInt(settings.maxHoldingPercent)
+							if (percentageAfter > maxPercent) {
+								setError(`MAX::HOLDING_EXCEEDED - This purchase would exceed the ${settings.maxHoldingPercent}% maximum holding limit`)
+								return
+							}
+						}
+					}
+				} catch (error) {
+					console.error("Failed to check max holding:", error)
+					// continue with the transaction if check fails
+				}
+			}
+
+			const amountInMist = BigInt(Math.floor(amount * Number(MIST_PER_SUI)))
 			const quote = await pumpSdk.quotePump({
 				pool: pool.poolId,
 				amount: amountInMist,
@@ -78,12 +148,15 @@ export function usePump({ pool, decimals = 9, actualBalance }: UsePumpOptions): 
 			const tx = new Transaction()
 			const quoteCoin = tx.splitCoins(tx.gas, [tx.pure.u64(amountInMist)])
 
+			const signatureData = await getProtectedPoolSignature(amountInSui)
 			const { memeCoin, tx: pumpTx } = await pumpSdk.pump({
 				tx,
 				pool: pool.poolId,
 				quoteCoin,
 				minAmountOut,
-			} as any)
+				referrer: referrerWallet ?? undefined,
+				signature: signatureData ? fromHex(signatureData.signature) : undefined
+			})
 
 			pumpTx.transferObjects([memeCoin], address)
 
@@ -153,7 +226,8 @@ export function usePump({ pool, decimals = 9, actualBalance }: UsePumpOptions): 
 				pool: pool.poolId,
 				memeCoin,
 				minAmountOut,
-			} as any)
+				referrer: referrerWallet ?? undefined
+			})
 
 			dumpTx.transferObjects([quoteCoin], address)
 

@@ -36,6 +36,7 @@ export function XCardTrading({ pool, referrerWallet }: XCardTradingProps) {
 	const { isLoading, error, success, pump, dump } = usePump({
 		pool,
 		decimals,
+		referrerWallet,
 	})
 
 	// quick buy amounts in SUI
