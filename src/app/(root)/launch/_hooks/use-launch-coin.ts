@@ -121,7 +121,7 @@ export function useLaunchCoin() {
 		}
 
 		const network = pumpSdk.network as "mainnet" | "testnet"
-		const configKey = CONFIG_KEYS[network]?.MEMEZ
+		const configKey = CONFIG_KEYS[network]?.XPUMP
 		const migrationWitness = MIGRATOR_WITNESSES[network]?.XPUMP
 
 		if (!configKey || !migrationWitness) {
