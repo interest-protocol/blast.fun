@@ -58,7 +58,7 @@
 		"react-image-file-resizer": "^0.4.8",
 		"react-scan": "^0.4.3",
 		"tailwind-merge": "^3.3.0",
-		"zod": "^4.0.8",
+		"zod": "^4.0.13",
 		"zustand": "^5.0.6"
 	},
 	"devDependencies": {
