@@ -231,7 +231,7 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 							<Alert variant="destructive" className="border-2">
 								<AlertCircle className="h-4 w-4" />
 								<AlertDescription className="font-mono text-xs uppercase">
-									ERROR::{error}
+									{error}
 								</AlertDescription>
 							</Alert>
 						)}
