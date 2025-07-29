@@ -5,7 +5,7 @@ export const BASE_DOMAIN = (() => {
         case "production":
             return "https://xpump.fun";
         case "preview":
-            return "https://staging.xpump.fun";
+            return "https://staging.xpump.lol";
         default:
             return "http://localhost:3000";
     }
