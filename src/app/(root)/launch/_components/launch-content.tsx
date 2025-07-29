@@ -19,6 +19,12 @@ export default function LaunchContent() {
 	const [tokenData, setTokenData] = useState<Partial<TokenFormValues>>({})
 	const [protectionActive, setProtectionActive] = useState(false)
 
+	const handleFormChange = useCallback((data: Partial<TokenFormValues>) => {
+		setTokenData(data)
+		const hasProtection = !!(data.requireTwitter || data.maxHoldingPercent)
+		setProtectionActive(hasProtection)
+	}, [])
+
 	if (!isConnected) {
 		return (
 			<div className="container max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[calc(100vh-12rem)]">
@@ -129,14 +135,7 @@ export default function LaunchContent() {
 					<div className="lg:col-span-2">
 						<div className="space-y-4">
 
-							<CreateTokenForm
-								onFormChange={useCallback((data: any) => {
-									setTokenData(data)
-
-									const hasProtection = !!(data.requireTwitter || data.maxBuyAmount)
-									setProtectionActive(hasProtection)
-								}, [])}
-							/>
+							<CreateTokenForm onFormChange={handleFormChange} />
 						</div>
 					</div>
 
