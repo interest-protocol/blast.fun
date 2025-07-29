@@ -83,7 +83,7 @@ export function ReferralShare({ pool }: ReferralShareProps) {
                             <div className="flex items-center justify-center gap-2">
                                 <Twitter className="w-5 h-5 text-red-500" />
                                 <p className="font-mono text-sm uppercase text-foreground">
-                                    EARN 5% ON X/TWITTER TRADES
+                                    EARN 10% ON X/TWITTER TRADES
                                 </p>
                             </div>
                             <p className="font-mono text-[10px] uppercase text-muted-foreground">
