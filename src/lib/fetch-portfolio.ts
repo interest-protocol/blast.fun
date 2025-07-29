@@ -1,19 +1,10 @@
-import { env } from "@/env"
 import type { PortfolioResponse } from "@/types/portfolio"
 
 /**
- * Fetches portfolio balances from NEXA.
+ * Fetches portfolio balances from NEXA via API route.
  */
 export async function fetchPortfolio(address: string): Promise<PortfolioResponse> {
-	const response = await fetch(
-		`https://api-ex.insidex.trade/spot-portfolio/${address}?minBalanceValue=0`,
-		{
-			headers: {
-				"x-api-key": env.NEXA_API_KEY,
-				"Content-Type": "application/json",
-			},
-		}
-	)
+	const response = await fetch(`/api/portfolio?address=${encodeURIComponent(address)}`)
 
 	if (!response.ok) {
 		throw new Error(`Failed to fetch portfolio: ${response.statusText}`)
@@ -27,7 +18,14 @@ export async function fetchPortfolio(address: string): Promise<PortfolioResponse
  * Fetches balance for a specific coin type
  */
 export async function fetchCoinBalance(address: string, coinType: string): Promise<string> {
-	const portfolio = await fetchPortfolio(address)
-	const balance = portfolio.balances.find(b => b.coinType === coinType)
-	return balance?.balance || "0"
+	const response = await fetch(
+		`/api/portfolio?address=${encodeURIComponent(address)}&coinType=${encodeURIComponent(coinType)}`
+	)
+
+	if (!response.ok) {
+		throw new Error(`Failed to fetch balance: ${response.statusText}`)
+	}
+
+	const data = await response.json()
+	return data.balance || "0"
 }
