@@ -13,7 +13,7 @@ export function MarketStats({ pool }: MarketStatsProps) {
 
 	return (
 		<div className="border-b border-foreground/20 bg-foreground/5 py-2">
-			<div className="grid grid-cols-3">
+			<div className="grid grid-cols-3 select-none">
 				<div className="flex items-center justify-center border-r border-foreground/20">
 					<div className="text-center">
 						<p className="font-mono text-[10px] uppercase text-muted-foreground">MARKET::CAP</p>

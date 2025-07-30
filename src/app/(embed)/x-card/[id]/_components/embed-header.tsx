@@ -30,7 +30,7 @@ export function EmbedHeader({ pool, refCode }: EmbedHeaderProps) {
 	return (
 		<header className="border-b border-foreground/20 bg-background/90 backdrop-blur">
 			<div className="flex items-center justify-between px-3 py-2">
-				<div className="flex items-center gap-2">
+				<div className="flex items-center gap-2 select-none">
 					{pool ? (
 						<>
 							<Avatar className="w-8 h-8 border border-foreground/20">

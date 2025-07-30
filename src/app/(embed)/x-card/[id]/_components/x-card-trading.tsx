@@ -23,7 +23,7 @@ export function XCardTrading({ pool, referrerWallet }: XCardTradingProps) {
 			<MarketStats pool={pool} />
 
 			<div className="flex items-center justify-between px-3 py-2 border-b border-foreground/10">
-				<h2 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+				<h2 className="font-mono text-xs uppercase tracking-wider text-muted-foreground select-none">
 					{showChart ? "CHART::VIEW" : "TRADE::TERMINAL"}
 				</h2>
 				<div className="flex items-center p-1 bg-foreground/5 rounded-md">
@@ -69,7 +69,7 @@ export function XCardTrading({ pool, referrerWallet }: XCardTradingProps) {
 
 						<div className="px-3 pb-3">
 							<div className="pt-2 border-t border-foreground/20">
-								<div className="flex items-center justify-between">
+								<div className="flex items-center justify-between select-none">
 									<div className="flex items-center gap-1.5">
 										<Logo className="w-4 h-4 text-foreground/60" />
 										<span className="font-mono font-semibold text-xs uppercase text-muted-foreground">
