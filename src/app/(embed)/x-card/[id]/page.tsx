@@ -7,6 +7,7 @@ import { SplashLoader } from "@/components/shared/splash-loader"
 import { EmbedHeader } from "./_components/embed-header"
 import { useSearchParams } from "next/navigation"
 import { useReferrals } from "@/hooks/use-referrals"
+import { Logo } from "@/components/ui/logo"
 
 export default function XCardPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = use(params)
@@ -27,26 +28,28 @@ export default function XCardPage({ params }: { params: Promise<{ id: string }> 
 	}, [refCode, checkReferralCode])
 
 	if (isLoading) {
-		return (
-			<div className="fixed inset-0 flex flex-col">
-				<EmbedHeader />
-				<div className="flex-1 flex items-center justify-center">
-					<SplashLoader />
-				</div>
-			</div>
-		)
+		return <SplashLoader />
 	}
 
 	if (error || !pool) {
 		return (
-			<div className="fixed inset-0 flex flex-col">
+			<div className="bg-background flex flex-col">
 				<EmbedHeader />
-				<div className="flex-1 flex items-center justify-center">
-					<div className="text-center">
-						<p className="font-mono text-sm uppercase">ERROR::POOL_NOT_FOUND</p>
-						<p className="font-mono text-xs uppercase opacity-60 mt-2">
-							POOL_ID::{id || "[UNKNOWN]"}
+				<div className="flex-1 flex items-center justify-center p-4">
+					<div className="text-center max-w-sm">
+						<Logo className="w-12 h-12 mx-auto mb-4 text-foreground/20" />
+						<h1 className="font-mono text-lg uppercase tracking-wider text-foreground/80 mb-2">
+							TOKEN::NOT_FOUND
+						</h1>
+						<p className="font-mono text-xs uppercase text-muted-foreground mb-4">
+							The token you're looking for doesn't exist or has disappeared!
 						</p>
+						<button
+							onClick={() => window.open(`${window.location.origin}`, "_blank")}
+							className="mt-6 px-4 py-2 font-mono text-xs uppercase tracking-wider border border-foreground/20 rounded hover:bg-foreground/10 transition-colors"
+						>
+							BROWSE::TOKENS
+						</button>
 					</div>
 				</div>
 			</div>
@@ -54,9 +57,9 @@ export default function XCardPage({ params }: { params: Promise<{ id: string }> 
 	}
 
 	return (
-		<div className="fixed inset-0 flex flex-col">
-			<EmbedHeader />
-			<XCardTrading pool={pool} referrerWallet={referrerWallet} />
+		<div className="flex flex-col overflow-hidden">
+			<EmbedHeader pool={pool} refCode={refCode} />
+			<XCardTrading pool={pool} referrerWallet={referrerWallet} refCode={refCode} />
 		</div>
 	)
 }
