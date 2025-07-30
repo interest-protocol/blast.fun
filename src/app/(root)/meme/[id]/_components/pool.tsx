@@ -2,7 +2,6 @@
 
 import { Logo } from "@/components/ui/logo"
 import { SplashLoader } from "@/components/shared/splash-loader"
-import { Card, CardContent } from "@/components/ui/card"
 import { usePoolWithMetadata } from "@/hooks/pump/use-pool-with-metadata"
 import { BondingProgress } from "./bonding-progress"
 import { PoolHeader } from "./pool-header"

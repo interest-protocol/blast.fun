@@ -1,13 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Copy, Twitter, Zap, Check, Loader2, AlertCircle } from "lucide-react"
+import { Copy, Twitter, Zap, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useReferrals } from "@/hooks/use-referrals"
 import { useApp } from "@/context/app.context"
 import type { PoolWithMetadata } from "@/types/pool"
-import { cn } from "@/utils"
 import toast from "react-hot-toast"
 
 interface ReferralShareProps {

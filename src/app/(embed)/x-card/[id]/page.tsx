@@ -42,7 +42,7 @@ export default function XCardPage({ params }: { params: Promise<{ id: string }> 
 							TOKEN::NOT_FOUND
 						</h1>
 						<p className="font-mono text-xs uppercase text-muted-foreground mb-4">
-							The token you're looking for doesn't exist or has disappeared!
+							The token you&apos;re looking for doesn&apos;t exist or has disappeared!
 						</p>
 						<button
 							onClick={() => window.open(`${window.location.origin}`, "_blank")}

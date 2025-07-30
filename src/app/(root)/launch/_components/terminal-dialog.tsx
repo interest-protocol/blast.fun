@@ -4,7 +4,6 @@ import { Terminal } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { cn } from "@/utils"
-import { formatDigest } from "@/utils/transaction"
 import { LogEntry } from "../_hooks/use-launch-coin"
 import { QuickBuy } from "./quick-buy"
 

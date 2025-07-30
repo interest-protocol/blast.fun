@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Zap, TrendingUp, TrendingDown } from "lucide-react"
+import { Zap } from "lucide-react"
 import { useApp } from "@/context/app.context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"

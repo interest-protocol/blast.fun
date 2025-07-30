@@ -4,7 +4,6 @@ import { Target, TrendingUp, Zap } from "lucide-react"
 import React from "react"
 import { Progress } from "@/components/ui/progress"
 import type { PoolWithMetadata } from "@/types/pool"
-import { formatAmountWithSuffix } from "@/utils/format"
 
 interface BondingProgressProps {
 	pool: PoolWithMetadata

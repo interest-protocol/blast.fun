@@ -49,7 +49,7 @@ export function CoinOHLCV({ pool }: CoinOHLCVProps) {
 			.sort((a, b) => (a.time as number) - (b.time as number))
 
 		return transformed
-	}, [rawData, resolution])
+	}, [rawData])
 
 	useEffect(() => {
 		if (!containerRef.current) return
