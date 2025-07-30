@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Copy, Twitter, Zap, Loader2 } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
+import { Copy, Twitter, Zap, Loader2, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useReferrals } from "@/hooks/use-referrals"
@@ -25,15 +25,36 @@ export function ReferralShare({ pool }: ReferralShareProps) {
         ? `${window.location.origin}/api/twitter/embed/${pool.poolId}?ref=${refCode}`
         : `${window.location.origin}/api/twitter/embed/${pool.poolId}`
 
-    useEffect(() => {
-        if (isConnected && address) {
-            loadReferralCode()
-        }
-    }, [isConnected, address])
-
-    const loadReferralCode = async () => {
+    const loadReferralCode = useCallback(async () => {
         const code = await getReferralCode()
         setRefCode(code)
+    }, [getReferralCode])
+
+    useEffect(() => {
+        if (isConnected && address && !pool.isProtected) {
+            loadReferralCode()
+        }
+    }, [isConnected, address, pool.isProtected, loadReferralCode])
+
+    if (pool.isProtected) {
+        return (
+            <div className="border-2 border-yellow-500/30 rounded-lg bg-yellow-500/5 backdrop-blur-sm p-4">
+                <div className="flex items-center gap-3">
+                    <div className="relative">
+                        <div className="absolute inset-0 bg-yellow-500/20 blur-sm" />
+                        <Shield className="relative w-5 h-5 text-yellow-500" />
+                    </div>
+                    <div className="flex-1 space-y-1">
+                        <p className="font-mono text-xs uppercase text-yellow-500">
+                            PROTECTED::POOL
+                        </p>
+                        <p className="font-mono text-[10px] uppercase text-yellow-500/80">
+                            REFERRAL LINKS NOT AVAILABLE FOR PROTECTED POOLS
+                        </p>
+                    </div>
+                </div>
+            </div>
+        )
     }
 
     const handleInitializeReferral = async () => {
