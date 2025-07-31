@@ -19,10 +19,10 @@ importers:
         version: 5.1.1(react-hook-form@7.60.0(react@19.1.0))
       '@interest-protocol/memez-fun-sdk':
         specifier: 9.2.0
-        version: 9.2.0(@mysten/bcs@1.6.4)(typescript@5.8.3)
+        version: 9.2.0(@mysten/bcs@1.7.0)(typescript@5.8.3)
       '@mysten/dapp-kit':
-        specifier: ^0.17.0
-        version: 0.17.0(@tanstack/react-query@5.83.0(react@19.1.0))(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3)
+        specifier: ^0.17.2
+        version: 0.17.2(@tanstack/react-query@5.83.0(react@19.1.0))(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3)
       '@mysten/sui':
         specifier: ^1.36.2
         version: 1.36.2(typescript@5.8.3)
@@ -318,8 +318,8 @@ packages:
     engines: {node: '>=6.0.0'}
     hasBin: true
 
-  '@babel/runtime@7.27.6':
-    resolution: {integrity: sha512-vbavdySgbTTrmFE+EsiqUTzlOr5bzlnJtUv9PynGCAKvfQqjIXbvFdumPM/GxMDfyuGMJaJAU6TO4zc1Jf1i8Q==}
+  '@babel/runtime@7.28.2':
+    resolution: {integrity: sha512-KHp2IflsnGywDjBWDkR9iEqiWSpc8GIi0lgTT3mOElT0PP1tG26P4tmFI2YvAdzgq9RGyoHZQEIEdZy6Ec5xCA==}
     engines: {node: '>=6.9.0'}
 
   '@babel/template@7.27.2':
@@ -821,17 +821,24 @@ packages:
   '@mysten/bcs@1.6.4':
     resolution: {integrity: sha512-HBBrqMtnVp5vy12efJYhj/HnOYGu+x5SqRQpnOJEHEkxypGZ01WNFoCNw7USzDSyJvPauhqdzUXzR+lYM1D5/g==}
 
-  '@mysten/dapp-kit@0.17.0':
-    resolution: {integrity: sha512-ABW0FFo0IFV8hxNZVsSFRFbW25MtNvio05SOCr9fhBimylV6Z5LVGb/rE/G+rTnENFXKRLanBnerfjpMvLsp1A==}
+  '@mysten/bcs@1.7.0':
+    resolution: {integrity: sha512-8zE2Jzj2ai55RlVXx2pEMbbq+X3vB+uPGBvZr0F79IdTwuwcu4QdFG3PT/zHsytsvATkn+z0f2YDWhM5916u2A==}
+
+  '@mysten/dapp-kit@0.17.2':
+    resolution: {integrity: sha512-Sw3x6POdn/8nThLhTWZkEbQKEuhquWbkMD2Zy1KPPCL0W+umK0YAnjkmCaERujnsM7Ng72iSGGEtrY5GRlSj7Q==}
     peerDependencies:
       '@tanstack/react-query': ^5.0.0
       react: '*'
 
-  '@mysten/slush-wallet@0.1.17':
-    resolution: {integrity: sha512-uNnPKmjKTLdLdNy1HAemxU+aR5RtT/lpMAXIRLznknz4D1UOaVGWPpIihX2yO0VLjEO0m+a/J35arhwklWqsiw==}
+  '@mysten/slush-wallet@0.1.19':
+    resolution: {integrity: sha512-4K2mFhgCV5KrQRmFv19usDpD4lLSf19anQgJQXdVWhf6LPyyFBkI9ReNBD1yGpq5rDkfw2ED0w611SLdIAUv2A==}
 
   '@mysten/sui@1.36.2':
     resolution: {integrity: sha512-TRRdzJBa+ZvAQwwjvagecmWNALP6G4oqum8E+959D17KJKBwR5uY9TvlWzUR7dnjNWXIju7OH6KEqgah9hKzUw==}
+    engines: {node: '>=18'}
+
+  '@mysten/sui@1.37.1':
+    resolution: {integrity: sha512-xkQEgO/XdGz9T5vJU0iEiw8ZnuDSHWjdYA+u783wY5dt0TknYDBBcThaufhz9j+tksCxKhR5OkktE+Wz3zdYtw==}
     engines: {node: '>=18'}
 
   '@mysten/utils@0.1.1':
@@ -839,6 +846,9 @@ packages:
 
   '@mysten/wallet-standard@0.16.7':
     resolution: {integrity: sha512-xWTQYmeIxQ00wppCZKnGRqsnFL0JovxMrqlsfCIwBoVzgYp7xPzlAPjv1cFc4hABDj+PEfd1fCwcnXN8xd8uiw==}
+
+  '@mysten/wallet-standard@0.16.9':
+    resolution: {integrity: sha512-1Wyps0Qnw+EMKUIHJfDGwhZBxTTYyhvx9UM8wsw+/Bscywe5+t9kLaUFblS81Xu0u8tTp1ZAmZDSkr/2y7NS9A==}
 
   '@mysten/window-wallet-core@0.0.6':
     resolution: {integrity: sha512-uYjdUVok0pAaMGMxAdZfmW+2SCXgdQok9YtKmno5Tj8zlRQGv9Qet7EuCnDcBKquSbtqid3yhug7fcD+t8/KmA==}
@@ -908,6 +918,10 @@ packages:
 
   '@noble/curves@1.9.4':
     resolution: {integrity: sha512-2bKONnuM53lINoDrSmK8qP8W271ms7pygDhZt4SiLOoLwBtoHqeCFi6RG42V8zd3mLHuJFhU/Bmaqo4nX0/kBw==}
+    engines: {node: ^14.21.3 || >=16}
+
+  '@noble/curves@1.9.6':
+    resolution: {integrity: sha512-GIKz/j99FRthB8icyJQA51E8Uk5hXmdyThjgQXRKiv9h0zeRlzSCLIzFw6K1LotZ3XuB7yzlf76qk7uBmTdFqA==}
     engines: {node: ^14.21.3 || >=16}
 
   '@noble/hashes@1.8.0':
@@ -3814,7 +3828,7 @@ snapshots:
     dependencies:
       '@babel/types': 7.28.1
 
-  '@babel/runtime@7.27.6': {}
+  '@babel/runtime@7.28.2': {}
 
   '@babel/template@7.27.2':
     dependencies:
@@ -3874,9 +3888,9 @@ snapshots:
   '@biomejs/cli-win32-x64@2.0.6':
     optional: true
 
-  '@cetusprotocol/cetus-sui-clmm-sdk@5.4.0(@mysten/bcs@1.6.4)(@mysten/sui@1.36.2(typescript@5.8.3))':
+  '@cetusprotocol/cetus-sui-clmm-sdk@5.4.0(@mysten/bcs@1.7.0)(@mysten/sui@1.36.2(typescript@5.8.3))':
     dependencies:
-      '@mysten/bcs': 1.6.4
+      '@mysten/bcs': 1.7.0
       '@mysten/sui': 1.36.2(typescript@5.8.3)
       '@suchipi/femver': 1.0.0
       '@syntsugar/cc-graph': 0.1.1
@@ -4197,9 +4211,9 @@ snapshots:
       - '@gql.tada/vue-support'
       - typescript
 
-  '@interest-protocol/memez-fun-sdk@9.2.0(@mysten/bcs@1.6.4)(typescript@5.8.3)':
+  '@interest-protocol/memez-fun-sdk@9.2.0(@mysten/bcs@1.7.0)(typescript@5.8.3)':
     dependencies:
-      '@cetusprotocol/cetus-sui-clmm-sdk': 5.4.0(@mysten/bcs@1.6.4)(@mysten/sui@1.36.2(typescript@5.8.3))
+      '@cetusprotocol/cetus-sui-clmm-sdk': 5.4.0(@mysten/bcs@1.7.0)(@mysten/sui@1.36.2(typescript@5.8.3))
       '@interest-protocol/acl-sdk': 7.2.0(typescript@5.8.3)
       '@interest-protocol/sui-core-sdk': 0.0.1(typescript@5.8.3)
       '@mysten/sui': 1.36.2(typescript@5.8.3)
@@ -4247,12 +4261,17 @@ snapshots:
       '@mysten/utils': 0.1.1
       '@scure/base': 1.2.6
 
-  '@mysten/dapp-kit@0.17.0(@tanstack/react-query@5.83.0(react@19.1.0))(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3)':
+  '@mysten/bcs@1.7.0':
     dependencies:
-      '@mysten/slush-wallet': 0.1.17(typescript@5.8.3)
-      '@mysten/sui': 1.36.2(typescript@5.8.3)
       '@mysten/utils': 0.1.1
-      '@mysten/wallet-standard': 0.16.7(typescript@5.8.3)
+      '@scure/base': 1.2.6
+
+  '@mysten/dapp-kit@0.17.2(@tanstack/react-query@5.83.0(react@19.1.0))(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3)':
+    dependencies:
+      '@mysten/slush-wallet': 0.1.19(typescript@5.8.3)
+      '@mysten/sui': 1.37.1(typescript@5.8.3)
+      '@mysten/utils': 0.1.1
+      '@mysten/wallet-standard': 0.16.9(typescript@5.8.3)
       '@radix-ui/react-dialog': 1.1.14(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@radix-ui/react-dropdown-menu': 2.1.15(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@radix-ui/react-slot': 1.2.3(@types/react@19.1.8)(react@19.1.0)
@@ -4273,11 +4292,11 @@ snapshots:
       - react-dom
       - typescript
 
-  '@mysten/slush-wallet@0.1.17(typescript@5.8.3)':
+  '@mysten/slush-wallet@0.1.19(typescript@5.8.3)':
     dependencies:
-      '@mysten/sui': 1.36.2(typescript@5.8.3)
+      '@mysten/sui': 1.37.1(typescript@5.8.3)
       '@mysten/utils': 0.1.1
-      '@mysten/wallet-standard': 0.16.7(typescript@5.8.3)
+      '@mysten/wallet-standard': 0.16.9(typescript@5.8.3)
       '@mysten/window-wallet-core': 0.0.6
       mitt: 3.0.1
       valibot: 0.36.0
@@ -4305,6 +4324,25 @@ snapshots:
       - '@gql.tada/vue-support'
       - typescript
 
+  '@mysten/sui@1.37.1(typescript@5.8.3)':
+    dependencies:
+      '@graphql-typed-document-node/core': 3.2.0(graphql@16.11.0)
+      '@mysten/bcs': 1.7.0
+      '@mysten/utils': 0.1.1
+      '@noble/curves': 1.9.6
+      '@noble/hashes': 1.8.0
+      '@scure/base': 1.2.6
+      '@scure/bip32': 1.7.0
+      '@scure/bip39': 1.6.0
+      gql.tada: 1.8.12(graphql@16.11.0)(typescript@5.8.3)
+      graphql: 16.11.0
+      poseidon-lite: 0.2.1
+      valibot: 0.36.0
+    transitivePeerDependencies:
+      - '@gql.tada/svelte-support'
+      - '@gql.tada/vue-support'
+      - typescript
+
   '@mysten/utils@0.1.1':
     dependencies:
       '@scure/base': 1.2.6
@@ -4312,6 +4350,15 @@ snapshots:
   '@mysten/wallet-standard@0.16.7(typescript@5.8.3)':
     dependencies:
       '@mysten/sui': 1.36.2(typescript@5.8.3)
+      '@wallet-standard/core': 1.1.1
+    transitivePeerDependencies:
+      - '@gql.tada/svelte-support'
+      - '@gql.tada/vue-support'
+      - typescript
+
+  '@mysten/wallet-standard@0.16.9(typescript@5.8.3)':
+    dependencies:
+      '@mysten/sui': 1.37.1(typescript@5.8.3)
       '@wallet-standard/core': 1.1.1
     transitivePeerDependencies:
       - '@gql.tada/svelte-support'
@@ -4368,6 +4415,10 @@ snapshots:
       third-party-capital: 1.0.20
 
   '@noble/curves@1.9.4':
+    dependencies:
+      '@noble/hashes': 1.8.0
+
+  '@noble/curves@1.9.6':
     dependencies:
       '@noble/hashes': 1.8.0
 
@@ -6476,7 +6527,7 @@ snapshots:
 
   media-query-parser@2.0.2:
     dependencies:
-      '@babel/runtime': 7.27.6
+      '@babel/runtime': 7.28.2
 
   merge2@1.4.1: {}
 
