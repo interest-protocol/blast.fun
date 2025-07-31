@@ -75,7 +75,7 @@ export function ReferralShare({ pool }: ReferralShareProps) {
     }
 
     const handleTweet = () => {
-        const shareText = `Come check out ${pool.coinMetadata?.name || "[???]"} on @xtermfun! You can even trade directly from twitter.`
+        const shareText = `Come check out ${pool.coinMetadata?.name || "[???]"} on @xctasyfun! You can even trade directly from twitter.`
         const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`
         window.open(twitterUrl, "_blank", "noopener,noreferrer")
     }

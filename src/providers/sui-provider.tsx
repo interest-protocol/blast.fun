@@ -18,7 +18,7 @@ export default function SuiProvider({ children }: { children: ReactNode }) {
 	return (
 		<QueryClientProvider client={queryClient}>
 			<SuiClientProvider networks={networkConfig} defaultNetwork={env.NEXT_PUBLIC_DEFAULT_NETWORK as Network}>
-				<WalletProvider autoConnect slushWallet={{ name: "xTerminal Launchpad" }}>
+				<WalletProvider autoConnect slushWallet={{ name: "XCTASY.FUN" }}>
 					<AppContextProvider>{children}</AppContextProvider>
 				</WalletProvider>
 			</SuiClientProvider>
