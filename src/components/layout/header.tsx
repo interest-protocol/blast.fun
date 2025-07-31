@@ -19,7 +19,7 @@ export default function Header() {
 					<Link href="/" className="group flex items-center gap-2">
 						<Logo className="h-8 w-8 group-hover:text-foreground/70" />
 						<span className="font-mono font-bold text-lg sm:text-xl uppercase tracking-wider group-hover:text-foreground/70 transition-colors duration-300">
-							XPUMP.FUN
+							XTERM.FUN
 						</span>
 					</Link>
 				</div>

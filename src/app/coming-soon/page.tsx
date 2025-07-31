@@ -12,7 +12,7 @@ export default function ComingSoonPage() {
 			setInterval(() => {
 				const glitchVariations = [
 					"X::PUMP",
-					"XPUMP.FUN",
+					"XTERM.FUN",
 					"COMING::SOON",
 				];
 				setGlitchText(glitchVariations[Math.floor(Math.random() * glitchVariations.length)]);

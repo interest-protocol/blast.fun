@@ -45,7 +45,7 @@ export function SplashLoader() {
 					transition={{ delay: 0.2, duration: 0.5 }}
 					className="font-mono font-bold text-2xl uppercase tracking-wider text-foreground/80"
 				>
-					XPUMP.FUN
+					XTERM.FUN
 				</motion.h1>
 
 				<AnimatePresence mode="wait">

@@ -54,7 +54,7 @@ export function EmbedHeader({ pool, refCode }: EmbedHeaderProps) {
 						<div className="flex items-center gap-2 select-none">
 							<Logo className="h-6 w-6 text-foreground/60" />
 							<span className="font-mono font-bold text-sm uppercase tracking-wider text-foreground/80">
-								XPUMP.FUN
+								XTERM.FUN
 							</span>
 						</div>
 					)}

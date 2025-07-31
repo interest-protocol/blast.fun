@@ -3,19 +3,19 @@ import type { SiteConfig } from "@/types/app"
 export const BASE_DOMAIN = (() => {
     switch (process.env.NEXT_PUBLIC_VERCEL_ENV) {
         case "production":
-            return "https://xpump.fun";
+            return "https://xterm.fun";
         case "preview":
-            return "https://staging.xpump.lol";
+            return "https://staging.xterm.fun";
         default:
             return "http://localhost:3000";
     }
 })();
 
 export const siteConfig: SiteConfig = {
-    name: 'xPump',
-    description: 'Launch, trade and explore everything memecoins on xPump.',
-    url: 'https://xpump.fun',
-    image: `${BASE_DOMAIN}/logo/xpump-bg.png`,
+    name: 'xTerminal Launchpad',
+    description: 'Launch, trade and explore everything memecoins on xTerminal.',
+    url: 'https://xterm.fun',
+    image: `${BASE_DOMAIN}/logo/xterm-bg.png`,
     links: {
         twitter: "https://twitter.com/xpumpfun"
     }

@@ -73,7 +73,7 @@ export function XCardTrading({ pool, referrerWallet }: XCardTradingProps) {
 									<div className="flex items-center gap-1.5">
 										<Logo className="w-4 h-4 text-foreground/60" />
 										<span className="font-mono font-semibold text-xs uppercase text-muted-foreground">
-											XPUMP.FUN
+											XTERM.FUN
 										</span>
 									</div>
 									<span className="font-mono text-xs uppercase text-muted-foreground">
