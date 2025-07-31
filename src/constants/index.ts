@@ -17,7 +17,7 @@ export const siteConfig: SiteConfig = {
     url: 'https://xterm.fun',
     image: `${BASE_DOMAIN}/logo/xterm-bg.png`,
     links: {
-        twitter: "https://twitter.com/xpumpfun"
+        twitter: "https://twitter.com/xtermfun"
     }
 }
 
