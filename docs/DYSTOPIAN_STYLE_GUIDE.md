@@ -21,7 +21,7 @@ When implementing a dystopian UI, follow these specific design patterns:
 - Underscore separator for multi-word status: `FILL_FORM_TO_PREVIEW`
 
 ## 4. Visual Elements
-- Dark icons like `<Skull />` for empty states and warnings
+- Dark icons like `<Logo />` for empty states and warnings
 - Glowing/blur effects: `bg-primary/20 blur-xl` for atmospheric lighting
 - Border styling: `border-2`, `border-dashed` or similar
 - Backdrop blur: `backdrop-blur-sm` on cards
@@ -54,7 +54,7 @@ When implementing a dystopian UI, follow these specific design patterns:
 ### Empty State
 ```tsx
 <div className="text-center py-8">
-  <Skull className="w-12 h-12 mx-auto text-foreground/20 mb-4" />
+  <Logo className="w-12 h-12 mx-auto mb-4" />
   <p className="font-mono text-sm uppercase text-muted-foreground">
     AWAITING::INPUT
   </p>
@@ -85,7 +85,7 @@ When implementing a dystopian UI, follow these specific design patterns:
 ### Warning/Alert
 ```tsx
 <Alert variant="destructive">
-  <Skull className="h-4 w-4" />
+  <Logo className="h-4 w-4" />
   <AlertTitle className="font-mono uppercase">CATEGORY::WARNING</AlertTitle>
   <AlertDescription className="font-mono text-xs uppercase">
     WARNING MESSAGE IN ALL CAPS.

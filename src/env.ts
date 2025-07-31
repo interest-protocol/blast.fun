@@ -14,6 +14,7 @@ export const env = createEnv({
 		TWITTER_CLIENT_ID: z.string().min(1),
 
 		NEXA_API_KEY: z.string().min(1),
+		SUI_PRIVATE_KEY: z.string().min(1),
 	},
 	client: {
 		NEXT_PUBLIC_APP_URL: z.string().optional(),
@@ -38,5 +39,6 @@ export const env = createEnv({
 		TWITTER_CLIENT_ID: process.env.TWITTER_CLIENT_ID,
 
 		NEXA_API_KEY: process.env.NEXA_API_KEY,
+		SUI_PRIVATE_KEY: process.env.SUI_PRIVATE_KEY,
 	},
 })

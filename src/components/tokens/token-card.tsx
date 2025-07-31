@@ -49,7 +49,7 @@ export function TokenCard({ pool }: TokenCardProps) {
 	}
 
 	return (
-		<Link href={`/pool/${pool.poolId}`} className="cursor-default">
+		<Link href={`/meme/${pool.poolId}`} className="cursor-default">
 			<div className="relative border-b border-border/40 group hover:bg-accent/15 transition-all duration-300 overflow-hidden">
 				{/* Bonding Progress Gradient */}
 				<div className="absolute inset-0 opacity-[0.05] group-hover:opacity-[0.08] transition-opacity duration-300">
@@ -90,7 +90,7 @@ export function TokenCard({ pool }: TokenCardProps) {
 									<TooltipTrigger asChild>
 										<div className="flex items-center gap-1">
 											<span className="text-muted-foreground/60 uppercase tracking-wider text-[9px] sm:text-[10px]">MC</span>
-											<span className="font-semibold text-green-500/90 text-[11px] sm:text-xs">${formatAmountWithSuffix(marketCap)}</span>
+											<span className="font-semibold text-green-500/90 text-[11px] sm:text-xs transition-all duration-300">${formatAmountWithSuffix(marketCap)}</span>
 										</div>
 									</TooltipTrigger>
 									<TooltipContent>
@@ -102,7 +102,7 @@ export function TokenCard({ pool }: TokenCardProps) {
 									<TooltipTrigger asChild>
 										<div className="flex items-center gap-1">
 											<span className="text-muted-foreground/60 uppercase tracking-wider text-[9px] sm:text-[10px]">LIQ</span>
-											<span className="font-semibold text-blue-500/90 text-[11px] sm:text-xs">{formatMistToSui(pool.quoteBalance)} SUI</span>
+											<span className="font-semibold text-blue-500/90 text-[11px] sm:text-xs transition-all duration-300">{formatMistToSui(pool.quoteBalance)} SUI</span>
 										</div>
 									</TooltipTrigger>
 									<TooltipContent>

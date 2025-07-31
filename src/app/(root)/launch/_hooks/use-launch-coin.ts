@@ -32,6 +32,11 @@ export function useLaunchCoin() {
 	const [isLaunching, setIsLaunching] = useState(false)
 	const [logs, setLogs] = useState<LogEntry[]>([])
 	const [result, setResult] = useState<LaunchResult | null>(null)
+	const [pendingToken, setPendingToken] = useState<{
+		treasuryCapObjectId: string
+		txDigest: string
+		formValues: TokenFormValues
+	} | null>(null)
 
 	const { isLoggedIn, user: twitterUser } = useTwitter()
 	const { isConnected, address } = useApp()
@@ -121,8 +126,8 @@ export function useLaunchCoin() {
 		}
 
 		const network = pumpSdk.network as "mainnet" | "testnet"
-		const configKey = CONFIG_KEYS[network]?.MEMEZ
-		const migrationWitness = MIGRATOR_WITNESSES[network]?.TEST
+		const configKey = CONFIG_KEYS[network]?.XPUMP
+		const migrationWitness = MIGRATOR_WITNESSES[network]?.XPUMP
 
 		if (!configKey || !migrationWitness) {
 			throw new Error(`Invalid network configuration for ${network}`)
@@ -144,13 +149,17 @@ export function useLaunchCoin() {
 			{} as Record<string, string>
 		)
 
+		// should pool be protected based on any protection settings
+		const isProtected = !!(formValues.requireTwitter || formValues.maxHoldingPercent)
+
 		const { tx, metadataCap } = await pumpSdk.newPool({
 			configurationKey: configKey,
 			metadata,
 			memeCoinTreasuryCap: treasuryCapObjectId,
 			migrationWitness: migrationWitness,
 			totalSupply: TOTAL_POOL_SUPPLY,
-			useTokenStandard: false,
+			isProtected,
+			developer: address,
 			quoteCoinType: SUI_TYPE_ARG,
 			burnTax: 0,
 			virtualLiquidity: VIRTUAL_LIQUIDITY,
@@ -167,7 +176,6 @@ export function useLaunchCoin() {
 		addLog(`POOL::CREATED [${result.time}MS]`, "success")
 
 		const poolObjectId = getCreatedObjectByType(result, "::memez_pump::Pump")
-
 		if (!poolObjectId) {
 			throw new Error(
 				`Failed to find pool object in transaction ${formatDigest(result.digest)}. ` +
@@ -187,6 +195,10 @@ export function useLaunchCoin() {
 		tokenTxHash: string
 		poolTxHash: string
 		hideIdentity: boolean
+		protectionSettings?: {
+			requireTwitter: boolean
+			maxHoldingPercent?: string
+		}
 	}): Promise<void> => {
 		try {
 			const response = await fetch("/api/launches", {
@@ -200,6 +212,7 @@ export function useLaunchCoin() {
 					hideIdentity: launchData.hideIdentity,
 					tokenTxHash: launchData.tokenTxHash,
 					poolTxHash: launchData.poolTxHash,
+					protectionSettings: launchData.protectionSettings,
 				}),
 			})
 
@@ -224,16 +237,31 @@ export function useLaunchCoin() {
 			const tokenResult = await createToken(formValues)
 			addLog(`TREASURY::CAP::${formatAddress(tokenResult.treasuryCapObjectId)}`)
 
+			// store pending token info in case pool creation fails
+			setPendingToken({
+				treasuryCapObjectId: tokenResult.treasuryCapObjectId,
+				txDigest: tokenResult.txDigest,
+				formValues
+			})
+
 			addLog("POOL::INITIALIZATION")
 			const poolResult = await createPool(tokenResult.treasuryCapObjectId, formValues)
 			addLog(`POOL::ID::${formatAddress(poolResult.poolObjectId)}`)
 
-			addLog("DATABASE::SYNC")
+			addLog("CLEANING::UP", "info")
+
+			// save token launch data now
+			const protectionSettings = (formValues.requireTwitter || formValues.maxHoldingPercent) ? {
+				requireTwitter: formValues.requireTwitter,
+				maxHoldingPercent: formValues.maxHoldingPercent,
+			} : undefined
+
 			await saveLaunchData({
 				poolObjectId: poolResult.poolObjectId,
 				tokenTxHash: tokenResult.txDigest,
 				poolTxHash: poolResult.txDigest,
 				hideIdentity: formValues.hideIdentity,
+				protectionSettings,
 			})
 
 			const launchResult = {
@@ -247,9 +275,77 @@ export function useLaunchCoin() {
 			confettiPlayer.current("Confetti from left and right")
 			addLog("LAUNCH::COMPLETE", "success")
 
+			// clear pending token on success
+			setPendingToken(null)
+
 			return launchResult
 		} catch (error) {
 			addLog(`ERROR::${error instanceof Error ? error.message.toUpperCase() : "UNKNOWN"}`, "error")
+
+			// if pool creation failed but we have a treasury cap, show recovery option
+			if (pendingToken) {
+				addLog("RECOVERY::AVAILABLE - Treasury cap saved for retry", "warning")
+			}
+
+			throw error
+		} finally {
+			setTimeout(() => {
+				setIsLaunching(false)
+			}, 3000)
+		}
+	}
+
+	const resumeLaunch = async (): Promise<LaunchResult> => {
+		if (!pendingToken) {
+			throw new Error("No pending launch to resume")
+		}
+
+		setIsLaunching(true)
+		setLogs([])
+		setResult(null)
+
+		addLog("RESUMING::LAUNCH", "info")
+		addLog(`TREASURY::CAP::${formatAddress(pendingToken.treasuryCapObjectId)}`)
+		addLog(`TOKEN::${pendingToken.formValues.symbol.toUpperCase()}`)
+
+		try {
+			addLog("POOL::INITIALIZATION::RETRY")
+			const poolResult = await createPool(pendingToken.treasuryCapObjectId, pendingToken.formValues)
+			addLog(`POOL::ID::${formatAddress(poolResult.poolObjectId)}`)
+
+			addLog("CLEANING::UP", "info")
+
+			const protectionSettings = (pendingToken.formValues.requireTwitter || pendingToken.formValues.maxHoldingPercent) ? {
+				requireTwitter: pendingToken.formValues.requireTwitter,
+				maxHoldingPercent: pendingToken.formValues.maxHoldingPercent,
+			} : undefined
+
+			await saveLaunchData({
+				poolObjectId: poolResult.poolObjectId,
+				tokenTxHash: pendingToken.txDigest,
+				poolTxHash: poolResult.txDigest,
+				hideIdentity: pendingToken.formValues.hideIdentity,
+				protectionSettings,
+			})
+
+			const launchResult = {
+				treasuryCapObjectId: pendingToken.treasuryCapObjectId,
+				tokenTxDigest: pendingToken.txDigest,
+				poolObjectId: poolResult.poolObjectId,
+				poolTxDigest: poolResult.txDigest,
+			}
+
+			setResult(launchResult)
+			confettiPlayer.current("Confetti from left and right")
+			addLog("LAUNCH::COMPLETE", "success")
+
+			// clear pending token on success
+			setPendingToken(null)
+
+			return launchResult
+		} catch (error) {
+			addLog(`ERROR::${error instanceof Error ? error.message.toUpperCase() : "UNKNOWN"}`, "error")
+			addLog("RECOVERY::STILL_AVAILABLE", "warning")
 			throw error
 		} finally {
 			setTimeout(() => {
@@ -263,6 +359,8 @@ export function useLaunchCoin() {
 		logs,
 		result,
 		launchToken,
+		resumeLaunch,
+		pendingToken,
 		addLog,
 	}
 }

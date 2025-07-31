@@ -32,7 +32,9 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 
 	// use balance from nexa if available, otherwise fall back to token balance
 	const effectiveBalance = actualBalance !== "0" ? actualBalance : tokenBalance
-	const formattedBalance = effectiveBalance ? (Number(effectiveBalance) / Math.pow(10, decimals)).toLocaleString(undefined, { maximumFractionDigits: 4 }) : "0"
+	const balanceInDisplayUnit = effectiveBalance ? Number(effectiveBalance) / Math.pow(10, decimals) : 0
+	const formattedBalance = balanceInDisplayUnit.toLocaleString(undefined, { maximumFractionDigits: 4 })
+	const hasBalance = balanceInDisplayUnit > 0
 
 	const { isLoading, error, success, pump, dump } = usePump({
 		pool,
@@ -42,21 +44,42 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 
 	// quick buy/sell amounts in SUI/%'s
 	const quickBuyAmounts = [0.5, 1, 5, 10]
-	const quickSellPercentages = [25, 50, 75, 100]
+	const quickSellPercentages = [10, 25, 50, 75, 100]
 
 	const handleQuickBuy = async (suiAmount: number) => {
-		// Disabled - do nothing
-		return
+		setAmount(suiAmount.toString())
+		const slippageNum = parseFloat(slippage)
+
+		await pump(suiAmount.toString(), slippageNum)
+		setAmount("")
 	}
 
 	const handleQuickSellPercentage = async (percentage: number) => {
-		// Disabled - do nothing
-		return
+		if (!hasBalance) return
+
+		const tokenAmountToSell = balanceInDisplayUnit * (percentage / 100)
+
+		setAmount(tokenAmountToSell.toString())
+		const slippageNum = parseFloat(slippage)
+
+		await dump(tokenAmountToSell.toString(), slippageNum)
+		setAmount("")
 	}
 
 	const handleTrade = async () => {
-		// Disabled - do nothing
-		return
+		if (!amount || parseFloat(amount) <= 0) {
+			return
+		}
+
+		const slippageNum = parseFloat(slippage)
+
+		if (tradeType === "buy") {
+			await pump(amount, slippageNum)
+		} else {
+			await dump(amount, slippageNum)
+		}
+
+		setAmount("")
 	}
 
 	return (
@@ -68,15 +91,6 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 			</div>
 
 			<div className="p-4 space-y-4">
-				{/* Maintenance Alert */}
-				<Alert variant="destructive" className="border-2">
-					<AlertCircle className="h-4 w-4" />
-					<AlertDescription className="font-mono text-xs uppercase">
-						TRADING::DISABLED - THIS FEATURE IS CURRENTLY UNDER MAINTENANCE
-					</AlertDescription>
-				</Alert>
-
-				<div className="opacity-50">
 				<Tabs value={tradeType} onValueChange={(v) => setTradeType(v as "buy" | "sell")}>
 					<TabsList className="grid w-full grid-cols-2 bg-background/50 h-12">
 						<TabsTrigger
@@ -95,14 +109,26 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 
 					<TabsContent value={tradeType} className="space-y-4 mt-4">
 						{/* Balance */}
-						{tradeType === "sell" && effectiveBalance && (
-							<div className="border-2 border-dashed rounded-lg bg-background/30 p-4 space-y-3">
+						{tradeType === "sell" && (
+							<div className={cn(
+								"border-2 border-dashed rounded-lg p-4",
+								hasBalance ? "bg-background/30" : "bg-red-500/5 border-red-500/30"
+							)}>
 								<div className="flex items-center justify-between">
-									<span className="font-mono text-xs uppercase text-muted-foreground">BALANCE::TOKEN</span>
-									<span className="font-mono text-sm uppercase tracking-wider">
+									<span className="font-mono text-xs uppercase text-muted-foreground">BALANCE</span>
+									<span className={cn(
+										"font-mono text-sm uppercase tracking-wider",
+										!hasBalance && "text-red-500/70"
+									)}>
 										{formattedBalance} {metadata?.symbol || "[UNKNOWN]"}
 									</span>
 								</div>
+
+								{!hasBalance && (
+									<p className="font-mono text-xs uppercase text-red-500/70">
+										NO_TOKENS::BUY_FIRST
+									</p>
+								)}
 							</div>
 						)}
 
@@ -118,7 +144,7 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 											size="sm"
 											className="font-mono text-xs uppercase border-2 hover:border-green-500/50 hover:bg-green-500/20 hover:text-green-500 transition-colors"
 											onClick={() => handleQuickBuy(quickAmount)}
-											disabled={true}
+											disabled={isLoading || !isConnected}
 										>
 											{quickAmount} SUI
 										</Button>
@@ -131,7 +157,7 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 						{tradeType === "sell" && effectiveBalance && (
 							<div className="space-y-3">
 								<p className="font-mono text-xs uppercase text-muted-foreground">QUICK::SELL</p>
-								<div className="grid grid-cols-4 gap-2">
+								<div className="grid grid-cols-5 gap-2">
 									{quickSellPercentages.map((percentage) => (
 										<Button
 											key={percentage}
@@ -144,7 +170,7 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 													: "hover:border-red-500/50 hover:bg-red-500/20 hover:text-red-500"
 											)}
 											onClick={() => handleQuickSellPercentage(percentage)}
-											disabled={true}
+											disabled={isLoading || !isConnected || !hasBalance}
 										>
 											{percentage}%
 										</Button>
@@ -170,7 +196,7 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 									onFocus={() => setIsInputFocused(true)}
 									onBlur={() => setIsInputFocused(false)}
 									className="font-mono text-lg uppercase tracking-wider border-0 focus-visible:ring-0 pr-20 bg-background/50"
-									disabled={true}
+									disabled={isLoading}
 								/>
 								<span className="absolute right-4 top-1/2 -translate-y-1/2 font-mono text-sm uppercase text-muted-foreground">
 									{tradeType === "buy" ? "SUI" : metadata?.symbol || "[TOKEN]"}
@@ -218,7 +244,7 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 							<Alert variant="destructive" className="border-2">
 								<AlertCircle className="h-4 w-4" />
 								<AlertDescription className="font-mono text-xs uppercase">
-									ERROR::{error}
+									{error}
 								</AlertDescription>
 							</Alert>
 						)}
@@ -234,7 +260,7 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 							)}
 							size="lg"
 							onClick={handleTrade}
-							disabled={true}
+							disabled={!isConnected || isLoading || !amount || (tradeType === "sell" && !hasBalance)}
 						>
 							{isLoading ? (
 								<span className="flex items-center gap-2">
@@ -255,7 +281,6 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 						</Button>
 					</TabsContent>
 				</Tabs>
-				</div>
 			</div>
 		</div>
 	)

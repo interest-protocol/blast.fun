@@ -6,7 +6,12 @@ export async function GET(
     { params }: { params: Promise<{ id: string }> }
 ) {
     const { id } = await params
+    const searchParams = request.nextUrl.searchParams
+    const refCode = searchParams.get("ref")
     const appUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+
+    // build URL with referral code if present
+    const xCardUrl = refCode ? `${appUrl}/x-card/${id}?ref=${refCode}` : `${appUrl}/x-card/${id}`
 
     const html = `<!DOCTYPE html>
 <html>
@@ -26,25 +31,25 @@ export async function GET(
 
     <!-- Twitter Player Card Tags -->
     <meta name="twitter:card" content="player" />
-    <meta name="twitter:creator" content="@xpumpfun">
-    <meta name="twitter:site" content="@xpumpfun" />
-    <meta name="twitter:image" content="${appUrl}/logo/xpump-logo.png" />
-    <meta name="twitter:title" content="Trade memecoins on xPump directly within X." />
-    <meta name="twitter:description" content="Buy & sell memecoins on xPump directly within X. Just click me and you'll see!" />
+    <meta name="twitter:creator" content="@xtermfun">
+    <meta name="twitter:site" content="@xtermfun" />
+    <meta name="twitter:image" content="${appUrl}/logo/xterm-bg.png" />
+    <meta name="twitter:title" content="Trade memecoins on xTerminal directly within X." />
+    <meta name="twitter:description" content="Buy & sell memecoins on xTerminal directly within X. Just click me and you'll see for yourself!" />
 
-    <meta name="twitter:url" content="${appUrl}/x-card/${id}" />
-    <meta name="twitter:player" content="${appUrl}/x-card/${id}" />
+    <meta name="twitter:url" content="${xCardUrl}" />
+    <meta name="twitter:player" content="${xCardUrl}" />
     <meta name="twitter:player:width" content="800" />
     <meta name="twitter:player:height" content="1500" />
 
     <!-- OpenGraph tags -->
     <meta property="og:type" content="video.movie" />
-    <meta property="og:title" content="Trade memecoins on xPump directly within X." />
+    <meta property="og:title" content="Trade memecoins on xTerminal directly within X." />
     <meta property="og:description" content="Connect wallet and trade tokens directly" />
-    <meta property="og:image" content="${appUrl}/logo/xpump-logo.png" />
-    <meta property="og:url" content="${appUrl}/x-card/${id}" />
+    <meta property="og:image" content="${appUrl}/logo/xterm-bg.png" />
+    <meta property="og:url" content="${xCardUrl}" />
     
-    <title>xPump Trading</title>
+    <title>xTerminal Trading</title>
 </head>
 </html>`
 

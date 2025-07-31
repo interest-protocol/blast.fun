@@ -9,7 +9,10 @@ import { fetchCoinMetadata, fetchCoinsMetadata } from "../fetch-coin-metadata"
  * Fetches metadata for a single pool
  */
 async function enrichPoolWithMetadata(pool: Pool): Promise<PoolWithMetadata> {
-	const enhancedPool: PoolWithMetadata = { ...pool }
+	const enhancedPool: PoolWithMetadata = { 
+		...pool,
+		isProtected: !!pool.publicKey 
+	}
 
 	try {
 		const [pumpPoolData, coinMetadata] = await Promise.allSettled([
@@ -67,7 +70,10 @@ export async function fetchPoolsWithMetadata(page = 1, pageSize = 12): Promise<P
 
 	const enrichedPools = await Promise.all(
 		pools.map(async (pool) => {
-			const enhancedPool: PoolWithMetadata = { ...pool }
+			const enhancedPool: PoolWithMetadata = { 
+				...pool,
+				isProtected: !!pool.publicKey 
+			}
 
 			try {
 				const pumpPoolData = await pumpSdk.getPumpPool(pool.poolId)

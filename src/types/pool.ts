@@ -19,6 +19,8 @@ export interface Pool {
 	lastTradeAt: string
 	config: any
 	updatedAt: string
+	isProtected?: boolean
+	publicKey?: string
 }
 
 export interface CoinMetadata {

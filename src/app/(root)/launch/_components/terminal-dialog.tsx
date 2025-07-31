@@ -4,8 +4,8 @@ import { Terminal } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { cn } from "@/utils"
-import { formatDigest, getTxExplorerUrl } from "@/utils/transaction"
 import { LogEntry } from "../_hooks/use-launch-coin"
+import { QuickBuy } from "./quick-buy"
 
 interface TerminalDialogProps {
 	open: boolean
@@ -16,9 +16,14 @@ interface TerminalDialogProps {
 		poolObjectId: string
 		poolTxDigest: string
 	} | null
+	pendingToken: {
+		treasuryCapObjectId: string
+		txDigest: string
+	} | null
+	onResume?: () => void
 }
 
-export function TerminalDialog({ open, onOpenChange, logs, isLaunching, result }: TerminalDialogProps) {
+export function TerminalDialog({ open, onOpenChange, logs, isLaunching, result, pendingToken, onResume }: TerminalDialogProps) {
 	const logsEndRef = useRef<HTMLDivElement>(null)
 	const [cursorBlink, setCursorBlink] = useState(true)
 
@@ -114,18 +119,36 @@ export function TerminalDialog({ open, onOpenChange, logs, isLaunching, result }
 										</div>
 										<div className="mt-2 space-y-1">
 											<div className="text-green-500">DEPLOYMENT::COMPLETE</div>
-											<div>
-												<a
-													href={getTxExplorerUrl(result.poolTxDigest)}
-													target="_blank"
-													rel="noopener noreferrer"
-													className="text-primary hover:underline"
-												>
-													VIEW::ON::EXPLORER
-												</a>
-											</div>
+										</div>
+										<div className="mt-4">
+											<QuickBuy poolObjectId={result.poolObjectId} />
 										</div>
 									</>
+								)}
+
+								{/* Recovery */}
+								{!result && !isLaunching && pendingToken && onResume && (
+									<div className="mt-3 p-3 border border-amber-500/50 rounded bg-amber-500/5">
+										<div className="flex items-center justify-between gap-3">
+											<div className="flex items-center gap-2 flex-1">
+												<Terminal className="h-3 w-3 text-amber-500 flex-shrink-0" />
+												<div className="flex-1">
+													<div className="text-amber-500 text-xs font-medium">RECOVERY::AVAILABLE</div>
+													<div className="text-[10px] text-muted-foreground">
+														TREASURY::{pendingToken.treasuryCapObjectId.slice(0, 6)}...{pendingToken.treasuryCapObjectId.slice(-4)}
+													</div>
+												</div>
+											</div>
+											<button
+												onClick={onResume}
+												className="px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 
+														border border-amber-500/50 rounded transition-colors
+														text-amber-500 font-mono text-xs uppercase"
+											>
+												RETRY
+											</button>
+										</div>
+									</div>
 								)}
 
 								<div ref={logsEndRef} />
