@@ -31,8 +31,8 @@ export async function GET(
 
     <!-- Twitter Player Card Tags -->
     <meta name="twitter:card" content="player" />
-    <meta name="twitter:creator" content="@blastfun">
-    <meta name="twitter:site" content="@blastfun" />
+    <meta name="twitter:creator" content="@xtermfun">
+    <meta name="twitter:site" content="@xtermfun" />
     <meta name="twitter:image" content="${appUrl}/logo/xterm-bg.png" />
     <meta name="twitter:title" content="Trade memecoins on xTerminal directly within X." />
     <meta name="twitter:description" content="Buy & sell memecoins on xTerminal directly within X. Just click me and you'll see for yourself!" />

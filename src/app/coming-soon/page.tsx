@@ -11,7 +11,7 @@ export default function ComingSoonPage() {
 		const intervals = [
 			setInterval(() => {
 				const glitchVariations = [
-					"X::PUMP",
+					"X::TERMINAL",
 					"XTERM.FUN",
 					"COMING::SOON",
 				];
