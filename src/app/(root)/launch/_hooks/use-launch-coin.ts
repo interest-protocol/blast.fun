@@ -175,7 +175,7 @@ export function useLaunchCoin() {
 		const result = await executeTransaction(tx)
 		addLog(`POOL::CREATED [${result.time}MS]`, "success")
 
-		const poolObjectId = getCreatedObjectByType(result, "::memez_pump::Pump")
+		const poolObjectId = getCreatedObjectByType(result, "::memez_pump::Pump,")
 		if (!poolObjectId) {
 			throw new Error(
 				`Failed to find pool object in transaction ${formatDigest(result.digest)}. ` +
