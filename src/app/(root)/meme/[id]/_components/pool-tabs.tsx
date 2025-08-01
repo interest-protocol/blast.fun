@@ -22,8 +22,8 @@ export function PoolTabs({ pool }: PoolTabsProps) {
 
 	return (
 		<div className="border-2 shadow-lg rounded-xl overflow-hidden">
-			<div className="p-3 sm:p-4 border-b flex items-center justify-between">
-				<h3 className="text-base sm:text-lg font-mono uppercase tracking-wider flex items-center gap-2">
+			<div className="p-2 sm:p-3 border-b flex items-center justify-between">
+				<h3 className="text-base sm:text-lg font-mono font-bold uppercase tracking-wider flex items-center gap-2">
 					<BarChart3 className="w-4 h-4 text-primary/60" />
 					MARKET::DATA
 				</h3>
@@ -31,10 +31,10 @@ export function PoolTabs({ pool }: PoolTabsProps) {
 					href="https://nexa.xyz"
 					target="_blank"
 					rel="noopener noreferrer"
-					className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/30 hover:bg-muted/50 transition-colors group"
+					className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors group"
 				>
-					<span className="font-mono text-[14px] font-bold uppercase tracking-wider text-muted-foreground/70 hidden sm:inline">
-						Data by
+					<span className="font-mono text-[10px] sm:text-xs font-semibold uppercase tracking-wider">
+						DATA BY
 					</span>
 					<Image
 						src={
@@ -43,9 +43,9 @@ export function PoolTabs({ pool }: PoolTabsProps) {
 								: "/logo/nexa_black.svg"
 						}
 						alt="Nexa"
-						width={40}
-						height={10}
-						className="h-2.5 w-auto opacity-60 group-hover:opacity-80 transition-opacity"
+						width={48}
+						height={12}
+						className="h-[10px] sm:h-3 w-auto opacity-70 group-hover:opacity-100 transition-opacity"
 						priority
 					/>
 				</Link>
