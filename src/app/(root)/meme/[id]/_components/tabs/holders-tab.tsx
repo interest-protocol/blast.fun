@@ -3,10 +3,11 @@
 import { PoolWithMetadata } from "@/types/pool"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Progress } from "@/components/ui/progress"
-import { useHolders } from "@/hooks/pump/use-holders"
+import { useHolders } from "@/hooks/use-holders"
 import { Trophy, Users } from "lucide-react"
 import { formatAddress } from "@mysten/sui/utils"
 import { Logo } from "@/components/ui/logo"
+import { formatAmountWithSuffix } from "@/utils/format"
 
 interface HoldersTabProps {
 	pool: PoolWithMetadata
@@ -22,8 +23,8 @@ export function HoldersTab({ pool }: HoldersTabProps) {
 		return (
 			<div className="p-4 space-y-3">
 				{Array.from({ length: 10 }).map((_, i) => (
-					<div 
-						key={i} 
+					<div
+						key={i}
 						className="h-20 bg-background/30 rounded-lg animate-pulse border border-border/30"
 					/>
 				))}
@@ -40,8 +41,6 @@ export function HoldersTab({ pool }: HoldersTabProps) {
 			</div>
 		)
 	}
-
-	const totalSupply = holders.reduce((sum, holder) => sum + holder.balanceScaled, 0)
 
 	return (
 		<ScrollArea className="h-[500px]">
@@ -69,8 +68,8 @@ export function HoldersTab({ pool }: HoldersTabProps) {
 						{/* Holders List */}
 						{holders.map((holder, index) => {
 							const isTopHolder = holder.rank <= 3
-							const holderPercentage = (holder.balanceScaled / totalSupply) * 100
-							
+							const holderPercentage = holder.percentage
+
 							return (
 								<div
 									key={holder.user}
@@ -80,21 +79,19 @@ export function HoldersTab({ pool }: HoldersTabProps) {
 									{isTopHolder && (
 										<div className="absolute inset-0 bg-primary/10 opacity-50 group-hover:opacity-100 transition-opacity rounded-lg blur-xl" />
 									)}
-									
+
 									<div className="relative">
 										<div className="grid grid-cols-5 gap-2 items-center">
 											{/* Rank */}
 											<div className="flex items-center gap-2">
 												{isTopHolder && (
-													<Trophy className={`w-4 h-4 ${
-														holder.rank === 1 ? 'text-yellow-500' :
+													<Trophy className={`w-4 h-4 ${holder.rank === 1 ? 'text-yellow-500' :
 														holder.rank === 2 ? 'text-gray-400' :
-														'text-orange-600'
-													}`} />
+															'text-orange-600'
+														}`} />
 												)}
-												<span className={`font-mono text-sm ${
-													isTopHolder ? 'text-foreground' : 'text-muted-foreground'
-												}`}>
+												<span className={`font-mono text-sm ${isTopHolder ? 'text-foreground' : 'text-muted-foreground'
+													}`}>
 													#{holder.rank}
 												</span>
 											</div>
@@ -107,13 +104,11 @@ export function HoldersTab({ pool }: HoldersTabProps) {
 											{/* Amount */}
 											<div className="text-right">
 												<p className="font-mono text-sm text-foreground/80">
-													{holder.balanceScaled.toLocaleString(undefined, {
-														maximumFractionDigits: 0,
-													})}
+													{formatAmountWithSuffix(holder.balanceScaled)}
 												</p>
 												{holder.balanceUsd > 0 && (
 													<p className="font-mono text-xs text-muted-foreground/60">
-														${holder.balanceUsd.toFixed(2)}
+														${formatAmountWithSuffix(holder.balanceUsd)}
 													</p>
 												)}
 											</div>
@@ -128,11 +123,11 @@ export function HoldersTab({ pool }: HoldersTabProps) {
 
 										{/* Progress Bar */}
 										<div className="mt-2 relative">
-											<Progress 
-												value={holderPercentage} 
+											<Progress
+												value={holderPercentage}
 												className="h-1.5 bg-background/50"
 											/>
-											<div 
+											<div
 												className="absolute inset-0 h-1.5 bg-primary/20 blur-sm transition-all duration-500"
 												style={{ width: `${holderPercentage}%` }}
 											/>

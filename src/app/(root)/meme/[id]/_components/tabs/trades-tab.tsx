@@ -1,39 +1,187 @@
 "use client"
 
+import { useState, useRef, useMemo, useCallback, useEffect } from "react"
 import { PoolWithMetadata } from "@/types/pool"
-import { formatDistanceToNow } from "date-fns"
 import { Activity, ExternalLink } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { useTrades } from "@/hooks/pump/use-trades"
+import { useInfiniteQuery } from "@tanstack/react-query"
 import { formatAddress } from "@mysten/sui/utils"
 import { getTxExplorerUrl } from "@/utils/transaction"
 import { Logo } from "@/components/ui/logo"
+import { getTradesFeedSocket } from "@/lib/websocket/trades-feed"
+import { cn } from "@/utils"
+import { formatAmountWithSuffix, formatNumberWithSuffix } from "@/utils/format"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { DEFAULT_TOKEN_DECIMALS } from "@/constants"
+import type { TradeData, CoinTrade, UnifiedTrade } from "@/types/trade"
 
 interface TradesTabProps {
 	pool: PoolWithMetadata
 }
 
-interface Trade {
-	time: string
-	type: "BUY" | "SELL"
-	price: string
-	volume: string
-	trader: string
-	kind: string
-	quoteAmount: string
-	coinAmount: string
-	digest: string
+function useRealtimeTrades(coinType: string, poolSymbol?: string) {
+	const [realtimeTrades, setRealtimeTrades] = useState<UnifiedTrade[]>([])
+	const tradeIdCounter = useRef(0)
+
+	const handleNewTrade = useCallback((trade: TradeData) => {
+		const isBuy = trade.operationType === 'buy'
+		const coinInDecimals = trade.coinInMetadata?.decimals || DEFAULT_TOKEN_DECIMALS
+		const coinOutDecimals = trade.coinOutMetadata?.decimals || DEFAULT_TOKEN_DECIMALS
+		const amountIn = Number(trade.amountIn) / Math.pow(10, coinInDecimals)
+		const amountOut = Number(trade.amountOut) / Math.pow(10, coinOutDecimals)
+
+		const newTrade: UnifiedTrade = {
+			id: `realtime-${Date.now()}-${tradeIdCounter.current++}`,
+			timestamp: trade.timestampMs,
+			type: isBuy ? "BUY" : "SELL",
+			amountIn,
+			amountOut,
+			coinIn: trade.coinIn,
+			coinOut: trade.coinOut,
+			coinInSymbol: trade.coinInMetadata?.symbol || (isBuy ? "SUI" : poolSymbol),
+			coinOutSymbol: trade.coinOutMetadata?.symbol || (isBuy ? poolSymbol : "SUI"),
+			coinInIconUrl: trade.coinInMetadata?.iconUrl || trade.coinInMetadata?.icon_url || trade.coinInMetadata?.iconURL,
+			coinOutIconUrl: trade.coinOutMetadata?.iconUrl || trade.coinOutMetadata?.icon_url || trade.coinOutMetadata?.iconURL,
+			price: trade.priceOut,
+			value: trade.volume,
+			trader: trade.user,
+			digest: trade.digest,
+			isRealtime: true
+		}
+
+		setRealtimeTrades(prev => [newTrade, ...prev].slice(0, 100))
+	}, [poolSymbol])
+
+	useEffect(() => {
+		if (!coinType) return
+
+		const socket = getTradesFeedSocket()
+		const unsubscribe = socket.subscribeToCoinTrades(coinType, handleNewTrade)
+
+		return () => {
+			unsubscribe()
+		}
+	}, [coinType, handleNewTrade])
+
+	return realtimeTrades
 }
 
 export function TradesTab({ pool }: TradesTabProps) {
-	const { data, isLoading, error } = useTrades({
-		coinType: pool.coinType,
-		pageSize: 50,
+	const TRADES_PER_PAGE = 20
+	
+	const {
+		data,
+		fetchNextPage,
+		hasNextPage,
+		isFetchingNextPage,
+		isLoading,
+		error
+	} = useInfiniteQuery({
+		queryKey: ["trades", pool.coinType],
+		queryFn: async ({ pageParam = 0 }) => {
+			const response = await fetch(
+				`/api/${pool.coinType}/trades?limit=${TRADES_PER_PAGE}&skip=${pageParam}`
+			)
+			if (!response.ok) {
+				throw new Error("Failed to fetch trades")
+			}
+			return response.json() as Promise<CoinTrade[]>
+		},
+		getNextPageParam: (lastPage, allPages) => {
+			if (lastPage.length < TRADES_PER_PAGE) return undefined
+			return allPages.length * TRADES_PER_PAGE
+		},
+		enabled: !!pool.coinType,
+		refetchOnWindowFocus: false,
+		refetchOnMount: false,
+		staleTime: Infinity,
+		initialPageParam: 0
 	})
 
-	const formatTimeAgo = (timestamp: string) => {
-		const date = new Date(parseInt(timestamp))
-		return formatDistanceToNow(date, { addSuffix: true })
+	const realtimeTrades = useRealtimeTrades(pool.coinType, pool.coinMetadata?.symbol)
+
+	const historicalTrades = useMemo(() => {
+		if (!data?.pages) return []
+
+		return data.pages.flatMap(page =>
+			page.map((trade: CoinTrade) => {
+				const isBuy = trade.coinOut === pool.coinType
+				const coinInDecimals = Number(trade.coinInMetadata?.decimals) || DEFAULT_TOKEN_DECIMALS
+				const coinOutDecimals = Number(trade.coinOutMetadata?.decimals) || DEFAULT_TOKEN_DECIMALS
+				const amountIn = Number(trade.amountIn) / Math.pow(10, coinInDecimals)
+				const amountOut = Number(trade.amountOut) / Math.pow(10, coinOutDecimals)
+
+				return {
+					id: trade._id || trade.digest,
+					timestamp: trade.timestampMs,
+					type: isBuy ? "BUY" : "SELL",
+					amountIn,
+					amountOut,
+					coinIn: trade.coinIn,
+					coinOut: trade.coinOut,
+					coinInSymbol: trade.coinInMetadata?.symbol || (isBuy ? "SUI" : pool.coinMetadata?.symbol),
+					coinOutSymbol: trade.coinOutMetadata?.symbol || (isBuy ? pool.coinMetadata?.symbol : "SUI"),
+					coinInIconUrl: trade.coinInMetadata?.iconUrl || trade.coinInMetadata?.icon_url,
+					coinOutIconUrl: trade.coinOutMetadata?.iconUrl || trade.coinOutMetadata?.icon_url,
+					price: isBuy ? trade.priceOut : trade.priceIn,
+					value: isBuy ? amountOut * trade.priceOut : amountIn * trade.priceIn,
+					trader: trade.user,
+					digest: trade.digest,
+					isRealtime: false
+				} as UnifiedTrade
+			})
+		)
+	}, [data?.pages, pool.coinMetadata?.symbol, pool.coinType])
+
+	const unifiedTrades = useMemo(() => {
+		const combined = [...realtimeTrades, ...historicalTrades]
+		const uniqueTrades = Array.from(
+			new Map(combined.map(t => [t.digest, t])).values()
+		)
+		return uniqueTrades.sort((a, b) => b.timestamp - a.timestamp)
+	}, [realtimeTrades, historicalTrades])
+
+	const maxVolume = useMemo(() => {
+		return Math.max(...unifiedTrades.slice(0, 50).map(t => t.value), 1)
+	}, [unifiedTrades])
+
+	const scrollRef = useRef<HTMLDivElement>(null)
+	const loadMoreRef = useRef<HTMLDivElement>(null)
+
+	useEffect(() => {
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+					fetchNextPage()
+				}
+			},
+			{ threshold: 0.1 }
+		)
+
+		if (loadMoreRef.current) {
+			observer.observe(loadMoreRef.current)
+		}
+
+		return () => observer.disconnect()
+	}, [hasNextPage, isFetchingNextPage, fetchNextPage])
+
+	const formatAge = (timestamp: number) => {
+		const seconds = Math.floor((Date.now() - timestamp) / 1000)
+		if (seconds < 60) return `${seconds}s ago`
+
+		const minutes = Math.floor(seconds / 60)
+		if (minutes < 60) return `${minutes}m ago`
+
+		const hours = Math.floor(minutes / 60)
+		if (hours < 24) return `${hours}h ago`
+
+		return `${Math.floor(hours / 24)}d ago`
+	}
+
+	const formatValue = (value: number) => {
+		if (value < 1) return `$${value.toFixed(4)}`
+		if (value < 1000) return `$${value.toFixed(2)}`
+		return `$${formatAmountWithSuffix(value)}`
 	}
 
 	if (isLoading) {
@@ -42,7 +190,7 @@ export function TradesTab({ pool }: TradesTabProps) {
 				{Array.from({ length: 15 }).map((_, i) => (
 					<div
 						key={i}
-						className="h-12 bg-background/30 rounded animate-pulse border border-border/30"
+						className="h-12 bg-background/30 animate-pulse"
 					/>
 				))}
 			</div>
@@ -59,12 +207,10 @@ export function TradesTab({ pool }: TradesTabProps) {
 		)
 	}
 
-	const trades = data?.trades || []
-
 	return (
-		<ScrollArea className="h-[500px]">
-			<div className="p-4">
-				{trades.length === 0 ? (
+		<ScrollArea className="h-[500px]" ref={scrollRef}>
+			<div className="w-full">
+				{unifiedTrades.length === 0 ? (
 					<div className="text-center py-12">
 						<Activity className="w-12 h-12 mx-auto text-foreground/20 mb-4 animate-pulse" />
 						<p className="font-mono text-sm uppercase text-muted-foreground">
@@ -75,72 +221,128 @@ export function TradesTab({ pool }: TradesTabProps) {
 						</p>
 					</div>
 				) : (
-					<div className="space-y-1">
-						{/* Header */}
-						<div className="grid grid-cols-10 gap-2 px-3 py-2 text-xs font-mono uppercase text-muted-foreground/60 border-b border-border/30">
-							<div className="col-span-2">TIME</div>
-							<div className="col-span-1">TYPE</div>
-							<div className="col-span-3">AMOUNT</div>
-							<div className="col-span-4">TRADER</div>
+					<div className="relative">
+						<div className="grid grid-cols-12 gap-2 px-4 py-2 border-b border-border/50 text-xs font-mono uppercase text-muted-foreground sticky top-0 bg-background/95 backdrop-blur-sm z-10">
+							<div className="col-span-2">Age</div>
+							<div className="col-span-1">Type</div>
+							<div className="col-span-3">Trade</div>
+							<div className="col-span-2 text-right">Price</div>
+							<div className="col-span-2 text-right">Total Value</div>
+							<div className="col-span-2 text-right">Trader</div>
 						</div>
 
-						{/* Trades */}
-						{trades.map((trade: Trade) => {
-							const isBuy = trade.kind.toLowerCase() === "buy"
-							const timeAgo = formatTimeAgo(trade.time)
-							const decimals = pool.coinMetadata?.decimals || 9
-							const tokenAmount = parseFloat(trade.coinAmount) / Math.pow(10, decimals)
-							const formattedAmount = tokenAmount < 1
-								? tokenAmount.toFixed(6)
-								: tokenAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })
+						{unifiedTrades.map((trade) => {
+							const isBuy = trade.type === "BUY"
+							const isNewTrade = trade.isRealtime &&
+								(Date.now() - trade.timestamp) < 5000
+							const volumePercentage = Math.min((trade.value / maxVolume) * 100, 100)
 
 							return (
 								<div
-									key={trade.digest}
-									className="group grid grid-cols-10 gap-2 px-3 py-2 hover:bg-background/50 rounded transition-all duration-200 items-center"
+									key={trade.id}
+									className={cn(
+										"relative group hover:bg-muted/5 transition-all duration-200",
+										isNewTrade && "animate-in fade-in slide-in-from-top-1"
+									)}
 								>
-									{/* Time */}
-									<div className="col-span-2">
-										<a
-											href={getTxExplorerUrl(trade.digest)}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="font-mono text-xs text-muted-foreground hover:text-primary transition-colors"
-										>
-											{timeAgo}
-										</a>
-									</div>
+									<div
+										className={cn(
+											"absolute inset-0 opacity-10 transition-all duration-500",
+											isBuy ? "bg-green-500" : "bg-red-500"
+										)}
+										style={{ width: `${volumePercentage}%` }}
+									/>
 
-									{/* Type */}
-									<div className="col-span-1">
-										<div className={`font-mono text-xs uppercase font-semibold ${isBuy ? 'text-green-500' : 'text-red-500'
-											}`}>
-											{isBuy ? 'BUY' : 'SELL'}
+									<div className="relative grid grid-cols-12 gap-2 px-4 py-3 items-center border-b border-border/30">
+										<div className="col-span-2 font-mono text-xs text-muted-foreground">
+											{formatAge(trade.timestamp)}
 										</div>
-									</div>
 
-									{/* Amount */}
-									<div className="col-span-3 font-mono text-xs text-foreground/80">
-										{formattedAmount} {pool.coinMetadata?.symbol || "TOKEN"}
-									</div>
+										<div className="col-span-1">
+											<span className={cn(
+												"font-mono text-xs font-bold uppercase",
+												isBuy ? "text-green-500" : "text-red-500"
+											)}>
+												{trade.type}
+											</span>
+										</div>
 
-									{/* Trader */}
-									<div className="col-span-4 flex items-center gap-1">
-										<span className="font-mono text-xs text-muted-foreground">
-											{formatAddress(trade.trader)}
-										</span>
-										<a
-											href={`https://suivision.xyz/account/${trade.trader}`}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:text-primary"
-										>
-											<ExternalLink className="h-3 w-3" />
-										</a>
+										<div className="col-span-3 flex items-center gap-1 font-mono text-xs">
+											<span className="text-foreground">
+												{formatNumberWithSuffix(trade.amountIn)}
+											</span>
+											{trade.coinInIconUrl && (
+												<Avatar className="w-4 h-4">
+													<AvatarImage src={trade.coinInIconUrl} alt={trade.coinInSymbol} />
+													<AvatarFallback className="text-[8px]">
+														{trade.coinInSymbol?.slice(0, 2)}
+													</AvatarFallback>
+												</Avatar>
+											)}
+											<span className="text-muted-foreground">
+												{trade.coinInSymbol || '???'}
+											</span>
+											<span className="text-muted-foreground mx-1">→</span>
+											<span className="text-foreground">
+												{formatNumberWithSuffix(trade.amountOut)}
+											</span>
+											{trade.coinOutIconUrl && (
+												<Avatar className="w-4 h-4">
+													<AvatarImage src={trade.coinOutIconUrl} alt={trade.coinOutSymbol} />
+													<AvatarFallback className="text-[8px]">
+														{trade.coinOutSymbol?.slice(0, 2)}
+													</AvatarFallback>
+												</Avatar>
+											)}
+											<span className="text-muted-foreground">
+												{trade.coinOutSymbol || '???'}
+											</span>
+										</div>
+
+										<div className="col-span-2 text-right font-mono text-xs text-foreground/80">
+											${trade.price > 0.01 ? trade.price.toFixed(4) : trade.price.toFixed(8)}
+										</div>
+
+										<div className="col-span-2 text-right font-mono text-xs text-foreground/60">
+											{formatValue(trade.value)}
+										</div>
+
+										<div className="col-span-2 text-right flex items-center justify-end gap-1">
+											<a
+												href={`https://suivision.xyz/account/${trade.trader}`}
+												target="_blank"
+												rel="noopener noreferrer"
+												className="font-mono text-xs text-muted-foreground hover:text-primary transition-colors"
+											>
+												{formatAddress(trade.trader)}
+											</a>
+											<a
+												href={getTxExplorerUrl(trade.digest)}
+												target="_blank"
+												rel="noopener noreferrer"
+												className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:text-primary"
+											>
+												<ExternalLink className="h-3 w-3" />
+											</a>
+										</div>
 									</div>
 								</div>
 							)
 						})}
+
+						{hasNextPage && (
+							<div ref={loadMoreRef} className="py-4 text-center">
+								{isFetchingNextPage ? (
+									<div className="font-mono text-xs text-muted-foreground">
+										LOADING::MORE::TRADES...
+									</div>
+								) : (
+									<div className="font-mono text-xs text-muted-foreground">
+										SCROLL::FOR::MORE
+									</div>
+								)}
+							</div>
+						)}
 					</div>
 				)}
 			</div>
