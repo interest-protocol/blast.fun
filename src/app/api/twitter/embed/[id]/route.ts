@@ -8,7 +8,7 @@ export async function GET(
     const { id } = await params
     const searchParams = request.nextUrl.searchParams
     const refCode = searchParams.get("ref")
-    const appUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+    const appUrl = env.NEXT_PUBLIC_APP_URL
 
     // build URL with referral code if present
     const xCardUrl = refCode ? `${appUrl}/x-card/${id}?ref=${refCode}` : `${appUrl}/x-card/${id}`
