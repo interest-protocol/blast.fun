@@ -4,7 +4,7 @@ import type { PortfolioResponse } from "@/types/portfolio"
  * Fetches portfolio balances from NEXA via API route.
  */
 export async function fetchPortfolio(address: string): Promise<PortfolioResponse> {
-	const response = await fetch(`/api/${encodeURIComponent(address)}/portfolio`)
+	const response = await fetch(`/api/portfolio/${encodeURIComponent(address)}`)
 
 	if (!response.ok) {
 		throw new Error(`Failed to fetch portfolio: ${response.statusText}`)
@@ -19,7 +19,7 @@ export async function fetchPortfolio(address: string): Promise<PortfolioResponse
  */
 export async function fetchCoinBalance(address: string, coinType: string): Promise<string> {
 	const response = await fetch(
-		`/api/${encodeURIComponent(address)}/portfolio?coinType=${encodeURIComponent(coinType)}`
+		`/api/portfolio/${encodeURIComponent(address)}?coinType=${encodeURIComponent(coinType)}`
 	)
 
 	if (!response.ok) {

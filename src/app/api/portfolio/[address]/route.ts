@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { nexa } from "@/lib/nexa"
 
-type Params = {
-	params: Promise<{
-		address: string
-	}>
-}
-
-export async function GET(request: NextRequest, { params }: Params) {
+export async function GET(
+	request: NextRequest,
+	{ params }: { params: Promise<{ address: string }> }
+) {
 	try {
 		const { address } = await params
 		const { searchParams } = new URL(request.url)
