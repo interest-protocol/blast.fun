@@ -1,4 +1,6 @@
-export interface Pool {
+import type { PumpPool } from "@interest-protocol/memez-fun-sdk"
+
+export type Pool = {
 	poolId: string
 	bondingCurve: string
 	coinBalance: string
@@ -23,7 +25,7 @@ export interface Pool {
 	publicKey?: string
 }
 
-export interface CoinMetadata {
+export type CoinMetadata = {
 	name: string
 	symbol: string
 	description?: string | null
@@ -32,7 +34,7 @@ export interface CoinMetadata {
 	id?: string | null
 }
 
-export interface PoolWithMetadata extends Pool {
+export type PoolWithMetadata = Pool & {
 	coinMetadata?: CoinMetadata
-	pumpPoolData?: any
+	pumpPoolData?: PumpPool
 }
