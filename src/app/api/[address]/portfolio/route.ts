@@ -1,24 +1,24 @@
 import { NextRequest, NextResponse } from "next/server"
-import { env } from "@/env"
+import { nexa } from "@/lib/nexa"
 
-export async function GET(request: NextRequest) {
+type Params = {
+	params: Promise<{
+		address: string
+	}>
+}
+
+export async function GET(request: NextRequest, { params }: Params) {
 	try {
+		const { address } = await params
 		const { searchParams } = new URL(request.url)
-		const address = searchParams.get("address")
 		const coinType = searchParams.get("coinType")
 
 		if (!address) {
 			return NextResponse.json({ error: "Address is required" }, { status: 400 })
 		}
 
-		const response = await fetch(
-			`https://api-ex.insidex.trade/spot-portfolio/${address}?minBalanceValue=0`,
-			{
-				headers: {
-					"x-api-key": env.NEXA_API_KEY,
-					"Content-Type": "application/json",
-				},
-			}
+		const response = await nexa.server.fetchInternal(
+			`/spot-portfolio/${address}?minBalanceValue=0`
 		)
 
 		if (!response.ok) {
