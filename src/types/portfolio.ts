@@ -1,4 +1,4 @@
-export interface CoinMetadata {
+export type CoinMetadata = {
 	_id: string
 	coinType: string
 	decimals: number
@@ -10,7 +10,7 @@ export interface CoinMetadata {
 	symbol: string
 }
 
-export interface MarketStats {
+export type MarketStats = {
 	_id: string
 	coin: string
 	user: string
@@ -24,7 +24,7 @@ export interface MarketStats {
 	usdSold: number
 }
 
-export interface PortfolioBalanceItem {
+export type PortfolioBalanceItem = {
 	coinMetadata?: CoinMetadata
 	coinType: string
 	balance: string
@@ -35,6 +35,6 @@ export interface PortfolioBalanceItem {
 	unrealizedPnl: number
 }
 
-export interface PortfolioResponse {
+export type PortfolioResponse = {
 	balances: PortfolioBalanceItem[]
 }
