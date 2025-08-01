@@ -6,10 +6,11 @@ import Link from "next/link"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { TokenAvatar } from "./token-avatar"
 import type { PoolWithMetadata } from "@/types/pool"
-import { formatAmountWithSuffix, calculateMarketCap, formatMistToSui } from "@/utils/format"
+import { formatMistToSui, formatNumberWithSuffix } from "@/utils/format"
 import { CopyableToken } from "../shared/copyable-token"
 import { CreatorHoverCard } from "@/components/creator/creator-hover-card"
 import { CreatorDisplay } from "@/components/creator/creator-display"
+import { useMarketData } from "@/hooks/use-market-data"
 
 interface TokenCardProps {
 	pool: PoolWithMetadata
@@ -18,16 +19,16 @@ interface TokenCardProps {
 export function TokenCard({ pool }: TokenCardProps) {
 	const metadata = pool.metadata || {}
 	const coinMetadata = pool.coinMetadata
-	const marketCap = calculateMarketCap(pool)
+	const { data: marketData } = useMarketData(pool.coinType)
+
+	const marketCap = marketData ? parseFloat(marketData.marketCap) : 0
 	const bondingProgress = parseFloat(pool.bondingCurve)
 
-	// Creator info from metadata
 	const creatorTwitterId = metadata.CreatorTwitterId
 	const creatorTwitterName = metadata.CreatorTwitterName
 	const creatorWallet = metadata.CreatorWallet || pool.creatorAddress
 	const showTwitterCreator = creatorTwitterId && creatorTwitterName
 
-	// social links configuration
 	const socialLinks = [
 		{ href: metadata.X, icon: Twitter, tooltip: "X::TWITTER" },
 		{ href: metadata.Telegram, icon: Send, tooltip: "TELEGRAM::CHAT" },
@@ -51,7 +52,6 @@ export function TokenCard({ pool }: TokenCardProps) {
 	return (
 		<Link href={`/meme/${pool.poolId}`} className="cursor-default">
 			<div className="relative border-b border-border/40 group hover:bg-accent/15 transition-all duration-300 overflow-hidden">
-				{/* Bonding Progress Gradient */}
 				<div className="absolute inset-0 opacity-[0.05] group-hover:opacity-[0.08] transition-opacity duration-300">
 					<div
 						className={`h-full transition-all duration-1000 ${bondingProgress >= 80 ? "bg-gradient-to-r from-orange-500 to-orange-400" : bondingProgress >= 50 ? "bg-gradient-to-r from-yellow-500 to-yellow-400" : "bg-gradient-to-r from-purple-500 to-purple-400"}`}
@@ -74,9 +74,8 @@ export function TokenCard({ pool }: TokenCardProps) {
 							</div>
 						</div>
 
-						{/* Content Area */}
+						{/* Content */}
 						<div className="flex-1 min-w-0 space-y-1">
-							{/* Header */}
 							<div className="flex items-center gap-2">
 								<h3 className="font-mono font-bold text-xs sm:text-sm uppercase tracking-wider text-foreground/90 truncate">
 									{coinMetadata?.name || "[UNNAMED]"}
@@ -90,7 +89,7 @@ export function TokenCard({ pool }: TokenCardProps) {
 									<TooltipTrigger asChild>
 										<div className="flex items-center gap-1">
 											<span className="text-muted-foreground/60 uppercase tracking-wider text-[9px] sm:text-[10px]">MC</span>
-											<span className="font-semibold text-green-500/90 text-[11px] sm:text-xs transition-all duration-300">${formatAmountWithSuffix(marketCap)}</span>
+											<span className="font-semibold text-green-500/90 text-[11px] sm:text-xs transition-all duration-300">${formatNumberWithSuffix(marketCap)}</span>
 										</div>
 									</TooltipTrigger>
 									<TooltipContent>
