@@ -59,7 +59,7 @@ export function XCardTrading({ pool, referrerWallet }: XCardTradingProps) {
 			<div className="flex-1 flex">
 				{showChart ? (
 					<div className="flex-1 flex flex-col p-2">
-						<div className="flex-1 min-h-[300px]">
+						<div className="flex-1 min-h-[350px]">
 							<NexaChart pool={pool} className="w-full h-full" />
 						</div>
 					</div>
@@ -69,15 +69,10 @@ export function XCardTrading({ pool, referrerWallet }: XCardTradingProps) {
 
 						<div className="px-3 pb-3">
 							<div className="pt-2 border-t border-foreground/20">
-								<div className="flex items-center justify-between select-none">
-									<div className="flex items-center gap-1.5">
-										<Logo className="w-4 h-4 text-foreground/60" />
-										<span className="font-mono font-semibold text-xs uppercase text-muted-foreground">
-											XCTASY.FUN
-										</span>
-									</div>
-									<span className="font-mono text-xs uppercase text-muted-foreground">
-										POWERED BY SUI
+								<div className="flex items-center gap-1.5">
+									<Logo className="w-4 h-4 text-foreground/60" />
+									<span className="font-mono font-semibold text-xs uppercase text-muted-foreground">
+										XCTASY.FUN
 									</span>
 								</div>
 							</div>

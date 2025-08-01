@@ -1,15 +1,19 @@
 "use client"
 
 import type { PoolWithMetadata } from "@/types/pool"
-import { formatAmountWithSuffix, calculateMarketCap } from "@/utils/format"
+import { formatAmountWithSuffix, formatNumberWithSuffix } from "@/utils/format"
+import { useMarketData } from "@/hooks/use-market-data"
 
 interface MarketStatsProps {
 	pool: PoolWithMetadata
 }
 
 export function MarketStats({ pool }: MarketStatsProps) {
+	const { data: marketData } = useMarketData(pool.coinType)
+	
 	const bondingProgress = parseFloat(pool.bondingCurve)
-	const marketCap = calculateMarketCap(pool)
+	const marketCap = marketData ? parseFloat(marketData.marketCap) : 0
+	const totalLiquidity = marketData ? parseFloat(marketData.totalLiquidityUsd) : 0
 
 	return (
 		<div className="border-b border-foreground/20 bg-foreground/5 py-2">
@@ -18,15 +22,15 @@ export function MarketStats({ pool }: MarketStatsProps) {
 					<div className="text-center">
 						<p className="font-mono text-[10px] uppercase text-muted-foreground">MARKET::CAP</p>
 						<p className="font-mono text-xs font-bold text-foreground/80">
-							${formatAmountWithSuffix(marketCap)}
+							{marketData ? `$${formatNumberWithSuffix(marketCap)}` : "[LOADING]"}
 						</p>
 					</div>
 				</div>
 				<div className="flex items-center justify-center border-r border-foreground/20">
 					<div className="text-center">
-						<p className="font-mono text-[10px] uppercase text-muted-foreground">LIQUIDITY::POOL</p>
+						<p className="font-mono text-[10px] uppercase text-muted-foreground">LIQUIDITY::USD</p>
 						<p className="font-mono text-xs font-bold text-foreground/80">
-							{formatAmountWithSuffix(pool.quoteBalance)} SUI
+							{marketData ? `$${formatNumberWithSuffix(totalLiquidity)}` : `${formatAmountWithSuffix(pool.quoteBalance)} SUI`}
 						</p>
 					</div>
 				</div>
