@@ -6,7 +6,7 @@ import { Logo } from "@/components/ui/logo"
 import { Button } from "@/components/ui/button"
 import { MarketStats } from "./market-stats"
 import { TradingPanel } from "./trading-panel"
-import { EmbedChart } from "./embed-chart"
+import { NexaChart } from "@/components/shared/nexa-chart"
 import { cn } from "@/utils"
 
 interface XCardTradingProps {
@@ -60,7 +60,7 @@ export function XCardTrading({ pool, referrerWallet }: XCardTradingProps) {
 				{showChart ? (
 					<div className="flex-1 flex flex-col p-2">
 						<div className="flex-1 min-h-[300px]">
-							<EmbedChart pool={pool} />
+							<NexaChart pool={pool} className="w-full h-full" />
 						</div>
 					</div>
 				) : (

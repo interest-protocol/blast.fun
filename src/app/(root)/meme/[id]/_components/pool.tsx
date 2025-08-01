@@ -7,7 +7,7 @@ import { BondingProgress } from "./bonding-progress"
 import { PoolHeader } from "./pool-header"
 import { TradingTerminal } from "./trading-terminal"
 import { PoolTabs } from "./pool-tabs"
-import { CoinOHLCV } from "./coin-ohlcv"
+import { NexaChart } from "@/components/shared/nexa-chart"
 import { ReferralShare } from "./referral-share"
 
 export default function Pool({ poolId }: { poolId: string }) {
@@ -39,7 +39,7 @@ export default function Pool({ poolId }: { poolId: string }) {
 						<PoolHeader pool={pool} />
 
 						<div className="space-y-2 sm:space-y-4">
-							<CoinOHLCV pool={pool} />
+							<NexaChart pool={pool} />
 							<PoolTabs pool={pool} />
 						</div>
 					</div>
