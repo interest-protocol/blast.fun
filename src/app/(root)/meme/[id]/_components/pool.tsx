@@ -47,8 +47,8 @@ export default function Pool({ poolId }: { poolId: string }) {
 
 				<div className="lg:col-span-1 space-y-2 sm:space-y-4 order-1 lg:order-2">
 					<ReferralShare pool={pool} />
-					<TradingTerminal pool={pool} />
 					<BondingProgress pool={pool} />
+					<TradingTerminal pool={pool} />
 				</div>
 			</div>
 		</div>
