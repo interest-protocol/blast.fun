@@ -56,29 +56,37 @@ export function XCardTrading({ pool, referrerWallet }: XCardTradingProps) {
 				</div>
 			</div>
 
-			<div className="flex-1 flex">
-				{showChart ? (
-					<div className="flex-1 flex flex-col p-2">
-						<div className="flex-1 min-h-[350px]">
-							<NexaChart pool={pool} className="w-full h-full" />
-						</div>
+			<div className="flex-1 flex relative">
+				<div 
+					className={cn(
+						"flex-1 flex flex-col p-2",
+						!showChart && "hidden"
+					)}
+				>
+					<div className="flex-1 min-h-[350px]">
+						<NexaChart pool={pool} className="w-full h-full" />
 					</div>
-				) : (
-					<div className="flex-1 flex flex-col">
-						<TradingPanel pool={pool} referrerWallet={referrerWallet} />
+				</div>
 
-						<div className="px-3 pb-3">
-							<div className="pt-2 border-t border-foreground/20">
-								<div className="flex items-center gap-1.5">
-									<Logo className="w-4 h-4 text-foreground/60" />
-									<span className="font-mono font-semibold text-xs uppercase text-muted-foreground">
-										XCTASY.FUN
-									</span>
-								</div>
+				<div 
+					className={cn(
+						"flex-1 flex flex-col",
+						showChart && "hidden"
+					)}
+				>
+					<TradingPanel pool={pool} referrerWallet={referrerWallet} />
+
+					<div className="px-3 pb-3">
+						<div className="pt-2 border-t border-foreground/20">
+							<div className="flex items-center gap-1.5">
+								<Logo className="w-4 h-4 text-foreground/60" />
+								<span className="font-mono font-semibold text-xs uppercase text-muted-foreground">
+									XCTASY.FUN
+								</span>
 							</div>
 						</div>
 					</div>
-				)}
+				</div>
 			</div>
 		</div>
 	)
