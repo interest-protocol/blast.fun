@@ -117,21 +117,23 @@ export function usePump({ pool, decimals = 9, actualBalance, referrerWallet }: U
 								amount: amountInMist,
 							})
 
-							// total balance after purchase
-							const totalBalanceAfter = currentBalanceBigInt + quote.memeAmountOut
-							const percentageAfter = (totalBalanceAfter * 100n) / TOTAL_POOL_SUPPLY
+							const totalSupplyHuman = Number(TOTAL_POOL_SUPPLY) / Math.pow(10, decimals)
+							const currentBalanceHuman = Number(currentBalanceBigInt) / Math.pow(10, decimals)
+							const quoteAmountOutHuman = Number(quote.memeAmountOut) / Math.pow(10, decimals)
+							const totalBalanceAfterHuman = currentBalanceHuman + quoteAmountOutHuman
+
+							const percentageAfter = (totalBalanceAfterHuman / totalSupplyHuman) * 100
 
 							// check if it exceeds the max holding percentage
-							const maxPercent = BigInt(settings.maxHoldingPercent)
-							if (percentageAfter > maxPercent) {
-								setError(`MAX::HOLDING_EXCEEDED - This purchase would exceed the ${settings.maxHoldingPercent}% maximum holding limit`)
+							if (percentageAfter > settings.maxHoldingPercent) {
+								setError(`MAX::HOLDING_EXCEEDED - This purchase would give you ${percentageAfter.toFixed(2)}% of total supply, exceeding the ${settings.maxHoldingPercent}% limit`)
 								return
 							}
 						}
 					}
 				} catch (error) {
 					console.error("Failed to check max holding:", error)
-					// continue with the transaction if check fails
+					// continue anyways 
 				}
 			}
 
