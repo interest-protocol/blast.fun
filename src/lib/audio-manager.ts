@@ -10,7 +10,7 @@ interface AudioSettings {
 class SimpleAudioManager {
 	private static instance: SimpleAudioManager
 	private settings: AudioSettings = {
-		enabled: false,
+		enabled: true,
 		volume: 0.5
 	}
 	private listeners: Set<(settings: AudioSettings) => void> = new Set()
