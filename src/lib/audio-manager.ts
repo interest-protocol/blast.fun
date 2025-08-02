@@ -1,6 +1,6 @@
 "use client"
 
-type SoundEffect = 'new_token' | 'buy' | 'sell'
+type SoundEffect = 'new_token' | 'new_trade' | 'buy' | 'sell'
 
 interface AudioSettings {
 	enabled: boolean
@@ -16,9 +16,10 @@ class SimpleAudioManager {
 	private listeners: Set<(settings: AudioSettings) => void> = new Set()
 	private audioElements: Map<SoundEffect, HTMLAudioElement> = new Map()
 	private soundUrls: Record<SoundEffect, string> = {
-		new_token: '/sfx/new_token.mp3',
-		buy: '/sfx/pump.wav', // todo: find new sound
-		sell: '/sfx/pump.wav', // todo: find new sound
+		new_token: '/sfx/new-token.mp3',
+		new_trade: '/sfx/new-trade.mp3',
+		buy: '/sfx/buy.mp3',
+		sell: '/sfx/sell.mp3',
 	}
 
 	private constructor() {
