@@ -14,12 +14,11 @@ export async function GET(request: NextRequest, { params }: Params) {
 
 		const response = await nexa.server.fetch(`/coins/${decodedCoinType}/market-data`)
 		if (!response.ok) {
-			console.error(`Market data API error: ${response.status} for coin ${decodedCoinType}`)
 			throw new Error("Failed to fetch market data")
 		}
 
 		const data = await response.json()
-		return NextResponse.json(data[0])
+		return NextResponse.json(data)
 	} catch (error) {
 		console.error("Error fetching market data:", error)
 		return NextResponse.json(

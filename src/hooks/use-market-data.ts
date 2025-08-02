@@ -5,7 +5,8 @@ export function useMarketData(coinType: string) {
 	return useQuery({
 		queryKey: ["market-data", coinType],
 		queryFn: async () => {
-			const response = await fetch(`/api/${coinType}/market-data`)
+			const encodedCoinType = encodeURIComponent(coinType)
+			const response = await fetch(`/api/${encodedCoinType}/market-data`)
 
 			if (!response.ok) {
 				throw new Error("Failed to fetch market data")
