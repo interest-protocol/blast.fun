@@ -1,14 +1,29 @@
 "use client"
 
+import { lazy, Suspense } from "react"
 import { Logo } from "@/components/ui/logo"
-import { SplashLoader } from "@/components/shared/splash-loader"
 import { usePoolWithMetadata } from "@/hooks/pump/use-pool-with-metadata"
 import { BondingProgress } from "./bonding-progress"
 import { PoolHeader } from "./pool-header"
 import { TradingTerminal } from "./trading-terminal"
-import { PoolTabs } from "./pool-tabs"
 import { NexaChart } from "@/components/shared/nexa-chart"
 import { ReferralShare } from "./referral-share"
+import { SplashLoader } from "@/components/shared/splash-loader"
+
+const PoolTabs = lazy(() => import("./pool-tabs").then(mod => ({ default: mod.PoolTabs })))
+
+function TabsSkeleton() {
+	return (
+		<div className="space-y-2">
+			<div className="flex gap-4 border-b border-border/50 animate-pulse">
+				{[1, 2, 3, 4].map(i => (
+					<div key={i} className="h-10 w-24 bg-muted/30 rounded" />
+				))}
+			</div>
+			<div className="h-[400px] bg-muted/20 rounded-lg animate-pulse" />
+		</div>
+	)
+}
 
 export default function Pool({ poolId }: { poolId: string }) {
 	const { data: pool, isLoading, error } = usePoolWithMetadata(poolId)
@@ -40,7 +55,10 @@ export default function Pool({ poolId }: { poolId: string }) {
 
 						<div className="space-y-2 sm:space-y-4">
 							<NexaChart pool={pool} />
-							<PoolTabs pool={pool} />
+
+							<Suspense fallback={<TabsSkeleton />}>
+								<PoolTabs pool={pool} />
+							</Suspense>
 						</div>
 					</div>
 				</div>
