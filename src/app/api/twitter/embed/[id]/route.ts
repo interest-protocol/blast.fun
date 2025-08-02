@@ -1,3 +1,4 @@
+import { BASE_DOMAIN } from "@/constants"
 import { env } from "@/env"
 import { NextRequest, NextResponse } from "next/server"
 
@@ -8,7 +9,7 @@ export async function GET(
     const { id } = await params
     const searchParams = request.nextUrl.searchParams
     const refCode = searchParams.get("ref")
-    const appUrl = env.NEXT_PUBLIC_APP_URL
+    const appUrl = new URL(BASE_DOMAIN)
 
     // build URL with referral code if present
     const xCardUrl = refCode ? `${appUrl}/x-card/${id}?ref=${refCode}` : `${appUrl}/x-card/${id}`
