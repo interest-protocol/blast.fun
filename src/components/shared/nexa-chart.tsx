@@ -11,7 +11,7 @@ interface NexaChartProps {
 
 export function NexaChart({ pool, className = "relative w-full h-[500px]" }: NexaChartProps) {
 	const [isLoading, setIsLoading] = useState(true)
-	const chartUrl = `https://app.nexa.xyz/trading-view-chart/${pool.coinType}`
+	const chartUrl = `https://app.nexa.xyz/xpump-tv-chart/${pool.coinType}`
 
 	return (
 		<div className={className}>
