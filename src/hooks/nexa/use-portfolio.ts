@@ -14,8 +14,8 @@ export function usePortfolio(coinType?: string) {
 			return fetchPortfolio(account.address)
 		},
 		enabled: !!account?.address,
-		refetchInterval: 10000, // refetch every 10 seconds
-		staleTime: 5000, // consider data stale after 5 seconds
+		refetchInterval: 15000,
+		staleTime: 10000,
 	})
 
 	// find specific coin balance if coinType is provided
