@@ -14,6 +14,7 @@ import { formatAmountWithSuffix, formatNumberWithSuffix } from "@/utils/format"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { DEFAULT_TOKEN_DECIMALS } from "@/constants"
 import type { TradeData, CoinTrade, UnifiedTrade } from "@/types/trade"
+import { playSound } from "@/lib/audio"
 
 interface TradesTabProps {
 	pool: PoolWithMetadata
@@ -50,6 +51,9 @@ function useRealtimeTrades(coinType: string, poolSymbol?: string) {
 		}
 
 		setRealtimeTrades(prev => [newTrade, ...prev].slice(0, 100))
+		
+		// Play sound for new trades
+		playSound('new_trade')
 	}, [poolSymbol])
 
 	useEffect(() => {
