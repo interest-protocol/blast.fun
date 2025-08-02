@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { TokenAvatar } from "./token-avatar"
 import type { PoolWithMetadata } from "@/types/pool"
-import { formatMistToSui, formatNumberWithSuffix } from "@/utils/format"
+import { formatNumberWithSuffix } from "@/utils/format"
 import { CopyableToken } from "../shared/copyable-token"
 import { CreatorHoverCard } from "@/components/creator/creator-hover-card"
 import { CreatorDisplay } from "@/components/creator/creator-display"
@@ -22,6 +22,7 @@ export function TokenCard({ pool }: TokenCardProps) {
 	const { data: marketData } = useMarketData(pool.coinType)
 
 	const marketCap = marketData ? parseFloat(marketData.marketCap) : 0
+	const totalLiquidityUsd = marketData ? parseFloat(marketData.totalLiquidityUsd) : 0
 	const bondingProgress = parseFloat(pool.bondingCurve)
 
 	const creatorTwitterId = metadata.CreatorTwitterId
@@ -101,7 +102,7 @@ export function TokenCard({ pool }: TokenCardProps) {
 									<TooltipTrigger asChild>
 										<div className="flex items-center gap-1">
 											<span className="text-muted-foreground/60 uppercase tracking-wider text-[9px] sm:text-[10px]">LIQ</span>
-											<span className="font-semibold text-blue-500/90 text-[11px] sm:text-xs transition-all duration-300">{formatMistToSui(pool.quoteBalance)} SUI</span>
+											<span className="font-semibold text-blue-500/90 text-[11px] sm:text-xs transition-all duration-300">${formatNumberWithSuffix(totalLiquidityUsd)}</span>
 										</div>
 									</TooltipTrigger>
 									<TooltipContent>
