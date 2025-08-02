@@ -54,7 +54,9 @@ export default function Pool({ poolId }: { poolId: string }) {
 						<PoolHeader pool={pool} />
 
 						<div className="space-y-2 sm:space-y-4">
-							<NexaChart pool={pool} />
+							<div className="border-2 shadow-lg rounded-xl">
+								<NexaChart pool={pool} />
+							</div>
 
 							<Suspense fallback={<TabsSkeleton />}>
 								<PoolTabs pool={pool} />
