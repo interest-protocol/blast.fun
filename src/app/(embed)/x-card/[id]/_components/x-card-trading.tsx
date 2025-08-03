@@ -57,7 +57,7 @@ export function XCardTrading({ pool, referrerWallet }: XCardTradingProps) {
 			</div>
 
 			<div className="flex-1 flex relative">
-				<div 
+				<div
 					className={cn(
 						"flex-1 flex flex-col p-2",
 						!showChart && "hidden"
@@ -68,7 +68,7 @@ export function XCardTrading({ pool, referrerWallet }: XCardTradingProps) {
 					</div>
 				</div>
 
-				<div 
+				<div
 					className={cn(
 						"flex-1 flex flex-col",
 						showChart && "hidden"
@@ -81,7 +81,7 @@ export function XCardTrading({ pool, referrerWallet }: XCardTradingProps) {
 							<div className="flex items-center gap-1.5">
 								<Logo className="w-4 h-4 text-foreground/60" />
 								<span className="font-mono font-semibold text-xs uppercase text-muted-foreground">
-									XCTASY.FUN
+									BLAST.FUN
 								</span>
 							</div>
 						</div>

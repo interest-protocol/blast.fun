@@ -3,21 +3,21 @@ import type { SiteConfig } from "@/types/app"
 export const BASE_DOMAIN = (() => {
     switch (process.env.NEXT_PUBLIC_VERCEL_ENV) {
         case "production":
-            return "https://xctasy.fun";
+            return "https://blast.fun";
         case "preview":
-            return "https://staging.xctasy.fun";
+            return "https://staging.blast.fun";
         default:
             return "http://localhost:3000";
     }
 })();
 
 export const siteConfig: SiteConfig = {
-    name: 'XCTASY.FUN',
-    description: 'Launch, trade and explore everything memecoins on xctasy.fun',
-    url: 'https://xctasy.fun',
-    image: `${BASE_DOMAIN}/logo/xctasy-bg.png`,
+    name: 'BLAST.FUN',
+    description: 'Launch, trade and explore everything memecoins on blast.fun',
+    url: 'https://blast.fun',
+    image: `${BASE_DOMAIN}/logo/blast-bg.png`,
     links: {
-        twitter: "https://twitter.com/xctasyfun"
+        twitter: "https://twitter.com/blastdotfun"
     }
 }
 

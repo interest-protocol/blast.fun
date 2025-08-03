@@ -21,7 +21,7 @@ export default function Header() {
 					<Link href="/" className="group flex items-center gap-2.5">
 						<Logo className="h-8 w-8 text-destructive group-hover:text-destructive/80 transition-colors" />
 						<span className="hidden sm:inline-block font-black text-lg text-foreground group-hover:text-destructive transition-colors">
-							XCTASY.FUN
+							BLAST.FUN
 						</span>
 					</Link>
 

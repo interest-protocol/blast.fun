@@ -32,11 +32,11 @@ export async function GET(
 
     <!-- Twitter Player Card Tags -->
     <meta name="twitter:card" content="player" />
-    <meta name="twitter:creator" content="@xctasyfun">
-    <meta name="twitter:site" content="@xctasyfun" />
-    <meta name="twitter:image" content="${appUrl}/logo/xctasy-bg.png" />
-    <meta name="twitter:title" content="Trade memecoins on xctasy.fun directly within X." />
-    <meta name="twitter:description" content="Buy & sell memecoins on xctasy.fun directly within X. Just click me and you'll see for yourself!" />
+    <meta name="twitter:creator" content="@blastdotfun">
+    <meta name="twitter:site" content="@blastdotfun" />
+    <meta name="twitter:image" content="${appUrl}/logo/blast-bg.png" />
+    <meta name="twitter:title" content="Trade memecoins on blast.fun directly within X." />
+    <meta name="twitter:description" content="Buy & sell memecoins on blast.fun directly within X. Just click me and you'll see for yourself!" />
 
     <meta name="twitter:url" content="${xCardUrl}" />
     <meta name="twitter:player" content="${xCardUrl}" />
@@ -45,12 +45,12 @@ export async function GET(
 
     <!-- OpenGraph tags -->
     <meta property="og:type" content="video.movie" />
-    <meta property="og:title" content="Trade memecoins on xctasy.fun directly within X." />
+    <meta property="og:title" content="Trade memecoins on blast.fun directly within X." />
     <meta property="og:description" content="Connect wallet and trade tokens directly" />
-    <meta property="og:image" content="${appUrl}/logo/xctasy-bg.png" />
+    <meta property="og:image" content="${appUrl}/logo/blast-bg.png" />
     <meta property="og:url" content="${xCardUrl}" />
     
-    <title>xctasy.fun terminal</title>
+    <title>blast.fun terminal</title>
 </head>
 </html>`
 

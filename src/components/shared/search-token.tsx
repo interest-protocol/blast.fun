@@ -19,7 +19,7 @@ export function SearchToken() {
 
 	useEffect(() => {
 		const down = (e: KeyboardEvent) => {
-			if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+			if (e.key === "f") {
 				e.preventDefault()
 				setOpen((open) => !open)
 			}
@@ -48,13 +48,11 @@ export function SearchToken() {
 			<CommandDialog
 				open={open}
 				onOpenChange={setOpen}
-				title="Search XCTASY.FUN"
-				description="Quickly navigate or search for tokens"
 				className="flex max-w-md flex-col gap-0 overflow-hidden p-0 rounded-xl shadow-xl"
 				showCloseButton={false}
 			>
 				<CommandInput
-					placeholder="Search tokens, navigate, or run commands..."
+					placeholder="Search for tokens..."
 					className="h-14 text-sm px-4"
 				/>
 			</CommandDialog>
