@@ -8,7 +8,7 @@ import { useInfiniteQuery } from "@tanstack/react-query"
 import { formatAddress } from "@mysten/sui/utils"
 import { getTxExplorerUrl } from "@/utils/transaction"
 import { Logo } from "@/components/ui/logo"
-import { getTradesFeedSocket } from "@/lib/websocket/trades-feed"
+import nexaSocket from "@/lib/websocket/nexa-socket"
 import { cn } from "@/utils"
 import { formatAmountWithSuffix, formatNumberWithSuffix } from "@/utils/format"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -61,8 +61,7 @@ function useRealtimeTrades(coinType: string, poolSymbol?: string) {
 	useEffect(() => {
 		if (!coinType) return
 
-		const socket = getTradesFeedSocket()
-		const unsubscribe = socket.subscribeToCoinTrades(coinType, handleNewTrade)
+		const unsubscribe = nexaSocket.subscribeToCoinTrades(coinType, handleNewTrade)
 
 		return () => {
 			unsubscribe()
@@ -74,7 +73,7 @@ function useRealtimeTrades(coinType: string, poolSymbol?: string) {
 
 export function TradesTab({ pool, className, onLoad }: TradesTabProps) {
 	const TRADES_PER_PAGE = 20
-	
+
 	const {
 		data,
 		fetchNextPage,
