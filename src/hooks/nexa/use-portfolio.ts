@@ -14,7 +14,8 @@ export function usePortfolio(coinType?: string) {
 			return fetchPortfolio(account.address)
 		},
 		enabled: !!account?.address,
-		refetchInterval: 3000
+		refetchInterval: 3000,
+		gcTime: 0,
 	})
 
 	// find specific coin balance if coinType is provided
