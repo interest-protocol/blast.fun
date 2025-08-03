@@ -4,10 +4,12 @@ import type { TradeData } from '@/types/trade'
 
 const URL = 'https://socket.insidex.trade'
 
+type SubscriptionCallback = ((price: number) => void) | ((trade: TradeData) => void)
+
 class NexaSocket {
 	private socket: Socket | null = null
 	private isConnecting = false
-	private activeSubscriptions = new Map<string, Set<Function>>()
+	private activeSubscriptions = new Map<string, Set<SubscriptionCallback>>()
 
 	constructor() {
 		this.connect()
