@@ -4,9 +4,15 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { navigationItems } from "@/constants/navigation"
 import { cn } from "@/utils"
+import { useCustomNavigation } from "@/hooks/use-custom-navigation"
 
 export function MobileNavigation() {
 	const pathname = usePathname()
+
+	const { hideMainNav } = useCustomNavigation()
+	if (hideMainNav) {
+		return null
+	}
 
 	return (
 		<div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border/50">
