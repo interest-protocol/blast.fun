@@ -17,25 +17,27 @@ export function DesktopNav() {
 						key={item.href}
 						href={item.href}
 						className={cn(
-							"group relative px-4 py-2 font-mono text-sm uppercase tracking-wider transition-all duration-300",
-							"hover:text-primary/80",
-							isActive ? "text-primary" : "text-muted-foreground"
+							"group relative px-5 py-2.5 rounded-xl transition-all duration-300",
+							"hover:bg-destructive/10",
+							isActive && "bg-destructive/15"
 						)}
 					>
-						<span className="relative z-10 flex items-center gap-2">
-							<item.icon className="h-4 w-4" />
+						<span className={cn(
+							"relative z-10 flex items-center gap-2.5 font-mono text-xs uppercase tracking-wider transition-all duration-300",
+							isActive ? "text-destructive font-bold" : "text-muted-foreground hover:text-foreground"
+						)}>
+							<item.icon className={cn(
+								"h-4 w-4 transition-all duration-300",
+								isActive && "text-destructive",
+								"group-hover:scale-110"
+							)} />
 							{item.label}
 						</span>
 
-						{/* glow effect */}
-						<div
-							className={cn(
-								"absolute inset-0 bg-primary/10 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300",
-								isActive && "opacity-50"
-							)}
-						/>
-
-						{isActive && <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary" />}
+						{/* Active indicator */}
+						{isActive && (
+							<div className="absolute inset-0 bg-gradient-to-r from-destructive/0 via-destructive/10 to-destructive/0 rounded-xl" />
+						)}
 					</Link>
 				)
 			})}
