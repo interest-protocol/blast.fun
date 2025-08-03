@@ -3,12 +3,14 @@
 import { lazy, Suspense } from "react"
 import { Logo } from "@/components/ui/logo"
 import { usePoolWithMetadata } from "@/hooks/pump/use-pool-with-metadata"
+import { useBreakpoint } from "@/hooks/use-breakpoint"
 import { BondingProgress } from "./bonding-progress"
 import { PoolHeader } from "./pool-header"
 import { TradingTerminal } from "./trading-terminal"
 import { NexaChart } from "@/components/shared/nexa-chart"
 import { ReferralShare } from "./referral-share"
 import { SplashLoader } from "@/components/shared/splash-loader"
+import PoolMobile from "./pool-mobile"
 
 const PoolTabs = lazy(() => import("./pool-tabs").then(mod => ({ default: mod.PoolTabs })))
 
@@ -27,6 +29,7 @@ function TabsSkeleton() {
 
 export default function Pool({ poolId }: { poolId: string }) {
 	const { data: pool, isLoading, error } = usePoolWithMetadata(poolId)
+	const { isMobile } = useBreakpoint()
 
 	if (isLoading) {
 		return <SplashLoader />
@@ -44,6 +47,10 @@ export default function Pool({ poolId }: { poolId: string }) {
 				</div>
 			</div>
 		)
+	}
+
+	if (isMobile) {
+		return <PoolMobile pool={pool} />
 	}
 
 	return (

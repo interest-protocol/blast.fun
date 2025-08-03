@@ -23,6 +23,7 @@ export function NexaChart({ pool, className = "relative w-full h-[500px]" }: Nex
 					</div>
 				</div>
 			)}
+
 			<iframe
 				src={chartUrl}
 				className={cn("w-full h-full rounded-xl border-0", isLoading && "opacity-0")}

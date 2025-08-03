@@ -18,6 +18,8 @@ import { playSound } from "@/lib/audio"
 
 interface TradesTabProps {
 	pool: PoolWithMetadata
+	className?: string
+	onLoad?: () => void
 }
 
 function useRealtimeTrades(coinType: string, poolSymbol?: string) {
@@ -70,7 +72,7 @@ function useRealtimeTrades(coinType: string, poolSymbol?: string) {
 	return realtimeTrades
 }
 
-export function TradesTab({ pool }: TradesTabProps) {
+export function TradesTab({ pool, className, onLoad }: TradesTabProps) {
 	const TRADES_PER_PAGE = 20
 	
 	const {
@@ -169,6 +171,12 @@ export function TradesTab({ pool }: TradesTabProps) {
 		return () => observer.disconnect()
 	}, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
+	useEffect(() => {
+		if (!isLoading && onLoad) {
+			onLoad()
+		}
+	}, [isLoading, onLoad])
+
 	const formatAge = (timestamp: number) => {
 		const seconds = Math.floor((Date.now() - timestamp) / 1000)
 		if (seconds < 60) return `${seconds}s ago`
@@ -212,7 +220,7 @@ export function TradesTab({ pool }: TradesTabProps) {
 	}
 
 	return (
-		<ScrollArea className="h-[500px]" ref={scrollRef}>
+		<ScrollArea className={cn(className || "h-[500px]")} ref={scrollRef}>
 			<div className="w-full">
 				{unifiedTrades.length === 0 ? (
 					<div className="text-center py-12">
