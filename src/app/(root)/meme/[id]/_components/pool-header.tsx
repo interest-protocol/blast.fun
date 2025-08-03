@@ -39,10 +39,11 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
 
 	// subscribe to realtime price updates
 	useEffect(() => {
-		if (!pool.poolId) return
+		if (!pool.pumpPoolData) return
 
+		const poolId = pool.pumpPoolData.dynamicFieldDataId
 		const unsubscribe = nexaSocket.subscribeToTokenPrice(
-			pool.pumpPoolData!.dynamicFieldDataId,
+			poolId,
 			'direct',
 			(price) => {
 				setRealtimePrice(prevPrice => {
@@ -60,7 +61,7 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
 		return () => {
 			unsubscribe()
 		}
-	}, [pool.poolId])
+	}, [pool.pumpPoolData])
 
 	return (
 		<div className="border-2 shadow-lg rounded-xl p-3 sm:p-2 overflow-hidden">
