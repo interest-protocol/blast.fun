@@ -7,7 +7,7 @@ import { fetchPortfolio } from "@/lib/fetch-portfolio"
 export function usePortfolio(coinType?: string) {
 	const account = useCurrentAccount()
 
-	const { data, isLoading, error } = useQuery({
+	const { data, isLoading, error, refetch } = useQuery({
 		queryKey: ["portfolio-balance", account?.address, coinType],
 		queryFn: async () => {
 			if (!account?.address) return null
@@ -28,5 +28,6 @@ export function usePortfolio(coinType?: string) {
 		balance: coinBalance?.balance || "0",
 		isLoading,
 		error,
+		refetch,
 	}
 }

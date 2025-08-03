@@ -26,7 +26,7 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 	const [isInputFocused, setIsInputFocused] = useState(false)
 
 	const { balance: tokenBalance } = useTokenBalance(pool.coinType)
-	const { balance: actualBalance } = usePortfolio(pool.coinType)
+	const { balance: actualBalance, refetch: refetchPortfolio, isLoading: isPortfolioLoading } = usePortfolio(pool.coinType)
 	const metadata = pool.coinMetadata
 	const decimals = metadata?.decimals || 9
 
@@ -51,6 +51,7 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 		const slippageNum = parseFloat(slippage)
 
 		await pump(suiAmount.toString(), slippageNum)
+		await refetchPortfolio()
 		setAmount("")
 	}
 
@@ -63,6 +64,7 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 		const slippageNum = parseFloat(slippage)
 
 		await dump(tokenAmountToSell.toString(), slippageNum)
+		await refetchPortfolio()
 		setAmount("")
 	}
 
@@ -79,6 +81,7 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 			await dump(amount, slippageNum)
 		}
 
+		await refetchPortfolio()
 		setAmount("")
 	}
 
@@ -117,12 +120,17 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 							)}>
 								<div className="flex items-center justify-between">
 									<span className="font-mono text-xs uppercase text-muted-foreground">BALANCE</span>
-									<span className={cn(
-										"font-mono text-sm uppercase tracking-wider",
-										!hasBalance && "text-red-500/70"
-									)}>
-										{formattedBalance} {metadata?.symbol || "[UNKNOWN]"}
-									</span>
+									<div className="flex items-center gap-2">
+										<span className={cn(
+											"font-mono text-sm uppercase tracking-wider",
+											!hasBalance && "text-red-500/70"
+										)}>
+											{formattedBalance} {metadata?.symbol || "[UNKNOWN]"}
+										</span>
+										{isPortfolioLoading && (
+											<div className="w-3 h-3 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+										)}
+									</div>
 								</div>
 
 								{!hasBalance && (
