@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { DEFAULT_TOKEN_DECIMALS } from "@/constants"
 import type { TradeData, CoinTrade, UnifiedTrade } from "@/types/trade"
 import { playSound } from "@/lib/audio"
+import { TradeAge } from "@/components/trade/trade-age"
 
 interface TradesTabProps {
 	pool: PoolWithMetadata
@@ -173,19 +174,6 @@ export function TradesTab({ pool, className, onLoad }: TradesTabProps) {
 		}
 	}, [isLoading, onLoad])
 
-	const formatAge = (timestamp: number) => {
-		const seconds = Math.floor((Date.now() - timestamp) / 1000)
-		if (seconds < 60) return `${seconds}s ago`
-
-		const minutes = Math.floor(seconds / 60)
-		if (minutes < 60) return `${minutes}m ago`
-
-		const hours = Math.floor(minutes / 60)
-		if (hours < 24) return `${hours}h ago`
-
-		return `${Math.floor(hours / 24)}d ago`
-	}
-
 	const formatValue = (value: number) => {
 		if (value < 1) return `$${value.toFixed(4)}`
 		if (value < 1000) return `$${value.toFixed(2)}`
@@ -263,7 +251,7 @@ export function TradesTab({ pool, className, onLoad }: TradesTabProps) {
 
 									<div className="relative grid grid-cols-12 gap-2 px-4 py-3 items-center border-b border-border/30">
 										<div className="col-span-2 font-mono text-xs text-muted-foreground">
-											{formatAge(trade.timestamp)}
+											<TradeAge timestamp={trade.timestamp} />
 										</div>
 
 										<div className="col-span-1">
