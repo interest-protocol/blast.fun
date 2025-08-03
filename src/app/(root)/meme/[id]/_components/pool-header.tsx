@@ -1,7 +1,7 @@
 "use client"
 
 import { Globe, Send, Twitter, TrendingUp, TrendingDown } from "lucide-react"
-import React from "react"
+import { useState, useEffect } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -12,6 +12,8 @@ import { CreatorHoverCard } from "@/components/creator/creator-hover-card"
 import { CreatorDisplay } from "@/components/creator/creator-display"
 import { useMarketData } from "@/hooks/use-market-data"
 import { cn } from "@/utils"
+import nexaSocket from "@/lib/websocket/nexa-socket"
+import { RollingNumber } from "@/components/ui/rolling-number"
 
 interface PoolHeaderProps {
 	pool: PoolWithMetadata
@@ -20,17 +22,45 @@ interface PoolHeaderProps {
 export function PoolHeader({ pool }: PoolHeaderProps) {
 	const metadata = pool.coinMetadata
 	const { data: marketData } = useMarketData(pool.coinType)
+	const [realtimePrice, setRealtimePrice] = useState<number | null>(null)
+	const [priceFlash, setPriceFlash] = useState<'up' | 'down' | null>(null)
 
 	const creatorTwitterId = pool.metadata?.CreatorTwitterId
 	const creatorTwitterName = pool.metadata?.CreatorTwitterName
 	const creatorWallet = pool.metadata?.CreatorWallet || pool.creatorAddress
 	const showTwitterCreator = creatorTwitterId && creatorTwitterName
 
-	const priceChange24h = marketData ? parseFloat(marketData.percentagePriceChange24h) : 0
+	const priceChange24h = marketData?.percentagePriceChange24h ? parseFloat(marketData.percentagePriceChange24h) : null
 	const volume24h = marketData ? parseFloat(marketData.volume24h) : 0
-	const currentPrice = marketData ? parseFloat(marketData.coinPrice) : 0
+	const basePrice = marketData ? parseFloat(marketData.coinPrice) : 0
+	const currentPrice = realtimePrice || basePrice
 	const marketCap = marketData ? parseFloat(marketData.marketCap) : 0
 	const totalLiquidityUsd = marketData ? parseFloat(marketData.totalLiquidityUsd) : 0
+
+	// subscribe to realtime price updates
+	useEffect(() => {
+		if (!pool.poolId) return
+
+		const unsubscribe = nexaSocket.subscribeToTokenPrice(
+			pool.pumpPoolData!.dynamicFieldDataId,
+			'direct',
+			(price) => {
+				setRealtimePrice(prevPrice => {
+					// flash indicator for price changes
+					if (prevPrice !== null && prevPrice !== price) {
+						setPriceFlash(price > prevPrice ? 'up' : 'down')
+						setTimeout(() => setPriceFlash(null), 500)
+					}
+
+					return price
+				})
+			}
+		)
+
+		return () => {
+			unsubscribe()
+		}
+	}, [pool.poolId])
 
 	return (
 		<div className="border-2 shadow-lg rounded-xl p-3 sm:p-2 overflow-hidden">
@@ -90,10 +120,19 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
 						<div className="group cursor-default">
 							<p className="font-mono font-semibold text-[10px] sm:text-xs uppercase text-muted-foreground/70 mb-0.5">Price</p>
 							<div className="flex items-center gap-1">
-								<p className="font-mono text-xs sm:text-sm font-bold text-primary group-hover:text-primary/80 transition-colors">
-									${currentPrice > 0.01 ? currentPrice.toFixed(4) : currentPrice.toFixed(8)}
-								</p>
-								{priceChange24h !== 0 && (
+								<div className={cn(
+									"font-mono text-xs sm:text-sm font-bold text-primary group-hover:text-primary/80 transition-all duration-200",
+									priceFlash === 'up' && "text-green-500",
+									priceFlash === 'down' && "text-red-500"
+								)}>
+									$<RollingNumber
+										value={currentPrice}
+										formatFn={(v) => v > 0.01 ? v.toFixed(4) : v.toFixed(8)}
+										staggerDelay={40}
+									/>
+								</div>
+
+								{priceChange24h && priceChange24h !== 0 && (
 									<span className={cn(
 										"flex items-center gap-0.5 text-[10px] sm:text-xs font-mono font-bold px-1 py-0.5 rounded",
 										priceChange24h > 0
