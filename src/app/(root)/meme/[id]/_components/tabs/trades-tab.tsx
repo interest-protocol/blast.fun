@@ -52,8 +52,6 @@ function useRealtimeTrades(coinType: string, poolSymbol?: string) {
 		}
 
 		setRealtimeTrades(prev => [newTrade, ...prev].slice(0, 100))
-
-		// Play sound for new trades
 		playSound('new_trade')
 	}, [coinType, poolSymbol])
 
@@ -139,9 +137,9 @@ export function TradesTab({ pool, className, onLoad }: TradesTabProps) {
 
 	const unifiedTrades = useMemo(() => {
 		const combined = [...realtimeTrades, ...historicalTrades]
-		const uniqueTrades = Array.from(
-			new Map(combined.map(t => [t.digest, t])).values()
-		)
+
+		// deduplicate by digest
+		const uniqueTrades = Array.from(new Map(combined.filter(t => t.digest).map(t => [t.digest, t])).values())
 		return uniqueTrades.sort((a, b) => b.timestamp - a.timestamp)
 	}, [realtimeTrades, historicalTrades])
 
@@ -249,7 +247,7 @@ export function TradesTab({ pool, className, onLoad }: TradesTabProps) {
 
 							return (
 								<div
-									key={trade.id}
+									key={trade.digest}
 									className={cn(
 										"relative group hover:bg-muted/5 transition-all duration-200",
 										isNewTrade && "animate-in fade-in slide-in-from-top-1"
