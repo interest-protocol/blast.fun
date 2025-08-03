@@ -24,17 +24,16 @@ interface TradesTabProps {
 
 function useRealtimeTrades(coinType: string, poolSymbol?: string) {
 	const [realtimeTrades, setRealtimeTrades] = useState<UnifiedTrade[]>([])
-	const tradeIdCounter = useRef(0)
 
 	const handleNewTrade = useCallback((trade: TradeData) => {
-		const isBuy = trade.operationType === 'buy'
+		const isBuy = trade.coinOut === coinType
 		const coinInDecimals = trade.coinInMetadata?.decimals || DEFAULT_TOKEN_DECIMALS
 		const coinOutDecimals = trade.coinOutMetadata?.decimals || DEFAULT_TOKEN_DECIMALS
 		const amountIn = Number(trade.amountIn) / Math.pow(10, coinInDecimals)
 		const amountOut = Number(trade.amountOut) / Math.pow(10, coinOutDecimals)
 
 		const newTrade: UnifiedTrade = {
-			id: `realtime-${Date.now()}-${tradeIdCounter.current++}`,
+			id: trade._id || trade.digest,
 			timestamp: trade.timestampMs,
 			type: isBuy ? "BUY" : "SELL",
 			amountIn,
@@ -43,20 +42,20 @@ function useRealtimeTrades(coinType: string, poolSymbol?: string) {
 			coinOut: trade.coinOut,
 			coinInSymbol: trade.coinInMetadata?.symbol || (isBuy ? "SUI" : poolSymbol),
 			coinOutSymbol: trade.coinOutMetadata?.symbol || (isBuy ? poolSymbol : "SUI"),
-			coinInIconUrl: trade.coinInMetadata?.iconUrl || trade.coinInMetadata?.icon_url || trade.coinInMetadata?.iconURL,
-			coinOutIconUrl: trade.coinOutMetadata?.iconUrl || trade.coinOutMetadata?.icon_url || trade.coinOutMetadata?.iconURL,
-			price: trade.priceOut,
-			value: trade.volume,
+			coinInIconUrl: trade.coinInMetadata?.iconUrl || trade.coinInMetadata?.icon_url,
+			coinOutIconUrl: trade.coinOutMetadata?.iconUrl || trade.coinOutMetadata?.icon_url,
+			price: isBuy ? trade.priceOut : trade.priceIn,
+			value: isBuy ? amountOut * trade.priceOut : amountIn * trade.priceIn,
 			trader: trade.user,
 			digest: trade.digest,
 			isRealtime: true
 		}
 
 		setRealtimeTrades(prev => [newTrade, ...prev].slice(0, 100))
-		
+
 		// Play sound for new trades
 		playSound('new_trade')
-	}, [poolSymbol])
+	}, [coinType, poolSymbol])
 
 	useEffect(() => {
 		if (!coinType) return
