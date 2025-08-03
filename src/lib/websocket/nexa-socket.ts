@@ -76,9 +76,11 @@ class NexaSocket {
 				this.socket.emit('subscribe-price', { pool, direction })
 			}
 
-			this.socket?.on(key, (price: number) => {
+			this.socket?.on(key, (data: { price: number; suiPrice: number; coinPrice: number }) => {
 				const callbacks = this.activeSubscriptions.get(key)
 				if (callbacks) {
+					const price = data.coinPrice
+
 					callbacks.forEach(cb => {
 						try {
 							cb(price)
