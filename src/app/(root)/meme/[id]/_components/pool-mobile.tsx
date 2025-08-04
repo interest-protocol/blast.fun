@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ChartCandlestick, DollarSign, Activity, Home } from "lucide-react"
 import { cn } from "@/utils"
-import { TradingTerminal } from "./trading-terminal"
+import { TradingTerminalMobile } from "./trading-terminal-mobile"
 import { NexaChart } from "@/components/shared/nexa-chart"
 import { TradesTab } from "./tabs/trades-tab"
 import type { PoolWithMetadata } from "@/types/pool"
@@ -44,13 +44,13 @@ export default function PoolMobile({ pool }: { pool: PoolWithMetadata }) {
 		<div className="fixed inset-0 top-[calc(theme(spacing.16)+theme(spacing.12))] bottom-0 lg:hidden flex flex-col">
 			<div className="flex-1 overflow-hidden">
 				{activeTab === "chart" && (
-					<NexaChart pool={pool} className="w-full h-full" />
+					<div className="h-full relative">
+						<NexaChart pool={pool} className="w-full h-full" />
+					</div>
 				)}
 
 				{activeTab === "trade" && (
-					<div className="h-full overflow-y-auto p-4">
-						<TradingTerminal pool={pool} />
-					</div>
+					<TradingTerminalMobile pool={pool} className="h-full" />
 				)}
 
 				{activeTab === "activity" && (
