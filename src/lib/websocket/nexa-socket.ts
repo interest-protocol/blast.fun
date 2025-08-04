@@ -4,12 +4,13 @@ import type { TradeData } from '@/types/trade'
 
 const URL = 'https://socket.insidex.trade'
 
-type SubscriptionCallback = ((price: number) => void) | ((trade: TradeData) => void)
+type PriceCallback = (price: number) => void
+type TradeCallback = (trade: TradeData) => void
 
 class NexaSocket {
 	private socket: Socket | null = null
 	private isConnecting = false
-	private activeSubscriptions = new Map<string, Set<SubscriptionCallback>>()
+	private activeSubscriptions = new Map<string, Set<PriceCallback | TradeCallback>>()
 
 	constructor() {
 		this.connect()
@@ -85,7 +86,7 @@ class NexaSocket {
 
 					callbacks.forEach(cb => {
 						try {
-							cb(price)
+							(cb as PriceCallback)(price)
 						} catch (error) {
 							console.error('Price callback error:', error)
 						}
@@ -134,7 +135,7 @@ class NexaSocket {
 				if (callbacks) {
 					callbacks.forEach(cb => {
 						try {
-							cb(trade)
+							(cb as TradeCallback)(trade)
 						} catch (error) {
 							console.error('Trade callback error:', error)
 						}
