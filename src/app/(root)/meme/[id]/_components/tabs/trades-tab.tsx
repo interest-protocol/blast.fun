@@ -218,12 +218,12 @@ export function TradesTab({ pool, className, onLoad }: TradesTabProps) {
 					</div>
 				) : (
 					<div className="relative">
-						<div className="grid grid-cols-12 gap-2 px-4 py-2 border-b border-border/50 text-xs font-mono uppercase text-muted-foreground sticky top-0 bg-background/95 backdrop-blur-sm z-10">
+						<div className="grid grid-cols-12 gap-2 px-2 sm:px-4 py-2 border-b border-border/50 text-[10px] sm:text-xs font-mono uppercase text-muted-foreground sticky top-0 bg-background/95 backdrop-blur-sm z-10">
 							<div className="col-span-2">Age</div>
 							<div className="col-span-1">Type</div>
-							<div className="col-span-3">Trade</div>
-							<div className="col-span-2 text-right">Price</div>
-							<div className="col-span-2 text-right">Total Value</div>
+							<div className="col-span-4 sm:col-span-3">Trade</div>
+							<div className="col-span-2 text-right hidden sm:block">Price</div>
+							<div className="col-span-3 sm:col-span-2 text-right">Value</div>
 							<div className="col-span-2 text-right">Trader</div>
 						</div>
 
@@ -249,68 +249,70 @@ export function TradesTab({ pool, className, onLoad }: TradesTabProps) {
 										style={{ width: `${volumePercentage}%` }}
 									/>
 
-									<div className="relative grid grid-cols-12 gap-2 px-4 py-3 items-center border-b border-border/30">
-										<div className="col-span-2 font-mono text-xs text-muted-foreground">
+									<div className="relative grid grid-cols-12 gap-2 px-2 sm:px-4 py-2 sm:py-3 items-center border-b border-border/30">
+										<div className="col-span-2 font-mono text-[10px] sm:text-xs text-muted-foreground">
 											<TradeAge timestamp={trade.timestamp} />
 										</div>
 
 										<div className="col-span-1">
 											<span className={cn(
-												"font-mono text-xs font-bold uppercase",
+												"font-mono text-[10px] sm:text-xs font-bold uppercase",
 												isBuy ? "text-green-500" : "text-red-500"
 											)}>
-												{trade.type}
+												<span className="hidden sm:inline">{trade.type}</span>
+												<span className="sm:hidden">{trade.type.slice(0, 1)}</span>
 											</span>
 										</div>
 
-										<div className="col-span-3 flex items-center gap-1 font-mono text-xs">
+										<div className="col-span-4 sm:col-span-3 flex items-center gap-1 font-mono text-[10px] sm:text-xs">
 											<span className="text-foreground">
 												{formatNumberWithSuffix(trade.amountIn)}
 											</span>
 											{trade.coinInIconUrl && (
-												<Avatar className="w-4 h-4">
+												<Avatar className="w-3 h-3 sm:w-4 sm:h-4">
 													<AvatarImage src={trade.coinInIconUrl} alt={trade.coinInSymbol} />
-													<AvatarFallback className="text-[8px]">
+													<AvatarFallback className="text-[6px] sm:text-[8px]">
 														{trade.coinInSymbol?.slice(0, 2)}
 													</AvatarFallback>
 												</Avatar>
 											)}
-											<span className="text-muted-foreground">
+											<span className="text-muted-foreground hidden sm:inline">
 												{trade.coinInSymbol || '???'}
 											</span>
-											<span className="text-muted-foreground mx-1">→</span>
+											<span className="text-muted-foreground mx-0.5 sm:mx-1">→</span>
 											<span className="text-foreground">
 												{formatNumberWithSuffix(trade.amountOut)}
 											</span>
 											{trade.coinOutIconUrl && (
-												<Avatar className="w-4 h-4">
+												<Avatar className="w-3 h-3 sm:w-4 sm:h-4">
 													<AvatarImage src={trade.coinOutIconUrl} alt={trade.coinOutSymbol} />
-													<AvatarFallback className="text-[8px]">
+													<AvatarFallback className="text-[6px] sm:text-[8px]">
 														{trade.coinOutSymbol?.slice(0, 2)}
 													</AvatarFallback>
 												</Avatar>
 											)}
-											<span className="text-muted-foreground">
+											<span className="text-muted-foreground hidden sm:inline">
 												{trade.coinOutSymbol || '???'}
 											</span>
 										</div>
 
-										<div className="col-span-2 text-right font-mono text-xs text-foreground/80">
+										<div className="col-span-2 text-right font-mono text-[10px] sm:text-xs text-foreground/80 hidden sm:block">
 											${trade.price > 0.01 ? trade.price.toFixed(4) : trade.price.toFixed(8)}
 										</div>
 
-										<div className="col-span-2 text-right font-mono text-xs text-foreground/60">
+										<div className="col-span-3 sm:col-span-2 text-right font-mono text-[10px] sm:text-xs text-foreground/60">
 											{formatValue(trade.value)}
 										</div>
 
-										<div className="col-span-2 text-right flex items-center justify-end gap-1">
+										<div className="col-span-2 text-right flex items-center justify-end gap-0.5 sm:gap-1">
 											<a
 												href={`https://suivision.xyz/account/${trade.trader}`}
 												target="_blank"
 												rel="noopener noreferrer"
-												className="font-mono text-xs text-muted-foreground hover:text-primary transition-colors"
+												className="font-mono text-[10px] sm:text-xs text-muted-foreground hover:text-primary transition-colors"
 											>
-												{formatAddress(trade.trader)}
+												<span className="sm:hidden">{formatAddress(trade.trader).slice(0, 4) + '...'}</span>
+												<span className="hidden sm:inline">{formatAddress(trade.trader)}</span>
 											</a>
 											<a
 												href={getTxExplorerUrl(trade.digest)}
@@ -318,7 +320,7 @@ export function TradesTab({ pool, className, onLoad }: TradesTabProps) {
 												rel="noopener noreferrer"
 												className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:text-primary"
 											>
-												<ExternalLink className="h-3 w-3" />
+												<ExternalLink className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
 											</a>
 										</div>
 									</div>
