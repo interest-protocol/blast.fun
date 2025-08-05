@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react"
 
-interface TradeAgeProps {
+interface RelativeAgeProps {
 	timestamp: number
 	className?: string
 }
 
-export function TradeAge({ timestamp, className }: TradeAgeProps) {
+export function RelativeAge({ timestamp, className }: RelativeAgeProps) {
 	const [age, setAge] = useState("")
 
 	useEffect(() => {

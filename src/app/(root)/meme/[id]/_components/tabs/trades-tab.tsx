@@ -15,7 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { DEFAULT_TOKEN_DECIMALS } from "@/constants"
 import type { TradeData, CoinTrade, UnifiedTrade } from "@/types/trade"
 import { playSound } from "@/lib/audio"
-import { TradeAge } from "@/components/trade/trade-age"
+import { RelativeAge } from "@/components/shared/relative-age"
 
 interface TradesTabProps {
 	pool: PoolWithMetadata
@@ -251,7 +251,7 @@ export function TradesTab({ pool, className, onLoad }: TradesTabProps) {
 
 									<div className="relative grid grid-cols-12 gap-2 px-2 sm:px-4 py-2 sm:py-3 items-center border-b border-border/30">
 										<div className="col-span-2 font-mono text-[10px] sm:text-xs text-muted-foreground">
-											<TradeAge timestamp={trade.timestamp} />
+											<RelativeAge timestamp={trade.timestamp} />
 										</div>
 
 										<div className="col-span-1">
