@@ -9,12 +9,12 @@ interface NexaChartProps {
 	className?: string
 }
 
-export function NexaChart({ pool, className = "relative w-full h-[500px]" }: NexaChartProps) {
+export function NexaChart({ pool, className }: NexaChartProps) {
 	const [isLoading, setIsLoading] = useState(true)
 	const chartUrl = `https://app.nexa.xyz/xpump-tv-chart/${pool.coinType}`
 
 	return (
-		<div className={className}>
+		<div className={cn("relative w-full h-full", className)}>
 			{isLoading && (
 				<div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm rounded-xl z-10">
 					<div className="text-center">
