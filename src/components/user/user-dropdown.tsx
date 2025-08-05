@@ -1,7 +1,7 @@
 "use client"
 
 import { formatAddress } from "@mysten/sui/utils"
-import { LogOut, Twitter, Unplug } from "lucide-react"
+import { LogOut, Unplug } from "lucide-react"
 import { useState } from "react"
 import { useApp } from "@/context/app.context"
 import { useTwitter } from "@/context/twitter.context"
@@ -10,6 +10,7 @@ import { Button } from "../ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { TwitterUserAvatar } from "./user-avatar"
 import { UserDetails } from "./user-details"
+import { BsTwitterX } from 'react-icons/bs'
 
 export function UserDropdown() {
 	const [open, setOpen] = useState(false)
@@ -57,7 +58,7 @@ export function UserDropdown() {
 						) : (
 							<Button variant="outline" className="w-full justify-start" onClick={login}>
 								<span className="flex flex-grow items-center gap-2">
-									<Twitter className="w-4 h-4" />
+									<BsTwitterX className="w-4 h-4" />
 									Connect X/Twitter
 								</span>
 							</Button>

@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Copy, Twitter, Zap, Loader2, Shield } from "lucide-react"
+import { Copy, Zap, Loader2, Shield } from "lucide-react"
+import { BsTwitterX } from "react-icons/bs";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useReferrals } from "@/hooks/use-referrals"
@@ -87,7 +88,7 @@ export function ReferralShare({ pool }: ReferralShareProps) {
                     <div className="relative">
                         <div className="absolute inset-0 bg-green-500/20 blur-md" />
                         <div className="relative bg-green-500/10 border border-green-500/50 rounded p-2">
-                            <Twitter className="w-5 h-5 text-green-500" />
+                            <BsTwitterX className="w-5 h-5 text-green-500" />
                         </div>
                     </div>
                     <div className="flex-1 space-y-1">
@@ -110,7 +111,7 @@ export function ReferralShare({ pool }: ReferralShareProps) {
                     <div className="flex items-center gap-3">
                         <div className="relative">
                             <div className="absolute inset-0 bg-primary/20 blur-sm" />
-                            <Twitter className="relative w-4 h-4 text-primary/80" />
+                            <BsTwitterX className="relative w-4 h-4 text-primary/80" />
                         </div>
                         <div>
                             <p className="font-mono text-xs uppercase text-foreground/80">
@@ -195,7 +196,7 @@ export function ReferralShare({ pool }: ReferralShareProps) {
                     size="sm"
                     className="flex-1 font-mono uppercase text-[10px]"
                 >
-                    <Twitter className="h-3 w-3 mr-1" />
+                    <BsTwitterX className="h-3 w-3 mr-1" />
                     SHARE
                 </Button>
             </div>

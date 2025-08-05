@@ -1,6 +1,7 @@
 "use client"
 
-import { Globe, Send, Twitter, TrendingUp, TrendingDown } from "lucide-react"
+import { Globe, Send, TrendingUp, TrendingDown } from "lucide-react"
+import { BsTwitterX } from "react-icons/bs";
 import { useState, useEffect } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -186,7 +187,7 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
 								asChild
 							>
 								<a href={pool.metadata.X} target="_blank" rel="noopener noreferrer">
-									<Twitter className="h-4 w-4" />
+									<BsTwitterX className="h-4 w-4" />
 								</a>
 							</Button>
 						)}
