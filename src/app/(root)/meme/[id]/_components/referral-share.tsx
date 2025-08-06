@@ -39,19 +39,18 @@ export function ReferralShare({ pool }: ReferralShareProps) {
 
     if (pool.isProtected) {
         return (
-            <div className="border-2 border-yellow-500/30 rounded-lg bg-yellow-500/5 backdrop-blur-sm p-4">
-                <div className="flex items-center gap-3">
-                    <div className="relative">
-                        <div className="absolute inset-0 bg-yellow-500/20 blur-sm" />
-                        <Shield className="relative w-5 h-5 text-yellow-500" />
-                    </div>
-                    <div className="flex-1 space-y-1">
-                        <p className="font-mono text-xs uppercase text-yellow-500">
-                            PROTECTED::POOL
-                        </p>
-                        <p className="font-mono text-[10px] uppercase text-yellow-500/80">
-                            REFERRAL LINKS NOT AVAILABLE FOR PROTECTED POOLS
-                        </p>
+            <div className="border-b border-border">
+                <div className="p-3">
+                    <div className="flex items-center gap-2">
+                        <Shield className="w-4 h-4 text-orange-500" />
+                        <div className="flex flex-col gap-0.5">
+                            <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                                Protected Pool
+                            </p>
+                            <span className="font-mono text-sm font-bold text-orange-500">
+                                Referrals not available
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -83,21 +82,18 @@ export function ReferralShare({ pool }: ReferralShareProps) {
 
     if (!isConnected) {
         return (
-            <div className="border-2 border-dashed border-muted-foreground/30 rounded-lg bg-background/50 backdrop-blur-sm p-4">
-                <div className="flex items-center gap-4">
-                    <div className="relative">
-                        <div className="absolute inset-0 bg-green-500/20 blur-md" />
-                        <div className="relative bg-green-500/10 border border-green-500/50 rounded p-2">
-                            <BsTwitterX className="w-5 h-5 text-green-500" />
+            <div className="border-b border-border">
+                <div className="p-3">
+                    <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-muted-foreground rounded-full" />
+                        <div className="flex flex-col">
+                            <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                                Referral Program
+                            </p>
+                            <span className="font-mono text-sm text-muted-foreground">
+                                Earn 10% commission sharing tokens
+                            </span>
                         </div>
-                    </div>
-                    <div className="flex-1 space-y-1">
-                        <p className="font-mono text-xs uppercase text-foreground/80">
-                            REFERRAL::EARN [10%] COMMISSION
-                        </p>
-                        <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                            CONNECT::WALLET TO SHARE & EARN
-                        </p>
                     </div>
                 </div>
             </div>
@@ -106,99 +102,107 @@ export function ReferralShare({ pool }: ReferralShareProps) {
 
     if (!refCode) {
         return (
-            <div className="border-2 border-primary/30 rounded-lg bg-background/50 backdrop-blur-sm">
-                <div className="p-4 border-b border-primary/20">
-                    <div className="flex items-center gap-3">
-                        <div className="relative">
-                            <div className="absolute inset-0 bg-primary/20 blur-sm" />
-                            <BsTwitterX className="relative w-4 h-4 text-primary/80" />
-                        </div>
-                        <div>
-                            <p className="font-mono text-xs uppercase text-foreground/80">
-                                REFERRAL::SETUP
-                            </p>
-                            <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                                EARN [10%] ON TWITTER TRADES
-                            </p>
+            <div className="relative border-b border-border">
+                <div className="p-3 space-y-3">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            {/* Indicator */}
+                            <div className="relative flex items-center justify-center">
+                                <div className="absolute w-2 h-2 bg-orange-400 rounded-full animate-pulse" />
+                                <div className="w-2 h-2 bg-orange-400 rounded-full" />
+                            </div>
+
+                            <div className="flex flex-col">
+                                <p className="font-mono font-medium text-[10px] uppercase tracking-wider text-muted-foreground">
+                                    Referral Program
+                                </p>
+                                <span className="font-mono text-sm font-bold text-foreground">
+                                    Earn 10% commission on all trades
+                                </span>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div className="p-4 space-y-3">
-                    <Input
-                        value={inputCode}
-                        onChange={(e) => setInputCode(e.target.value)}
-                        placeholder="ENTER::REFERRAL_CODE"
-                        className="font-mono text-xs placeholder:text-muted-foreground/40 bg-background/50 border-muted-foreground/30"
-                        maxLength={20}
-                        pattern="[a-zA-Z0-9_-]+"
-                    />
+                    <div className="flex gap-2">
+                        <Input
+                            value={inputCode}
+                            onChange={(e) => setInputCode(e.target.value)}
+                            placeholder="Enter referral code"
+                            className="flex-1 font-mono text-xs placeholder:text-muted-foreground/60 bg-background border-border"
+                            maxLength={20}
+                            pattern="[a-zA-Z0-9_-]+"
+                        />
+                        <Button
+                            variant="outline"
+                            onClick={handleInitializeReferral}
+                            disabled={isInitializing || isLoading || inputCode.length < 3}
+                            className="font-mono text-xs uppercase !border-orange-400/50 !bg-orange-400/10 text-orange-400 hover:text-orange-400/80"
+                        >
+                            {isInitializing || isLoading ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                                <>
+                                    <Zap className="h-3.5 w-3.5" />
+                                    ACTIVATE
+                                </>
+                            )}
+                        </Button>
+                    </div>
 
                     {error && (
-                        <p className="font-mono text-[10px] uppercase text-destructive/80">
-                            ERROR::{error}
+                        <p className="font-mono font-medium text-xs uppercase text-destructive">
+                            {error}
                         </p>
                     )}
-
-                    <Button
-                        onClick={handleInitializeReferral}
-                        disabled={isInitializing || isLoading || inputCode.length < 3}
-                        className="w-full font-mono text-xs uppercase bg-primary/20 hover:bg-primary/30 border border-primary/50"
-                        variant="outline"
-                    >
-                        {isInitializing || isLoading ? (
-                            <>
-                                <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                                INITIALIZING...
-                            </>
-                        ) : (
-                            <>
-                                <Zap className="h-3 w-3 mr-2" />
-                                ACTIVATE::REFERRAL
-                            </>
-                        )}
-                    </Button>
                 </div>
             </div>
         )
     }
 
     return (
-        <div className="border-2 p-3 space-y-2 border-dashed shadow-lg rounded-xl overflow-hidden border-green-500/50 dark:border-green-500/30">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 font-semibold">
-                    <div className="relative">
-                        <div className="absolute inset-0 bg-green-500/40 blur-sm animate-pulse" />
-                        <div className="relative w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+        <div className="relative border-b border-border">
+            <div className="p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        {/* Indicator */}
+                        <div className="relative flex items-center justify-center">
+                            <div className="absolute w-2 h-2 bg-green-400 rounded-full animate-ping" />
+                            <div className="w-2 h-2 bg-green-400 rounded-full" />
+                        </div>
+
+                        <div className="flex flex-col">
+                            <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                                Referral Program
+                            </p>
+                            <div className="flex items-center gap-2">
+                                <span className="font-mono text-sm font-bold text-foreground">
+                                    Share this token and earn 10%
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                    <p className="font-mono text-[10px] uppercase text-green-500 dark:text-green-500/80">
-                        REFERRAL::ACTIVE
-                    </p>
                 </div>
 
-                <span className="font-mono font-semibold text-[10px] uppercase text-muted-foreground">
-                    CODE::[{refCode}]
-                </span>
-            </div>
-
-            <div className="flex gap-2">
-                <Button
-                    onClick={handleCopy}
-                    variant="outline"
-                    size="sm"
-                    className="flex-1 font-mono uppercase text-[10px]"
-                >
-                    <Copy className="h-3 w-3 mr-1" />
-                    COPY
-                </Button>
-                <Button
-                    onClick={handleTweet}
-                    size="sm"
-                    className="flex-1 font-mono uppercase text-[10px]"
-                >
-                    <BsTwitterX className="h-3 w-3 mr-1" />
-                    SHARE
-                </Button>
+                <div className="flex gap-2">
+                    <Button
+                        onClick={handleCopy}
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 font-mono uppercase text-xs"
+                    >
+                        <Copy className="h-3.5 w-3.5 mr-1.5" />
+                        COPY TERMINAL
+                    </Button>
+                    <Button
+                        variant="outline"
+                        onClick={handleTweet}
+                        size="sm"
+                        className="flex-1 font-mono uppercase text-xs !border-green-400/50 !bg-green-400/10 text-green-400 hover:text-green-400/80"
+                    >
+                        <BsTwitterX className="h-3.5 w-3.5 mr-1.5" />
+                        SHARE & EARN
+                    </Button>
+                </div>
             </div>
         </div>
     )

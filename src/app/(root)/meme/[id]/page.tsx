@@ -1,8 +1,8 @@
 import { use } from "react"
-import Pool from "./_components/pool"
+import TokenLayout from "./_components/token-layout"
 
 export default function PoolPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = use(params)
 
-	return <Pool poolId={id} />
+	return <TokenLayout poolId={id} />
 }
