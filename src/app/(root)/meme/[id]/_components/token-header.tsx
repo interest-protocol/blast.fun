@@ -78,7 +78,7 @@ export function TokenHeader({ pool }: TokenHeaderProps) {
 				<div className="flex items-center gap-3">
 					<Avatar className="w-12 h-12 rounded-lg border-2">
 						<AvatarImage src={metadata?.iconUrl || ""} alt={metadata?.symbol} />
-						<AvatarFallback className="font-mono text-sm uppercase">
+						<AvatarFallback className="font-mono rounded-none text-sm uppercase">
 							{metadata?.symbol?.slice(0, 2) || "??"}
 						</AvatarFallback>
 					</Avatar>
