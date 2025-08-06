@@ -3,7 +3,6 @@ import { Transaction } from "@mysten/sui/transactions"
 import { formatAddress, formatDigest, normalizeSuiAddress, SUI_TYPE_ARG } from "@mysten/sui/utils"
 import { useState } from "react"
 import { COIN_CONVENTION_BLACKLIST, TARGET_QUOTE_LIQUIDITY, TOTAL_POOL_SUPPLY, VIRTUAL_LIQUIDITY } from "@/constants"
-import { HIDE_IDENTITY_SUI_FEE } from "@/constants/fees"
 import { useApp } from "@/context/app.context"
 import { useTwitter } from "@/context/twitter.context"
 import { env } from "@/env"
@@ -73,16 +72,9 @@ export function useLaunchCoin() {
 
 		addLog("INITIALIZING::WASM_MODULE")
 		await initMoveByteCodeTemplate("/bytecode/move_bytecode_template_bg.wasm")
-
 		addLog("COMPILING::BYTECODE")
 
 		const tx = new Transaction()
-
-		if (formValues.hideIdentity) {
-			const [feeCoin] = tx.splitCoins(tx.gas, [String(HIDE_IDENTITY_SUI_FEE)])
-			tx.transferObjects([feeCoin], tx.pure.address(env.NEXT_PUBLIC_FEE_ADDRESS))
-		}
-
 		const bytecode = await getBytecode(formValues, address)
 		const [upgradeCap] = tx.publish({
 			modules: [[...bytecode]],

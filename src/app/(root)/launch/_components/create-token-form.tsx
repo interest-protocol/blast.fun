@@ -1,7 +1,6 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { MIST_PER_SUI } from "@mysten/sui/utils"
 import { Upload, Shield, Users, DollarSign, ShieldCheck } from "lucide-react"
 import { BsTwitterX } from "react-icons/bs";
 import { useCallback, useEffect, useState, useMemo } from "react"
@@ -13,13 +12,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
-import { HIDE_IDENTITY_SUI_FEE } from "@/constants/fees"
 import { cn } from "@/utils"
 import TokenCreationButton from "./create-token-button"
-import { Logo } from "@/components/ui/logo"
 import { getBase64 } from "../launch.utils"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { Badge } from "@/components/ui/badge"
 
 const tokenSchema = z.object({
 	name: z.string().min(3, "Minimum 3 characters").max(20, "Maximum 20 characters"),
@@ -334,43 +330,41 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 						name="hideIdentity"
 						render={({ field }) => (
 							<FormItem className={cn(
-								"relative overflow-hidden rounded-lg border-2 p-5 transition-all ease-in-out duration-300",
+								"relative rounded-lg border-2 border-dashed p-4 transition-all duration-200",
 								field.value
-									? "border-destructive/20 bg-destructive/10 shadow-[0_0_20px_rgba(239,68,68,0.3)]"
-									: "border-destructive/5 bg-destructive/5 hover:border-destructive/10 hover:bg-destructive/10"
+									? "border-destructive/60 bg-destructive/5"
+									: "border-muted-foreground/30 hover:border-destructive/40 bg-background/50"
 							)}>
-								{/* animated background effect if active */}
-								{field.value && (
-									<div className="absolute inset-0 bg-gradient-to-r from-transparent via-destructive/10 to-transparent animate-pulse" />
-								)}
-
-								<div className="relative space-y-3">
-									<div className="flex items-start justify-between">
-										<div className="space-y-3">
-											<div className="flex items-center gap-3">
-												<Logo className="h-6 w-6 text-destructive animate-pulse" />
-												<FormLabel className="font-mono text-base uppercase tracking-wider text-destructive cursor-pointer">
-													HIDE::IDENTITY
-												</FormLabel>
-
-												<Badge className="text-xs font-mono uppercase border-destructive/50 bg-destructive/10 text-destructive">
-													{Number(HIDE_IDENTITY_SUI_FEE) / Number(MIST_PER_SUI)} SUI
-												</Badge>
-											</div>
-
-											<p className="font-mono text-sm uppercase text-muted-foreground">
-												YOUR_TWITTER_WILL_BE_REDACTED
+								<div className="flex items-center justify-between">
+									<div className="flex items-center gap-3">
+										<div className={cn(
+											"p-2 rounded-md transition-colors",
+											field.value ? "bg-destructive/10" : "bg-muted"
+										)}>
+											{field.value ? (
+												<ShieldCheck className="h-5 w-5 text-destructive animate-pulse" />
+											) : (
+												<Shield className="h-5 w-5 text-muted-foreground" />
+											)}
+										</div>
+										
+										<div className="space-y-1">
+											<FormLabel className="font-mono text-sm uppercase tracking-wider cursor-pointer text-foreground/80">
+												HIDE::CREATOR::IDENTITY
+											</FormLabel>
+											<p className="font-mono text-xs uppercase text-muted-foreground">
+												{field.value ? "IDENTITY::HIDDEN" : "TWITTER_HANDLE_WILL_BE_[REDACTED]"}
 											</p>
 										</div>
-
-										<FormControl>
-											<Switch
-												checked={field.value}
-												onCheckedChange={field.onChange}
-												className="data-[state=checked]:bg-destructive"
-											/>
-										</FormControl>
 									</div>
+
+									<FormControl>
+										<Switch
+											checked={field.value}
+											onCheckedChange={field.onChange}
+											className="data-[state=checked]:bg-destructive"
+										/>
+									</FormControl>
 								</div>
 							</FormItem>
 						)}
