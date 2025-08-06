@@ -200,7 +200,7 @@ export function ReferralShare({ pool }: ReferralShareProps) {
                         className="flex-1 font-mono uppercase text-xs !border-green-400/50 !bg-green-400/10 text-green-400 hover:text-green-400/80"
                     >
                         <BsTwitterX className="h-3.5 w-3.5 mr-1.5" />
-                        SHARE & EARN
+                        SHARE
                     </Button>
                 </div>
             </div>
