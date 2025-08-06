@@ -12,8 +12,8 @@ export function MarketStats({ pool }: MarketStatsProps) {
 	const { data: marketData } = useMarketData(pool.coinType)
 	
 	const bondingProgress = parseFloat(pool.bondingCurve)
-	const marketCap = marketData ? parseFloat(marketData.marketCap) : 0
-	const totalLiquidity = marketData ? parseFloat(marketData.totalLiquidityUsd) : 0
+	const marketCap = marketData?.marketCap || 0
+	const totalLiquidity = marketData?.totalLiquidityUsd || 0
 
 	return (
 		<div className="border-b border-foreground/20 bg-foreground/5 py-2">

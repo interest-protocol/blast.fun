@@ -21,8 +21,8 @@ export function TokenCard({ pool }: TokenCardProps) {
 	const coinMetadata = pool.coinMetadata
 	const { data: marketData } = useMarketData(pool.coinType)
 
-	const marketCap = marketData ? parseFloat(marketData.marketCap) : 0
-	const totalLiquidityUsd = marketData ? parseFloat(marketData.totalLiquidityUsd) : 0
+	const marketCap = marketData?.marketCap || 0
+	const totalLiquidityUsd = marketData?.totalLiquidityUsd || 0
 	const bondingProgress = parseFloat(pool.bondingCurve)
 
 	const creatorTwitterId = metadata.CreatorTwitterId
