@@ -21,7 +21,7 @@ interface CreatorDetailsProps {
 export function CreatorDetails({ pool }: CreatorDetailsProps) {
 	const creatorTwitterId = pool.metadata?.CreatorTwitterId;
 	const creatorTwitterName = pool.metadata?.CreatorTwitterName;
-	const creatorWallet = pool.metadata?.CreatorWallet || pool.creatorAddress;
+	const creatorWallet = pool.creatorAddress;
 	const showTwitterCreator = creatorTwitterId && creatorTwitterName;
 
 	const identifier = showTwitterCreator ? creatorTwitterName : creatorWallet;

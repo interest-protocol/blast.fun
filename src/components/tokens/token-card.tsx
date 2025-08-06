@@ -27,7 +27,7 @@ export function TokenCard({ pool }: TokenCardProps) {
 
 	const creatorTwitterId = metadata.CreatorTwitterId
 	const creatorTwitterName = metadata.CreatorTwitterName
-	const creatorWallet = metadata.CreatorWallet || pool.creatorAddress
+	const creatorWallet = pool.creatorAddress
 	const showTwitterCreator = creatorTwitterId && creatorTwitterName
 
 	const socialLinks = [
