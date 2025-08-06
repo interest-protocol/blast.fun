@@ -19,7 +19,7 @@ interface UsePumpOptions {
 }
 
 interface UsePumpReturn {
-	isLoading: boolean
+	isProcessing: boolean
 	error: string | null
 	success: string | null
 	pump: (amountInSui: string, slippagePercent?: number) => Promise<void>
@@ -31,7 +31,7 @@ export function usePump({ pool, decimals = 9, actualBalance, referrerWallet }: U
 	const { executeTransaction } = useTransaction()
 	const { user: twitterUser } = useTwitter()
 
-	const [isLoading, setIsLoading] = useState(false)
+	const [isProcessing, setIsProcessing] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 	const [success, setSuccess] = useState<string | null>(null)
 
@@ -96,7 +96,7 @@ export function usePump({ pool, decimals = 9, actualBalance, referrerWallet }: U
 			return
 		}
 
-		setIsLoading(true)
+		setIsProcessing(true)
 		setError(null)
 		setSuccess(null)
 
@@ -177,7 +177,7 @@ export function usePump({ pool, decimals = 9, actualBalance, referrerWallet }: U
 			setError(errorMessage)
 			throw err
 		} finally {
-			setIsLoading(false)
+			setIsProcessing(false)
 		}
 	}
 
@@ -202,7 +202,7 @@ export function usePump({ pool, decimals = 9, actualBalance, referrerWallet }: U
 			}
 		}
 
-		setIsLoading(true)
+		setIsProcessing(true)
 		setError(null)
 		setSuccess(null)
 
@@ -265,12 +265,12 @@ export function usePump({ pool, decimals = 9, actualBalance, referrerWallet }: U
 			setError(errorMessage)
 			throw err
 		} finally {
-			setIsLoading(false)
+			setIsProcessing(false)
 		}
 	}
 
 	return {
-		isLoading,
+		isProcessing,
 		error,
 		success,
 		pump,

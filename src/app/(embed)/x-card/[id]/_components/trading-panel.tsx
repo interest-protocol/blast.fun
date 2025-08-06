@@ -35,7 +35,7 @@ export function TradingPanel({ pool, referrerWallet }: TradingPanelProps) {
 	const formattedBalance = balanceInDisplayUnit.toLocaleString(undefined, { maximumFractionDigits: 4 })
 	const hasBalance = balanceInDisplayUnit > 0
 
-	const { isLoading, error, success, pump, dump } = usePump({
+	const { isProcessing, error, success, pump, dump } = usePump({
 		pool,
 		decimals,
 		actualBalance: effectiveBalance,
@@ -130,7 +130,7 @@ export function TradingPanel({ pool, referrerWallet }: TradingPanelProps) {
 										size="sm"
 										className="h-8 font-mono text-[10px] uppercase tracking-wider border-foreground/20 text-foreground/60 hover:bg-foreground/10 hover:border-foreground/40 hover:text-foreground/80 transition-all"
 										onClick={() => handleQuickBuy(quickAmount)}
-										disabled={isLoading || !isConnected}
+										disabled={isProcessing || !isConnected}
 									>
 										{quickAmount} SUI
 									</Button>
@@ -148,7 +148,7 @@ export function TradingPanel({ pool, referrerWallet }: TradingPanelProps) {
 												: "border-foreground/20 text-foreground/60 hover:bg-foreground/10 hover:border-foreground/40 hover:text-foreground/80"
 										)}
 										onClick={() => handleQuickSellPercentage(percentage)}
-										disabled={isLoading || !isConnected || !hasBalance}
+										disabled={isProcessing || !isConnected || !hasBalance}
 									>
 										{percentage}%
 									</Button>
@@ -169,7 +169,7 @@ export function TradingPanel({ pool, referrerWallet }: TradingPanelProps) {
 								value={amount}
 								onChange={(e) => setAmount(e.target.value)}
 								className="bg-background border-foreground/20 text-foreground font-mono text-sm h-10 focus:border-foreground/40 focus:ring-1 focus:ring-foreground/20 placeholder-foreground/30"
-								disabled={isLoading}
+								disabled={isProcessing}
 							/>
 						</div>
 					</div>
@@ -226,9 +226,9 @@ export function TradingPanel({ pool, referrerWallet }: TradingPanelProps) {
 							(!isConnected || !amount || (tradeType === "sell" && !hasBalance)) && "opacity-50"
 						)}
 						onClick={handleTrade}
-						disabled={!isConnected || isLoading || !amount || parseFloat(amount) <= 0 || (tradeType === "sell" && !hasBalance)}
+						disabled={!isConnected || isProcessing || !amount || parseFloat(amount) <= 0 || (tradeType === "sell" && !hasBalance)}
 					>
-						{isLoading ? (
+						{isProcessing ? (
 							<span className="flex items-center gap-2">
 								<div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
 								PROCESSING::TX

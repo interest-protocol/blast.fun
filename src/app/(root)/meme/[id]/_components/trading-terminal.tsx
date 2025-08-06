@@ -36,7 +36,7 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 	const formattedBalance = balanceInDisplayUnit.toLocaleString(undefined, { maximumFractionDigits: 4 })
 	const hasBalance = balanceInDisplayUnit > 0
 
-	const { isLoading, error, success, pump, dump } = usePump({
+	const { isProcessing, error, success, pump, dump } = usePump({
 		pool,
 		decimals,
 		actualBalance: effectiveBalance,
@@ -153,7 +153,7 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 											size="sm"
 											className="font-mono text-xs uppercase border-2 hover:border-green-500/50 hover:bg-green-500/20 hover:text-green-500 transition-colors"
 											onClick={() => handleQuickBuy(quickAmount)}
-											disabled={isLoading || !isConnected}
+											disabled={isProcessing || !isConnected}
 										>
 											{quickAmount} SUI
 										</Button>
@@ -179,7 +179,7 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 													: "hover:border-red-500/50 hover:bg-red-500/20 hover:text-red-500"
 											)}
 											onClick={() => handleQuickSellPercentage(percentage)}
-											disabled={isLoading || !isConnected || !hasBalance}
+											disabled={isProcessing || !isConnected || !hasBalance}
 										>
 											{percentage}%
 										</Button>
@@ -205,7 +205,7 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 									onFocus={() => setIsInputFocused(true)}
 									onBlur={() => setIsInputFocused(false)}
 									className="font-mono text-lg uppercase tracking-wider border-0 focus-visible:ring-0 pr-20 bg-background/50"
-									disabled={isLoading}
+									disabled={isProcessing}
 								/>
 								<span className="absolute right-4 top-1/2 -translate-y-1/2 font-mono text-sm uppercase text-muted-foreground">
 									{tradeType === "buy" ? "SUI" : metadata?.symbol || "[TOKEN]"}
@@ -269,9 +269,9 @@ export function TradingTerminal({ pool }: TradingTerminalProps) {
 							)}
 							size="lg"
 							onClick={handleTrade}
-							disabled={!isConnected || isLoading || !amount || (tradeType === "sell" && !hasBalance)}
+							disabled={!isConnected || isProcessing || !amount || (tradeType === "sell" && !hasBalance)}
 						>
-							{isLoading ? (
+							{isProcessing ? (
 								<span className="flex items-center gap-2">
 									<div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
 									PROCESSING::TRANSACTION
