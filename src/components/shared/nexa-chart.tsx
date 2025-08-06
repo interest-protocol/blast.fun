@@ -26,7 +26,7 @@ export function NexaChart({ pool, className }: NexaChartProps) {
 
 			<iframe
 				src={chartUrl}
-				className={cn("w-full h-full rounded-xl border-0", isLoading && "opacity-0")}
+				className={cn("w-full h-full border-0", isLoading && "opacity-0")}
 				title="Nexa Trading Chart"
 				allowFullScreen
 				onLoad={() => setIsLoading(false)}
