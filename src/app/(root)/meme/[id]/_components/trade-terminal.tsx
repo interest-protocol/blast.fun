@@ -1,6 +1,6 @@
 "use client"
 
-import { Zap, Wallet, AlertCircle, Rocket, Loader2 } from "lucide-react"
+import { Zap, Wallet, Loader2 } from "lucide-react"
 import React, { useState } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -17,6 +17,7 @@ import type { PoolWithMetadata } from "@/types/pool"
 import { usePortfolio } from "@/hooks/nexa/use-portfolio"
 import { cn } from "@/utils"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Logo } from "@/components/ui/logo"
 
 interface TradeTerminalProps {
 	pool: PoolWithMetadata
@@ -90,22 +91,28 @@ export function TradeTerminal({ pool }: TradeTerminalProps) {
 
 	return (
 		<div className="relative border-b border-border">
-			{/* Migration Overlay */}
 			{isMigrating && (
-				<div className="absolute inset-0 bg-background/95 backdrop-blur-sm z-10 flex items-center justify-center p-4">
-					<div className="text-center space-y-3">
-						<div className="relative">
-							<div className="absolute inset-0 bg-yellow-500 blur-xl animate-pulse" />
-							<Rocket className="relative w-10 h-10 text-yellow-500" />
+				<div className="absolute inset-0 bg-background/95 backdrop-blur-sm z-10 flex items-center justify-center p-4 select-none">
+					{/* background glow */}
+					<div className="absolute inset-0">
+						<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-yellow-400/10 rounded-full blur-3xl animate-pulse" />
+					</div>
+
+					<div className="relative text-center space-y-4">
+						<div className="relative mx-auto w-20 h-20 animate-float">
+							<div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full blur-2xl animate-pulse opacity-50" />
+							<div className="absolute inset-0 flex items-center justify-center">
+								<Logo className="w-16 h-16 text-yellow-400/80 animate-pulse" />
+							</div>
 						</div>
-						<div className="space-y-1">
-							<p className="font-mono text-sm font-bold text-yellow-500">
-								TOKEN MIGRATING
+
+						<div className="space-y-2">
+							<p className="font-mono text-sm font-bold uppercase tracking-wider text-yellow-400/80">
+								MIGRATION::IN_PROGRESS
 							</p>
-							<p className="font-mono text-xs text-muted-foreground">
-								This token is ready for migration.
-								<br />
-								Trading will be available after migration.
+
+							<p className="font-mono text-xs text-muted-foreground/70 max-w-xs mx-auto">
+								TOKEN_IS_MIGRATING::PLEASE_WAIT
 							</p>
 						</div>
 					</div>
@@ -118,6 +125,7 @@ export function TradeTerminal({ pool }: TradeTerminalProps) {
 					<div className="font-mono text-xs font-bold uppercase">
 						Trade {metadata?.symbol}
 					</div>
+
 					{hasBalance && (
 						<div className="font-mono text-xs text-muted-foreground">
 							Balance: <span className="text-foreground font-semibold">
@@ -129,26 +137,33 @@ export function TradeTerminal({ pool }: TradeTerminalProps) {
 
 				{/* Buy/Sell Tab */}
 				<div className="flex gap-1 p-0.5 bg-muted rounded-md">
-					<button
+					<Button
+						variant={tradeType === "buy" ? "default" : "ghost"}
+						size="sm"
 						onClick={() => setTradeType("buy")}
 						className={cn(
-							"flex-1 px-3 py-1.5 rounded font-mono text-xs uppercase transition-all",
-							tradeType === "buy" ? "bg-green-400/50" : "text-muted-foreground hover:text-foreground"
+							"flex-1 font-mono text-xs uppercase h-7",
+							tradeType === "buy"
+								? "bg-green-500/80 hover:bg-green-500 text-white shadow-none"
+								: "hover:bg-transparent hover:text-foreground text-muted-foreground"
 						)}
 					>
 						Buy
-					</button>
-					<button
+					</Button>
+					<Button
+						variant={tradeType === "sell" ? "destructive" : "ghost"}
+						size="sm"
 						onClick={() => setTradeType("sell")}
 						disabled={!hasBalance}
 						className={cn(
-							"flex-1 px-3 py-1.5 rounded font-mono text-xs uppercase transition-all",
-							tradeType === "sell" ? "bg-destructive/50" : "text-muted-foreground hover:text-foreground",
-							!hasBalance && "opacity-50 cursor-not-allowed"
+							"flex-1 font-mono text-xs uppercase h-7",
+							tradeType === "sell"
+								? "bg-destructive/80 hover:bg-destructive text-white shadow-none"
+								: "hover:bg-transparent hover:text-foreground text-muted-foreground"
 						)}
 					>
 						Sell
-					</button>
+					</Button>
 				</div>
 
 				{/* Amount Input */}
