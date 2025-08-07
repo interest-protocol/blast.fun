@@ -1,0 +1,44 @@
+@keyframes ticker {
+	0% {
+		transform: translateX(0);
+	}
+	100% {
+		transform: translateX(-50%);
+	}
+}
+
+.animate-ticker {
+	animation: ticker 15s linear infinite;
+}
+
+.group:hover .animate-ticker {
+	animation-play-state: paused;
+}
+
+@keyframes float {
+	0%, 100% {
+		transform: translateY(0px);
+	}
+	50% {
+		transform: translateY(-10px);
+	}
+}
+
+@keyframes glow-pulse {
+	0%, 100% {
+		opacity: 0.5;
+		filter: blur(40px);
+	}
+	50% {
+		opacity: 0.8;
+		filter: blur(60px);
+	}
+}
+
+.animate-float {
+	animation: float 3s ease-in-out infinite;
+}
+
+.animate-glow-pulse {
+	animation: glow-pulse 4s ease-in-out infinite;
+}
