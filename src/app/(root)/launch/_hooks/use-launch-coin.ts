@@ -2,7 +2,7 @@ import { CONFIG_KEYS, MIGRATOR_WITNESSES } from "@interest-protocol/memez-fun-sd
 import { Transaction } from "@mysten/sui/transactions"
 import { formatAddress, formatDigest, normalizeSuiAddress, SUI_TYPE_ARG } from "@mysten/sui/utils"
 import { useState } from "react"
-import { COIN_CONVENTION_BLACKLIST, TARGET_QUOTE_LIQUIDITY, TOTAL_POOL_SUPPLY, VIRTUAL_LIQUIDITY } from "@/constants"
+import { BASE_LIQUIDITY_PROVISION, COIN_CONVENTION_BLACKLIST, TARGET_QUOTE_LIQUIDITY, TOTAL_POOL_SUPPLY, VIRTUAL_LIQUIDITY } from "@/constants"
 import { useApp } from "@/context/app.context"
 import { useTwitter } from "@/context/twitter.context"
 import { env } from "@/env"
@@ -155,7 +155,7 @@ export function useLaunchCoin() {
 			burnTax: 0,
 			virtualLiquidity: VIRTUAL_LIQUIDITY,
 			targetQuoteLiquidity: TARGET_QUOTE_LIQUIDITY,
-			liquidityProvision: 0,
+			liquidityProvision: BASE_LIQUIDITY_PROVISION,
 		})
 
 		if (metadataCap) {
