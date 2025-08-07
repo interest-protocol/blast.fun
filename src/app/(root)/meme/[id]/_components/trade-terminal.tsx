@@ -11,7 +11,7 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover"
 import { useApp } from "@/context/app.context"
-import { usePump } from "@/hooks/pump/use-pump"
+import { useTrading } from "@/hooks/pump/use-trading"
 import { useTokenBalance } from "@/hooks/sui/use-token-balance"
 import type { PoolWithMetadata } from "@/types/pool"
 import { usePortfolio } from "@/hooks/nexa/use-portfolio"
@@ -39,7 +39,7 @@ export function TradeTerminal({ pool }: TradeTerminalProps) {
 	const balanceInDisplayUnit = effectiveBalance ? Number(effectiveBalance) / Math.pow(10, decimals) : 0
 	const hasBalance = balanceInDisplayUnit > 0
 
-	const { isProcessing, error, pump, dump } = usePump({
+	const { isProcessing, error, buy, sell } = useTrading({
 		pool,
 		decimals,
 		actualBalance: effectiveBalance,
@@ -48,13 +48,13 @@ export function TradeTerminal({ pool }: TradeTerminalProps) {
 	const handleQuickAmount = async (value: number | string) => {
 		if (tradeType === "buy") {
 			setAmount(value.toString())
-			await pump(value.toString(), parseFloat(slippage))
+			await buy(value.toString(), parseFloat(slippage))
 		} else {
 			const percentage = typeof value === 'string' ? parseInt(value) : value
 			const tokenAmountToSell = balanceInDisplayUnit * (percentage / 100)
 
 			setAmount(tokenAmountToSell.toString())
-			await dump(tokenAmountToSell.toString(), parseFloat(slippage))
+			await sell(tokenAmountToSell.toString(), parseFloat(slippage))
 		}
 
 		await refetchPortfolio()
@@ -65,9 +65,9 @@ export function TradeTerminal({ pool }: TradeTerminalProps) {
 		if (!amount || parseFloat(amount) <= 0) return
 
 		if (tradeType === "buy") {
-			await pump(amount, parseFloat(slippage))
+			await buy(amount, parseFloat(slippage))
 		} else {
-			await dump(amount, parseFloat(slippage))
+			await sell(amount, parseFloat(slippage))
 		}
 
 		await refetchPortfolio()

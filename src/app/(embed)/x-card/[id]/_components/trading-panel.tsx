@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { usePump } from "@/hooks/pump/use-pump"
+import { useTrading } from "@/hooks/pump/use-trading"
 import { useTokenBalance } from "@/hooks/sui/use-token-balance"
 import { usePortfolio } from "@/hooks/nexa/use-portfolio"
 import type { PoolWithMetadata } from "@/types/pool"
@@ -35,7 +35,7 @@ export function TradingPanel({ pool, referrerWallet }: TradingPanelProps) {
 	const formattedBalance = balanceInDisplayUnit.toLocaleString(undefined, { maximumFractionDigits: 4 })
 	const hasBalance = balanceInDisplayUnit > 0
 
-	const { isProcessing, error, success, pump, dump } = usePump({
+	const { isProcessing, error, success, buy, sell } = useTrading({
 		pool,
 		decimals,
 		actualBalance: effectiveBalance,
@@ -48,7 +48,7 @@ export function TradingPanel({ pool, referrerWallet }: TradingPanelProps) {
 	const handleQuickBuy = async (suiAmount: number) => {
 		setAmount(suiAmount.toString())
 		const slippageNum = parseFloat(slippage)
-		await pump(suiAmount.toString(), slippageNum)
+		await buy(suiAmount.toString(), slippageNum)
 		setAmount("")
 	}
 
@@ -58,7 +58,7 @@ export function TradingPanel({ pool, referrerWallet }: TradingPanelProps) {
 		const tokenAmountToSell = balanceInDisplayUnit * (percentage / 100)
 		setAmount(tokenAmountToSell.toString())
 		const slippageNum = parseFloat(slippage)
-		await dump(tokenAmountToSell.toString(), slippageNum)
+		await sell(tokenAmountToSell.toString(), slippageNum)
 		setAmount("")
 	}
 
@@ -67,9 +67,9 @@ export function TradingPanel({ pool, referrerWallet }: TradingPanelProps) {
 
 		const slippageNum = parseFloat(slippage)
 		if (tradeType === "buy") {
-			await pump(amount, slippageNum)
+			await buy(amount, slippageNum)
 		} else {
-			await dump(amount, slippageNum)
+			await sell(amount, slippageNum)
 		}
 		setAmount("")
 	}

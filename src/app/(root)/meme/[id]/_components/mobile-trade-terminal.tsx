@@ -6,7 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useApp } from "@/context/app.context"
-import { usePump } from "@/hooks/pump/use-pump"
+import { useTrading } from "@/hooks/pump/use-trading"
 import { useTokenBalance } from "@/hooks/sui/use-token-balance"
 import type { PoolWithMetadata } from "@/types/pool"
 import { usePortfolio } from "@/hooks/nexa/use-portfolio"
@@ -35,7 +35,7 @@ export function MobileTradeTerminal({ pool, className }: TradingTerminalMobilePr
 	const formattedBalance = balanceInDisplayUnit.toLocaleString(undefined, { maximumFractionDigits: 4 })
 	const hasBalance = balanceInDisplayUnit > 0
 
-	const { isProcessing, error, success, pump, dump } = usePump({
+	const { isProcessing, error, success, buy, sell } = useTrading({
 		pool,
 		decimals,
 		actualBalance: effectiveBalance,
@@ -59,7 +59,7 @@ export function MobileTradeTerminal({ pool, className }: TradingTerminalMobilePr
 		setActiveInput("quick")
 		const slippageNum = parseFloat(slippage)
 
-		await pump(suiAmount.toString(), slippageNum)
+		await buy(suiAmount.toString(), slippageNum)
 		await refetchPortfolio()
 		setAmount("")
 		setActiveInput(null)
@@ -73,7 +73,7 @@ export function MobileTradeTerminal({ pool, className }: TradingTerminalMobilePr
 		setActiveInput("quick")
 		const slippageNum = parseFloat(slippage)
 
-		await dump(tokenAmountToSell.toString(), slippageNum)
+		await sell(tokenAmountToSell.toString(), slippageNum)
 		await refetchPortfolio()
 		setAmount("")
 		setActiveInput(null)
@@ -86,9 +86,9 @@ export function MobileTradeTerminal({ pool, className }: TradingTerminalMobilePr
 		setActiveInput("amount")
 
 		if (tradeType === "buy") {
-			await pump(amount, slippageNum)
+			await buy(amount, slippageNum)
 		} else {
-			await dump(amount, slippageNum)
+			await sell(amount, slippageNum)
 		}
 
 		await refetchPortfolio()
