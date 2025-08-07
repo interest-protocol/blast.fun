@@ -96,14 +96,27 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 
 	if (isLoading) {
 		return (
-			<div className="p-4 space-y-1">
-				{Array.from({ length: 10 }).map((_, i) => (
-					<div
-						key={i}
-						className="h-12 bg-background/30 animate-pulse"
-					/>
-				))}
-			</div>
+			<ScrollArea className={cn(className || "h-[500px]")}>
+				<div className="p-4">
+					<div className="text-center py-16">
+						<div className="relative inline-block">
+							<Users className="w-16 h-16 mx-auto text-foreground/20 mb-4" />
+							<div className="absolute inset-0 bg-primary/10 blur-2xl rounded-full animate-pulse" />
+						</div>
+						<p className="font-mono text-sm uppercase text-muted-foreground mb-2">
+							HOLDERS::LOADING
+						</p>
+						<p className="font-mono text-xs uppercase text-muted-foreground/60">
+							FETCHING_HOLDER_DATA_FOR_{pool.coinMetadata?.symbol || "[TOKEN]"}
+						</p>
+						<div className="flex items-center justify-center gap-1 mt-4">
+							<div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+							<div className="w-2 h-2 bg-primary rounded-full animate-pulse delay-150" />
+							<div className="w-2 h-2 bg-primary rounded-full animate-pulse delay-300" />
+						</div>
+					</div>
+				</div>
+			</ScrollArea>
 		)
 	}
 
@@ -132,7 +145,7 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 					</div>
 				) : (
 					<div className="relative">
-						<div className="grid grid-cols-12 gap-2 px-2 sm:px-4 py-2 border-b border-border/50 text-[11px] sm:text-xs font-mono uppercase text-muted-foreground sticky top-0 bg-background/95 backdrop-blur-sm z-10">
+						<div className="grid grid-cols-12 gap-2 px-2 sm:px-4 py-2 border-b border-border/50 text-[11px] sm:text-xs font-mono uppercase text-muted-foreground sticky top-0 bg-background/95 backdrop-blur-sm z-10 select-none">
 							<div className="col-span-1">#</div>
 							<div className="col-span-4 sm:col-span-3">Wallet</div>
 							<div className="col-span-2 text-right">Bought</div>

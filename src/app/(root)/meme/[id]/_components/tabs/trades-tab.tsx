@@ -218,7 +218,7 @@ export function TradesTab({ pool, className, onLoad }: TradesTabProps) {
 					</div>
 				) : (
 					<div className="relative">
-						<div className="grid grid-cols-12 gap-2 px-2 sm:px-4 py-2 border-b border-border/50 text-[10px] sm:text-xs font-mono uppercase text-muted-foreground sticky top-0 bg-background/95 backdrop-blur-sm z-10">
+						<div className="grid grid-cols-12 gap-2 px-2 sm:px-4 py-2 border-b border-border/50 text-[10px] sm:text-xs font-mono uppercase text-muted-foreground sticky top-0 bg-background/95 backdrop-blur-sm z-10 select-none">
 							<div className="col-span-2">Age</div>
 							<div className="col-span-1">Type</div>
 							<div className="col-span-4 sm:col-span-3">Trade</div>
