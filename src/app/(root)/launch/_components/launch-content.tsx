@@ -124,13 +124,6 @@ export default function LaunchContent() {
 	return (
 		<ConfettiProvider>
 			<div className="space-y-16">
-				<div className="text-center border-b pb-6">
-					<h1 className="text-4xl font-bold font-mono uppercase tracking-wider text-foreground/80 mb-2">
-						LAUNCH::TOKEN
-					</h1>
-					<p className="font-mono text-sm uppercase text-muted-foreground">LAUNCH_FAST_TRADE_FAST</p>
-				</div>
-
 				<div className="grid lg:grid-cols-3 gap-8 items-start">
 					<div className="lg:col-span-2">
 						<div className="space-y-4">
