@@ -20,8 +20,14 @@ export async function POST(request: NextRequest) {
 		}
 
 		const settings = poolSettings.settings as {
+			sniperProtection?: boolean
 			requireTwitter?: boolean
 			maxHoldingPercent?: string | null
+		}
+
+		// check if sniper protection is enabled
+		if (!settings.sniperProtection) {
+			return NextResponse.json({ error: "Pool does not have sniper protection enabled" }, { status: 404 })
 		}
 
 		// check if Twitter is required but not provided

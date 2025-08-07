@@ -21,7 +21,7 @@ export default function LaunchContent() {
 
 	const handleFormChange = useCallback((data: Partial<TokenFormValues>) => {
 		setTokenData(data)
-		const hasProtection = !!(data.requireTwitter || data.maxHoldingPercent)
+		const hasProtection = !!data.sniperProtection
 		setProtectionActive(hasProtection)
 	}, [])
 

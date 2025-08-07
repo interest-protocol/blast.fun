@@ -140,8 +140,8 @@ export function useLaunchCoin() {
 			{} as Record<string, string>
 		)
 
-		// should pool be protected based on any protection settings
-		const isProtected = !!(formValues.requireTwitter || formValues.maxHoldingPercent)
+		// should pool be protected based on sniper protection toggle
+		const isProtected = formValues.sniperProtection
 
 		const { tx, metadataCap } = await pumpSdk.newPool({
 			configurationKey: configKey,
@@ -242,7 +242,8 @@ export function useLaunchCoin() {
 			addLog("CLEANING::UP", "info")
 
 			// save token launch data now
-			const protectionSettings = (formValues.requireTwitter || formValues.maxHoldingPercent) ? {
+			const protectionSettings = formValues.sniperProtection ? {
+				sniperProtection: true,
 				requireTwitter: formValues.requireTwitter,
 				maxHoldingPercent: formValues.maxHoldingPercent,
 			} : undefined
@@ -306,7 +307,8 @@ export function useLaunchCoin() {
 
 			addLog("CLEANING::UP", "info")
 
-			const protectionSettings = (pendingToken.formValues.requireTwitter || pendingToken.formValues.maxHoldingPercent) ? {
+			const protectionSettings = pendingToken.formValues.sniperProtection ? {
+				sniperProtection: true,
 				requireTwitter: pendingToken.formValues.requireTwitter,
 				maxHoldingPercent: pendingToken.formValues.maxHoldingPercent,
 			} : undefined

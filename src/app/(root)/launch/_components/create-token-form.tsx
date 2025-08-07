@@ -1,7 +1,7 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Upload, Shield, Users, DollarSign, ShieldCheck } from "lucide-react"
+import { Upload, Shield, Users, DollarSign, ShieldCheck, UserX } from "lucide-react"
 import { BsTwitterX } from "react-icons/bs";
 import { useCallback, useEffect, useState, useMemo } from "react"
 import { useForm } from "react-hook-form"
@@ -30,10 +30,11 @@ const tokenSchema = z.object({
 	telegram: z.url("Invalid URL").optional().or(z.literal("")),
 	twitter: z.url("Invalid URL").optional().or(z.literal("")),
 	hideIdentity: z.boolean(),
+	sniperProtection: z.boolean(),
 	requireTwitter: z.boolean(),
 	maxHoldingPercent: z.string().optional().refine(
-		(val) => !val || (Number(val) >= 0 && Number(val) <= 100),
-		"Must be between 0 and 100"
+		(val) => !val || (Number(val) >= 0.1 && Number(val) <= 100),
+		"Must be between 0.1% and 100%"
 	),
 })
 
@@ -58,6 +59,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 			telegram: "",
 			twitter: "",
 			hideIdentity: false,
+			sniperProtection: false,
 			requireTwitter: false,
 			maxHoldingPercent: "",
 		},
@@ -68,19 +70,19 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 	const tokenName = form.watch("name")
 	const tokenSymbol = form.watch("symbol")
 	const hideIdentity = form.watch("hideIdentity")
+	const sniperProtection = form.watch("sniperProtection")
 	const requireTwitter = form.watch("requireTwitter")
 	const maxHoldingPercent = form.watch("maxHoldingPercent")
-
-	const hasProtectionSettings = requireTwitter || maxHoldingPercent
 
 	const formData = useMemo(() => ({
 		imageUrl,
 		name: tokenName,
 		symbol: tokenSymbol,
 		hideIdentity,
+		sniperProtection,
 		requireTwitter,
 		maxHoldingPercent,
-	}), [imageUrl, tokenName, tokenSymbol, hideIdentity, requireTwitter, maxHoldingPercent])
+	}), [imageUrl, tokenName, tokenSymbol, hideIdentity, sniperProtection, requireTwitter, maxHoldingPercent])
 
 	useEffect(() => {
 		if (onFormChange) {
@@ -341,13 +343,12 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 											"p-2 rounded-md transition-colors",
 											field.value ? "bg-destructive/10" : "bg-muted"
 										)}>
-											{field.value ? (
-												<ShieldCheck className="h-5 w-5 text-destructive animate-pulse" />
-											) : (
-												<Shield className="h-5 w-5 text-muted-foreground" />
-											)}
+											<UserX className={cn(
+												"h-5 w-5",
+												field.value ? "text-destructive animate-pulse" : "text-muted-foreground"
+											)} />
 										</div>
-										
+
 										<div className="space-y-1">
 											<FormLabel className="font-mono text-sm uppercase tracking-wider cursor-pointer text-foreground/80">
 												HIDE::CREATOR::IDENTITY
@@ -370,29 +371,63 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 						)}
 					/>
 
-					{/* Protection Settings */}
-					<Collapsible open={showProtectionSettings} onOpenChange={setShowProtectionSettings}>
-						<CollapsibleTrigger asChild>
-							<Button
-								type="button"
-								variant="outline"
-								className={cn(
-									"w-full justify-between font-mono uppercase text-sm",
-									"border-2 transition-all ease-in-out duration-300",
-									hasProtectionSettings ? "border-primary/20 bg-primary/5" : "hover:border-primary/10"
-								)}
-							>
-								<div className="flex items-center gap-2">
-									{hasProtectionSettings ? <ShieldCheck className="h-4 w-4" /> : <Shield className="h-4 w-4 text-muted-foreground" />}
-									<span>SNIPER::PROTECTION</span>
+					{/* Sniper Protection Toggle */}
+					<FormField
+						control={form.control}
+						name="sniperProtection"
+						render={({ field }) => (
+							<FormItem className={cn(
+								"relative rounded-lg border-2 border-dashed p-4 transition-all duration-200",
+								field.value
+									? "border-primary/60 bg-primary/5"
+									: "border-muted-foreground/30 hover:border-primary/40 bg-background/50"
+							)}>
+								<div className="flex items-center justify-between">
+									<div className="flex items-center gap-3">
+										<div className={cn(
+											"p-2 rounded-md transition-colors",
+											field.value ? "bg-primary/10" : "bg-muted"
+										)}>
+											{field.value ? (
+												<ShieldCheck className="h-5 w-5 text-primary animate-pulse" />
+											) : (
+												<Shield className="h-5 w-5 text-muted-foreground" />
+											)}
+										</div>
+
+										<div className="space-y-1">
+											<FormLabel className="font-mono text-sm uppercase tracking-wider cursor-pointer text-foreground/80">
+												SNIPER::PROTECTION
+											</FormLabel>
+											<p className="font-mono text-xs uppercase text-muted-foreground">
+												{field.value ? "PROTECTION::ENABLED" : "ENABLE_SNIPER_PROTECTION_FOR_THIS_TOKEN"}
+											</p>
+										</div>
+									</div>
+
+									<FormControl>
+										<Switch
+											checked={field.value}
+											onCheckedChange={(checked) => {
+												field.onChange(checked)
+												setShowProtectionSettings(checked)
+											}}
+											className="data-[state=checked]:bg-primary"
+										/>
+									</FormControl>
 								</div>
-								<span className="text-xs text-muted-foreground">
-									{hasProtectionSettings ? "[ACTIVE]" : "[CONFIGURE]"}
-								</span>
-							</Button>
-						</CollapsibleTrigger>
+							</FormItem>
+						)}
+					/>
+
+					{/* Protection Settings - Only show when sniper protection is enabled */}
+					<Collapsible open={showProtectionSettings && sniperProtection} onOpenChange={setShowProtectionSettings}>
 						<CollapsibleContent className="space-y-4 mt-4">
 							<div className="rounded-lg border-2 border-dashed border-primary/20 p-4 space-y-4 bg-primary/5">
+								<p className="font-mono text-xs uppercase text-muted-foreground mb-3">
+									OPTIONAL::PROTECTION::SETTINGS
+								</p>
+
 								{/* Twitter Auth */}
 								<FormField
 									control={form.control}
@@ -402,10 +437,10 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 											<div className="space-y-1">
 												<FormLabel className="font-mono text-sm uppercase tracking-wider flex items-center gap-2">
 													<Users className="h-4 w-4 text-primary" />
-													REQUIRE::TWITTER
+													REQUIRE X/TWITTER
 												</FormLabel>
 												<FormDescription className="font-mono text-xs uppercase text-muted-foreground">
-													BUYERS_MUST_CONNECT_TWITTER_ACCOUNT
+													BUYERS_MUST_CONNECT_X/TWITTER_ACCOUNT
 												</FormDescription>
 											</div>
 											<FormControl>
@@ -426,16 +461,16 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 										<FormItem className="rounded-lg border p-4 bg-background/50">
 											<FormLabel className="font-mono text-sm uppercase tracking-wider flex items-center gap-2">
 												<DollarSign className="h-4 w-4 text-primary" />
-												MAX::HOLDINGS
+												MAX HOLDINGS PER WALLET
 											</FormLabel>
 											<FormControl>
 												<div className="relative">
 													<Input
-														placeholder="100"
+														placeholder="10"
 														className="font-mono text-sm pr-12 focus:border-primary/50"
 														type="number"
-														step="1"
-														min="0"
+														step="0.1"
+														min="0.1"
 														max="100"
 														{...field}
 													/>
@@ -445,7 +480,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 												</div>
 											</FormControl>
 											<FormDescription className="font-mono text-xs uppercase text-muted-foreground">
-												MAX_PERCENTAGE_OF_HOLDING_PER_WALLET
+												MAX_PERCENTAGE_PER_WALLET (0.1%-100%)
 											</FormDescription>
 											<FormMessage className="font-mono text-xs" />
 										</FormItem>

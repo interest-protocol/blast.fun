@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
 				data: {
 					poolId: poolObjectId,
 					settings: {
+						sniperProtection: protectionSettings.sniperProtection || false,
 						requireTwitter: protectionSettings.requireTwitter || false,
 						maxHoldingPercent: protectionSettings.maxHoldingPercent || null,
 					},
