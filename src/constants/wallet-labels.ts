@@ -3,8 +3,8 @@
  * These are displayed throughout the app to help users identify important addresses
  */
 export const WALLET_LABELS: Record<string, string> = {
-	// blast.fun
 	"0x881d835c410f33a1decd8067ce04f6c2ec63eaca196235386b44d315c2152797": "BLAST.FUN TREASURY",
+	"0xdc19b2928f31b6df46478e4ad9a309aaff6e958a3b568d4bb76264f767bdfbfc": "GIVEREP TEAM",
 }
 
 /**
