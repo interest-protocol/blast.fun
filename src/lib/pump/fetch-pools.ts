@@ -4,14 +4,15 @@ import { pumpSdk } from "@/lib/pump"
 import type { GetPoolResponse, GetPoolsResponse, GetPoolsVariables, GetPoolVariables } from "@/types/graphql"
 import type { Pool, PoolWithMetadata } from "@/types/pool"
 import { fetchCoinMetadata, fetchCoinsMetadata } from "../fetch-coin-metadata"
+import { CONFIG_KEYS } from "@interest-protocol/memez-fun-sdk"
 
 /**
  * Fetches metadata for a single pool
  */
 async function enrichPoolWithMetadata(pool: Pool): Promise<PoolWithMetadata> {
-	const enhancedPool: PoolWithMetadata = { 
+	const enhancedPool: PoolWithMetadata = {
 		...pool,
-		isProtected: !!pool.publicKey 
+		isProtected: !!pool.publicKey
 	}
 
 	try {
@@ -48,6 +49,11 @@ async function enrichPoolWithMetadata(pool: Pool): Promise<PoolWithMetadata> {
 export async function fetchPools(page = 1, pageSize = 12): Promise<Pool[]> {
 	const { data } = await apolloClient.query<GetPoolsResponse, GetPoolsVariables>({
 		query: GET_POOLS,
+		context: {
+			headers: {
+				"config-key": CONFIG_KEYS.mainnet.XPUMP
+			}
+		},
 		variables: { page, pageSize },
 		errorPolicy: "all",
 		fetchPolicy: "network-only",
@@ -70,9 +76,9 @@ export async function fetchPoolsWithMetadata(page = 1, pageSize = 12): Promise<P
 
 	const enrichedPools = await Promise.all(
 		pools.map(async (pool) => {
-			const enhancedPool: PoolWithMetadata = { 
+			const enhancedPool: PoolWithMetadata = {
 				...pool,
-				isProtected: !!pool.publicKey 
+				isProtected: !!pool.publicKey
 			}
 
 			try {
@@ -110,6 +116,11 @@ export async function fetchPoolsWithMetadata(page = 1, pageSize = 12): Promise<P
 export async function fetchPool(poolId: string): Promise<Pool> {
 	const { data } = await apolloClient.query<GetPoolResponse, GetPoolVariables>({
 		query: GET_POOL,
+		context: {
+			headers: {
+				"config-key": CONFIG_KEYS.mainnet.XPUMP
+			}
+		},
 		variables: { poolId },
 		errorPolicy: "all",
 		fetchPolicy: "network-only",
