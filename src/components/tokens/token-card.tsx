@@ -11,6 +11,7 @@ import { CopyableToken } from "../shared/copyable-token"
 import { CreatorHoverCard } from "@/components/creator/creator-hover-card"
 import { CreatorDisplay } from "@/components/creator/creator-display"
 import { useMarketData } from "@/hooks/use-market-data"
+import { BsTwitterX } from "react-icons/bs"
 
 interface TokenCardProps {
 	pool: PoolWithMetadata
@@ -31,7 +32,7 @@ export function TokenCard({ pool }: TokenCardProps) {
 	const showTwitterCreator = creatorTwitterId && creatorTwitterName
 
 	const socialLinks = [
-		{ href: metadata.X, icon: Twitter, tooltip: "X::TWITTER" },
+		{ href: metadata.X, icon: BsTwitterX, tooltip: "X" },
 		{ href: metadata.Telegram, icon: Send, tooltip: "TELEGRAM::CHAT" },
 		{ href: metadata.Website, icon: Globe, tooltip: "WEBSITE::LINK" },
 	].filter((link) => link.href)

@@ -102,7 +102,7 @@ export default function LaunchContent() {
 							IDENTITY::REQUIRED
 						</h1>
 						<p className="text-sm font-mono uppercase max-w-md mx-auto text-muted-foreground">
-							TWITTER_AUTH_REQUIRED_FOR_TOKEN_LAUNCH
+							X_AUTH_REQUIRED_FOR_TOKEN_LAUNCH
 						</p>
 					</div>
 
@@ -112,7 +112,7 @@ export default function LaunchContent() {
 								className="w-full font-mono uppercase tracking-wider py-6 text-base border-2 border-foreground/20 hover:border-primary/50 transition-all duration-300"
 								onClick={login}
 							>
-								CONNECT::TWITTER
+								CONNECT X
 							</Button>
 						</div>
 					</div>

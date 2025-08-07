@@ -1,6 +1,5 @@
 import { env } from "@/env"
 
-// Define TwitterUser type locally
 interface TwitterUser {
 	id: string
 	username: string

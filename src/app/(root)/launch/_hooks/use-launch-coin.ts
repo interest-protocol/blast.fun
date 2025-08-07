@@ -60,7 +60,7 @@ export function useLaunchCoin() {
 		}
 
 		if (!isLoggedIn || !twitterUser) {
-			throw new Error("Please connect your Twitter account")
+			throw new Error("Please connect your X account")
 		}
 
 		const nameUpper = formValues.name.toUpperCase().trim()

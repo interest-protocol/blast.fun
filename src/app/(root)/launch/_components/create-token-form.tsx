@@ -26,9 +26,18 @@ const tokenSchema = z.object({
 		.regex(/^[a-zA-Z][\x21-\x7E]*$/),
 	description: z.string().min(10, "Minimum 10 characters").max(256, "Maximum 256 characters"),
 	imageUrl: z.string().optional(),
-	website: z.url("Invalid URL").optional().or(z.literal("")),
-	telegram: z.url("Invalid URL").optional().or(z.literal("")),
-	twitter: z.url("Invalid URL").optional().or(z.literal("")),
+	website: z.union([
+		z.literal(""),
+		z.string().url("Invalid URL")
+	]).optional(),
+	telegram: z.union([
+		z.literal(""),
+		z.string().url("Invalid URL")
+	]).optional(),
+	twitter: z.union([
+		z.literal(""),
+		z.string().url("Invalid URL")
+	]).optional(),
 	hideIdentity: z.boolean(),
 	sniperProtection: z.boolean(),
 	requireTwitter: z.boolean(),
@@ -69,6 +78,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 	const imageUrl = form.watch("imageUrl")
 	const tokenName = form.watch("name")
 	const tokenSymbol = form.watch("symbol")
+	const description = form.watch("description")
 	const hideIdentity = form.watch("hideIdentity")
 	const sniperProtection = form.watch("sniperProtection")
 	const requireTwitter = form.watch("requireTwitter")
@@ -246,13 +256,22 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 						name="description"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel className="font-mono text-xs uppercase tracking-wider text-foreground/60">
-									PROJECT::DESCRIPTION
-								</FormLabel>
+								<div className="flex items-center justify-between">
+									<FormLabel className="font-mono text-xs uppercase tracking-wider text-foreground/60">
+										PROJECT::DESCRIPTION
+									</FormLabel>
+									<span className={cn(
+										"font-mono text-xs",
+										description.length > 256 ? "text-destructive" : description.length > 230 ? "text-warning" : "text-muted-foreground"
+									)}>
+										{description.length}/256
+									</span>
+								</div>
 								<FormControl>
 									<Textarea
 										placeholder="[DESCRIBE_YOUR_TOKEN_PROJECT]"
 										className="resize-none min-h-[100px] font-mono text-sm focus:border-primary/50"
+										maxLength={256}
 										{...field}
 									/>
 								</FormControl>
@@ -263,6 +282,9 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 
 					{/* Social Links */}
 					<div className="space-y-4">
+						<p className="font-mono text-xs uppercase text-muted-foreground">
+							SOCIAL::LINKS
+						</p>
 						<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
 							<FormField
 								control={form.control}
@@ -270,7 +292,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel className="font-mono text-xs uppercase tracking-wider text-foreground/60">
-											WEBSITE
+											WEBSITE <span className="text-muted-foreground/40">(OPTIONAL)</span>
 										</FormLabel>
 										<FormControl>
 											<Input
@@ -290,7 +312,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel className="font-mono text-xs uppercase tracking-wider text-foreground/60">
-											TELEGRAM
+											TELEGRAM <span className="text-muted-foreground/40">(OPTIONAL)</span>
 										</FormLabel>
 										<FormControl>
 											<Input
@@ -310,7 +332,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel className="font-mono text-xs uppercase tracking-wider text-foreground/60">
-											X
+											X <span className="text-muted-foreground/40">(OPTIONAL)</span>
 										</FormLabel>
 										<FormControl>
 											<Input
@@ -354,7 +376,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 												HIDE::CREATOR::IDENTITY
 											</FormLabel>
 											<p className="font-mono text-xs uppercase text-muted-foreground">
-												{field.value ? "IDENTITY::HIDDEN" : "TWITTER_HANDLE_WILL_BE_[REDACTED]"}
+												{field.value ? "IDENTITY::HIDDEN" : "X_HANDLE_WILL_BE_[REDACTED]"}
 											</p>
 										</div>
 									</div>
@@ -437,10 +459,10 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 											<div className="space-y-1">
 												<FormLabel className="font-mono text-sm uppercase tracking-wider flex items-center gap-2">
 													<Users className="h-4 w-4 text-primary" />
-													REQUIRE X/TWITTER
+													REQUIRE X LOGIN
 												</FormLabel>
 												<FormDescription className="font-mono text-xs uppercase text-muted-foreground">
-													BUYERS_MUST_CONNECT_X/TWITTER_ACCOUNT
+													BUYERS_MUST_CONNECT_X_ACCOUNT
 												</FormDescription>
 											</div>
 											<FormControl>

@@ -75,7 +75,7 @@ export function CreatorDetails({ pool }: CreatorDetailsProps) {
 							</span>
 							{showTwitterCreator && (
 								<a
-									href={`https://twitter.com/${creatorTwitterName}`}
+									href={`https://x.com/${creatorTwitterName}`}
 									target="_blank"
 									rel="noopener noreferrer"
 									className="text-muted-foreground hover:text-foreground transition-colors"

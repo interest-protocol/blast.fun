@@ -62,9 +62,11 @@ export function usePump({ pool, decimals = 9, actualBalance, referrerWallet }: U
 
 			if (!response.ok) {
 				const error = await response.json()
+
 				if (error.requiresTwitter) {
-					throw new Error("You must be authenticated with twitter to interact with this token.")
+					throw new Error("You must be authenticated with X to interact with this token.")
 				}
+
 				throw new Error(error.message || "SIGNATURE::FAILED")
 			}
 
