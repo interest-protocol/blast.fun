@@ -122,7 +122,7 @@ export function TokenTabsHeader() {
 						variant="ghost"
 						size="icon"
 						onClick={handleCloseAll}
-						className="text-xs text-muted-foreground"
+						className="rounded-xl text-muted-foreground"
 					>
 						<XCircle className="w-3.5 h-3.5" />
 					</Button>
