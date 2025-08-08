@@ -2,6 +2,7 @@
 
 import Header from "@/components/layout/header"
 import { MobileNavigation } from "@/components/layout/mobile-nav"
+import { TokenTabsHeader } from "@/components/layout/token-tabs-header"
 import { Ticker } from "@/components/shared/ticker"
 import { usePathname } from "next/navigation"
 
@@ -17,6 +18,7 @@ export default function Layout({
 		<div className="flex flex-col h-screen overflow-hidden">
 			<Ticker />
 			<Header />
+			<TokenTabsHeader />
 
 			<main className="flex-1 overflow-y-auto pb-16 lg:pb-0">
 				{isTokenPage ? (

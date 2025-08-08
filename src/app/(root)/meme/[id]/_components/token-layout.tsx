@@ -4,6 +4,7 @@ import { SplashLoader } from "@/components/shared/splash-loader";
 import { Logo } from "@/components/ui/logo";
 import { usePoolWithMetadata } from "@/hooks/pump/use-pool-with-metadata"
 import { useBreakpoint } from "@/hooks/use-breakpoint";
+import { useTokenTab } from "@/hooks/use-token-tab";
 import MobileTokenView from "./mobile-token-view";
 import { TokenHeader } from "./token-header";
 import { ReferralShare } from "./referral-share";
@@ -20,6 +21,8 @@ import { TokenTabs } from "./token-tabs";
 export default function TokenLayout({ poolId }: { poolId: string }) {
     const { data, isLoading, error } = usePoolWithMetadata(poolId);
     const { isMobile } = useBreakpoint();
+    
+    useTokenTab(data);
 
     if (isLoading) {
         return <SplashLoader />
