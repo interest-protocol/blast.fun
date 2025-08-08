@@ -11,14 +11,13 @@ import { Progress } from "@/components/ui/progress"
 export function TokenTabsHeader() {
 	const router = useRouter()
 	const pathname = usePathname()
-	const { tabs, activeTabId, removeTab, removeAllTabs, setActiveTab } = useTokenTabs()
+	const { tabs, removeTab, removeAllTabs } = useTokenTabs()
 
 	if (tabs.length === 0) {
 		return null
 	}
 
 	const handleTabClick = (poolId: string) => {
-		setActiveTab(poolId)
 		router.push(`/meme/${poolId}`)
 	}
 
@@ -48,7 +47,7 @@ export function TokenTabsHeader() {
 			<div className="flex items-center gap-2 p-2 overflow-x-auto no-scrollbar">
 				<div className="flex items-center gap-1 flex-shrink-0">
 					{tabs.map((tab) => {
-						const isActive = tab.poolId === activeTabId || pathname === `/meme/${tab.poolId}`
+						const isActive = pathname === `/meme/${tab.poolId}`
 						const progress = tab.bondingCurve || 0
 						const isComplete = progress >= 100
 
