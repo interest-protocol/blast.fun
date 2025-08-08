@@ -214,8 +214,8 @@ export function TradeTerminal({ pool }: TradeTerminalProps) {
 				{/* Quick Actions */}
 				<div className="space-y-1">
 					{tradeType === "buy" ? (
-						<div className="grid grid-cols-6 gap-1">
-							{[0.1, 0.5, 1, 5, 10, 50].map((suiAmount) => (
+						<div className="grid grid-cols-4 gap-1">
+							{[1, 5, 10, 50].map((suiAmount) => (
 								<Button
 									key={suiAmount}
 									variant="outline"
