@@ -3,7 +3,7 @@ import { useTokenTabs } from "@/stores/token-tabs"
 import type { PoolWithMetadata } from "@/types/pool"
 
 export function useTokenTab(pool: PoolWithMetadata | null | undefined) {
-	const { addTab, setActiveTab } = useTokenTabs()
+	const { addTab } = useTokenTabs()
 
 	useEffect(() => {
 		if (!pool) return
@@ -19,7 +19,5 @@ export function useTokenTab(pool: PoolWithMetadata | null | undefined) {
 			iconUrl: pool.coinMetadata?.iconUrl,
 			bondingCurve,
 		})
-
-		setActiveTab(pool.poolId)
-	}, [pool, addTab, setActiveTab])
+	}, [pool, addTab])
 }
