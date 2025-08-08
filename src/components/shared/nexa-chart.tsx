@@ -3,6 +3,7 @@
 import { PoolWithMetadata } from "@/types/pool"
 import { useState } from "react"
 import { cn } from "@/utils"
+import { useApp } from "@/context/app.context"
 
 interface NexaChartProps {
 	pool: PoolWithMetadata
@@ -11,7 +12,8 @@ interface NexaChartProps {
 
 export function NexaChart({ pool, className }: NexaChartProps) {
 	const [isLoading, setIsLoading] = useState(true)
-	const chartUrl = `https://app.nexa.xyz/xpump-tv-chart/${pool.coinType}`
+	const { address } = useApp();
+	const chartUrl = `https://app.nexa.xyz/xpump-tv-chart/${pool.coinType}?address=${address}`
 
 	return (
 		<div className={cn("relative w-full h-full", className)}>
