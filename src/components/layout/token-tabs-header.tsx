@@ -7,13 +7,15 @@ import { cn } from "@/utils"
 import { TokenAvatar } from "../tokens/token-avatar"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
+import { useBreakpoint } from "@/hooks/use-breakpoint"
 
 export function TokenTabsHeader() {
 	const router = useRouter()
 	const pathname = usePathname()
+	const { isMobile } = useBreakpoint();
 	const { tabs, removeTab, removeAllTabs } = useTokenTabs()
 
-	if (tabs.length === 0) {
+	if (tabs.length === 0 || isMobile) {
 		return null
 	}
 
