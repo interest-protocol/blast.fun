@@ -9,6 +9,7 @@ import MobileTokenView from "./mobile-token-view";
 import { TokenHeader } from "./token-header";
 import { ReferralShare } from "./referral-share";
 import { CreatorDetails } from "./creator-details";
+import { MigrationFees } from "./migration-fees";
 import { TradeTerminal } from "./trade-terminal";
 import {
     ResizablePanelGroup,
@@ -70,6 +71,10 @@ export default function TokenLayout({ poolId }: { poolId: string }) {
 
             <div className="w-[400px] border-l flex flex-col h-full">
                 <CreatorDetails pool={data} />
+
+                {data.migrated && (
+                    <MigrationFees pool={data} />
+                )}
 
                 {!data.migrated && (
                     <ReferralShare pool={data} />
