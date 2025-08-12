@@ -31,7 +31,7 @@ export default function TokenLayout({ poolId }: { poolId: string }) {
         return <SplashLoader />
     }
 
-    if (error || !data || !data.coinType || !data.coinMetadata) {
+    if (error || !data) {
         return (
             <div className="container mx-auto px-4 py-8">
                 <div className="text-center">
