@@ -26,12 +26,14 @@ export type Pool = {
 }
 
 export type CoinMetadata = {
+	coinType: string
+	decimals: number
+	icon_url?: string
+	iconUrl?: string
+	id: string
 	name: string
+	supply: number
 	symbol: string
-	description?: string | null
-	iconUrl?: string | null
-	decimals?: number
-	id?: string | null
 }
 
 export type PoolWithMetadata = Pool & {

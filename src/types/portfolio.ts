@@ -1,14 +1,4 @@
-export type CoinMetadata = {
-	_id: string
-	coinType: string
-	decimals: number
-	icon_url?: string
-	iconUrl?: string
-	id: string
-	name: string
-	supply: number
-	symbol: string
-}
+import { CoinMetadata } from "./pool"
 
 export type MarketStats = {
 	_id: string
