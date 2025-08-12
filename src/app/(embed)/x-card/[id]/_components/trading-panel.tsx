@@ -31,7 +31,6 @@ interface TradingPanelProps {
 }
 
 export function TradingPanel({ pool, referrerWallet, refCode }: TradingPanelProps) {
-	const { isConnected } = useApp()
 	const [tradeType, setTradeType] = useState<"buy" | "sell">("buy")
 	const [amount, setAmount] = useState("")
 	const [slippage, setSlippage] = useState("15")
