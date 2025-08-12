@@ -84,8 +84,8 @@ export function Ticker() {
 	}, [trades])
 
 	const displayItems = useMemo(() => tradeItems, [tradeItems])
-	
-	if (displayItems.length === 0 && !isLoading) return null
+
+	if (isLoading || displayItems.length === 0) return null
 
 	return (
 		<div className="w-full overflow-hidden bg-destructive/10 border-y-2 border-destructive/20 py-2 relative select-none group">
