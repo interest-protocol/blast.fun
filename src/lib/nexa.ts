@@ -71,7 +71,7 @@ class NexaClient {
 		return await response.json()
 	}
 
-	async getHolders(coinType: string, limit = 50, skip = 0) {
+	async getHolders(coinType: string, limit = 10, skip = 0) {
 		const response = await this.fetch(`/coin-holders/${coinType}/holders?limit=${limit}&skip=${skip}`, {
 			revalidate: 10,
 		})
@@ -79,13 +79,6 @@ class NexaClient {
 		return await response.json()
 	}
 
-	async getHoldersWithPortfolio(coinType: string, limit = 50, skip = 0) {
-		const response = await this.fetch(`/coin-holders/${encodeURIComponent(coinType)}/holders-with-portfolio?limit=${limit}&skip=${skip}`, {
-			revalidate: 10,
-		})
-
-		return await response.json()
-	}
 
 	async getTrades(coinType: string, limit = 50, skip = 0) {
 		const response = await this.fetch(`/coins/${encodeURIComponent(coinType)}/trades?limit=${limit}&skip=${skip}`, {

@@ -2,9 +2,10 @@
 
 import { SplashLoader } from "@/components/shared/splash-loader";
 import { Logo } from "@/components/ui/logo";
-import { usePoolWithMetadata } from "@/hooks/pump/use-pool-with-metadata"
+import { useTokenWithMetadata } from "@/hooks/pump/use-token-with-metadata"
 import { useBreakpoint } from "@/hooks/use-breakpoint";
 import { useTokenTab } from "@/hooks/use-token-tab";
+import { useMarketData } from "@/hooks/use-market-data";
 import MobileTokenView from "./mobile-token-view";
 import { TokenHeader } from "./token-header";
 import { ReferralShare } from "./referral-share";
@@ -20,9 +21,10 @@ import { NexaChart } from "@/components/shared/nexa-chart";
 import { TokenTabs } from "./token-tabs";
 
 export default function TokenLayout({ poolId }: { poolId: string }) {
-    const { data, isLoading, error } = usePoolWithMetadata(poolId);
+    const { data, isLoading, error } = useTokenWithMetadata(poolId);
     const { isMobile } = useBreakpoint();
-    
+    const { data: marketData } = useMarketData(data?.coinType);
+
     useTokenTab(data);
 
     if (isLoading) {
@@ -64,7 +66,7 @@ export default function TokenLayout({ poolId }: { poolId: string }) {
                     <ResizableHandle withHandle />
 
                     <ResizablePanel defaultSize={40} minSize={20}>
-                        <TokenTabs pool={data} className="h-full" />
+                        <TokenTabs pool={data} marketData={marketData} className="h-full" />
                     </ResizablePanel>
                 </ResizablePanelGroup>
             </div>

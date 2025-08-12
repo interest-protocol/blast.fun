@@ -1,21 +1,14 @@
 import { useQuery } from "@tanstack/react-query"
 import type { MarketData } from "@/types/market"
+import { nexaClient } from "@/lib/nexa"
 
-export function useMarketData(coinType: string) {
+export function useMarketData(coinType: string, refetchInterval = 30000) {
 	return useQuery({
 		queryKey: ["market-data", coinType],
 		queryFn: async () => {
-			const encodedCoinType = encodeURIComponent(coinType)
-			const response = await fetch(`/api/${encodedCoinType}/market-data`)
-
-			if (!response.ok) {
-				throw new Error("Failed to fetch market data")
-			}
-
-			const data = await response.json()
-			return data as MarketData
+			return await nexaClient.getMarketData(coinType)
 		},
 		enabled: !!coinType,
-		refetchInterval: 30000,
+		refetchInterval,
 	})
 }

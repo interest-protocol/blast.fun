@@ -26,14 +26,26 @@ export type Pool = {
 }
 
 export type CoinMetadata = {
-	coinType: string
+	coinType?: string
 	decimals: number
 	icon_url?: string
 	iconUrl?: string
 	id: string
 	name: string
-	supply: number
+	supply?: number
 	symbol: string
+	description?: string
+	dev?: string
+	createdAt?: number
+	isHoneypot?: boolean
+	lastTradeAt?: string
+	bondingProgress?: number
+	circulating?: number
+	circulatingUpdatedAt?: number
+	dexPaid?: boolean
+	treasuryCap?: string
+	treasuryCapOwner?: any
+	_id?: string
 }
 
 export type PoolWithMetadata = Pool & {

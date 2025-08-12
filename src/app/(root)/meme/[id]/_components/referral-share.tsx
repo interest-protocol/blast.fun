@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { useReferrals } from "@/hooks/use-referrals"
 import { useApp } from "@/context/app.context"
 import type { PoolWithMetadata } from "@/types/pool"
+import { useMarketData } from "@/hooks/use-market-data"
 import toast from "react-hot-toast"
 
 interface ReferralShareProps {
@@ -17,6 +18,7 @@ interface ReferralShareProps {
 export function ReferralShare({ pool }: ReferralShareProps) {
     const { address, isConnected } = useApp()
     const { createReferralLink, getReferralCode, isLoading, error } = useReferrals()
+    const { data: marketData } = useMarketData(pool.coinType)
 
     const [refCode, setRefCode] = useState<string | null>(null)
     const [inputCode, setInputCode] = useState("")
@@ -75,7 +77,8 @@ export function ReferralShare({ pool }: ReferralShareProps) {
     }
 
     const handleTweet = () => {
-        const shareText = `Come check out ${pool.coinMetadata?.name || "[???]"} on @blastdotfun! You can even trade directly from X.`
+        const metadata = marketData?.coinMetadata || pool.coinMetadata
+        const shareText = `Come check out ${metadata?.name || "[???]"} on @blastdotfun! You can even trade directly from X.`
         const twitterUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`
         window.open(twitterUrl, "_blank", "noopener,noreferrer")
     }

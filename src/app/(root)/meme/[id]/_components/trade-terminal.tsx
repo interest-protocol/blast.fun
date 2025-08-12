@@ -15,6 +15,7 @@ import { useTrading } from "@/hooks/pump/use-trading"
 import { useTokenBalance } from "@/hooks/sui/use-token-balance"
 import type { PoolWithMetadata } from "@/types/pool"
 import { usePortfolio } from "@/hooks/nexa/use-portfolio"
+import { useMarketData } from "@/hooks/use-market-data"
 import { cn } from "@/utils"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Logo } from "@/components/ui/logo"
@@ -29,9 +30,10 @@ export function TradeTerminal({ pool }: TradeTerminalProps) {
 	const [amount, setAmount] = useState("")
 	const [slippage, setSlippage] = useState("15")
 
+	const { data: marketData } = useMarketData(pool.coinType)
 	const { balance: tokenBalance } = useTokenBalance(pool.coinType)
 	const { balance: actualBalance, refetch: refetchPortfolio } = usePortfolio(pool.coinType)
-	const metadata = pool.coinMetadata
+	const metadata = marketData?.coinMetadata || pool.coinMetadata
 	const decimals = metadata?.decimals || 9
 
 	// use balance from nexa if available, otherwise fall back to token balance

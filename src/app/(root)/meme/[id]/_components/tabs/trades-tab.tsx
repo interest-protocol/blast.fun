@@ -5,10 +5,12 @@ import { PoolWithMetadata } from "@/types/pool"
 import { Activity, ExternalLink } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useInfiniteQuery } from "@tanstack/react-query"
+import { useMarketData } from "@/hooks/use-market-data"
 import { formatAddress } from "@mysten/sui/utils"
 import { getTxExplorerUrl } from "@/utils/transaction"
 import { Logo } from "@/components/ui/logo"
 import nexaSocket from "@/lib/websocket/nexa-socket"
+import { nexaClient } from "@/lib/nexa"
 import { cn } from "@/utils"
 import { formatAmountWithSuffix, formatNumberWithSuffix } from "@/utils/format"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -71,6 +73,8 @@ function useRealtimeTrades(coinType: string, poolSymbol?: string) {
 
 export function TradesTab({ pool, className, onLoad }: TradesTabProps) {
 	const TRADES_PER_PAGE = 20
+	const { data: marketData } = useMarketData(pool.coinType)
+	const metadata = marketData?.coinMetadata || pool.coinMetadata
 
 	const {
 		data,
@@ -82,13 +86,8 @@ export function TradesTab({ pool, className, onLoad }: TradesTabProps) {
 	} = useInfiniteQuery({
 		queryKey: ["trades", pool.coinType],
 		queryFn: async ({ pageParam = 0 }) => {
-			const response = await fetch(
-				`/api/${pool.coinType}/trades?limit=${TRADES_PER_PAGE}&skip=${pageParam}`
-			)
-			if (!response.ok) {
-				throw new Error("Failed to fetch trades")
-			}
-			return response.json() as Promise<CoinTrade[]>
+			const data = await nexaClient.getTrades(pool.coinType, TRADES_PER_PAGE, pageParam)
+			return data as CoinTrade[]
 		},
 		getNextPageParam: (lastPage, allPages) => {
 			if (lastPage.length < TRADES_PER_PAGE) return undefined
@@ -101,7 +100,7 @@ export function TradesTab({ pool, className, onLoad }: TradesTabProps) {
 		initialPageParam: 0
 	})
 
-	const realtimeTrades = useRealtimeTrades(pool.coinType, pool.coinMetadata?.symbol)
+	const realtimeTrades = useRealtimeTrades(pool.coinType, metadata?.symbol)
 
 	const historicalTrades = useMemo(() => {
 		if (!data?.pages) return []
@@ -122,8 +121,8 @@ export function TradesTab({ pool, className, onLoad }: TradesTabProps) {
 					amountOut,
 					coinIn: trade.coinIn,
 					coinOut: trade.coinOut,
-					coinInSymbol: trade.coinInMetadata?.symbol || (isBuy ? "SUI" : pool.coinMetadata?.symbol),
-					coinOutSymbol: trade.coinOutMetadata?.symbol || (isBuy ? pool.coinMetadata?.symbol : "SUI"),
+					coinInSymbol: trade.coinInMetadata?.symbol || (isBuy ? "SUI" : metadata?.symbol),
+					coinOutSymbol: trade.coinOutMetadata?.symbol || (isBuy ? metadata?.symbol : "SUI"),
 					coinInIconUrl: trade.coinInMetadata?.iconUrl || trade.coinInMetadata?.icon_url,
 					coinOutIconUrl: trade.coinOutMetadata?.iconUrl || trade.coinOutMetadata?.icon_url,
 					price: isBuy ? trade.priceOut : trade.priceIn,
@@ -134,7 +133,7 @@ export function TradesTab({ pool, className, onLoad }: TradesTabProps) {
 				} as UnifiedTrade
 			})
 		)
-	}, [data?.pages, pool.coinMetadata?.symbol, pool.coinType])
+	}, [data?.pages, metadata?.symbol, pool.coinType])
 
 	const unifiedTrades = useMemo(() => {
 		const combined = [...realtimeTrades, ...historicalTrades]

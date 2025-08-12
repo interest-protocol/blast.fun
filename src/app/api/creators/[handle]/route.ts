@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isValidSuiAddress } from "@mysten/sui/utils";
 import { formatAmountWithSuffix } from "@/utils/format";
+import { env } from "@/env";
 
 export async function GET(
 	request: NextRequest,
@@ -58,7 +59,7 @@ export async function GET(
 					`https://api.twitterapi.io/twitter/user/info?userName=${twitterHandle}`,
 					{
 						headers: {
-							"X-API-Key": process.env.TWITTER_API_IO_KEY!,
+							"X-API-Key": env.TWITTER_API_IO_KEY,
 						},
 					}
 				);
@@ -113,11 +114,11 @@ export async function GET(
 		// show exact values for unhidden accounts (twitter handles)
 		return NextResponse.json({
 			launchCount: launchCount,
-			trustedFollowers: isWalletAddress 
-				? bandTrustedFollowers(trustedFollowerCount) 
+			trustedFollowers: isWalletAddress
+				? bandTrustedFollowers(trustedFollowerCount)
 				: formatFollowerCount(trustedFollowerCount),
-			followers: isWalletAddress 
-				? bandFollowerCount(followerCount) 
+			followers: isWalletAddress
+				? bandFollowerCount(followerCount)
 				: formatFollowerCount(followerCount),
 		});
 	} catch (error) {

@@ -20,8 +20,8 @@ interface TokenHeaderProps {
 }
 
 export function TokenHeader({ pool }: TokenHeaderProps) {
-	const metadata = pool.coinMetadata
 	const { data: marketData } = useMarketData(pool.coinType)
+	const metadata = marketData?.coinMetadata || pool.coinMetadata
 	const [realtimePrice, setRealtimePrice] = useState<number | null>(null)
 	const [priceFlash, setPriceFlash] = useState<'up' | 'down' | null>(null)
 
@@ -36,7 +36,7 @@ export function TokenHeader({ pool }: TokenHeaderProps) {
 			volume24h: marketData?.coin24hTradeVolumeUsd || 0,
 			basePrice: marketData?.coinPrice || 0,
 			marketCap: marketData?.marketCap || 0,
-			totalLiquidityUsd: marketData?.totalLiquidityUsd || 0
+			totalLiquidityUsd: marketData?.totalCoinLiquidityUsd || 0
 		}
 	}, [marketData])
 

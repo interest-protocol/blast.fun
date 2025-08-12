@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { Redis } from "@upstash/redis"
-import { env } from "@/env"
+import { getRedisClient, CACHE_PREFIX, CACHE_TTL } from "@/lib/redis/client"
 
 interface NSFWPrediction {
 	isSafe: boolean
@@ -21,18 +20,10 @@ interface NSFWCheckResponse {
 }
 
 const NSFW_CHECKER_API = "https://api.interestlabs.io/v1/nsfw"
-const CACHE_TTL = 7 * 24 * 60 * 60 // 7 days in seconds
-const REQUEST_TIMEOUT = 5000 // 5 seconds
-
-const redis = env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN
-	? new Redis({
-		url: env.UPSTASH_REDIS_REST_URL,
-		token: env.UPSTASH_REDIS_REST_TOKEN,
-	})
-	: null
+const REQUEST_TIMEOUT = 5000
 
 function getCacheKey(imageUrl: string): string {
-	return `nsfw:${imageUrl}`
+	return `${CACHE_PREFIX.NSFW_CHECK}${imageUrl}`
 }
 
 export async function POST(request: NextRequest) {
@@ -44,6 +35,7 @@ export async function POST(request: NextRequest) {
 			return NextResponse.json({ isSafe: true })
 		}
 
+		const redis = getRedisClient()
 		if (redis) {
 			try {
 				const cached = await redis.get<{ isSafe: boolean }>(getCacheKey(imageUrl))
@@ -52,7 +44,6 @@ export async function POST(request: NextRequest) {
 				}
 			} catch (error) {
 				console.error("Redis get error:", error)
-				// continue without cache
 			}
 		}
 
@@ -85,10 +76,9 @@ export async function POST(request: NextRequest) {
 		const isSafe = data.predictions?.isSafe ?? true
 		if (redis) {
 			try {
-				await redis.setex(getCacheKey(imageUrl), CACHE_TTL, { isSafe })
+				await redis.setex(getCacheKey(imageUrl), CACHE_TTL.NSFW_CHECK, { isSafe })
 			} catch (error) {
 				console.error("Redis set error:", error)
-				// continue even if fail
 			}
 		}
 

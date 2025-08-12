@@ -7,6 +7,7 @@ export interface TokenTab {
 	symbol: string
 	iconUrl?: string | null
 	bondingCurve: number
+	coinType?: string
 }
 
 interface TokenTabsStore {

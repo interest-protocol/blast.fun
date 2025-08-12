@@ -14,6 +14,7 @@ import { TopTradersTab } from "./tabs/top-traders-tab"
 
 interface TokenTabsProps {
 	pool: PoolWithMetadata
+	marketData?: any
 	className?: string
 }
 
@@ -51,10 +52,11 @@ const tabs: Tab[] = [
 	}
 ]
 
-export function TokenTabs({ pool, className }: TokenTabsProps) {
+export function TokenTabs({ pool, marketData, className }: TokenTabsProps) {
 	const [activeTab, setActiveTab] = useState("trades")
 	const { resolvedTheme } = useTheme()
 	const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || TradesTab
+	const holdersCount = marketData?.holdersCount
 
 	return (
 		<div className={cn("flex flex-col h-full", className)}>
@@ -78,7 +80,10 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 									)}
 								>
 									<Icon className="h-3.5 w-3.5" />
-									<span className="hidden sm:inline">{tab.label}</span>
+									<span className="hidden sm:inline">
+										{tab.label}
+										{tab.id === "holders" && holdersCount ? ` (${holdersCount})` : ""}
+									</span>
 								</button>
 							)
 						})}

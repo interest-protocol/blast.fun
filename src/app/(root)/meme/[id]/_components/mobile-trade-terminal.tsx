@@ -10,6 +10,7 @@ import { useTrading } from "@/hooks/pump/use-trading"
 import { useTokenBalance } from "@/hooks/sui/use-token-balance"
 import type { PoolWithMetadata } from "@/types/pool"
 import { usePortfolio } from "@/hooks/nexa/use-portfolio"
+import { useMarketData } from "@/hooks/use-market-data"
 import { cn } from "@/utils"
 
 interface TradingTerminalMobileProps {
@@ -25,9 +26,10 @@ export function MobileTradeTerminal({ pool, className }: TradingTerminalMobilePr
 	const [showSlippageSheet, setShowSlippageSheet] = useState(false)
 	const [activeInput, setActiveInput] = useState<"amount" | "quick" | null>(null)
 
+	const { data: marketData } = useMarketData(pool.coinType)
 	const { balance: tokenBalance } = useTokenBalance(pool.coinType)
 	const { balance: actualBalance, refetch: refetchPortfolio, isLoading: isPortfolioLoading } = usePortfolio(pool.coinType)
-	const metadata = pool.coinMetadata
+	const metadata = marketData?.coinMetadata || pool.coinMetadata
 	const decimals = metadata?.decimals || 9
 
 	const effectiveBalance = actualBalance !== "0" ? actualBalance : tokenBalance

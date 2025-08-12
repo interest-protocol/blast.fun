@@ -2,14 +2,14 @@
 
 import { PoolWithMetadata } from "@/types/pool"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { useInfiniteQuery } from "@tanstack/react-query"
 import { Users, ExternalLink, Loader2 } from "lucide-react"
 import { formatAmountWithSuffix, formatNumberWithSuffix } from "@/utils/format"
 import { cn } from "@/utils"
 import { useRef, useEffect, useMemo } from "react"
 import { Progress } from "@/components/ui/progress"
 import { CopyableAddress } from "@/components/shared/copyable-address"
-import type { Holder } from "@/types/holder"
+import { useMarketData } from "@/hooks/use-market-data"
+import { useInfiniteHoldersWithPortfolio } from "@/hooks/use-holders-with-portfolio"
 
 interface HoldersTabProps {
 	pool: PoolWithMetadata
@@ -20,6 +20,9 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 	const scrollRef = useRef<HTMLDivElement>(null)
 	const loadMoreRef = useRef<HTMLDivElement>(null)
 
+	const { data: marketData } = useMarketData(pool.coinType)
+	const metadata = marketData?.coinMetadata || pool.coinMetadata
+
 	const HOLDERS_PER_PAGE = 10
 
 	const {
@@ -29,26 +32,10 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 		isFetchingNextPage,
 		isLoading,
 		error
-	} = useInfiniteQuery({
-		queryKey: ["holders-with-portfolio", pool.coinType],
-		queryFn: async ({ pageParam = 0 }) => {
-			const response = await fetch(
-				`/api/${pool.coinType}/holders-with-portfolio?limit=${HOLDERS_PER_PAGE}&skip=${pageParam}`
-			)
-			if (!response.ok) {
-				throw new Error("Failed to fetch holders")
-			}
-			return response.json() as Promise<Holder[]>
-		},
-		getNextPageParam: (lastPage, allPages) => {
-			if (lastPage.length < HOLDERS_PER_PAGE) return undefined
-			return allPages.length * HOLDERS_PER_PAGE
-		},
-		enabled: !!pool.coinType,
-		refetchOnWindowFocus: false,
-		refetchOnMount: false,
-		staleTime: 30000,
-		initialPageParam: 0
+	} = useInfiniteHoldersWithPortfolio({
+		coinType: pool.coinType,
+		limit: HOLDERS_PER_PAGE,
+		enabled: !!pool.coinType
 	})
 
 	const holders = useMemo(() => {
@@ -56,8 +43,7 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 		return data.pages.flat()
 	}, [data?.pages])
 
-	// Get coin decimals from pool metadata
-	const coinDecimals = pool.coinMetadata?.decimals || 9
+	const coinDecimals = metadata?.decimals || 9
 
 	// infinite scroll observer
 	useEffect(() => {
@@ -78,10 +64,10 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 	}, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
 
-	const formatPnl = (unrealizedPnl?: number) => {
-		if (!unrealizedPnl || unrealizedPnl === 0) return <span className="text-muted-foreground">-</span>
+	const formatPnl = (realizedPnl?: number) => {
+		if (!realizedPnl || realizedPnl === 0) return <span className="text-muted-foreground">-</span>
 
-		const pnlValue = unrealizedPnl
+		const pnlValue = realizedPnl
 		const isPositive = pnlValue >= 0
 
 		return (
@@ -107,7 +93,7 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 							HOLDERS::LOADING
 						</p>
 						<p className="font-mono text-xs uppercase text-muted-foreground/60">
-							FETCHING_HOLDER_DATA_FOR_{pool.coinMetadata?.symbol || "[TOKEN]"}
+							FETCHING_HOLDER_DATA_FOR_{metadata?.symbol || "[TOKEN]"}
 						</p>
 						<div className="flex items-center justify-center gap-1 mt-4">
 							<div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
@@ -233,7 +219,7 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 											{isDataLoading ? (
 												<div className="h-3 w-10 bg-muted/30 animate-pulse rounded ml-auto" />
 											) : (
-												formatPnl(holder.unrealizedPnl)
+												formatPnl(holder.realizedPnl || stats?.pnl)
 											)}
 										</div>
 
@@ -242,7 +228,7 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 											<div className="space-y-1">
 												<div className="flex items-center justify-end gap-2">
 													<span className="font-mono text-[11px] sm:text-xs text-foreground/80">
-														{formatNumberWithSuffix(holder.balanceScaled)}
+														{formatAmountWithSuffix(stats?.currentHolding || holder.balance || 0)}
 													</span>
 													<span className={cn(
 														"px-1.5 py-0 h-4 text-[10px] font-mono rounded-md border inline-flex items-center",

@@ -1,7 +1,7 @@
 "use client"
 
 import { use, useEffect, useState } from "react"
-import { usePoolWithMetadata } from "@/hooks/pump/use-pool-with-metadata"
+import { useTokenWithMetadata } from "@/hooks/pump/use-token-with-metadata"
 import { XCardTrading } from "./_components/x-card-trading"
 import { SplashLoader } from "@/components/shared/splash-loader"
 import { EmbedHeader } from "./_components/embed-header"
@@ -11,7 +11,7 @@ import { Logo } from "@/components/ui/logo"
 
 export default function XCardPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = use(params)
-	const { data: pool, isLoading, error } = usePoolWithMetadata(id)
+	const { data: pool, isLoading, error } = useTokenWithMetadata(id)
 	const searchParams = useSearchParams()
 	const refCode = searchParams.get("ref")
 	const { checkReferralCode } = useReferrals()
