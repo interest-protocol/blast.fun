@@ -25,8 +25,8 @@ export const siteConfig: SiteConfig = {
 export const DEFAULT_TOKEN_DECIMALS = 9
 
 export const TOTAL_POOL_SUPPLY = 1_000_000_000n * 10n ** 9n // 1 billion * 10^9 (for 9 decimals)
-export const VIRTUAL_LIQUIDITY = 500 * 10 ** 9 // 500 * 10^9 (for 9 decimals)
-export const TARGET_QUOTE_LIQUIDITY = 5_000 * 10 ** 9 // 5,000 * 10^9 (for 9 decimals)
-export const BASE_LIQUIDITY_PROVISION = 500 // 5% in basis points
+export const VIRTUAL_LIQUIDITY = 500 * 10 ** 9 // 500 SUI * 10^9 (for 9 decimals)
+export const TARGET_QUOTE_LIQUIDITY = 2_500 * 10 ** 9 // 2,500 SUI * 10^9 (for 9 decimals)
+export const BASE_LIQUIDITY_PROVISION = 300 // 3% in basis points
 
 export const COIN_CONVENTION_BLACKLIST = ["SUI", "ETH", "USDC", "USDT", "SOL", "BNB", "WBNB", "WETH", "BTC", "WBTC"]
