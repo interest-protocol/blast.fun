@@ -61,6 +61,7 @@ interface RollingNumberProps {
 	className?: string
 	staggerDelay?: number
 	direction?: 'ltr' | 'rtl'
+	prefix?: string
 }
 
 export function RollingNumber({
@@ -68,7 +69,8 @@ export function RollingNumber({
 	formatFn = (v) => v > 0.01 ? v.toFixed(4) : v.toFixed(8),
 	className,
 	staggerDelay = 30,
-	direction = 'rtl'
+	direction = 'rtl',
+	prefix
 }: RollingNumberProps) {
 	const [digits, setDigits] = useState<string[]>([])
 	const [previousDigits, setPreviousDigits] = useState<string[]>([])
@@ -127,6 +129,7 @@ export function RollingNumber({
 
 	return (
 		<span className={cn("inline-flex items-center font-mono tabular-nums", className)}>
+			{prefix && <span className="inline-block">{prefix}</span>}
 			{digits.map((digit, index) => (
 				<RollingDigit
 					key={index}

@@ -79,7 +79,6 @@ class NexaClient {
 		return await response.json()
 	}
 
-
 	async getTrades(coinType: string, limit = 50, skip = 0) {
 		const response = await this.fetch(`/coins/${encodeURIComponent(coinType)}/trades?limit=${limit}&skip=${skip}`, {
 			revalidate: 5,

@@ -169,21 +169,21 @@ export function TokenHeader({ pool }: TokenHeaderProps) {
 					<div className="flex items-center gap-6 ml-auto">
 						{/* Price */}
 						<div className="flex items-start gap-2">
-							<span className={cn(
-								"font-mono text-2xl font-bold transition-colors",
-								priceFlash === 'up' && "dark:text-green-400 text-green-500",
-								priceFlash === 'down' && "text-destructive"
-							)}>
-								$<RollingNumber
-									value={currentPrice}
-									formatFn={(v) => {
-										if (v >= 1) return v.toFixed(2)
-										if (v >= 0.01) return v.toFixed(4)
-										return v.toFixed(8)
-									}}
-									staggerDelay={40}
-								/>
-							</span>
+							<RollingNumber
+								value={currentPrice}
+								formatFn={(v) => {
+									if (v >= 1) return v.toFixed(2)
+									if (v >= 0.01) return v.toFixed(4)
+									return v.toFixed(8)
+								}}
+								staggerDelay={40}
+								prefix="$"
+								className={cn(
+									"flex items-center font-mono text-2xl font-bold transition-colors",
+									priceFlash === 'up' && "dark:text-green-400 text-green-500",
+									priceFlash === 'down' && "text-destructive"
+								)}
+							/>
 
 							{priceChange24h !== null && priceChange24h !== 0 && (
 								<span className={cn(

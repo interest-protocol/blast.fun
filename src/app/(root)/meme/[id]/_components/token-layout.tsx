@@ -23,7 +23,7 @@ import { TokenTabs } from "./token-tabs";
 export default function TokenLayout({ poolId }: { poolId: string }) {
     const { data, isLoading, error } = useTokenWithMetadata(poolId);
     const { isMobile } = useBreakpoint();
-    const { data: marketData } = useMarketData(data?.coinType);
+    const { data: marketData } = useMarketData(data?.coinType || "");
 
     useTokenTab(data);
 
@@ -31,7 +31,7 @@ export default function TokenLayout({ poolId }: { poolId: string }) {
         return <SplashLoader />
     }
 
-    if (error || !data) {
+    if (error || !data || !data.coinType || !data.coinMetadata) {
         return (
             <div className="container mx-auto px-4 py-8">
                 <div className="text-center">
