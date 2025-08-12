@@ -1,43 +1,107 @@
-import { env } from "@/env"
+import { MarketData } from "@/types/market"
+import { CoinMetadata } from "@/types/pool"
 
-async function serverFetch(endpoint: string, options?: RequestInit) {
-	const url = endpoint.startsWith('http')
-		? endpoint
-		: `${env.NEXT_PUBLIC_NEXA_API_URL}${endpoint}`
+const NEXA_API_BASE = "https://api.nexa.xyz"
 
-	const response = await fetch(url, {
-		...options,
-		headers: {
-			"x-api-key": env.NEXA_API_KEY,
-			"Content-Type": "application/json",
-			...options?.headers,
-		},
-	})
-
-	return response
+interface NexaRequestOptions extends RequestInit {
+	cache?: RequestCache
+	revalidate?: number | false
 }
 
-async function serverInternalFetch(endpoint: string, options?: RequestInit) {
-	const NEXA_INTERNAL_BASE_URL = "https://api-ex.insidex.trade"
-	const url = endpoint.startsWith('http')
-		? endpoint
-		: `${NEXA_INTERNAL_BASE_URL}${endpoint}`
+class NexaClient {
+	private baseUrl: string
 
-	const response = await fetch(url, {
-		...options,
-		headers: {
-			"x-api-key": env.NEXA_API_KEY,
-			"Content-Type": "application/json",
-			...options?.headers,
-		},
-	})
+	constructor() {
+		this.baseUrl = NEXA_API_BASE
+	}
 
-	return response
+	private async fetch(endpoint: string, options?: NexaRequestOptions) {
+		const url = endpoint.startsWith('http') ? endpoint : `${this.baseUrl}${endpoint}`
+
+		const response = await fetch(url, {
+			...options,
+			headers: {
+				"Content-Type": "application/json",
+				...options?.headers,
+			},
+			next: {
+				revalidate: options?.revalidate ?? 10,
+			},
+		})
+
+		if (!response.ok) {
+			const errorText = await response.text().catch(() => "Unknown error")
+			throw new Error(`NEXA API error: ${response.status} - ${errorText}`)
+		}
+
+		return response
+	}
+
+	async getCoinMetadata(coinType: string): Promise<CoinMetadata> {
+		const response = await this.fetch(`/coins/${coinType}/coin-metadata`, {
+			revalidate: 21600, // 6 hours in seconds
+		})
+
+		return await response.json() as CoinMetadata
+	}
+
+	async getBatchCoinMetadata(coinTypes: string[]) {
+		const coinTypesString = coinTypes.join(',')
+		const response = await this.fetch(`/coins/multiple/coin-metadata?coins=${encodeURIComponent(coinTypesString)}`, {
+			revalidate: 300,
+		})
+
+		return await response.json()
+	}
+
+	async getMarketData(coinType: string) {
+		const response = await this.fetch(`/coins/${coinType}/market-data`, {
+			revalidate: 5,
+		})
+
+		return await response.json() as MarketData
+	}
+
+	async getBatchMarketData(coinTypes: string[]) {
+		const coinTypesString = coinTypes.join(',')
+		const response = await this.fetch(`/coins/multiple/market-data?coins=${coinTypesString}`, {
+			revalidate: 5,
+		})
+
+		return await response.json()
+	}
+
+	async getHolders(coinType: string, limit = 50, skip = 0) {
+		const response = await this.fetch(`/coin-holders/${coinType}/holders?limit=${limit}&skip=${skip}`, {
+			revalidate: 10,
+		})
+
+		return await response.json()
+	}
+
+	async getHoldersWithPortfolio(coinType: string, limit = 50, skip = 0) {
+		const response = await this.fetch(`/coin-holders/${encodeURIComponent(coinType)}/holders-with-portfolio?limit=${limit}&skip=${skip}`, {
+			revalidate: 10,
+		})
+
+		return await response.json()
+	}
+
+	async getTrades(coinType: string, limit = 50, skip = 0) {
+		const response = await this.fetch(`/coins/${encodeURIComponent(coinType)}/trades?limit=${limit}&skip=${skip}`, {
+			revalidate: 5,
+		})
+
+		return await response.json()
+	}
+
+	async getPortfolio(address: string, minBalanceValue = 0) {
+		const response = await this.fetch(`/spot/portfolio/${address}?minBalanceValue=${minBalanceValue}`, {
+			revalidate: 30,
+		})
+
+		return await response.json()
+	}
 }
 
-export const nexa = {
-	server: {
-		fetch: serverFetch,
-		fetchInternal: serverInternalFetch,
-	},
-} as const
+export const nexaClient = new NexaClient()
