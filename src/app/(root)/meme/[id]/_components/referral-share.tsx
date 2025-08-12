@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Copy, Zap, Loader2, Shield } from "lucide-react"
+import { Copy, Zap, Loader2 } from "lucide-react"
 import { BsTwitterX } from "react-icons/bs";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -34,30 +34,10 @@ export function ReferralShare({ pool }: ReferralShareProps) {
     }, [getReferralCode])
 
     useEffect(() => {
-        if (isConnected && address && !pool.isProtected) {
+        if (isConnected && address) {
             loadReferralCode()
         }
-    }, [isConnected, address, pool.isProtected, loadReferralCode])
-
-    if (pool.isProtected) {
-        return (
-            <div className="border-b border-border">
-                <div className="p-3">
-                    <div className="flex items-center gap-2">
-                        <Shield className="w-4 h-4 text-orange-500" />
-                        <div className="flex flex-col gap-0.5">
-                            <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                                Protected Pool
-                            </p>
-                            <span className="font-mono text-sm font-bold text-orange-500">
-                                Referrals not available
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        )
-    }
+    }, [isConnected, address, loadReferralCode])
 
     const handleInitializeReferral = async () => {
         if (!inputCode.trim()) return
@@ -130,7 +110,7 @@ export function ReferralShare({ pool }: ReferralShareProps) {
                         <Input
                             value={inputCode}
                             onChange={(e) => setInputCode(e.target.value)}
-                            placeholder="Enter referral code"
+                            placeholder="Create a referral code"
                             className="flex-1 font-mono text-xs placeholder:text-muted-foreground/60 bg-background border-border"
                             maxLength={20}
                             pattern="[a-zA-Z0-9_-]+"
