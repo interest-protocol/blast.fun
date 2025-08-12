@@ -24,7 +24,13 @@ export function ReferralShare({ pool }: ReferralShareProps) {
     const [inputCode, setInputCode] = useState("")
     const [isInitializing, setIsInitializing] = useState(false)
 
-    const shareUrl = refCode
+    // Regular token page URL with referral
+    const tokenPageUrl = refCode
+        ? `${window.location.origin}/meme/${pool.poolId}?ref=${refCode}`
+        : `${window.location.origin}/meme/${pool.poolId}`
+
+    // Embedded terminal URL for Twitter
+    const terminalUrl = refCode
         ? `${window.location.origin}/api/twitter/embed/${pool.poolId}?ref=${refCode}`
         : `${window.location.origin}/api/twitter/embed/${pool.poolId}`
 
@@ -51,15 +57,15 @@ export function ReferralShare({ pool }: ReferralShareProps) {
         setIsInitializing(false)
     }
 
-    const handleCopy = async () => {
-        await navigator.clipboard.writeText(shareUrl)
-        toast.success('Trading terminal link copied.')
+    const handleCopyLink = async () => {
+        await navigator.clipboard.writeText(tokenPageUrl)
+        toast.success('Referral link copied to clipboard!')
     }
 
-    const handleTweet = () => {
+    const handleShareTerminal = () => {
         const metadata = marketData?.coinMetadata || pool.coinMetadata
-        const shareText = `Come check out ${metadata?.name || "[???]"} on @blastdotfun! You can even trade directly from X.`
-        const twitterUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`
+        const shareText = `Come check out $${metadata?.symbol || "???"} on @blastdotfun! You can even trade directly from X.`
+        const twitterUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(terminalUrl)}`
         window.open(twitterUrl, "_blank", "noopener,noreferrer")
     }
 
@@ -168,22 +174,22 @@ export function ReferralShare({ pool }: ReferralShareProps) {
 
                 <div className="flex gap-2">
                     <Button
-                        onClick={handleCopy}
+                        onClick={handleCopyLink}
                         variant="outline"
                         size="sm"
                         className="flex-1 font-mono uppercase text-xs"
                     >
                         <Copy className="h-3.5 w-3.5 mr-1.5" />
-                        COPY TERMINAL
+                        COPY LINK
                     </Button>
                     <Button
                         variant="outline"
-                        onClick={handleTweet}
+                        onClick={handleShareTerminal}
                         size="sm"
                         className="flex-1 font-mono uppercase text-xs !border-green-400/50 !bg-green-400/10 text-green-400 hover:text-green-400/80"
                     >
                         <BsTwitterX className="h-3.5 w-3.5 mr-1.5" />
-                        SHARE
+                        SHARE TERMINAL
                     </Button>
                 </div>
             </div>

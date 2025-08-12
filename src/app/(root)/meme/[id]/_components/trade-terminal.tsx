@@ -10,6 +10,11 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover"
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { useApp } from "@/context/app.context"
 import { useTrading } from "@/hooks/pump/use-trading"
 import { useTokenBalance } from "@/hooks/sui/use-token-balance"
@@ -22,9 +27,10 @@ import { Logo } from "@/components/ui/logo"
 
 interface TradeTerminalProps {
 	pool: PoolWithMetadata
+	referral?: string
 }
 
-export function TradeTerminal({ pool }: TradeTerminalProps) {
+export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	const { isConnected } = useApp()
 	const [tradeType, setTradeType] = useState<"buy" | "sell">("buy")
 	const [amount, setAmount] = useState("")
@@ -41,10 +47,25 @@ export function TradeTerminal({ pool }: TradeTerminalProps) {
 	const balanceInDisplayUnit = effectiveBalance ? Number(effectiveBalance) / Math.pow(10, decimals) : 0
 	const hasBalance = balanceInDisplayUnit > 0
 
+	const [referrerWallet, setReferrerWallet] = useState<string | null>(null)
+	React.useEffect(() => {
+		if (referral) {
+			fetch(`/api/referrals?refCode=${referral}`)
+				.then(res => res.json())
+				.then(data => {
+					if (data.wallet) {
+						setReferrerWallet(data.wallet)
+					}
+				})
+				.catch(console.error)
+		}
+	}, [referral])
+
 	const { isProcessing, error, buy, sell } = useTrading({
 		pool,
 		decimals,
 		actualBalance: effectiveBalance,
+		referrerWallet
 	})
 
 	const handleQuickAmount = async (value: number | string) => {
@@ -124,8 +145,25 @@ export function TradeTerminal({ pool }: TradeTerminalProps) {
 			<div className="p-3 space-y-3">
 				{/* Header */}
 				<div className="flex items-center justify-between">
-					<div className="font-mono text-xs font-bold uppercase">
-						Trade {metadata?.symbol}
+					<div className="flex items-center gap-2">
+						<div className="font-mono text-xs font-bold uppercase">
+							Trade {metadata?.symbol}
+						</div>
+						{referral && (
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-blue-400/50 bg-blue-400/10 cursor-help">
+										<div className="w-1 h-1 bg-blue-400 rounded-full" />
+										<span className="font-mono text-[10px] uppercase text-blue-400">
+											{referral}
+										</span>
+									</div>
+								</TooltipTrigger>
+								<TooltipContent>
+									The owner of this referral link will earn a commission.
+								</TooltipContent>
+							</Tooltip>
+						)}
 					</div>
 
 					{hasBalance && (

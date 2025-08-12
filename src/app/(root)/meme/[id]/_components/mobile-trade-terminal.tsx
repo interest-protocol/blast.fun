@@ -15,10 +15,11 @@ import { cn } from "@/utils"
 
 interface TradingTerminalMobileProps {
 	pool: PoolWithMetadata
+	referral?: string
 	className?: string
 }
 
-export function MobileTradeTerminal({ pool, className }: TradingTerminalMobileProps) {
+export function MobileTradeTerminal({ pool, referral, className }: TradingTerminalMobileProps) {
 	const { isConnected } = useApp()
 	const [tradeType, setTradeType] = useState<"buy" | "sell">("buy")
 	const [amount, setAmount] = useState("")
@@ -37,10 +38,25 @@ export function MobileTradeTerminal({ pool, className }: TradingTerminalMobilePr
 	const formattedBalance = balanceInDisplayUnit.toLocaleString(undefined, { maximumFractionDigits: 4 })
 	const hasBalance = balanceInDisplayUnit > 0
 
+	const [referrerWallet, setReferrerWallet] = useState<string | null>(null)
+	React.useEffect(() => {
+		if (referral) {
+			fetch(`/api/referrals?refCode=${referral}`)
+				.then(res => res.json())
+				.then(data => {
+					if (data.wallet) {
+						setReferrerWallet(data.wallet)
+					}
+				})
+				.catch(console.error)
+		}
+	}, [referral])
+
 	const { isProcessing, error, success, buy, sell } = useTrading({
 		pool,
 		decimals,
 		actualBalance: effectiveBalance,
+		referrerWallet
 	})
 
 	useEffect(() => {
@@ -101,7 +117,16 @@ export function MobileTradeTerminal({ pool, className }: TradingTerminalMobilePr
 	return (
 		<div className={cn("flex flex-col h-full bg-background", className)}>
 			{/* Header */}
-			<div className="flex items-center p-4 border-b bg-background/95 backdrop-blur-sm sticky top-0 z-10">
+			<div className="flex flex-col gap-2 p-4 border-b bg-background/95 backdrop-blur-sm sticky top-0 z-10">
+				{/* Referral Badge */}
+				{referral && (
+					<div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-blue-400/50 bg-blue-400/10 self-start">
+						<div className="w-1.5 h-1.5 bg-blue-400 rounded-full" />
+						<span className="font-mono text-[10px] uppercase text-blue-400">
+							REF: {referral}
+						</span>
+					</div>
+				)}
 				<div className="flex flex-1 bg-muted/30 rounded-lg p-1">
 					<button
 						onClick={() => setTradeType("buy")}

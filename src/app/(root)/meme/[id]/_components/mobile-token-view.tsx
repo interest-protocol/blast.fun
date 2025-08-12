@@ -16,7 +16,7 @@ interface MobileTab {
 	action?: () => void
 }
 
-export default function MobileTokenView({ pool }: { pool: PoolWithMetadata }) {
+export default function MobileTokenView({ pool, referral }: { pool: PoolWithMetadata; referral?: string }) {
 	const [activeTab, setActiveTab] = useState("chart")
 	const [isActivityLoading, setIsActivityLoading] = useState(true)
 	const router = useRouter()
@@ -50,7 +50,7 @@ export default function MobileTokenView({ pool }: { pool: PoolWithMetadata }) {
 				)}
 
 				{activeTab === "trade" && (
-					<MobileTradeTerminal pool={pool} className="h-full" />
+					<MobileTradeTerminal pool={pool} referral={referral} className="h-full" />
 				)}
 
 				{activeTab === "activity" && (

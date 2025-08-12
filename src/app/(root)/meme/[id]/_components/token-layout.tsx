@@ -20,7 +20,7 @@ import {
 import { NexaChart } from "@/components/shared/nexa-chart";
 import { TokenTabs } from "./token-tabs";
 
-export default function TokenLayout({ poolId }: { poolId: string }) {
+export default function TokenLayout({ poolId, referral }: { poolId: string; referral?: string }) {
     const { data, isLoading, error } = useTokenWithMetadata(poolId);
     const { isMobile } = useBreakpoint();
     const { data: marketData } = useMarketData(data?.coinType || "");
@@ -46,7 +46,7 @@ export default function TokenLayout({ poolId }: { poolId: string }) {
     }
 
     if (isMobile) {
-        return <MobileTokenView pool={data} />
+        return <MobileTokenView pool={data} referral={referral} />
     }
 
     return (
@@ -82,7 +82,7 @@ export default function TokenLayout({ poolId }: { poolId: string }) {
                     <ReferralShare pool={data} />
                 )}
 
-                <TradeTerminal pool={data} />
+                <TradeTerminal pool={data} referral={referral} />
             </div>
         </div>
     )
