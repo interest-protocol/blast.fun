@@ -24,7 +24,7 @@ export default function Layout({
 				{isTokenPage ? (
 					children
 				) : (
-					<div className="p-3 sm:p-4 md:p-6 h-full overflow-hidden">{children}</div>
+					<div className="p-3 sm:p-4 md:p-6 h-full overflow-auto">{children}</div>
 				)}
 			</main>
 
