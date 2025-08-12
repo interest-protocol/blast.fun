@@ -88,9 +88,11 @@ export default function XCardPage({ params }: { params: Promise<{ id: string }> 
 	}
 
 	return (
-		<div className="flex flex-col overflow-hidden">
-			<EmbedHeader pool={pool} refCode={refCode} />
-			<XCardTrading pool={pool} referrerWallet={referrerWallet} refCode={refCode} />
+		<div className="flex flex-col h-screen overflow-hidden">
+			<EmbedHeader />
+			<div className="flex-1 overflow-hidden">
+				<XCardTrading pool={pool} referrerWallet={referrerWallet} refCode={refCode} />
+			</div>
 		</div>
 	)
 }
