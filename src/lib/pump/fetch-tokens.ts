@@ -1,6 +1,5 @@
 import { GET_POOL, GET_POOLS } from "@/graphql/pools"
 import { apolloClient } from "@/lib/apollo-client"
-import { pumpSdk } from "@/lib/pump"
 import type { GetPoolResponse, GetPoolsResponse, GetPoolsVariables, GetPoolVariables } from "@/types/graphql"
 import type { Pool, PoolWithMetadata } from "@/types/pool"
 import { CONFIG_KEYS } from "@interest-protocol/memez-fun-sdk"
@@ -44,19 +43,8 @@ export async function fetchToken(poolId: string): Promise<Pool> {
 export async function fetchTokenWithMetadata(poolId: string): Promise<PoolWithMetadata> {
 	const pool = await fetchToken(poolId)
 
-	const enhancedPool: PoolWithMetadata = {
+	return {
 		...pool,
 		isProtected: !!pool.publicKey
 	}
-
-	try {
-		const pumpPoolData = await pumpSdk.getPumpPool(pool.poolId)
-		if (pumpPoolData) {
-			enhancedPool.pumpPoolData = pumpPoolData
-		}
-	} catch (error) {
-		console.error(`Failed to fetch market data for pool ${pool.poolId}:`, error)
-	}
-
-	return enhancedPool
 }

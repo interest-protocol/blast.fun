@@ -24,7 +24,7 @@ export function XCardTrading({ pool, referrerWallet, refCode }: XCardTradingProp
 
 	const bondingProgress = parseFloat(pool.bondingCurve)
 	const marketCap = marketData?.marketCap || 0
-	const totalLiquidity = marketData?.totalCoinLiquidityUsd || 0
+	const totalLiquidity = marketData?.liqUsd || 0
 	const holdersCount = marketData?.holdersCount || 0
 
 	return (
