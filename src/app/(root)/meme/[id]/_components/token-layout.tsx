@@ -9,8 +9,9 @@ import { useMarketData } from "@/hooks/use-market-data";
 import MobileTokenView from "./mobile-token-view";
 import { TokenHeader } from "./token-header";
 import { ReferralShare } from "./referral-share";
+import { BondingProgressBar } from "./bonding-progress-bar";
 import { CreatorDetails } from "./creator-details";
-import { MigrationFees } from "./migration-fees";
+// import { MigrationFees } from "./migration-fees";
 import { TradeTerminal } from "./trade-terminal";
 import {
     ResizablePanelGroup,
@@ -74,15 +75,19 @@ export default function TokenLayout({ poolId, referral }: { poolId: string; refe
             <div className="w-[400px] border-l flex flex-col h-full">
                 <CreatorDetails pool={data} />
 
-                {data.migrated && (
+                {/* todo: after launch, need to update with pendingFee, etc. */}
+                {/* {data.migrated && (
                     <MigrationFees pool={data} />
-                )}
-
-                {!data.migrated && (
-                    <ReferralShare pool={data} />
-                )}
+                )} */}
 
                 <TradeTerminal pool={data} referral={referral} />
+
+                {!data.migrated && (
+                    <>
+                        <BondingProgressBar pool={data} />
+                        <ReferralShare pool={data} />
+                    </>
+                )}
             </div>
         </div>
     )
