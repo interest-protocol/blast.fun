@@ -30,7 +30,7 @@ export default function Header() {
 
 				{/* Actions */}
 				<div className="flex items-center gap-3">
-					<SearchToken />
+					{/* <SearchToken /> */}
 
 					{isConnected && (
 						<Balance className="hidden lg:block" />
