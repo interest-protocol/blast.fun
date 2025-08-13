@@ -30,7 +30,7 @@ export default function LaunchPage() {
 					{/* Message */}
 					<div className="space-y-3">
 						<p className="font-mono text-sm text-foreground/80">
-							Token launching is temporarily disabled while we're in pre-launch testing phase.
+							Token launching is temporarily disabled while we&apos;re in pre-launch testing phase.
 						</p>
 						<p className="font-mono text-xs text-muted-foreground">
 							You can still trade existing tokens on the platform.
