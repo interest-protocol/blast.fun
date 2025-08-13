@@ -12,7 +12,6 @@ import { formatMistToSui } from "@/utils/format"
 import { useTwitter } from "@/context/twitter.context"
 import { TOTAL_POOL_SUPPLY } from "@/constants"
 import { fetchCoinBalance } from "@/lib/fetch-portfolio"
-import useBalance from "@/hooks/sui/use-balance"
 
 interface UseTradingOptions {
 	pool: PoolWithMetadata
@@ -33,7 +32,6 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 	const { address, isConnected } = useApp()
 	const { executeTransaction } = useTransaction()
 	const { user: twitterUser } = useTwitter()
-	const { balance: suiBalance } = useBalance()
 
 	const [isProcessing, setIsProcessing] = useState(false)
 	const [error, setError] = useState<string | null>(null)
@@ -97,12 +95,12 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 			return
 		}
 
-		const suiBalanceNum = parseFloat(suiBalance || "0")
-		if (suiBalanceNum < amount) {
-			const deficit = amount - suiBalanceNum
-			setError(`INSUFFICIENT::SUI - You need ${deficit.toFixed(2)} more SUI`)
-			return
-		}
+		// const suiBalanceNum = parseFloat(suiBalance || "0")
+		// if (suiBalanceNum < amount) {
+		// 	const deficit = amount - suiBalanceNum
+		// 	setError(`INSUFFICIENT::SUI - You need ${deficit.toFixed(2)} more SUI`)
+		// 	return
+		// }
 
 		if (!isMigrated && (pool.canMigrate || parseInt(pool.bondingCurve) >= 100)) {
 			setError('TOKEN::MIGRATING')
