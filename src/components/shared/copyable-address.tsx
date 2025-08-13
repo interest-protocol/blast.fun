@@ -17,10 +17,10 @@ interface CopyableAddressProps {
 export function CopyableAddress({ address, showFull = false, showLabel = true, className }: CopyableAddressProps) {
 	const { copy, copied } = useClipboard()
 	const label = showLabel ? getWalletLabel(address) : undefined
-	const { data: suins } = useResolveSuiNSName(label ? undefined : address)
+	// const { data: suins } = useResolveSuiNSName(label ? undefined : address)
 
 	// priority: label, suins, formatted address
-	const displayName = label || suins || (showFull ? address : formatAddress(address))
+	const displayName = label || (showFull ? address : formatAddress(address))
 
 	return (
 		<div
