@@ -5,6 +5,8 @@ import { MobileNavigation } from "@/components/layout/mobile-nav"
 import { TokenTabsHeader } from "@/components/layout/token-tabs-header"
 import { Ticker } from "@/components/shared/ticker"
 import { usePathname } from "next/navigation"
+import { useBreakpoint } from "@/hooks/use-breakpoint"
+import { cn } from "@/utils"
 
 export default function Layout({
 	children,
@@ -12,7 +14,12 @@ export default function Layout({
 	children: React.ReactNode
 }>) {
 	const pathname = usePathname()
+	const { isMobile } = useBreakpoint()
+
 	const isTokenPage = pathname.startsWith("/meme/")
+	const isHomePage = pathname === "/"
+
+	const shouldHavePadding = !isTokenPage && !(isMobile && isHomePage)
 
 	return (
 		<div className="flex flex-col h-screen overflow-hidden">
@@ -21,10 +28,15 @@ export default function Layout({
 			<TokenTabsHeader />
 
 			<main className="flex-1 overflow-hidden pb-16 lg:pb-0">
-				{isTokenPage ? (
-					children
+				{shouldHavePadding ? (
+					<div className={cn(
+						"h-full overflow-auto",
+						isMobile ? "p-3" : "p-3 sm:p-4 md:p-6"
+					)}>
+						{children}
+					</div>
 				) : (
-					<div className="p-3 sm:p-4 md:p-6 h-full overflow-auto">{children}</div>
+					children
 				)}
 			</main>
 

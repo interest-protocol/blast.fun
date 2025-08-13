@@ -1,11 +1,14 @@
 "use client"
 
 import { TokenColumns } from "@/components/tokens/token-columns"
+import { MobileTokenView } from "@/components/tokens/mobile-token-view"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useTokens } from "@/hooks/use-tokens"
 import { Logo } from "@/components/ui/logo"
+import { useBreakpoint } from "@/hooks/use-breakpoint"
 
 export default function DiscoveryPage() {
+	const { isMobile } = useBreakpoint()
 	const {
 		tokens,
 		isLoading,
@@ -58,12 +61,21 @@ export default function DiscoveryPage() {
 
 	return (
 		<div className="h-full overflow-hidden">
-			<TokenColumns
-				pools={tokens}
-				isRefreshing={!fromCache}
-				onPollingChange={setPolling}
-				isPolling={isPolling}
-			/>
+			{isMobile ? (
+				<MobileTokenView
+					pools={tokens}
+					isRefreshing={!fromCache}
+					onPollingChange={setPolling}
+					isPolling={isPolling}
+				/>
+			) : (
+				<TokenColumns
+					pools={tokens}
+					isRefreshing={!fromCache}
+					onPollingChange={setPolling}
+					isPolling={isPolling}
+				/>
+			)}
 		</div>
 	)
 }
