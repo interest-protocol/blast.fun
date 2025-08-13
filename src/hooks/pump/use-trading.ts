@@ -1,6 +1,7 @@
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions"
 import { MIST_PER_SUI, fromHex } from "@mysten/sui/utils"
 import { useState, useEffect } from "react"
+import BigNumber from "bignumber.js"
 import { useApp } from "@/context/app.context"
 import { useTransaction } from "@/hooks/sui/use-transaction"
 import { playSound } from "@/lib/audio"
@@ -11,6 +12,7 @@ import { formatMistToSui } from "@/utils/format"
 import { useTwitter } from "@/context/twitter.context"
 import { TOTAL_POOL_SUPPLY } from "@/constants"
 import { fetchCoinBalance } from "@/lib/fetch-portfolio"
+import useBalance from "@/hooks/sui/use-balance"
 
 interface UseTradingOptions {
 	pool: PoolWithMetadata
@@ -31,6 +33,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 	const { address, isConnected } = useApp()
 	const { executeTransaction } = useTransaction()
 	const { user: twitterUser } = useTwitter()
+	const { balance: suiBalance } = useBalance()
 
 	const [isProcessing, setIsProcessing] = useState(false)
 	const [error, setError] = useState<string | null>(null)
@@ -94,6 +97,13 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 			return
 		}
 
+		const suiBalanceNum = parseFloat(suiBalance || "0")
+		if (suiBalanceNum < amount) {
+			const deficit = amount - suiBalanceNum
+			setError(`INSUFFICIENT::SUI - You need ${deficit.toFixed(2)} more SUI`)
+			return
+		}
+
 		if (!isMigrated && (pool.canMigrate || parseInt(pool.bondingCurve) >= 100)) {
 			setError('TOKEN::MIGRATING')
 			return
@@ -104,7 +114,10 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 		setSuccess(null)
 
 		try {
-			const amountInMist = BigInt(Math.floor(amount * Number(MIST_PER_SUI)))
+			const amountBN = new BigNumber(amount)
+			const mistPerSuiBN = new BigNumber(MIST_PER_SUI.toString())
+			const amountInMistBN = amountBN.multipliedBy(mistPerSuiBN).integerValue(BigNumber.ROUND_DOWN)
+			const amountInMist = BigInt(amountInMistBN.toString())
 
 			if (isMigrated) {
 				const quote = await getBuyQuote(pool.coinType, amountInMist, slippagePercent)
@@ -163,8 +176,10 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 					amount: amountInMist,
 				})
 
-				const slippageMultiplier = 1 - slippagePercent / 100
-				const minAmountOut = BigInt(Math.floor(Number(quote.memeAmountOut) * slippageMultiplier))
+				const slippageMultiplier = new BigNumber(1).minus(new BigNumber(slippagePercent).dividedBy(100))
+				const quoteAmountBN = new BigNumber(quote.memeAmountOut.toString())
+				const minAmountOutBN = quoteAmountBN.multipliedBy(slippageMultiplier).integerValue(BigNumber.ROUND_DOWN)
+				const minAmountOut = BigInt(minAmountOutBN.toString())
 
 				const tx = new Transaction()
 				const quoteCoin = tx.splitCoins(tx.gas, [tx.pure.u64(amountInMist)])
@@ -210,11 +225,18 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 			return
 		}
 
-		const amountInSmallestUnit = BigInt(Math.floor(amount * Math.pow(10, decimals)))
+		const amountBN = new BigNumber(amount)
+		const decimalMultiplier = new BigNumber(10).pow(decimals)
+		const amountInSmallestUnitBN = amountBN.multipliedBy(decimalMultiplier).integerValue(BigNumber.ROUND_HALF_UP)
+		const amountInSmallestUnit = BigInt(amountInSmallestUnitBN.toString())
+
 		if (actualBalance) {
+			const actualBalanceBN = new BigNumber(actualBalance)
+			const actualBalanceNumber = actualBalanceBN.dividedBy(decimalMultiplier).toNumber()
 			const actualBalanceBigInt = BigInt(actualBalance)
+
 			if (amountInSmallestUnit > actualBalanceBigInt) {
-				setError(`You don't have enough for this. You only have ${(Number(actualBalance) / Math.pow(10, decimals)).toFixed(4)} ${pool.coinMetadata?.symbol || "TOKEN"}`)
+				setError(`You don't have enough for this. You only have ${actualBalanceNumber.toFixed(4)} ${pool.coinMetadata?.symbol || "TOKEN"}`)
 				return
 			}
 		}
@@ -241,37 +263,45 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 					`ORDER::FILLED - Sold ${amount} ${pool.coinMetadata?.symbol || "TOKEN"} for ${formatMistToSui(quote.amountOut)} SUI via Aftermath`
 				)
 			} else {
+				let amountToSell: bigint
+				let isSellingAll = false
+
+				if (actualBalance) {
+					const actualBalanceBN = new BigNumber(actualBalance)
+					const actualBalanceNumber = actualBalanceBN.dividedBy(decimalMultiplier).toNumber()
+
+					// check if user is trying to sell all (within 0.01% tolerance)
+					const amountDiff = new BigNumber(amount).minus(actualBalanceNumber).abs()
+					const tolerance = new BigNumber(actualBalanceNumber).multipliedBy(0.0001)
+					isSellingAll = amountDiff.isLessThanOrEqualTo(tolerance)
+
+					if (isSellingAll) {
+						const sellPercentage = new BigNumber("0.999")
+						const amountToSellBN = actualBalanceBN.multipliedBy(sellPercentage).integerValue(BigNumber.ROUND_DOWN)
+						amountToSell = BigInt(amountToSellBN.toString())
+						console.log(`[Trading] Selling 99.9% of balance to avoid dust issues: ${amountToSell}`)
+					} else {
+						amountToSell = amountInSmallestUnit
+					}
+				} else {
+					amountToSell = amountInSmallestUnit
+				}
+
 				const quote = await pumpSdk.quoteDump({
 					pool: pool.poolId,
-					amount: amountInSmallestUnit,
+					amount: amountToSell,
 				})
 
-				const slippageMultiplier = 1 - slippagePercent / 100
-				const minAmountOut = BigInt(Math.floor(Number(quote.quoteAmountOut) * slippageMultiplier))
+				const slippageMultiplier = new BigNumber(1).minus(new BigNumber(slippagePercent).dividedBy(100))
+				const quoteAmountOutBN = new BigNumber(quote.quoteAmountOut.toString())
+				const minAmountOutBN = quoteAmountOutBN.multipliedBy(slippageMultiplier).integerValue(BigNumber.ROUND_DOWN)
+				const minAmountOut = BigInt(minAmountOutBN.toString())
 
 				const tx = new Transaction()
 				tx.setSender(address)
 
-				let balanceToUse: bigint
-				if (actualBalance) {
-					const actualBalanceBigInt = BigInt(actualBalance)
-
-					// @dev: if trying to sell 95% or more of balance, leave a tiny amount of dust
-					// to avoid precision issues with 100% sells
-					const threshold = (actualBalanceBigInt * 95n) / 100n
-					if (amountInSmallestUnit >= threshold) {
-						// leave 0.1% as dust to ensure dryrun succeeds
-						const dustAmount = actualBalanceBigInt / 1000n
-						balanceToUse = actualBalanceBigInt - dustAmount
-					} else {
-						balanceToUse = amountInSmallestUnit
-					}
-				} else {
-					balanceToUse = amountInSmallestUnit
-				}
-
 				const memeCoin = coinWithBalance({
-					balance: balanceToUse,
+					balance: amountToSell,
 					type: pool.coinType,
 				})(tx)
 

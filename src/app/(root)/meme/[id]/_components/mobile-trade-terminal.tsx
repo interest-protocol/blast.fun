@@ -11,6 +11,7 @@ import { useTokenBalance } from "@/hooks/sui/use-token-balance"
 import type { PoolWithMetadata } from "@/types/pool"
 import { usePortfolio } from "@/hooks/nexa/use-portfolio"
 import { useMarketData } from "@/hooks/use-market-data"
+import useBalance from "@/hooks/sui/use-balance"
 import { cn } from "@/utils"
 
 interface TradingTerminalMobileProps {
@@ -30,6 +31,7 @@ export function MobileTradeTerminal({ pool, referral, className }: TradingTermin
 	const { data: marketData } = useMarketData(pool.coinType)
 	const { balance: tokenBalance } = useTokenBalance(pool.coinType)
 	const { balance: actualBalance, refetch: refetchPortfolio, isLoading: isPortfolioLoading } = usePortfolio(pool.coinType)
+	const { balance: suiBalance } = useBalance()
 	const metadata = marketData?.coinMetadata || pool.coinMetadata
 	const decimals = metadata?.decimals || 9
 
@@ -37,6 +39,7 @@ export function MobileTradeTerminal({ pool, referral, className }: TradingTermin
 	const balanceInDisplayUnit = effectiveBalance ? Number(effectiveBalance) / Math.pow(10, decimals) : 0
 	const formattedBalance = balanceInDisplayUnit.toLocaleString(undefined, { maximumFractionDigits: 4 })
 	const hasBalance = balanceInDisplayUnit > 0
+	const suiBalanceNum = parseFloat(suiBalance || "0")
 
 	const [referrerWallet, setReferrerWallet] = useState<string | null>(null)
 	React.useEffect(() => {
@@ -86,7 +89,13 @@ export function MobileTradeTerminal({ pool, referral, className }: TradingTermin
 	const handleQuickSellPercentage = async (percentage: number) => {
 		if (!hasBalance) return
 
-		const tokenAmountToSell = balanceInDisplayUnit * (percentage / 100)
+		let tokenAmountToSell: number
+		if (percentage === 100) {
+			tokenAmountToSell = balanceInDisplayUnit
+		} else {
+			tokenAmountToSell = Math.floor(balanceInDisplayUnit * (percentage / 100) * 1e9) / 1e9
+		}
+
 		setAmount(tokenAmountToSell.toString())
 		setActiveInput("quick")
 		const slippageNum = parseFloat(slippage)
@@ -198,11 +207,13 @@ export function MobileTradeTerminal({ pool, referral, className }: TradingTermin
 									variant="outline"
 									className={cn(
 										"h-14 font-mono text-sm uppercase border-2 transition-all",
-										"hover:border-green-500/50 hover:bg-green-500/10 hover:text-green-500",
+										quickAmount > suiBalanceNum
+											? "border-muted bg-muted/50 text-muted-foreground cursor-not-allowed opacity-50"
+											: "hover:border-green-500/50 hover:bg-green-500/10 hover:text-green-500",
 										"active:scale-95"
 									)}
 									onClick={() => handleQuickBuy(quickAmount)}
-									disabled={isProcessing || !isConnected}
+									disabled={isProcessing || !isConnected || quickAmount > suiBalanceNum}
 								>
 									<div className="flex flex-col">
 										<span className="text-base font-semibold">{quickAmount}</span>

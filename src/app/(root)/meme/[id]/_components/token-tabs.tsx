@@ -115,7 +115,11 @@ export function TokenTabs({ pool, marketData, className }: TokenTabsProps) {
 
 			{/* Tab Content */}
 			<div className="flex-1 overflow-hidden">
-				<ActiveComponent pool={pool} className="h-full" />
+				{activeTab === "trades" ? (
+					<TradesTab pool={pool} className="h-full" isVisible={true} />
+				) : (
+					<ActiveComponent pool={pool} className="h-full" />
+				)}
 			</div>
 		</div>
 	)

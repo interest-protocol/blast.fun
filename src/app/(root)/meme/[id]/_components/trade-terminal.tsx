@@ -21,6 +21,7 @@ import { useTokenBalance } from "@/hooks/sui/use-token-balance"
 import type { PoolWithMetadata } from "@/types/pool"
 import { usePortfolio } from "@/hooks/nexa/use-portfolio"
 import { useMarketData } from "@/hooks/use-market-data"
+import useBalance from "@/hooks/sui/use-balance"
 import { cn } from "@/utils"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Logo } from "@/components/ui/logo"
@@ -39,6 +40,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	const { data: marketData } = useMarketData(pool.coinType)
 	const { balance: tokenBalance } = useTokenBalance(pool.coinType)
 	const { balance: actualBalance, refetch: refetchPortfolio } = usePortfolio(pool.coinType)
+	const { balance: suiBalance } = useBalance()
 	const metadata = marketData?.coinMetadata || pool.coinMetadata
 	const decimals = metadata?.decimals || 9
 
@@ -46,6 +48,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	const effectiveBalance = actualBalance !== "0" ? actualBalance : tokenBalance
 	const balanceInDisplayUnit = effectiveBalance ? Number(effectiveBalance) / Math.pow(10, decimals) : 0
 	const hasBalance = balanceInDisplayUnit > 0
+	const suiBalanceNum = parseFloat(suiBalance || "0")
 
 	const [referrerWallet, setReferrerWallet] = useState<string | null>(null)
 	React.useEffect(() => {
@@ -74,7 +77,13 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 			await buy(value.toString(), parseFloat(slippage))
 		} else {
 			const percentage = typeof value === 'string' ? parseInt(value) : value
-			const tokenAmountToSell = balanceInDisplayUnit * (percentage / 100)
+
+			let tokenAmountToSell: number
+			if (percentage === 100) {
+				tokenAmountToSell = balanceInDisplayUnit
+			} else {
+				tokenAmountToSell = Math.floor(balanceInDisplayUnit * (percentage / 100) * 1e9) / 1e9
+			}
 
 			setAmount(tokenAmountToSell.toString())
 			await sell(tokenAmountToSell.toString(), parseFloat(slippage))
@@ -260,9 +269,14 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 									key={suiAmount}
 									variant="outline"
 									size="sm"
-									className="font-mono text-[10px] h-6 !border-blue-400/50 !bg-blue-400/10 text-blue-400 hover:text-blue-400/80 p-0.5"
+									className={cn(
+										"font-mono text-[10px] h-6 p-0.5",
+										suiAmount > suiBalanceNum
+											? "!border-muted !bg-muted/50 text-muted-foreground cursor-not-allowed opacity-50"
+											: "!border-blue-400/50 !bg-blue-400/10 text-blue-400 hover:text-blue-400/80"
+									)}
 									onClick={() => handleQuickAmount(suiAmount)}
-									disabled={isProcessing || isMigrating}
+									disabled={isProcessing || isMigrating || suiAmount > suiBalanceNum}
 								>
 									<Image
 										src="/logo/sui-logo.svg"

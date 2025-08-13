@@ -23,10 +23,12 @@ interface TradesTabProps {
 	pool: PoolWithMetadata
 	className?: string
 	onLoad?: () => void
+	isVisible?: boolean
 }
 
-function useRealtimeTrades(coinType: string, poolSymbol?: string) {
+function useRealtimeTrades(coinType: string, poolSymbol?: string, isVisible: boolean = true) {
 	const [realtimeTrades, setRealtimeTrades] = useState<UnifiedTrade[]>([])
+	const [isSubscribed, setIsSubscribed] = useState(false)
 
 	const handleNewTrade = useCallback((trade: TradeData) => {
 		const isBuy = trade.coinOut === coinType
@@ -56,22 +58,28 @@ function useRealtimeTrades(coinType: string, poolSymbol?: string) {
 
 		setRealtimeTrades(prev => [newTrade, ...prev].slice(0, 100))
 		playSound('new_trade')
+		setIsSubscribed(true)
 	}, [coinType, poolSymbol])
 
 	useEffect(() => {
-		if (!coinType) return
+		if (!coinType || !isVisible) return
 
 		const unsubscribe = nexaSocket.subscribeToCoinTrades(coinType, handleNewTrade)
+		const timer = setTimeout(() => {
+			setIsSubscribed(true)
+		}, 1000)
 
 		return () => {
+			clearTimeout(timer)
 			unsubscribe()
+			setIsSubscribed(false)
 		}
-	}, [coinType, handleNewTrade])
+	}, [coinType, isVisible, handleNewTrade])
 
-	return realtimeTrades
+	return { realtimeTrades, isSubscribed }
 }
 
-export function TradesTab({ pool, className, onLoad }: TradesTabProps) {
+export function TradesTab({ pool, className, onLoad, isVisible = true }: TradesTabProps) {
 	const TRADES_PER_PAGE = 20
 	const { data: marketData } = useMarketData(pool.coinType)
 	const metadata = marketData?.coinMetadata || pool.coinMetadata
@@ -100,7 +108,7 @@ export function TradesTab({ pool, className, onLoad }: TradesTabProps) {
 		initialPageParam: 0
 	})
 
-	const realtimeTrades = useRealtimeTrades(pool.coinType, metadata?.symbol)
+	const { realtimeTrades } = useRealtimeTrades(pool.coinType, metadata?.symbol, isVisible)
 
 	const historicalTrades = useMemo(() => {
 		if (!data?.pages) return []
@@ -218,7 +226,7 @@ export function TradesTab({ pool, className, onLoad }: TradesTabProps) {
 				) : (
 					<div className="relative">
 						<div className="grid grid-cols-12 gap-2 px-2 sm:px-4 py-2 border-b border-border/50 text-[10px] sm:text-xs font-mono uppercase text-muted-foreground sticky top-0 bg-background/95 backdrop-blur-sm z-10 select-none">
-							<div className="col-span-2">Age</div>
+							<div className="col-span-2 flex items-center gap-1">Age</div>
 							<div className="col-span-1">Type</div>
 							<div className="col-span-4 sm:col-span-3">Trade</div>
 							<div className="col-span-2 text-right hidden sm:block">Price</div>
