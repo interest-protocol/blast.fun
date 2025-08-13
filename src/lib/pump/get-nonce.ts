@@ -70,9 +70,8 @@ export async function getNextNonceFromPool({
 	poolId,
 	address
 }: GetNonceFromPoolArgs): Promise<bigint> {
-	// Use pumpSdk to get pool information
 	const poolData = await pumpSdk.getPumpPool(poolId)
-	
+
 	if (!poolData) {
 		throw new Error("Failed to fetch pool data")
 	}

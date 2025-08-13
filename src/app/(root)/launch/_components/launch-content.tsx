@@ -21,7 +21,7 @@ export default function LaunchContent() {
 
 	const handleFormChange = useCallback((data: Partial<TokenFormValues>) => {
 		setTokenData(data)
-		const hasProtection = !!(data.requireTwitter || data.maxHoldingPercent)
+		const hasProtection = !!data.sniperProtection
 		setProtectionActive(hasProtection)
 	}, [])
 
@@ -102,7 +102,7 @@ export default function LaunchContent() {
 							IDENTITY::REQUIRED
 						</h1>
 						<p className="text-sm font-mono uppercase max-w-md mx-auto text-muted-foreground">
-							TWITTER_AUTH_REQUIRED_FOR_TOKEN_LAUNCH
+							X_AUTH_REQUIRED_FOR_TOKEN_LAUNCH
 						</p>
 					</div>
 
@@ -112,7 +112,7 @@ export default function LaunchContent() {
 								className="w-full font-mono uppercase tracking-wider py-6 text-base border-2 border-foreground/20 hover:border-primary/50 transition-all duration-300"
 								onClick={login}
 							>
-								CONNECT::TWITTER
+								CONNECT X
 							</Button>
 						</div>
 					</div>
@@ -124,13 +124,6 @@ export default function LaunchContent() {
 	return (
 		<ConfettiProvider>
 			<div className="space-y-16">
-				<div className="text-center border-b pb-6">
-					<h1 className="text-4xl font-bold font-mono uppercase tracking-wider text-foreground/80 mb-2">
-						LAUNCH::TOKEN
-					</h1>
-					<p className="font-mono text-sm uppercase text-muted-foreground">LAUNCH_FAST_TRADE_FAST</p>
-				</div>
-
 				<div className="grid lg:grid-cols-3 gap-8 items-start">
 					<div className="lg:col-span-2">
 						<div className="space-y-4">

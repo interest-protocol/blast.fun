@@ -6,7 +6,7 @@ import React, { useEffect, useState, useMemo } from "react"
 import { useRecentTrades } from "@/hooks/pump/use-recent-trades"
 import type { Trade } from "@/lib/pump/fetch-trades"
 import { apolloClient } from "@/lib/apollo-client"
-import { fetchCoinMetadata } from "@/lib/fetch-coin-metadata"
+import { nexaClient } from "@/lib/nexa"
 import { formatMistToSui } from "@/utils/format"
 import { TokenLink } from "@/components/tokens/token-link"
 import { GET_POOL_BY_COIN_TYPE } from "@/graphql/pools"
@@ -44,7 +44,7 @@ export function Ticker() {
 					// fetch coin metadata and pool if we have a coin type
 					if (trade.type && trade.type !== "BUY" && trade.type !== "SELL") {
 						try {
-							const metadata = await fetchCoinMetadata(trade.type)
+							const metadata = await nexaClient.getCoinMetadata(trade.type)
 							if (metadata) {
 								symbol = metadata.symbol
 								iconUrl = metadata.iconUrl ?? undefined
@@ -84,8 +84,8 @@ export function Ticker() {
 	}, [trades])
 
 	const displayItems = useMemo(() => tradeItems, [tradeItems])
-	
-	if (displayItems.length === 0 && !isLoading) return null
+
+	if (isLoading || displayItems.length === 0) return null
 
 	return (
 		<div className="w-full overflow-hidden bg-destructive/10 border-y-2 border-destructive/20 py-2 relative select-none group">

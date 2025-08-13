@@ -11,8 +11,7 @@ export default function ComingSoonPage() {
 		const intervals = [
 			setInterval(() => {
 				const glitchVariations = [
-					"X::TERMINAL",
-					"XTERM.FUN",
+					"BLAST.FUN",
 					"COMING::SOON",
 				];
 				setGlitchText(glitchVariations[Math.floor(Math.random() * glitchVariations.length)]);

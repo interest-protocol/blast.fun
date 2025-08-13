@@ -68,6 +68,7 @@ export const ConfettiProvider = ({ children }: PropsWithChildren) => {
 	const confettiRef = useRef<ConfettiPlayer>(() => {
 		return
 	})
+
 	const audioRef = useRef<HTMLAudioElement>(null)
 	const onInitHandler = ({ confetti }: { confetti: TCanvasConfettiInstance }) => {
 		const confettiClosure: ConfettiPlayer = (type) => {
@@ -78,6 +79,7 @@ export const ConfettiProvider = ({ children }: PropsWithChildren) => {
 		}
 		confettiRef.current = confettiClosure
 	}
+
 	return (
 		<ConfettiContext.Provider value={confettiRef}>
 			{children}
@@ -89,7 +91,7 @@ export const ConfettiProvider = ({ children }: PropsWithChildren) => {
 					resize: true,
 				}}
 			/>
-			<audio ref={audioRef} src="/sfx/confetti-party-popper.mp3" />
+			{/* <audio ref={audioRef} src="/sfx/confetti-party-popper.mp3" /> */}
 		</ConfettiContext.Provider>
 	)
 }

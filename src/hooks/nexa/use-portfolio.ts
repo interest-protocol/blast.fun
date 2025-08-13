@@ -7,15 +7,15 @@ import { fetchPortfolio } from "@/lib/fetch-portfolio"
 export function usePortfolio(coinType?: string) {
 	const account = useCurrentAccount()
 
-	const { data, isLoading, error } = useQuery({
+	const { data, isLoading, error, refetch } = useQuery({
 		queryKey: ["portfolio-balance", account?.address, coinType],
 		queryFn: async () => {
 			if (!account?.address) return null
 			return fetchPortfolio(account.address)
 		},
 		enabled: !!account?.address,
-		refetchInterval: 10000, // refetch every 10 seconds
-		staleTime: 5000, // consider data stale after 5 seconds
+		refetchInterval: 3000,
+		gcTime: 0,
 	})
 
 	// find specific coin balance if coinType is provided
@@ -29,5 +29,6 @@ export function usePortfolio(coinType?: string) {
 		balance: coinBalance?.balance || "0",
 		isLoading,
 		error,
+		refetch,
 	}
 }

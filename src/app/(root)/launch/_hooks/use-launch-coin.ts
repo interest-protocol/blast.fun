@@ -2,8 +2,7 @@ import { CONFIG_KEYS, MIGRATOR_WITNESSES } from "@interest-protocol/memez-fun-sd
 import { Transaction } from "@mysten/sui/transactions"
 import { formatAddress, formatDigest, normalizeSuiAddress, SUI_TYPE_ARG } from "@mysten/sui/utils"
 import { useState } from "react"
-import { COIN_CONVENTION_BLACKLIST, TARGET_QUOTE_LIQUIDITY, TOTAL_POOL_SUPPLY, VIRTUAL_LIQUIDITY } from "@/constants"
-import { HIDE_IDENTITY_SUI_FEE } from "@/constants/fees"
+import { BASE_LIQUIDITY_PROVISION, COIN_CONVENTION_BLACKLIST, TARGET_QUOTE_LIQUIDITY, TOTAL_POOL_SUPPLY, VIRTUAL_LIQUIDITY } from "@/constants"
 import { useApp } from "@/context/app.context"
 import { useTwitter } from "@/context/twitter.context"
 import { env } from "@/env"
@@ -61,7 +60,7 @@ export function useLaunchCoin() {
 		}
 
 		if (!isLoggedIn || !twitterUser) {
-			throw new Error("Please connect your Twitter account")
+			throw new Error("Please connect your X account")
 		}
 
 		const nameUpper = formValues.name.toUpperCase().trim()
@@ -73,16 +72,9 @@ export function useLaunchCoin() {
 
 		addLog("INITIALIZING::WASM_MODULE")
 		await initMoveByteCodeTemplate("/bytecode/move_bytecode_template_bg.wasm")
-
 		addLog("COMPILING::BYTECODE")
 
 		const tx = new Transaction()
-
-		if (formValues.hideIdentity) {
-			const [feeCoin] = tx.splitCoins(tx.gas, [String(HIDE_IDENTITY_SUI_FEE)])
-			tx.transferObjects([feeCoin], tx.pure.address(env.NEXT_PUBLIC_FEE_ADDRESS))
-		}
-
 		const bytecode = await getBytecode(formValues, address)
 		const [upgradeCap] = tx.publish({
 			modules: [[...bytecode]],
@@ -135,7 +127,6 @@ export function useLaunchCoin() {
 
 		// construct our metadata object which will be applied to the pool.
 		const metadata = Object.entries({
-			CreatorWallet: address,
 			CreatorTwitterId: !formValues.hideIdentity && twitterUser?.id,
 			CreatorTwitterName: !formValues.hideIdentity && twitterUser?.username,
 			X: formValues.twitter,
@@ -149,8 +140,8 @@ export function useLaunchCoin() {
 			{} as Record<string, string>
 		)
 
-		// should pool be protected based on any protection settings
-		const isProtected = !!(formValues.requireTwitter || formValues.maxHoldingPercent)
+		// should pool be protected based on sniper protection toggle
+		const isProtected = formValues.sniperProtection
 
 		const { tx, metadataCap } = await pumpSdk.newPool({
 			configurationKey: configKey,
@@ -164,7 +155,7 @@ export function useLaunchCoin() {
 			burnTax: 0,
 			virtualLiquidity: VIRTUAL_LIQUIDITY,
 			targetQuoteLiquidity: TARGET_QUOTE_LIQUIDITY,
-			liquidityProvision: 0,
+			liquidityProvision: BASE_LIQUIDITY_PROVISION,
 		})
 
 		if (metadataCap) {
@@ -175,7 +166,7 @@ export function useLaunchCoin() {
 		const result = await executeTransaction(tx)
 		addLog(`POOL::CREATED [${result.time}MS]`, "success")
 
-		const poolObjectId = getCreatedObjectByType(result, "::memez_pump::Pump")
+		const poolObjectId = getCreatedObjectByType(result, "::memez_pump::Pump,")
 		if (!poolObjectId) {
 			throw new Error(
 				`Failed to find pool object in transaction ${formatDigest(result.digest)}. ` +
@@ -251,7 +242,8 @@ export function useLaunchCoin() {
 			addLog("CLEANING::UP", "info")
 
 			// save token launch data now
-			const protectionSettings = (formValues.requireTwitter || formValues.maxHoldingPercent) ? {
+			const protectionSettings = formValues.sniperProtection ? {
+				sniperProtection: true,
 				requireTwitter: formValues.requireTwitter,
 				maxHoldingPercent: formValues.maxHoldingPercent,
 			} : undefined
@@ -315,7 +307,8 @@ export function useLaunchCoin() {
 
 			addLog("CLEANING::UP", "info")
 
-			const protectionSettings = (pendingToken.formValues.requireTwitter || pendingToken.formValues.maxHoldingPercent) ? {
+			const protectionSettings = pendingToken.formValues.sniperProtection ? {
+				sniperProtection: true,
 				requireTwitter: pendingToken.formValues.requireTwitter,
 				maxHoldingPercent: pendingToken.formValues.maxHoldingPercent,
 			} : undefined

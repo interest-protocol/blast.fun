@@ -1,73 +1,53 @@
 "use client"
 
-import { Target, TrendingUp, Zap } from "lucide-react"
-import React from "react"
-import { Progress } from "@/components/ui/progress"
+import { Rocket } from "lucide-react"
 import type { PoolWithMetadata } from "@/types/pool"
+import { cn } from "@/utils"
 
 interface BondingProgressProps {
 	pool: PoolWithMetadata
 }
 
 export function BondingProgress({ pool }: BondingProgressProps) {
-	// calculate bonding curve progress
 	const progress = typeof pool.bondingCurve === "number" ? pool.bondingCurve : parseFloat(pool.bondingCurve) || 0
 
-	const currentLiquidity = Number(pool.quoteBalance) / Math.pow(10, 9)
-	const targetLiquidity = Number(pool.targetQuoteLiquidity) / Math.pow(10, 9)
-
-	// calculate remaining amount needed
-	const remainingLiquidity = Math.max(0, targetLiquidity - currentLiquidity)
+	const isNearCompletion = progress >= 80
+	const isComplete = progress >= 100
 
 	return (
-		<div className="border-2 shadow-lg rounded-xl overflow-hidden">
-			<div className="p-4 border-b">
-				<h3 className="text-lg font-mono uppercase tracking-wider flex items-center gap-2">
-					<TrendingUp className="w-4 h-4 text-primary/60" />
-					BONDING::CURVE
-				</h3>
-			</div>
-			<div className="p-4 space-y-4">
-				{/* Progress Bar */}
-				<div className="space-y-2">
-					<div className="flex justify-between items-center">
-						<span className="font-mono text-xs uppercase text-muted-foreground">PROGRESS</span>
-						<span className="font-mono text-xs uppercase">{progress.toFixed(2)}%</span>
+		<div className="border-2 shadow-lg rounded-xl p-3 overflow-hidden">
+			<div className="space-y-2">
+				<div className="flex items-center justify-between">
+					<div className="flex items-center gap-2">
+						<Rocket className={cn(
+							"w-4 h-4",
+							isComplete ? "text-green-500" : "text-primary/60"
+						)} />
+						<span className="font-mono text-xs sm:text-sm font-bold uppercase tracking-wider">
+							BONDING::PROGRESS
+						</span>
 					</div>
-					<div className="relative">
-						<Progress value={progress} className="h-4 bg-background border" />
-						{/* Animated Glow Effect */}
-						<div
-							className="absolute inset-0 h-4 bg-primary/20 blur-sm transition-all duration-500"
-							style={{ width: `${progress}%` }}
-						/>
+
+					<div className="flex items-center gap-2 text-xs sm:text-sm font-mono">
+						<span className={cn(
+							"font-bold",
+							isComplete
+								? "text-green-500"
+								: isNearCompletion
+									? "text-primary"
+									: "text-primary/80"
+						)}>
+							{progress}%
+						</span>
 					</div>
 				</div>
 
-				{/* Liquidity Stats */}
-				<div className="grid grid-cols-3 gap-2">
-					<div className="p-2 border rounded bg-background/30">
-						<div className="flex items-center gap-1 mb-1">
-							<Zap className="w-3 h-3 text-muted-foreground" />
-							<p className="font-mono text-xs uppercase text-muted-foreground">CURRENT</p>
-						</div>
-						<p className="font-mono text-sm font-bold">{currentLiquidity.toLocaleString()} SUI</p>
-					</div>
-
-					<div className="p-2 border rounded bg-background/30">
-						<div className="flex items-center gap-1 mb-1">
-							<Target className="w-3 h-3 text-muted-foreground" />
-							<p className="font-mono text-xs uppercase text-muted-foreground">TARGET</p>
-						</div>
-						<p className="font-mono text-sm font-bold">{targetLiquidity.toLocaleString()} SUI</p>
-					</div>
-
-					<div className="p-2 border rounded bg-background/30">
-						<div className="flex items-center gap-1 mb-1">
-							<TrendingUp className="w-3 h-3 text-muted-foreground" />
-							<p className="font-mono text-xs uppercase text-muted-foreground">REMAINING</p>
-						</div>
-						<p className="font-mono text-sm font-bold">{remainingLiquidity.toLocaleString()} SUI</p>
+				<div className="relative h-2 w-full overflow-hidden rounded-full bg-muted/30 border border-border/50">
+					<div
+						className="absolute left-0 top-0 h-full transition-all duration-500 ease-out"
+						style={{ width: `${Math.min(progress, 100)}%` }}
+					>
+						<div className="h-full bg-gradient-to-r from-primary/60 via-primary to-emerald-500 shadow-lg shadow-primary/20" />
 					</div>
 				</div>
 			</div>

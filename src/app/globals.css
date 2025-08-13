@@ -3,6 +3,10 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@utility no-scrollbar {
+	@apply [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
+}
+
 @theme inline {
 	--color-background: var(--background);
 	--color-foreground: var(--foreground);
@@ -130,21 +134,4 @@
 	body {
 		@apply bg-background text-foreground;
 	}
-}
-
-@keyframes ticker {
-	0% {
-		transform: translateX(0);
-	}
-	100% {
-		transform: translateX(-50%);
-	}
-}
-
-.animate-ticker {
-	animation: ticker 15s linear infinite;
-}
-
-.group:hover .animate-ticker {
-	animation-play-state: paused;
 }

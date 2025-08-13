@@ -53,26 +53,29 @@ export const formatAmountWithSuffix = (amount: string | number | bigint | undefi
 	return `${formatted}${suffix}`
 }
 
-export function calculateTokenPrice(pool: { quoteBalance: string; coinBalance: string; coinMetadata?: { decimals?: number } }): number {
-	const quoteBalance = parseFloat(pool.quoteBalance)
-	const coinBalance = parseFloat(pool.coinBalance)
-	const decimals = pool.coinMetadata?.decimals || 9
+export const formatNumberWithSuffix = (value: number | undefined): string => {
+	if (value == null || !isFinite(value)) return "0"
 
-	if (coinBalance === 0 || isNaN(coinBalance) || isNaN(quoteBalance)) return 0
+	const thresholds = [
+		{ min: 1e9, suffix: "B", divisor: 1e9 },
+		{ min: 1e6, suffix: "M", divisor: 1e6 },
+		{ min: 1e3, suffix: "K", divisor: 1e3 },
+		{ min: 1, suffix: "", divisor: 1 },
+		{ min: 0, suffix: "", divisor: 1, decimals: 4 },
+	]
 
-	// For bonding curve AMMs, the price is the ratio of reserves
-	// Price = (quote balance / coin balance) * (10^decimals / 10^9)
-	// This gives us the price of 1 token in SUI
-	const price = (quoteBalance / coinBalance) * (Math.pow(10, decimals) / Math.pow(10, 9))
+	const {
+		suffix,
+		divisor,
+		decimals: minDecimals,
+	} = thresholds.find((t) => value >= t.min) || thresholds[thresholds.length - 1]
+	const scaled = value / divisor
 
-	return price
-}
+	// get decimal places based on scaled value
+	const decimals = minDecimals !== undefined ? minDecimals : scaled >= 100 ? 0 : scaled >= 10 ? 1 : 2
 
-export function calculateMarketCap(pool: { quoteBalance: string; coinBalance: string; coinMetadata?: { decimals?: number } }): number {
-	const price = calculateTokenPrice(pool)
-	// Market cap = 1 billion * price (in SUI)
-	// Convert to smallest unit (MIST) for formatAmountWithSuffix
-	const marketCapInSui = 1_000_000_000 * price
-	const marketCapInMist = marketCapInSui * Math.pow(10, 9)
-	return marketCapInMist
+	// remove trailing zeros
+	const formatted = parseFloat(scaled.toFixed(decimals)).toString()
+
+	return `${formatted}${suffix}`
 }

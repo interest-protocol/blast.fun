@@ -1,249 +1,286 @@
 "use client"
 
 import { useState } from "react"
-import { Zap } from "lucide-react"
+import { Zap, Loader2 } from "lucide-react"
+import Image from "next/image"
 import { useApp } from "@/context/app.context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { usePump } from "@/hooks/pump/use-pump"
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover"
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip"
+import { useTrading } from "@/hooks/pump/use-trading"
 import { useTokenBalance } from "@/hooks/sui/use-token-balance"
 import { usePortfolio } from "@/hooks/nexa/use-portfolio"
+import { useMarketData } from "@/hooks/use-market-data"
+import useBalance from "@/hooks/sui/use-balance"
 import type { PoolWithMetadata } from "@/types/pool"
 import { cn } from "@/utils"
 
 interface TradingPanelProps {
 	pool: PoolWithMetadata
 	referrerWallet?: string | null
+	refCode?: string | null
 }
 
-export function TradingPanel({ pool, referrerWallet }: TradingPanelProps) {
-	const { isConnected } = useApp()
+export function TradingPanel({ pool, referrerWallet, refCode }: TradingPanelProps) {
 	const [tradeType, setTradeType] = useState<"buy" | "sell">("buy")
 	const [amount, setAmount] = useState("")
 	const [slippage, setSlippage] = useState("15")
 
+	const { data: marketData } = useMarketData(pool.coinType)
 	const { balance: tokenBalance } = useTokenBalance(pool.coinType)
-	const { balance: actualBalance } = usePortfolio(pool.coinType)
-	const metadata = pool.coinMetadata
+	const { balance: actualBalance, refetch: refetchPortfolio } = usePortfolio(pool.coinType)
+	const { balance: suiBalance } = useBalance()
+	const metadata = marketData?.coinMetadata || pool.coinMetadata
 	const decimals = metadata?.decimals || 9
 
 	// use balance from nexa if available, otherwise fall back to token balance
 	const effectiveBalance = actualBalance !== "0" ? actualBalance : tokenBalance
 	const balanceInDisplayUnit = effectiveBalance ? Number(effectiveBalance) / Math.pow(10, decimals) : 0
-	const formattedBalance = balanceInDisplayUnit.toLocaleString(undefined, { maximumFractionDigits: 4 })
 	const hasBalance = balanceInDisplayUnit > 0
+	const suiBalanceNum = parseFloat(suiBalance || "0")
 
-	const { isLoading, error, success, pump, dump } = usePump({
+	const { isProcessing, error, buy, sell } = useTrading({
 		pool,
 		decimals,
 		actualBalance: effectiveBalance,
 		referrerWallet,
 	})
 
-	const quickBuyAmounts = [0.5, 1, 5, 10]
-	const quickSellPercentages = [25, 50, 75, 100]
+	const handleQuickAmount = async (value: number | string) => {
+		if (tradeType === "buy") {
+			setAmount(value.toString())
+			await buy(value.toString(), parseFloat(slippage))
+		} else {
+			const percentage = typeof value === 'string' ? parseInt(value) : value
 
-	const handleQuickBuy = async (suiAmount: number) => {
-		setAmount(suiAmount.toString())
-		const slippageNum = parseFloat(slippage)
-		await pump(suiAmount.toString(), slippageNum)
-		setAmount("")
-	}
+			let tokenAmountToSell: number
+			if (percentage === 100) {
+				tokenAmountToSell = balanceInDisplayUnit
+			} else {
+				tokenAmountToSell = Math.floor(balanceInDisplayUnit * (percentage / 100) * 1e9) / 1e9
+			}
 
-	const handleQuickSellPercentage = async (percentage: number) => {
-		if (!hasBalance) return
+			setAmount(tokenAmountToSell.toString())
+			await sell(tokenAmountToSell.toString(), parseFloat(slippage))
+		}
 
-		const tokenAmountToSell = balanceInDisplayUnit * (percentage / 100)
-		setAmount(tokenAmountToSell.toString())
-		const slippageNum = parseFloat(slippage)
-		await dump(tokenAmountToSell.toString(), slippageNum)
+		await refetchPortfolio()
 		setAmount("")
 	}
 
 	const handleTrade = async () => {
 		if (!amount || parseFloat(amount) <= 0) return
 
-		const slippageNum = parseFloat(slippage)
 		if (tradeType === "buy") {
-			await pump(amount, slippageNum)
+			await buy(amount, parseFloat(slippage))
 		} else {
-			await dump(amount, slippageNum)
+			await sell(amount, parseFloat(slippage))
 		}
+
+		await refetchPortfolio()
 		setAmount("")
 	}
 
 	return (
-		<div className="p-3">
-			<Tabs value={tradeType} onValueChange={(v) => setTradeType(v as "buy" | "sell")}>
-				<TabsList className="grid w-full grid-cols-2 bg-background/50 h-12">
-					<TabsTrigger
-						value="buy"
-						className="font-mono uppercase tracking-wider transition-colors h-full data-[state=active]:bg-green-500/20 data-[state=active]:text-green-500 data-[state=active]:shadow-none"
-					>
-						BUY
-					</TabsTrigger>
-					<TabsTrigger
-						value="sell"
-						className="font-mono uppercase tracking-wider transition-colors h-full data-[state=active]:bg-red-500/20 data-[state=active]:text-red-500 data-[state=active]:shadow-none"
-					>
-						SELL
-					</TabsTrigger>
-				</TabsList>
-
-				<TabsContent value={tradeType} className="space-y-2 mt-4">
-					{/* Balance Display */}
-					{tradeType === "sell" && (
-						<div className={cn(
-							"border rounded p-2",
-							hasBalance
-								? "bg-foreground/5 border-foreground/20"
-								: "bg-destructive/5 border-destructive/20"
-						)}>
-							<div className="flex items-center justify-between">
-								<span className="font-mono text-[10px] uppercase text-muted-foreground select-none">
-									TOKEN::BALANCE
-								</span>
-
-								<span className={cn(
-									"font-mono text-xs font-bold select-none",
-									hasBalance ? "text-foreground/80" : "text-destructive"
-								)}>
-									{formattedBalance} {metadata?.symbol || "[TOKEN]"}
-								</span>
-							</div>
-						</div>
+		<div className="p-3 space-y-3">
+			{/* Header */}
+			<div className="flex items-center justify-between">
+				<div className="flex items-center gap-2">
+					<div className="font-mono text-xs font-bold uppercase">
+						Trade {metadata?.symbol}
+					</div>
+					{refCode && (
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-blue-400/50 bg-blue-400/10 cursor-help">
+									<div className="w-1 h-1 bg-blue-400 rounded-full" />
+									<span className="font-mono text-[10px] uppercase text-blue-400">
+										{refCode}
+									</span>
+								</div>
+							</TooltipTrigger>
+							<TooltipContent>
+								The owner of this referral link will earn a commission.
+							</TooltipContent>
+						</Tooltip>
 					)}
+				</div>
 
-					{/* Quick Actions */}
-					<div className="space-y-2">
-						<p className="font-mono text-[10px] uppercase text-muted-foreground select-none">
-							QUICK::{tradeType.toUpperCase()}
-						</p>
-						<div className="grid grid-cols-4 gap-1.5">
-							{tradeType === "buy" ? (
-								quickBuyAmounts.map((quickAmount) => (
-									<Button
-										key={quickAmount}
-										variant="outline"
-										size="sm"
-										className="h-8 font-mono text-[10px] uppercase tracking-wider border-foreground/20 text-foreground/60 hover:bg-foreground/10 hover:border-foreground/40 hover:text-foreground/80 transition-all"
-										onClick={() => handleQuickBuy(quickAmount)}
-										disabled={isLoading || !isConnected}
-									>
-										{quickAmount} SUI
-									</Button>
-								))
-							) : (
-								quickSellPercentages.map((percentage) => (
-									<Button
-										key={percentage}
-										variant="outline"
-										size="sm"
-										className={cn(
-											"h-8 font-mono text-[10px] uppercase tracking-wider transition-all",
-											percentage === 100
-												? "border-destructive/20 text-destructive/60 hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive/80"
-												: "border-foreground/20 text-foreground/60 hover:bg-foreground/10 hover:border-foreground/40 hover:text-foreground/80"
-										)}
-										onClick={() => handleQuickSellPercentage(percentage)}
-										disabled={isLoading || !isConnected || !hasBalance}
-									>
-										{percentage}%
-									</Button>
-								))
-							)}
-						</div>
+				{hasBalance && (
+					<div className="font-mono text-xs text-muted-foreground">
+						Balance: <span className="text-foreground font-semibold">
+							{balanceInDisplayUnit.toFixed(2)}
+						</span>
 					</div>
+				)}
+			</div>
 
-					{/* Amount Input */}
-					<div className="space-y-2">
-						<p className="font-mono text-[10px] uppercase text-muted-foreground select-none">
-							AMOUNT::{tradeType === "buy" ? "SUI" : metadata?.symbol || "TOKEN"}
-						</p>
-						<div className="relative">
-							<Input
-								type="number"
-								placeholder="0.00"
-								value={amount}
-								onChange={(e) => setAmount(e.target.value)}
-								className="bg-background border-foreground/20 text-foreground font-mono text-sm h-10 focus:border-foreground/40 focus:ring-1 focus:ring-foreground/20 placeholder-foreground/30"
-								disabled={isLoading}
-							/>
-						</div>
-					</div>
+			{/* Buy/Sell Tab */}
+			<div className="flex gap-1 p-0.5 bg-muted rounded-md">
+				<Button
+					variant={tradeType === "buy" ? "default" : "ghost"}
+					size="sm"
+					onClick={() => setTradeType("buy")}
+					className={cn(
+						"flex-1 font-mono text-xs uppercase h-7",
+						tradeType === "buy"
+							? "bg-green-500/80 hover:bg-green-500 text-white shadow-none"
+							: "hover:bg-transparent hover:text-foreground text-muted-foreground"
+					)}
+				>
+					Buy
+				</Button>
+				<Button
+					variant={tradeType === "sell" ? "destructive" : "ghost"}
+					size="sm"
+					onClick={() => setTradeType("sell")}
+					disabled={!hasBalance}
+					className={cn(
+						"flex-1 font-mono text-xs uppercase h-7",
+						tradeType === "sell"
+							? "bg-destructive/80 hover:bg-destructive text-white shadow-none"
+							: "hover:bg-transparent hover:text-foreground text-muted-foreground"
+					)}
+				>
+					Sell
+				</Button>
+			</div>
 
-					{/* Slippage */}
-					<div className="space-y-2">
-						<p className="font-mono text-[10px] uppercase text-muted-foreground select-none">
-							SLIPPAGE::TOLERANCE [{slippage}%]
-						</p>
-						<div className="grid grid-cols-4 gap-1.5">
+			{/* Amount Input */}
+			<div className="flex gap-1">
+				<div className="relative flex-1">
+					<Input
+						type="number"
+						placeholder="0.00"
+						value={amount}
+						onChange={(e) => setAmount(e.target.value)}
+						className="pr-12 h-10 font-mono"
+						disabled={isProcessing}
+					/>
+					<span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono text-xs text-muted-foreground">
+						{tradeType === "buy" ? "SUI" : metadata?.symbol}
+					</span>
+				</div>
+				<Popover>
+					<PopoverTrigger asChild>
+						<Button
+							variant="outline"
+							className="w-14 h-10 font-mono text-xs px-2"
+						>
+							{slippage}%
+						</Button>
+					</PopoverTrigger>
+					<PopoverContent className="w-32 p-2" align="end">
+						<div className="space-y-1">
 							{["5", "10", "15", "20"].map((value) => (
-								<Button
+								<button
 									key={value}
-									variant={slippage === value ? "secondary" : "outline"}
-									size="sm"
-									className={cn(
-										"h-6 font-mono text-[10px] uppercase tracking-wider transition-all",
-										slippage === value
-											? "bg-foreground/20 text-foreground border-foreground/40"
-											: "border-foreground/20 text-foreground/60 hover:text-foreground/80 hover:border-foreground/40"
-									)}
 									onClick={() => setSlippage(value)}
+									className={cn(
+										"w-full px-2 py-1.5 rounded font-mono text-xs transition-colors text-left",
+										slippage === value
+											? "bg-primary/20 text-primary"
+											: "hover:bg-accent"
+									)}
 								>
-									{value}%
-								</Button>
+									{value}% slippage
+								</button>
 							))}
 						</div>
+					</PopoverContent>
+				</Popover>
+			</div>
+
+			{/* Quick Actions */}
+			<div className="space-y-1">
+				{tradeType === "buy" ? (
+					<div className="grid grid-cols-4 gap-1">
+						{[1, 5, 10, 50].map((suiAmount) => (
+							<Button
+								key={suiAmount}
+								variant="outline"
+								size="sm"
+								className={cn(
+									"font-mono text-[10px] h-6 p-0.5",
+									suiAmount > suiBalanceNum
+										? "!border-muted !bg-muted/50 text-muted-foreground cursor-not-allowed opacity-50"
+										: "!border-blue-400/50 !bg-blue-400/10 text-blue-400 hover:text-blue-400/80"
+								)}
+								onClick={() => handleQuickAmount(suiAmount)}
+								disabled={isProcessing || suiAmount > suiBalanceNum}
+							>
+								<Image
+									src="/logo/sui-logo.svg"
+									alt="SUI"
+									width={10}
+									height={10}
+									className="mr-0.5"
+								/>
+								{suiAmount}
+							</Button>
+						))}
 					</div>
+				) : (
+					<div className="grid grid-cols-4 gap-1">
+						{[25, 50, 75, 100].map((percentage) => (
+							<Button
+								key={percentage}
+								variant="outline"
+								size="sm"
+								className="font-mono text-xs h-7"
+								onClick={() => handleQuickAmount(percentage)}
+								disabled={isProcessing || !hasBalance}
+							>
+								{percentage}%
+							</Button>
+						))}
+					</div>
+				)}
+			</div>
 
-					{/* Alerts */}
-					{success && (
-						<Alert className="py-1.5 border-foreground/20 bg-foreground/5">
-							<AlertDescription className="font-mono text-[10px] uppercase text-foreground/80">
-								TX::SUCCESS [{success}]
-							</AlertDescription>
-						</Alert>
-					)}
+			{/* Error */}
+			{error && (
+				<Alert className="py-1.5 border-destructive/50 bg-destructive/10">
+					<AlertDescription className="font-mono text-[10px] uppercase text-destructive">
+						{error}
+					</AlertDescription>
+				</Alert>
+			)}
 
-					{error && (
-						<Alert className="py-1.5 border-destructive/20 bg-destructive/5">
-							<AlertDescription className="font-mono text-[10px] uppercase text-destructive">
-								ERROR::{error}
-							</AlertDescription>
-						</Alert>
-					)}
-
-					{/* Trade Button */}
-					<Button
-						className={cn(
-							"w-full h-10 font-mono text-xs uppercase tracking-wider font-bold transition-all border",
-							tradeType === "buy"
-								? "bg-foreground/10 border-foreground/40 text-foreground hover:bg-foreground/20"
-								: "bg-destructive/10 border-destructive/40 text-destructive hover:bg-destructive/20",
-							(!isConnected || !amount || (tradeType === "sell" && !hasBalance)) && "opacity-50"
-						)}
-						onClick={handleTrade}
-						disabled={!isConnected || isLoading || !amount || parseFloat(amount) <= 0 || (tradeType === "sell" && !hasBalance)}
-					>
-						{isLoading ? (
-							<span className="flex items-center gap-2">
-								<div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
-								PROCESSING::TX
-							</span>
-						) : !isConnected ? (
-							<span>CONNECT::WALLET</span>
-						) : (
-							<span className="flex items-center gap-1">
-								<Zap className="w-3 h-3" />
-								EXECUTE::{tradeType.toUpperCase()}
-							</span>
-						)}
-					</Button>
-				</TabsContent>
-			</Tabs>
+			{/* Trade Actions */}
+			<Button
+				className={cn(
+					"w-full font-mono uppercase text-xs h-9",
+					tradeType === "buy"
+						? "bg-green-400/50 hover:bg-green-500/90 text-foreground"
+						: "bg-destructive/80 hover:bg-destructive text-foreground",
+					(!amount || isProcessing) && "opacity-50"
+				)}
+				onClick={handleTrade}
+				disabled={!amount || isProcessing || (tradeType === "sell" && !hasBalance)}
+			>
+				{isProcessing ? (
+					<span className="flex items-center gap-1.5">
+						<Loader2 className="h-3.5 w-3.5 animate-spin" />
+						Processing
+					</span>
+				) : (
+					<span className="flex items-center gap-1.5">
+						<Zap className="w-3 h-3" />
+						{tradeType === "buy" ? "Buy" : "Sell"} {metadata?.symbol}
+					</span>
+				)}
+			</Button>
 		</div>
 	)
 }

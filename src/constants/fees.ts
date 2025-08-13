@@ -1,1 +1,0 @@
-export const HIDE_IDENTITY_SUI_FEE = 5_000_000_000

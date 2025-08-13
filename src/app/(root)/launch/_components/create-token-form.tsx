@@ -1,8 +1,8 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { MIST_PER_SUI } from "@mysten/sui/utils"
-import { Upload, X, Shield, Users, DollarSign, ShieldCheck } from "lucide-react"
+import { Upload, Shield, Users, DollarSign, ShieldCheck, UserX } from "lucide-react"
+import { BsTwitterX } from "react-icons/bs";
 import { useCallback, useEffect, useState, useMemo } from "react"
 import { useForm } from "react-hook-form"
 import toast from "react-hot-toast"
@@ -12,13 +12,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
-import { HIDE_IDENTITY_SUI_FEE } from "@/constants/fees"
 import { cn } from "@/utils"
 import TokenCreationButton from "./create-token-button"
-import { Logo } from "@/components/ui/logo"
 import { getBase64 } from "../launch.utils"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { Badge } from "@/components/ui/badge"
+import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible"
 
 const tokenSchema = z.object({
 	name: z.string().min(3, "Minimum 3 characters").max(20, "Maximum 20 characters"),
@@ -29,14 +26,24 @@ const tokenSchema = z.object({
 		.regex(/^[a-zA-Z][\x21-\x7E]*$/),
 	description: z.string().min(10, "Minimum 10 characters").max(256, "Maximum 256 characters"),
 	imageUrl: z.string().optional(),
-	website: z.url("Invalid URL").optional().or(z.literal("")),
-	telegram: z.url("Invalid URL").optional().or(z.literal("")),
-	twitter: z.url("Invalid URL").optional().or(z.literal("")),
+	website: z.union([
+		z.literal(""),
+		z.string().url("Invalid URL")
+	]).optional(),
+	telegram: z.union([
+		z.literal(""),
+		z.string().url("Invalid URL")
+	]).optional(),
+	twitter: z.union([
+		z.literal(""),
+		z.string().url("Invalid URL")
+	]).optional(),
 	hideIdentity: z.boolean(),
+	sniperProtection: z.boolean(),
 	requireTwitter: z.boolean(),
 	maxHoldingPercent: z.string().optional().refine(
-		(val) => !val || (Number(val) >= 0 && Number(val) <= 100),
-		"Must be between 0 and 100"
+		(val) => !val || (Number(val) >= 0.1 && Number(val) <= 100),
+		"Must be between 0.1% and 100%"
 	),
 })
 
@@ -61,6 +68,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 			telegram: "",
 			twitter: "",
 			hideIdentity: false,
+			sniperProtection: false,
 			requireTwitter: false,
 			maxHoldingPercent: "",
 		},
@@ -70,20 +78,21 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 	const imageUrl = form.watch("imageUrl")
 	const tokenName = form.watch("name")
 	const tokenSymbol = form.watch("symbol")
+	const description = form.watch("description")
 	const hideIdentity = form.watch("hideIdentity")
+	const sniperProtection = form.watch("sniperProtection")
 	const requireTwitter = form.watch("requireTwitter")
 	const maxHoldingPercent = form.watch("maxHoldingPercent")
-
-	const hasProtectionSettings = requireTwitter || maxHoldingPercent
 
 	const formData = useMemo(() => ({
 		imageUrl,
 		name: tokenName,
 		symbol: tokenSymbol,
 		hideIdentity,
+		sniperProtection,
 		requireTwitter,
 		maxHoldingPercent,
-	}), [imageUrl, tokenName, tokenSymbol, hideIdentity, requireTwitter, maxHoldingPercent])
+	}), [imageUrl, tokenName, tokenSymbol, hideIdentity, sniperProtection, requireTwitter, maxHoldingPercent])
 
 	useEffect(() => {
 		if (onFormChange) {
@@ -170,7 +179,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 														className="absolute -top-2 -right-2 h-6 w-6 rounded-full shadow-lg"
 														onClick={() => form.setValue("imageUrl", "")}
 													>
-														<X className="h-3 w-3" />
+														<BsTwitterX className="h-3 w-3" />
 													</Button>
 												</>
 											) : (
@@ -247,13 +256,22 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 						name="description"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel className="font-mono text-xs uppercase tracking-wider text-foreground/60">
-									PROJECT::DESCRIPTION
-								</FormLabel>
+								<div className="flex items-center justify-between">
+									<FormLabel className="font-mono text-xs uppercase tracking-wider text-foreground/60">
+										PROJECT::DESCRIPTION
+									</FormLabel>
+									<span className={cn(
+										"font-mono text-xs",
+										description.length > 256 ? "text-destructive" : description.length > 230 ? "text-warning" : "text-muted-foreground"
+									)}>
+										{description.length}/256
+									</span>
+								</div>
 								<FormControl>
 									<Textarea
 										placeholder="[DESCRIBE_YOUR_TOKEN_PROJECT]"
 										className="resize-none min-h-[100px] font-mono text-sm focus:border-primary/50"
+										maxLength={256}
 										{...field}
 									/>
 								</FormControl>
@@ -264,6 +282,9 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 
 					{/* Social Links */}
 					<div className="space-y-4">
+						<p className="font-mono text-xs uppercase text-muted-foreground">
+							SOCIAL::LINKS
+						</p>
 						<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
 							<FormField
 								control={form.control}
@@ -271,7 +292,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel className="font-mono text-xs uppercase tracking-wider text-foreground/60">
-											WEBSITE
+											WEBSITE <span className="text-muted-foreground/40">(OPTIONAL)</span>
 										</FormLabel>
 										<FormControl>
 											<Input
@@ -291,7 +312,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel className="font-mono text-xs uppercase tracking-wider text-foreground/60">
-											TELEGRAM
+											TELEGRAM <span className="text-muted-foreground/40">(OPTIONAL)</span>
 										</FormLabel>
 										<FormControl>
 											<Input
@@ -311,7 +332,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel className="font-mono text-xs uppercase tracking-wider text-foreground/60">
-											X
+											X <span className="text-muted-foreground/40">(OPTIONAL)</span>
 										</FormLabel>
 										<FormControl>
 											<Input
@@ -333,71 +354,102 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 						name="hideIdentity"
 						render={({ field }) => (
 							<FormItem className={cn(
-								"relative overflow-hidden rounded-lg border-2 p-5 transition-all ease-in-out duration-300",
+								"relative rounded-lg border-2 border-dashed p-4 transition-all duration-200",
 								field.value
-									? "border-destructive/20 bg-destructive/10 shadow-[0_0_20px_rgba(239,68,68,0.3)]"
-									: "border-destructive/5 bg-destructive/5 hover:border-destructive/10 hover:bg-destructive/10"
+									? "border-destructive/60 bg-destructive/5"
+									: "border-muted-foreground/30 hover:border-destructive/40 bg-background/50"
 							)}>
-								{/* animated background effect if active */}
-								{field.value && (
-									<div className="absolute inset-0 bg-gradient-to-r from-transparent via-destructive/10 to-transparent animate-pulse" />
-								)}
-
-								<div className="relative space-y-3">
-									<div className="flex items-start justify-between">
-										<div className="space-y-3">
-											<div className="flex items-center gap-3">
-												<Logo className="h-6 w-6 text-destructive animate-pulse" />
-												<FormLabel className="font-mono text-base uppercase tracking-wider text-destructive cursor-pointer">
-													HIDE::IDENTITY
-												</FormLabel>
-
-												<Badge className="text-xs font-mono uppercase border-destructive/50 bg-destructive/10 text-destructive">
-													{Number(HIDE_IDENTITY_SUI_FEE) / Number(MIST_PER_SUI)} SUI
-												</Badge>
-											</div>
-
-											<p className="font-mono text-sm uppercase text-muted-foreground">
-												YOUR_TWITTER_WILL_BE_REDACTED
-											</p>
+								<div className="flex items-center justify-between">
+									<div className="flex items-center gap-3">
+										<div className={cn(
+											"p-2 rounded-md transition-colors",
+											field.value ? "bg-destructive/10" : "bg-muted"
+										)}>
+											<UserX className={cn(
+												"h-5 w-5",
+												field.value ? "text-destructive animate-pulse" : "text-muted-foreground"
+											)} />
 										</div>
 
-										<FormControl>
-											<Switch
-												checked={field.value}
-												onCheckedChange={field.onChange}
-												className="data-[state=checked]:bg-destructive"
-											/>
-										</FormControl>
+										<div className="space-y-1">
+											<FormLabel className="font-mono text-sm uppercase tracking-wider cursor-pointer text-foreground/80">
+												HIDE::CREATOR::IDENTITY
+											</FormLabel>
+											<p className="font-mono text-xs uppercase text-muted-foreground">
+												{field.value ? "IDENTITY::HIDDEN" : "X_HANDLE_WILL_BE_[REDACTED]"}
+											</p>
+										</div>
 									</div>
+
+									<FormControl>
+										<Switch
+											checked={field.value}
+											onCheckedChange={field.onChange}
+											className="data-[state=checked]:bg-destructive"
+										/>
+									</FormControl>
 								</div>
 							</FormItem>
 						)}
 					/>
 
-					{/* Protection Settings */}
-					<Collapsible open={showProtectionSettings} onOpenChange={setShowProtectionSettings}>
-						<CollapsibleTrigger asChild>
-							<Button
-								type="button"
-								variant="outline"
-								className={cn(
-									"w-full justify-between font-mono uppercase text-sm",
-									"border-2 transition-all ease-in-out duration-300",
-									hasProtectionSettings ? "border-primary/20 bg-primary/5" : "hover:border-primary/10"
-								)}
-							>
-								<div className="flex items-center gap-2">
-									{hasProtectionSettings ? <ShieldCheck className="h-4 w-4" /> : <Shield className="h-4 w-4 text-muted-foreground" />}
-									<span>SNIPER::PROTECTION</span>
+					{/* Sniper Protection Toggle */}
+					<FormField
+						control={form.control}
+						name="sniperProtection"
+						render={({ field }) => (
+							<FormItem className={cn(
+								"relative rounded-lg border-2 border-dashed p-4 transition-all duration-200",
+								field.value
+									? "border-primary/60 bg-primary/5"
+									: "border-muted-foreground/30 hover:border-primary/40 bg-background/50"
+							)}>
+								<div className="flex items-center justify-between">
+									<div className="flex items-center gap-3">
+										<div className={cn(
+											"p-2 rounded-md transition-colors",
+											field.value ? "bg-primary/10" : "bg-muted"
+										)}>
+											{field.value ? (
+												<ShieldCheck className="h-5 w-5 text-primary animate-pulse" />
+											) : (
+												<Shield className="h-5 w-5 text-muted-foreground" />
+											)}
+										</div>
+
+										<div className="space-y-1">
+											<FormLabel className="font-mono text-sm uppercase tracking-wider cursor-pointer text-foreground/80">
+												SNIPER::PROTECTION
+											</FormLabel>
+											<p className="font-mono text-xs uppercase text-muted-foreground">
+												{field.value ? "PROTECTION::ENABLED" : "ENABLE_SNIPER_PROTECTION_FOR_THIS_TOKEN"}
+											</p>
+										</div>
+									</div>
+
+									<FormControl>
+										<Switch
+											checked={field.value}
+											onCheckedChange={(checked) => {
+												field.onChange(checked)
+												setShowProtectionSettings(checked)
+											}}
+											className="data-[state=checked]:bg-primary"
+										/>
+									</FormControl>
 								</div>
-								<span className="text-xs text-muted-foreground">
-									{hasProtectionSettings ? "[ACTIVE]" : "[CONFIGURE]"}
-								</span>
-							</Button>
-						</CollapsibleTrigger>
+							</FormItem>
+						)}
+					/>
+
+					{/* Protection Settings - Only show when sniper protection is enabled */}
+					<Collapsible open={showProtectionSettings && sniperProtection} onOpenChange={setShowProtectionSettings}>
 						<CollapsibleContent className="space-y-4 mt-4">
 							<div className="rounded-lg border-2 border-dashed border-primary/20 p-4 space-y-4 bg-primary/5">
+								<p className="font-mono text-xs uppercase text-muted-foreground mb-3">
+									OPTIONAL::PROTECTION::SETTINGS
+								</p>
+
 								{/* Twitter Auth */}
 								<FormField
 									control={form.control}
@@ -407,10 +459,10 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 											<div className="space-y-1">
 												<FormLabel className="font-mono text-sm uppercase tracking-wider flex items-center gap-2">
 													<Users className="h-4 w-4 text-primary" />
-													REQUIRE::TWITTER
+													REQUIRE X LOGIN
 												</FormLabel>
 												<FormDescription className="font-mono text-xs uppercase text-muted-foreground">
-													BUYERS_MUST_CONNECT_TWITTER_ACCOUNT
+													BUYERS_MUST_CONNECT_X_ACCOUNT
 												</FormDescription>
 											</div>
 											<FormControl>
@@ -431,16 +483,16 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 										<FormItem className="rounded-lg border p-4 bg-background/50">
 											<FormLabel className="font-mono text-sm uppercase tracking-wider flex items-center gap-2">
 												<DollarSign className="h-4 w-4 text-primary" />
-												MAX::HOLDINGS
+												MAX HOLDINGS PER WALLET
 											</FormLabel>
 											<FormControl>
 												<div className="relative">
 													<Input
-														placeholder="100"
+														placeholder="10"
 														className="font-mono text-sm pr-12 focus:border-primary/50"
 														type="number"
-														step="1"
-														min="0"
+														step="0.1"
+														min="0.1"
 														max="100"
 														{...field}
 													/>
@@ -450,7 +502,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 												</div>
 											</FormControl>
 											<FormDescription className="font-mono text-xs uppercase text-muted-foreground">
-												MAX_PERCENTAGE_OF_HOLDING_PER_WALLET
+												MAX_PERCENTAGE_PER_WALLET (0.1%-100%)
 											</FormDescription>
 											<FormMessage className="font-mono text-xs" />
 										</FormItem>

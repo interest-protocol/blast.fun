@@ -45,40 +45,14 @@ export const getObjectIdsFromTx = (
 }
 
 /**
- * Parses a Sui object type to extract its components
- * Example: "0x2::coin::Coin<0x2::sui::SUI>" -> { address: "0x2", module: "coin", name: "Coin" }
+ * Gets the first created object ID of a specific type
  */
-const parseObjectType = (objectType: string) => {
-	const typeWithoutGenerics = objectType.split('<')[0]
-	const parts = typeWithoutGenerics.split('::')
-
-	if (parts.length < 3) return null
-
-	return {
-		address: parts[0],
-		module: parts[parts.length - 2],
-		name: parts[parts.length - 1],
-		fullType: typeWithoutGenerics
-	}
-}
-
 export const getCreatedObjectByType = (tx: SuiTransactionBlockResponse, objectType: string): string | null => {
 	if (!tx.objectChanges) return null
 
-	const object = tx.objectChanges.find((change) => {
-		if (change.type !== "created" || !("objectType" in change)) return false
-
-		const parsed = parseObjectType(change.objectType)
-		if (!parsed) return false
-
-		if (objectType.includes('::')) {
-			// full or partial path matching
-			return parsed.fullType.endsWith(objectType)
-		} else {
-			// type name matching
-			return parsed.name === objectType
-		}
-	})
+	const object = tx.objectChanges.find(
+		(change) => change.type === "created" && "objectType" in change && change.objectType.includes(objectType)
+	)
 
 	return object && "objectId" in object ? object.objectId : null
 }
@@ -166,16 +140,7 @@ export const getTxErrorMessage = (tx: SuiTransactionBlockResponse): string | nul
 export const hasCreatedObjectType = (tx: SuiTransactionBlockResponse, objectType: string): boolean => {
 	if (!tx.objectChanges) return false
 
-	return tx.objectChanges.some((change) => {
-		if (change.type !== "created" || !("objectType" in change)) return false
-
-		const parsed = parseObjectType(change.objectType)
-		if (!parsed) return false
-
-		if (objectType.includes('::')) {
-			return parsed.fullType.endsWith(objectType)
-		} else {
-			return parsed.name === objectType
-		}
-	})
+	return tx.objectChanges.some(
+		(change) => change.type === "created" && "objectType" in change && change.objectType.includes(objectType)
+	)
 }

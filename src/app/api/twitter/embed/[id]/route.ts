@@ -1,3 +1,4 @@
+import { BASE_DOMAIN } from "@/constants"
 import { env } from "@/env"
 import { NextRequest, NextResponse } from "next/server"
 
@@ -8,7 +9,7 @@ export async function GET(
     const { id } = await params
     const searchParams = request.nextUrl.searchParams
     const refCode = searchParams.get("ref")
-    const appUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+    const appUrl = new URL(BASE_DOMAIN)
 
     // build URL with referral code if present
     const xCardUrl = refCode ? `${appUrl}/x-card/${id}?ref=${refCode}` : `${appUrl}/x-card/${id}`
@@ -31,11 +32,11 @@ export async function GET(
 
     <!-- Twitter Player Card Tags -->
     <meta name="twitter:card" content="player" />
-    <meta name="twitter:creator" content="@xtermfun">
-    <meta name="twitter:site" content="@xtermfun" />
-    <meta name="twitter:image" content="${appUrl}/logo/xterm-bg.png" />
-    <meta name="twitter:title" content="Trade memecoins on xTerminal directly within X." />
-    <meta name="twitter:description" content="Buy & sell memecoins on xTerminal directly within X. Just click me and you'll see for yourself!" />
+    <meta name="twitter:creator" content="@blastdotfun">
+    <meta name="twitter:site" content="@blastdotfun" />
+    <meta name="twitter:image" content="${appUrl}/logo/blast-bg.png" />
+    <meta name="twitter:title" content="Trade memecoins on blast.fun directly within X." />
+    <meta name="twitter:description" content="Buy & sell memecoins on blast.fun directly within X. Just click me and you'll see for yourself!" />
 
     <meta name="twitter:url" content="${xCardUrl}" />
     <meta name="twitter:player" content="${xCardUrl}" />
@@ -44,12 +45,12 @@ export async function GET(
 
     <!-- OpenGraph tags -->
     <meta property="og:type" content="video.movie" />
-    <meta property="og:title" content="Trade memecoins on xTerminal directly within X." />
+    <meta property="og:title" content="Trade memecoins on blast.fun directly within X." />
     <meta property="og:description" content="Connect wallet and trade tokens directly" />
-    <meta property="og:image" content="${appUrl}/logo/xterm-bg.png" />
+    <meta property="og:image" content="${appUrl}/logo/blast-bg.png" />
     <meta property="og:url" content="${xCardUrl}" />
     
-    <title>xTerminal Trading</title>
+    <title>blast.fun terminal</title>
 </head>
 </html>`
 

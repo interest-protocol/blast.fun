@@ -3,12 +3,16 @@
 import { PoolWithMetadata } from "@/types/pool"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Crosshair } from "lucide-react"
+import { useMarketData } from "@/hooks/use-market-data"
 
 interface PositionsTabProps {
 	pool: PoolWithMetadata
 }
 
 export function PositionsTab({ pool }: PositionsTabProps) {
+	const { data: marketData } = useMarketData(pool.coinType)
+	const metadata = marketData?.coinMetadata || pool.coinMetadata
+	
 	return (
 		<ScrollArea className="h-[500px]">
 			<div className="p-4">
@@ -21,7 +25,7 @@ export function PositionsTab({ pool }: PositionsTabProps) {
 						POSITIONS::OFFLINE
 					</p>
 					<p className="font-mono text-xs uppercase text-muted-foreground/60">
-						TRACKING_MODULE_INITIALIZING_FOR_{pool.coinMetadata?.symbol || "[TOKEN]"}
+						TRACKING_MODULE_INITIALIZING_FOR_{metadata?.symbol || "[TOKEN]"}
 					</p>
 				</div>
 			</div>

@@ -32,7 +32,7 @@ export const CreatorDisplay = forwardRef<
 		if (twitterHandle) {
 			return {
 				display: `@${twitterHandle}`,
-				href: `https://twitter.com/${twitterHandle}`,
+				href: `https://x.com/${twitterHandle}`,
 				type: 'twitter' as const
 			}
 		}
