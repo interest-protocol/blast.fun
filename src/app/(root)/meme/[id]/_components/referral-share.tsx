@@ -24,12 +24,10 @@ export function ReferralShare({ pool }: ReferralShareProps) {
     const [inputCode, setInputCode] = useState("")
     const [isInitializing, setIsInitializing] = useState(false)
 
-    // Regular token page URL with referral
     const tokenPageUrl = refCode
         ? `${window.location.origin}/meme/${pool.poolId}?ref=${refCode}`
         : `${window.location.origin}/meme/${pool.poolId}`
 
-    // Embedded terminal URL for Twitter
     const terminalUrl = refCode
         ? `${window.location.origin}/api/twitter/embed/${pool.poolId}?ref=${refCode}`
         : `${window.location.origin}/api/twitter/embed/${pool.poolId}`

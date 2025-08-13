@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { isValidSuiAddress } from "@mysten/sui/utils";
 import { formatAmountWithSuffix } from "@/utils/format";
 import { env } from "@/env";
+import { getRedisClient, CACHE_TTL, CACHE_PREFIX } from "@/lib/redis/client";
 
 export async function GET(
 	request: NextRequest,
@@ -38,40 +39,71 @@ export async function GET(
 		}
 
 		if (twitterHandle) {
-			try {
-				const res = await fetch(
-					`https://giverep.com/api/trust-count/user-count/${twitterHandle}`
-				);
+			const redis = getRedisClient();
+			const cacheKey = `${CACHE_PREFIX.TWITTER_FOLLOWERS}${twitterHandle.toLowerCase()}`;
+			const cacheTTL = CACHE_TTL.TWITTER_FOLLOWERS;
 
-				if (res.ok) {
-					const giveRepData = await res.json();
-					if (giveRepData.success && giveRepData.data) {
-						trustedFollowerCount = giveRepData.data.trustedFollowerCount || 0;
-					}
+			let cachedData = null;
+			if (redis) {
+				try {
+					cachedData = await redis.get(cacheKey);
+				} catch (error) {
+					console.error("Redis get error:", error);
 				}
-			} catch (error) {
-				console.error("Error fetching GiveRep data:", error);
 			}
 
-			// get follower data
-			try {
-				const twitterResponse = await fetch(
-					`https://api.twitterapi.io/twitter/user/info?userName=${twitterHandle}`,
-					{
-						headers: {
-							"X-API-Key": env.TWITTER_API_IO_KEY,
-						},
-					}
-				);
+			if (cachedData) {
+				const cached = cachedData as { trustedFollowerCount: number; followerCount: number };
+				trustedFollowerCount = cached.trustedFollowerCount;
+				followerCount = cached.followerCount;
+			} else {
+				try {
+					const res = await fetch(
+						`https://giverep.com/api/trust-count/user-count/${twitterHandle}`
+					);
 
-				if (twitterResponse.ok) {
-					const twitterData = await twitterResponse.json();
-					if (twitterData.status === "success" && twitterData.data) {
-						followerCount = twitterData.data.followers || 0;
+					if (res.ok) {
+						const giveRepData = await res.json();
+						if (giveRepData.success && giveRepData.data) {
+							trustedFollowerCount = giveRepData.data.trustedFollowerCount || 0;
+						}
+					}
+				} catch (error) {
+					console.error("Error fetching GiveRep data:", error);
+				}
+
+				// get follower data
+				try {
+					const twitterResponse = await fetch(
+						`https://api.twitterapi.io/twitter/user/info?userName=${twitterHandle}`,
+						{
+							headers: {
+								"X-API-Key": env.TWITTER_API_IO_KEY,
+							},
+						}
+					);
+
+					if (twitterResponse.ok) {
+						const twitterData = await twitterResponse.json();
+						if (twitterData.status === "success" && twitterData.data) {
+							followerCount = twitterData.data.followers || 0;
+						}
+					}
+				} catch (error) {
+					console.error("Error fetching Twitter data:", error);
+				}
+
+				if (redis && (trustedFollowerCount > 0 || followerCount > 0)) {
+					try {
+						await redis.set(
+							cacheKey,
+							{ trustedFollowerCount, followerCount },
+							{ ex: cacheTTL }
+						);
+					} catch (error) {
+						console.error("Redis set error:", error);
 					}
 				}
-			} catch (error) {
-				console.error("Error fetching Twitter data:", error);
 			}
 		}
 

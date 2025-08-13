@@ -30,10 +30,12 @@ export const CACHE_TTL = {
 	TOKEN_METADATA: 86400 * 30, // 30 days for metadata (it never changes)
 	NSFW_CHECK: 86400 * 30, // 30 days
 	POOL_DATA: 300, // 5 minutes for market data
+	TWITTER_FOLLOWERS: 28800, // 8 hours for twitter follower data
 } as const
 
 export const CACHE_PREFIX = {
 	TOKEN_METADATA: "token_meta:",
 	NSFW_CHECK: "nsfw:",
 	POOL_DATA: "pool_data:",
+	TWITTER_FOLLOWERS: "twitter_followers:",
 } as const
