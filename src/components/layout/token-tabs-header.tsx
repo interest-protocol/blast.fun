@@ -1,6 +1,6 @@
 "use client"
 
-import { X, XCircle } from "lucide-react"
+import { X, XCircle, ChevronLeft, ChevronRight } from "lucide-react"
 import { useRouter, usePathname } from "next/navigation"
 import { useTokenTabs, type TokenTab } from "@/stores/token-tabs"
 import { cn } from "@/utils"
@@ -15,6 +15,7 @@ import { apolloClient } from "@/lib/apollo-client"
 import { GET_POOL } from "@/graphql/pools"
 import type { GetPoolResponse, GetPoolVariables } from "@/types/graphql"
 import { CONFIG_KEYS } from "@interest-protocol/memez-fun-sdk"
+import { useRef, useState, useEffect } from "react"
 
 function TokenTabItem({
 	tab,
@@ -62,7 +63,7 @@ function TokenTabItem({
 			size="sm"
 			onClick={() => onTabClick(tab.poolId)}
 			className={cn(
-				"group relative h-auto rounded-xl py-1.5 px-2 min-w-0 max-w-[240px] font-normal",
+				"group relative h-auto rounded-xl py-1.5 px-2 min-w-[160px] max-w-[240px] font-normal flex-shrink-0",
 				isActive && "!border-destructive/50 !bg-destructive/10 hover:!bg-destructive/15"
 			)}
 		>
@@ -130,6 +131,31 @@ export function TokenTabsHeader() {
 	const pathname = usePathname()
 	const { isMobile } = useBreakpoint();
 	const { tabs, removeTab, removeAllTabs } = useTokenTabs()
+	const scrollContainerRef = useRef<HTMLDivElement>(null)
+	const [canScrollLeft, setCanScrollLeft] = useState(false)
+	const [canScrollRight, setCanScrollRight] = useState(false)
+
+	const checkScrollButtons = () => {
+		if (scrollContainerRef.current) {
+			const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current
+			setCanScrollLeft(scrollLeft > 0)
+			setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1)
+		}
+	}
+
+	useEffect(() => {
+		checkScrollButtons()
+		const container = scrollContainerRef.current
+		if (container) {
+			container.addEventListener('scroll', checkScrollButtons)
+			window.addEventListener('resize', checkScrollButtons)
+
+			return () => {
+				container.removeEventListener('scroll', checkScrollButtons)
+				window.removeEventListener('resize', checkScrollButtons)
+			}
+		}
+	}, [tabs])
 
 	if (tabs.length === 0 || isMobile) {
 		return null
@@ -160,29 +186,126 @@ export function TokenTabsHeader() {
 		router.push("/")
 	}
 
+	const scrollLeft = () => {
+		if (scrollContainerRef.current) {
+			const container = scrollContainerRef.current
+			const tabWidth = 180 // Approximate width of a tab
+			const visibleWidth = container.clientWidth
+			const currentScroll = container.scrollLeft
+
+			// calculate how many tabs fit in view
+			const tabsInView = Math.floor(visibleWidth / tabWidth)
+			const scrollAmount = Math.max(tabWidth, (tabsInView - 2) * tabWidth)
+
+			// if we're close to the start, scroll all the way
+			if (currentScroll <= scrollAmount) {
+				container.scrollTo({
+					left: 0,
+					behavior: 'smooth'
+				})
+			} else {
+				container.scrollBy({
+					left: -scrollAmount,
+					behavior: 'smooth'
+				})
+			}
+		}
+	}
+
+	const scrollRight = () => {
+		if (scrollContainerRef.current) {
+			const container = scrollContainerRef.current
+			const tabWidth = 180 // Approximate width of a tab
+			const visibleWidth = container.clientWidth
+			const currentScroll = container.scrollLeft
+			const maxScroll = container.scrollWidth - visibleWidth
+
+			// calculate how many tabs fit in view
+			const tabsInView = Math.floor(visibleWidth / tabWidth)
+			const scrollAmount = Math.max(tabWidth, (tabsInView - 2) * tabWidth)
+
+			// if we're close to the end, scroll all the way
+			if (currentScroll >= maxScroll - scrollAmount) {
+				container.scrollTo({
+					left: maxScroll,
+					behavior: 'smooth'
+				})
+			} else {
+				container.scrollBy({
+					left: scrollAmount,
+					behavior: 'smooth'
+				})
+			}
+		}
+	}
+
 	return (
 		<div className="border-b border-border bg-background/50 backdrop-blur-sm">
-			<div className="flex items-center gap-2 p-2 overflow-x-auto no-scrollbar">
-				<div className="flex items-center gap-1 flex-shrink-0">
-					{tabs.map((tab) => (
-						<TokenTabItem
-							key={tab.poolId}
-							tab={tab}
-							isActive={pathname === `/meme/${tab.poolId}`}
-							onTabClick={handleTabClick}
-							onCloseTab={handleCloseTab}
-						/>
-					))}
+			<div className="flex items-center py-2 px-4 gap-1">
+				{/* Left scroll button */}
+				{canScrollLeft && (
+					<Button
+						variant="ghost"
+						size="icon"
+						onClick={scrollLeft}
+						className="h-7 w-7 flex-shrink-0 rounded-lg"
+					>
+						<ChevronLeft className="h-4 w-4" />
+					</Button>
+				)}
+
+				{/* Scrollable tabs container with gradient edges */}
+				<div className="relative flex-1 min-w-0">
+					<div
+						ref={scrollContainerRef}
+						className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth"
+						style={{
+							scrollbarWidth: 'none',
+							msOverflowStyle: 'none',
+							WebkitOverflowScrolling: 'touch'
+						}}
+					>
+						{tabs.map((tab) => (
+							<TokenTabItem
+								key={tab.poolId}
+								tab={tab}
+								isActive={pathname === `/meme/${tab.poolId}`}
+								onTabClick={handleTabClick}
+								onCloseTab={handleCloseTab}
+							/>
+						))}
+					</div>
+
+					{/* Gradient edges for smooth transition */}
+					{canScrollLeft && (
+						<div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background via-background/70 to-transparent pointer-events-none z-10" />
+					)}
+					{canScrollRight && (
+						<div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background via-background/70 to-transparent pointer-events-none z-10" />
+					)}
 				</div>
 
+				{/* Right scroll button */}
+				{canScrollRight && (
+					<Button
+						variant="ghost"
+						size="icon"
+						onClick={scrollRight}
+						className="h-7 w-7 mr-2 flex-shrink-0 rounded-lg text-muted-foreground"
+					>
+						<ChevronRight className="h-4 w-4" />
+					</Button>
+				)}
+
+				{/* Fixed close all button */}
 				{tabs.length > 1 && (
 					<Button
 						variant="ghost"
 						size="icon"
 						onClick={handleCloseAll}
-						className="rounded-xl text-muted-foreground"
+						className="h-7 w-7 flex-shrink-0 rounded-lg text-muted-foreground hover:text-destructive"
 					>
-						<XCircle className="w-3.5 h-3.5" />
+						<XCircle className="w-4 h-4" />
 					</Button>
 				)}
 			</div>
