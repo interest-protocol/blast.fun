@@ -20,7 +20,7 @@ export default function DiscoveryPage() {
 		sortBy: "createdAt",
 		page: 1,
 		pageSize: 100,
-		pollInterval: 3000
+		pollInterval: 10000 // 10 seconds
 	})
 
 	if (error) {
