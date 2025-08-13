@@ -55,8 +55,8 @@ class NexaClient {
 	}
 
 	async getMarketData(coinType: string) {
-		const response = await this.fetch(`/coins/${coinType}/market-data`, {
-			revalidate: 5,
+		const response = await this.fetch(`/coins/${coinType}/minified-market-data`, {
+			revalidate: 10,
 		})
 
 		return await response.json() as MarketData
