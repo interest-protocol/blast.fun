@@ -79,7 +79,7 @@ export async function executeSwap({
 			coinInAmount: amountIn,
 			referrer,
 			externalFee: {
-				recipient: "0xfaac5bf9dd7da0706425a88413c7467b1f00a1df730ca71eca229950196a657b",
+				recipient: env.NEXT_PUBLIC_FEE_ADDRESS,
 				feePercentage: 0.01
 			}
 		})
@@ -147,7 +147,7 @@ export async function sellMigratedToken({
 			coinInAmount: tokenAmount,
 			referrer,
 			externalFee: {
-				recipient: "0xfaac5bf9dd7da0706425a88413c7467b1f00a1df730ca71eca229950196a657b",
+				recipient: env.NEXT_PUBLIC_FEE_ADDRESS,
 				feePercentage: 0.01
 			}
 		})

@@ -3,6 +3,7 @@
 import Header from "@/components/layout/header"
 import { MobileNavigation } from "@/components/layout/mobile-nav"
 import { TokenTabsHeader } from "@/components/layout/token-tabs-header"
+import { PreLaunchBanner } from "@/components/layout/pre-launch-banner"
 import { Ticker } from "@/components/shared/ticker"
 import { usePathname } from "next/navigation"
 import { useBreakpoint } from "@/hooks/use-breakpoint"
@@ -23,6 +24,7 @@ export default function Layout({
 
 	return (
 		<div className="flex flex-col h-screen overflow-hidden">
+			<PreLaunchBanner />
 			<Ticker />
 			<Header />
 			<TokenTabsHeader />

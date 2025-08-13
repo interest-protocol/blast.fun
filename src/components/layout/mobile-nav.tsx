@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { navigationItems } from "@/constants/navigation"
 import { cn } from "@/utils"
 import { useCustomNavigation } from "@/hooks/use-custom-navigation"
+import { Lock } from "lucide-react"
 
 export function MobileNavigation() {
 	const pathname = usePathname()
@@ -19,28 +20,38 @@ export function MobileNavigation() {
 			<nav className="flex justify-evenly items-center w-full h-16 px-2">
 				{navigationItems.map((item) => {
 					const isActive = pathname === item.href
-					const Icon = item.icon
+					const isLaunch = item.href === "/launch"
+					const Icon = isLaunch ? Lock : item.icon
 
 					return (
 						<Link
 							key={item.href}
 							href={item.href}
-							className="group flex flex-col justify-center items-center gap-1 py-2 px-4 min-w-0"
+							className="group flex flex-col justify-center items-center gap-1 py-2 px-4 min-w-0 relative"
 						>
 							<Icon
 								className={cn(
 									"h-5 w-5 transition-all duration-300",
-									isActive ? "text-destructive scale-110" : "text-muted-foreground group-active:scale-95"
+									isLaunch ? "text-yellow-500/60" :
+									isActive ? "text-destructive scale-110" : 
+									"text-muted-foreground group-active:scale-95"
 								)}
 							/>
 							<span
 								className={cn(
 									"text-[10px] font-mono uppercase tracking-wider transition-colors duration-300",
-									isActive ? "text-destructive font-semibold" : "text-muted-foreground"
+									isLaunch ? "text-yellow-500/60" :
+									isActive ? "text-destructive font-semibold" : 
+									"text-muted-foreground"
 								)}
 							>
 								{item.label}
 							</span>
+							{isLaunch && (
+								<span className="absolute -top-1 -right-1 text-[7px] bg-yellow-500/20 px-1 py-0.5 rounded text-yellow-500">
+									SOON
+								</span>
+							)}
 						</Link>
 					)
 				})}
