@@ -14,6 +14,12 @@ interface UseTokensOptions {
 	enabled?: boolean
 }
 
+// @dev: i love hard code shit!! lets gooooo!!!!!
+const HIDDEN_POOL_IDS = [
+	"0x35d9c8fdb1c90fb16d8b7f2f1ca129db36b6ad519f78a1a5bd52880e3ba841ea",
+	"0xf973a5e4df120288e617f6607bee130732d7690677184413a44f91f560578a25"
+]
+
 export function useTokens({
 	sortBy = "createdAt",
 	page = 1,
@@ -27,8 +33,11 @@ export function useTokens({
 	const fetchTokensWithMarketData = async (): Promise<PoolWithMetadata[]> => {
 		const pools = await fetchTokens(page, pageSize)
 
+		// @dev filter out hidden pools! remove this shit later
+		const filteredPools = pools.filter(pool => !HIDDEN_POOL_IDS.includes(pool.poolId))
+
 		const enrichedPools = await Promise.all(
-			pools.map(async (pool) => {
+			filteredPools.map(async (pool) => {
 				const enhancedPool: PoolWithMetadata = {
 					...pool,
 					isProtected: !!pool.publicKey
