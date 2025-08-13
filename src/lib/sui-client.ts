@@ -1,6 +1,5 @@
-import { getFullnodeUrl, SuiClient } from "@mysten/sui/client"
-import { env } from "@/env"
+import { SuiClient } from "@mysten/sui/client"
 
 export const suiClient = new SuiClient({
-	url: getFullnodeUrl(env.NEXT_PUBLIC_DEFAULT_NETWORK),
+	url: "https://sui-mainnet.blockvision.org/v1/31F8x48Z8623IazBun5U5Rg3vOo",
 })
