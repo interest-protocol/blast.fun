@@ -11,7 +11,7 @@ import { TwitterUserAvatar } from "./user-avatar"
 import { UserDetails } from "./user-details"
 import { BsTwitterX } from 'react-icons/bs'
 import { WalletList } from "../shared/wallet-list"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog"
 
 export function UserDropdown() {
 	const [open, setOpen] = useState(false)

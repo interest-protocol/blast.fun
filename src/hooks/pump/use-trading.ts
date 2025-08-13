@@ -256,10 +256,13 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 				if (actualBalance) {
 					const actualBalanceBigInt = BigInt(actualBalance)
 
-					// If 99% or more of balance, use full balance to avoid dust
-					const threshold = (actualBalanceBigInt * 99n) / 100n
+					// @dev: if trying to sell 95% or more of balance, leave a tiny amount of dust
+					// to avoid precision issues with 100% sells
+					const threshold = (actualBalanceBigInt * 95n) / 100n
 					if (amountInSmallestUnit >= threshold) {
-						balanceToUse = actualBalanceBigInt
+						// leave 0.1% as dust to ensure dryrun succeeds
+						const dustAmount = actualBalanceBigInt / 1000n
+						balanceToUse = actualBalanceBigInt - dustAmount
 					} else {
 						balanceToUse = amountInSmallestUnit
 					}
