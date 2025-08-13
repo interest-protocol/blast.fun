@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react"
 import { useQuery } from "@tanstack/react-query"
 import type { PoolWithMetadata } from "@/types/pool"
 import { fetchTokens } from "@/lib/pump/fetch-tokens"
-import { pumpSdk } from "@/lib/pump"
 
 interface UseTokensOptions {
 	sortBy?: "createdAt" | "bondingProgress"
@@ -36,25 +35,10 @@ export function useTokens({
 		// @dev filter out hidden pools! remove this shit later
 		const filteredPools = pools.filter(pool => !HIDDEN_POOL_IDS.includes(pool.poolId))
 
-		const enrichedPools = await Promise.all(
-			filteredPools.map(async (pool) => {
-				const enhancedPool: PoolWithMetadata = {
-					...pool,
-					isProtected: !!pool.publicKey
-				}
-
-				try {
-					const pumpPoolData = await pumpSdk.getPumpPool(pool.poolId)
-					if (pumpPoolData) {
-						enhancedPool.pumpPoolData = pumpPoolData
-					}
-				} catch (error) {
-					console.warn(`Failed to fetch market data for pool ${pool.poolId}:`, error)
-				}
-
-				return enhancedPool
-			})
-		)
+		const enrichedPools = filteredPools.map((pool) => ({
+			...pool,
+			isProtected: !!pool.publicKey
+		}))
 
 		const sortedPools = [...enrichedPools].sort((a, b) => {
 			if (sortBy === "createdAt") {

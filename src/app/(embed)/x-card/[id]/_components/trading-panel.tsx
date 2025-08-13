@@ -21,7 +21,6 @@ import { useTrading } from "@/hooks/pump/use-trading"
 import { useTokenBalance } from "@/hooks/sui/use-token-balance"
 import { usePortfolio } from "@/hooks/nexa/use-portfolio"
 import { useMarketData } from "@/hooks/use-market-data"
-import useBalance from "@/hooks/sui/use-balance"
 import type { PoolWithMetadata } from "@/types/pool"
 import { cn } from "@/utils"
 
@@ -39,7 +38,6 @@ export function TradingPanel({ pool, referrerWallet, refCode }: TradingPanelProp
 	const { data: marketData } = useMarketData(pool.coinType)
 	const { balance: tokenBalance } = useTokenBalance(pool.coinType)
 	const { balance: actualBalance, refetch: refetchPortfolio } = usePortfolio(pool.coinType)
-	const { balance: suiBalance } = useBalance()
 	const metadata = marketData?.coinMetadata || pool.coinMetadata
 	const decimals = metadata?.decimals || 9
 
@@ -47,7 +45,6 @@ export function TradingPanel({ pool, referrerWallet, refCode }: TradingPanelProp
 	const effectiveBalance = actualBalance !== "0" ? actualBalance : tokenBalance
 	const balanceInDisplayUnit = effectiveBalance ? Number(effectiveBalance) / Math.pow(10, decimals) : 0
 	const hasBalance = balanceInDisplayUnit > 0
-	const suiBalanceNum = parseFloat(suiBalance || "0")
 
 	const { isProcessing, error, buy, sell } = useTrading({
 		pool,
@@ -212,12 +209,10 @@ export function TradingPanel({ pool, referrerWallet, refCode }: TradingPanelProp
 								size="sm"
 								className={cn(
 									"font-mono text-[10px] h-6 p-0.5",
-									suiAmount > suiBalanceNum
-										? "!border-muted !bg-muted/50 text-muted-foreground cursor-not-allowed opacity-50"
-										: "!border-blue-400/50 !bg-blue-400/10 text-blue-400 hover:text-blue-400/80"
+									"!border-blue-400/50 !bg-blue-400/10 text-blue-400 hover:text-blue-400/80"
 								)}
 								onClick={() => handleQuickAmount(suiAmount)}
-								disabled={isProcessing || suiAmount > suiBalanceNum}
+								disabled={isProcessing}
 							>
 								<Image
 									src="/logo/sui-logo.svg"

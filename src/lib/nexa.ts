@@ -1,7 +1,7 @@
 import { MarketData } from "@/types/market"
 import { CoinMetadata } from "@/types/pool"
 
-const NEXA_API_BASE = "https://api.nexa.xyz"
+const NEXA_API_BASE = "https://api-v2.nexa.xyz"
 
 interface NexaRequestOptions extends RequestInit {
 	cache?: RequestCache
@@ -55,8 +55,8 @@ class NexaClient {
 	}
 
 	async getMarketData(coinType: string) {
-		const response = await this.fetch(`/coins/${coinType}/market-data`, {
-			revalidate: 5,
+		const response = await this.fetch(`/coins/${coinType}/minified-market-data`, {
+			revalidate: 10,
 		})
 
 		return await response.json() as MarketData

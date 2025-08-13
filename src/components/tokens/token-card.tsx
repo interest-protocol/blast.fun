@@ -25,7 +25,7 @@ export const TokenCard = memo(function TokenCard({ pool }: TokenCardProps) {
 
 	// use 0 as default while loading
 	const marketCap = marketData?.marketCap || 0
-	const totalLiquidityUsd = marketData?.totalCoinLiquidityUsd || 0
+	const totalLiquidityUsd = marketData?.liqUsd || 0
 	const holdersCount = marketData?.holdersCount || 0
 	const bondingProgress = parseFloat(pool.bondingCurve)
 

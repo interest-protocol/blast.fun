@@ -14,6 +14,8 @@ import nexaSocket from "@/lib/websocket/nexa-socket"
 import { RollingNumber } from "@/components/ui/rolling-number"
 import { RelativeAge } from "@/components/shared/relative-age"
 import { BsTwitterX } from "react-icons/bs"
+import { getMultipleStateIds } from "@interest-protocol/memez-fun-sdk"
+import { suiClient } from "@/lib/sui-client"
 
 interface TokenHeaderProps {
 	pool: PoolWithMetadata
@@ -24,9 +26,10 @@ export function TokenHeader({ pool }: TokenHeaderProps) {
 	const metadata = marketData?.coinMetadata || pool.coinMetadata
 	const [realtimePrice, setRealtimePrice] = useState<number | null>(null)
 	const [priceFlash, setPriceFlash] = useState<'up' | 'down' | null>(null)
+	const [dynamicFieldId, setDynamicFieldId] = useState<string | null>(null)
 
 	const { priceChange24h, volume24h, marketCap, totalLiquidityUsd, basePrice } = useMemo(() => {
-		const price24hAgo = marketData?.price1DayAgo
+		const price24hAgo = marketData?.price1DayAgo || 0
 		const currentMarketPrice = marketData?.coinPrice || 0
 
 		return {
@@ -36,7 +39,7 @@ export function TokenHeader({ pool }: TokenHeaderProps) {
 			volume24h: marketData?.coin24hTradeVolumeUsd || 0,
 			basePrice: marketData?.coinPrice || 0,
 			marketCap: marketData?.marketCap || 0,
-			totalLiquidityUsd: marketData?.totalCoinLiquidityUsd || 0
+			totalLiquidityUsd: marketData?.liqUsd || 0
 		}
 	}, [marketData])
 
@@ -50,11 +53,27 @@ export function TokenHeader({ pool }: TokenHeaderProps) {
 	})
 
 	useEffect(() => {
-		if (!pool.pumpPoolData) return
+		if (pool.poolId) {
 
-		const poolId = pool.pumpPoolData.dynamicFieldDataId
+			getMultipleStateIds([pool.poolId], suiClient)
+				.then(stateIds => {
+					console.log(stateIds)
+					if (stateIds && stateIds[0]) {
+						setDynamicFieldId(stateIds[0])
+					}
+				})
+				.catch(error => {
+					console.error('Failed to get dynamic field ID:', error)
+				})
+		}
+	}, [pool.poolId])
+
+	// subscribe to price updates
+	useEffect(() => {
+		if (!dynamicFieldId) return
+
 		const unsubscribe = nexaSocket.subscribeToTokenPrice(
-			poolId,
+			dynamicFieldId,
 			'direct',
 			(price) => {
 				setRealtimePrice(prevPrice => {
@@ -70,7 +89,7 @@ export function TokenHeader({ pool }: TokenHeaderProps) {
 		return () => {
 			unsubscribe()
 		}
-	}, [pool.pumpPoolData])
+	}, [dynamicFieldId])
 
 	return (
 		<div className="w-full border-b border-border select-none">

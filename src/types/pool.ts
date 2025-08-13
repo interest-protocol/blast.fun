@@ -1,5 +1,3 @@
-import type { PumpPool } from "@interest-protocol/memez-fun-sdk"
-
 export type Pool = {
 	poolId: string
 	bondingCurve: string
@@ -50,5 +48,4 @@ export type CoinMetadata = {
 
 export type PoolWithMetadata = Pool & {
 	coinMetadata?: CoinMetadata
-	pumpPoolData?: PumpPool
 }
