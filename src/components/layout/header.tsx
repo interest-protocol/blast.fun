@@ -29,19 +29,11 @@ export default function Header() {
 				</div>
 
 				{/* Actions */}
-				<div className="flex items-center gap-3">
+				<div className="flex items-center gap-2">
 					{/* <SearchToken /> */}
-
-					{isConnected && (
-						<Balance className="hidden lg:block" />
-					)}
-
 					<UserDropdown />
-
-					<div className="flex items-center gap-2 pl-3 border-l border-border/50">
-						<AudioToggle />
-						<ThemeSwitcher />
-					</div>
+					<AudioToggle />
+					<ThemeSwitcher />
 				</div>
 			</div>
 		</header>
