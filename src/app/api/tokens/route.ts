@@ -38,10 +38,10 @@ export async function GET(request: NextRequest) {
 		if (category) {
 			switch (category) {
 				case "new":
-					pools = pools.filter(p => !p.migrated && parseFloat(p.bondingCurve) < 75)
+					pools = pools.filter(p => !p.migrated && parseFloat(p.bondingCurve) < 50)
 					break
 				case "graduating":
-					pools = pools.filter(p => !p.migrated && parseFloat(p.bondingCurve) >= 75)
+					pools = pools.filter(p => !p.migrated && parseFloat(p.bondingCurve) >= 50)
 					break
 				case "graduated":
 					pools = pools.filter(p => p.migrated === true)
