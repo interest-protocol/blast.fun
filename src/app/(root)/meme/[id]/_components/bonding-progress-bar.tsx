@@ -4,7 +4,7 @@ import { Rocket } from "lucide-react"
 import type { PoolWithMetadata } from "@/types/pool"
 import { cn } from "@/utils"
 import { useQuery } from "@tanstack/react-query"
-import { fetchTokenWithMetadata } from "@/lib/pump/fetch-tokens"
+import { fetchTokenWithMetadata } from "@/lib/pump/fetch-token"
 
 interface BondingProgressBarProps {
     pool: PoolWithMetadata

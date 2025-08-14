@@ -3,8 +3,6 @@
 import Header from "@/components/layout/header"
 import { MobileNavigation } from "@/components/layout/mobile-nav"
 import { TokenTabsHeader } from "@/components/layout/token-tabs-header"
-import { PreLaunchBanner } from "@/components/layout/pre-launch-banner"
-import { Ticker } from "@/components/shared/ticker"
 import { usePathname } from "next/navigation"
 import { useBreakpoint } from "@/hooks/use-breakpoint"
 import { cn } from "@/utils"
@@ -15,25 +13,24 @@ export default function Layout({
 	children: React.ReactNode
 }>) {
 	const pathname = usePathname()
-	const { isMobile } = useBreakpoint()
+	const { isMobile, width } = useBreakpoint()
 
 	const isTokenPage = pathname.startsWith("/meme/")
 	const isHomePage = pathname === "/"
 
-	const shouldHavePadding = !isTokenPage && !(isMobile && isHomePage)
+	// during initial load (width === 0), default to desktop behavior for padding
+	const shouldHavePadding = !isTokenPage && !(width > 0 && isMobile && isHomePage)
 
 	return (
 		<div className="flex flex-col h-screen overflow-hidden">
-			<PreLaunchBanner />
-			<Ticker />
+			{/* <Ticker /> */}
 			<Header />
-			<TokenTabsHeader />
+			{/* <TokenTabsHeader /> */}
 
 			<main className="flex-1 overflow-hidden pb-16 lg:pb-0">
 				{shouldHavePadding ? (
 					<div className={cn(
-						"h-full overflow-auto",
-						isMobile ? "p-3" : "p-3 sm:p-4 md:p-6"
+						"h-full overflow-auto p-2"
 					)}>
 						{children}
 					</div>
