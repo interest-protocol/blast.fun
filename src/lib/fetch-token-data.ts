@@ -4,10 +4,15 @@ import { CONFIG_KEYS } from "@interest-protocol/memez-fun-sdk"
 import { redisGet, redisSetEx, CACHE_PREFIX, CACHE_TTL } from "@/lib/redis/client"
 import { nexaServerClient } from "@/lib/nexa-server"
 import { fetchCreatorData } from "@/lib/fetch-creator-data"
+import { isValidSuiObjectId } from "@mysten/sui/utils"
 import type { PoolWithMetadata } from "@/types/pool"
 
 export async function fetchTokenDataServer(poolId: string): Promise<PoolWithMetadata | null> {
 	try {
+		if (!isValidSuiObjectId(poolId)) {
+			return null
+		}
+
 		const { data } = await apolloClient.query({
 			query: GET_POOL,
 			variables: { poolId },
