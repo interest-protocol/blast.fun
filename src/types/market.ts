@@ -2,12 +2,16 @@ export type MarketData = {
 	coinMetadata?: any
 
 	coinPrice: number
-	coinSupply: number
+	isCoinHoneyPot: boolean
+	totalLiquidityUsd: number
 	marketCap: number
-	suiPrice: number
-	liqUsd: number
+	coin24hTradeCount: number
 	coin24hTradeVolumeUsd: number
+	price1DayAgo: number
 	holdersCount: number
 
-	price1DayAgo: number
+	// backwards compat fields
+	liqUsd?: number
+	coinSupply?: number
+	suiPrice?: number
 }

@@ -46,6 +46,9 @@ export type CoinMetadata = {
 	_id?: string
 }
 
+import type { MarketData } from "./market"
+
 export type PoolWithMetadata = Pool & {
 	coinMetadata?: CoinMetadata
+	marketData?: MarketData
 }
