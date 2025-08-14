@@ -1,3 +1,5 @@
+"use server"
+
 import { apolloClient } from "@/lib/apollo-client"
 import { GET_POOL } from "@/graphql/pools"
 import { CONFIG_KEYS } from "@interest-protocol/memez-fun-sdk"
@@ -7,7 +9,7 @@ import { fetchCreatorData } from "@/lib/fetch-creator-data"
 import { isValidSuiObjectId } from "@mysten/sui/utils"
 import type { PoolWithMetadata } from "@/types/pool"
 
-export async function fetchTokenDataServer(poolId: string): Promise<PoolWithMetadata | null> {
+export async function fetchTokenData(poolId: string): Promise<PoolWithMetadata | null> {
 	try {
 		if (!isValidSuiObjectId(poolId)) {
 			return null

@@ -1,7 +1,7 @@
 import { Metadata } from "next"
 import { constructMetadata } from "@/lib/metadata"
 import { TokenModule } from "./_components/token-module"
-import { fetchTokenDataServer } from "@/lib/fetch-token-data"
+import { fetchTokenData } from "@/lib/fetch-token-data"
 import { formatNumberWithSuffix } from "@/utils/format"
 
 export async function generateMetadata({
@@ -11,7 +11,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
 	const { poolId } = await params
 
-	const tokenData = await fetchTokenDataServer(poolId)
+	const tokenData = await fetchTokenData(poolId)
 	if (!tokenData) {
 		return constructMetadata({ title: "Unknown Token | BLAST.FUN" })
 	}
@@ -34,7 +34,7 @@ export default async function TokenPage({
 	const search = await searchParams
 	const referral = search?.ref as string | undefined
 
-	const tokenData = await fetchTokenDataServer(poolId)
+	const tokenData = await fetchTokenData(poolId)
 	if (!tokenData) {
 		return (
 			<div className="container mx-auto px-4 py-8">
