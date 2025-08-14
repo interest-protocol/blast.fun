@@ -1,40 +1,125 @@
-import { Redis } from "@upstash/redis"
+import { createClient, RedisClientType } from "redis"
 import { env } from "@/env"
 
-let redisClient: Redis | null = null
+let redisClient: RedisClientType | null = null
+let isConnecting = false
 
-export function getRedisClient(): Redis | null {
-	if (redisClient !== null) {
+export async function getRedisClient(): Promise<RedisClientType | null> {
+	if (redisClient?.isReady) {
 		return redisClient
 	}
 
-	if (!env.UPSTASH_REDIS_REST_URL || !env.UPSTASH_REDIS_REST_TOKEN) {
-		console.warn("Redis credentials not configured, caching disabled")
+	if (!env.REDIS_URL) {
+		console.warn("Redis URL not configured, caching disabled")
 		return null
 	}
 
+	if (isConnecting) {
+		while (isConnecting) {
+			await new Promise(resolve => setTimeout(resolve, 10))
+		}
+		return redisClient
+	}
+
 	try {
-		redisClient = new Redis({
-			url: env.UPSTASH_REDIS_REST_URL,
-			token: env.UPSTASH_REDIS_REST_TOKEN,
+		isConnecting = true
+		
+		redisClient = createClient({
+			url: env.REDIS_URL,
+			socket: {
+				connectTimeout: 5000,
+				reconnectStrategy: (retries) => {
+					if (retries > 3) {
+						console.error("Redis reconnection failed after 3 attempts")
+						return false
+					}
+					return Math.min(retries * 100, 3000)
+				}
+			}
 		})
+
+		redisClient.on("error", (error) => {
+			console.error("Redis client error:", error)
+		})
+
+		await redisClient.connect()
+		console.log("Redis client connected successfully")
 
 		return redisClient
 	} catch (error) {
 		console.error("Failed to initialize Redis client:", error)
+		redisClient = null
+		return null
+	} finally {
+		isConnecting = false
+	}
+}
+
+export async function withRedis<T>(
+	operation: (client: RedisClientType) => Promise<T>
+): Promise<T | null> {
+	const client = await getRedisClient()
+	if (!client) {
+		return null
+	}
+
+	try {
+		return await operation(client)
+	} catch (error) {
+		console.error("Redis operation failed:", error)
 		return null
 	}
 }
 
+export async function redisGet(key: string): Promise<string | null> {
+	return withRedis(async (client) => {
+		return await client.get(key)
+	})
+}
+
+export async function redisSet(
+	key: string,
+	value: string,
+	ttl?: number
+): Promise<boolean> {
+	const result = await withRedis(async (client) => {
+		if (ttl) {
+			return await client.setEx(key, ttl, value)
+		}
+		return await client.set(key, value)
+	})
+	return result === "OK"
+}
+
+export async function redisSetEx(
+	key: string,
+	ttl: number,
+	value: string
+): Promise<boolean> {
+	const result = await withRedis(async (client) => {
+		return await client.setEx(key, ttl, value)
+	})
+	return result === "OK"
+}
+
+export async function redisDel(key: string): Promise<boolean> {
+	const result = await withRedis(async (client) => {
+		return await client.del(key)
+	})
+	return result === 1
+}
+
 export const CACHE_TTL = {
-	TOKEN_METADATA: 86400 * 30, // 30 days for metadata (it never changes)
+	COIN_METADATA: 43200, // 12 hours
+	MARKET_DATA: 300, // 5 minutes
 	NSFW_CHECK: 86400 * 30, // 30 days
-	POOL_DATA: 300, // 5 minutes for market data
-	TWITTER_FOLLOWERS: 28800, // 8 hours for twitter follower data
+	POOL_DATA: 300, // 5 minutes
+	TWITTER_FOLLOWERS: 28800, // 8 hours
 } as const
 
 export const CACHE_PREFIX = {
-	TOKEN_METADATA: "token_meta:",
+	COIN_METADATA: "coin_meta:",
+	MARKET_DATA: "market_data:",
 	NSFW_CHECK: "nsfw:",
 	POOL_DATA: "pool_data:",
 	TWITTER_FOLLOWERS: "twitter_followers:",
