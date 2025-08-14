@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getRedisClient, CACHE_PREFIX, CACHE_TTL } from "@/lib/redis/client"
+import { redisGet, redisSetEx, CACHE_PREFIX, CACHE_TTL } from "@/lib/redis/client"
 
 interface NSFWPrediction {
 	isSafe: boolean
@@ -35,15 +35,14 @@ export async function POST(request: NextRequest) {
 			return NextResponse.json({ isSafe: true })
 		}
 
-		const redis = getRedisClient()
-		if (redis) {
+		const cacheKey = getCacheKey(imageUrl)
+		const cached = await redisGet(cacheKey)
+		if (cached) {
 			try {
-				const cached = await redis.get<{ isSafe: boolean }>(getCacheKey(imageUrl))
-				if (cached) {
-					return NextResponse.json({ isSafe: cached.isSafe })
-				}
+				const data = JSON.parse(cached)
+				return NextResponse.json({ isSafe: data.isSafe })
 			} catch (error) {
-				console.error("Redis get error:", error)
+				console.error("Failed to parse cached data:", error)
 			}
 		}
 
@@ -74,13 +73,12 @@ export async function POST(request: NextRequest) {
 		}
 
 		const isSafe = data.predictions?.isSafe ?? true
-		if (redis) {
-			try {
-				await redis.setex(getCacheKey(imageUrl), CACHE_TTL.NSFW_CHECK, { isSafe })
-			} catch (error) {
-				console.error("Redis set error:", error)
-			}
-		}
+		
+		await redisSetEx(
+			getCacheKey(imageUrl),
+			CACHE_TTL.NSFW_CHECK,
+			JSON.stringify({ isSafe })
+		)
 
 		return NextResponse.json({ isSafe })
 	} catch (error) {

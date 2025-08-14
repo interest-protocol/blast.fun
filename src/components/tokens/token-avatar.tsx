@@ -22,7 +22,7 @@ export function TokenAvatar({
 	enableNSFWCheck = true,
 }: TokenAvatarProps) {
 	const [imageError, setImageError] = useState(false)
-	
+
 	const { shouldBlur } = useNSFWCheck(iconUrl, {
 		enabled: enableNSFWCheck,
 		fallbackBehavior: "blur",

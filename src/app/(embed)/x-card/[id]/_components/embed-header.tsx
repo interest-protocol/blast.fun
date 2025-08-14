@@ -19,9 +19,6 @@ export function EmbedHeader() {
 				</div>
 
 				<div className="flex items-center gap-2">
-					{isConnected && (
-						<Balance />
-					)}
 					<UserDropdown />
 				</div>
 			</div>

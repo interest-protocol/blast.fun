@@ -1,7 +1,7 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { fetchTokenWithMetadata } from "@/lib/pump/fetch-tokens"
+import { fetchTokenWithMetadata } from "@/lib/pump/fetch-token"
 
 export function useTokenWithMetadata(poolId: string) {
 	return useQuery({
