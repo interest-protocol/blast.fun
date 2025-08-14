@@ -50,8 +50,8 @@ import type { MarketData } from "./market"
 
 export type CreatorData = {
 	launchCount: number
-	trustedFollowers: string | number
-	followers: string | number
+	trustedFollowers: string
+	followers: string
 	twitterHandle?: string | null
 }
 

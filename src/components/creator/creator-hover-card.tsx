@@ -16,20 +16,25 @@ import {
 } from "@/components/ui/hover-card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
+import type { CreatorData } from "@/types/pool";
+
 interface CreatorHoverCardProps {
 	twitterHandle?: string;
 	walletAddress?: string;
 	children: React.ReactNode;
 	className?: string;
+	creatorData?: CreatorData;
 }
 
 export function CreatorHoverCard({
 	twitterHandle,
 	walletAddress,
-	children
+	children,
+	creatorData: prefetchedData
 }: CreatorHoverCardProps) {
 	const identifier = twitterHandle || walletAddress;
-	const { data, isLoading } = useCreatorData(identifier);
+	const { data: fetchedData, isLoading } = useCreatorData(prefetchedData ? undefined : identifier);
+	const data = prefetchedData || fetchedData;
 
 	const { data: resolvedDomain } = useResolveSuiNSName(!twitterHandle && walletAddress ? walletAddress : null);
 
@@ -56,7 +61,7 @@ export function CreatorHoverCard({
 								{displayName}
 							</p>
 						</div>
-						{isLoading && (
+						{isLoading && !prefetchedData && (
 							<Loader2 className="h-4 w-4 animate-spin text-muted-foreground/60" />
 						)}
 					</div>

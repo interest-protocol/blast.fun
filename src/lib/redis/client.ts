@@ -114,7 +114,7 @@ export const CACHE_TTL = {
 	MARKET_DATA: 300, // 5 minutes
 	NSFW_CHECK: 86400 * 30, // 30 days
 	POOL_DATA: 300, // 5 minutes
-	TWITTER_FOLLOWERS: 28800, // 8 hours
+	CREATOR_DATA: 14400, // 4 hours
 } as const
 
 export const CACHE_PREFIX = {
@@ -122,5 +122,5 @@ export const CACHE_PREFIX = {
 	MARKET_DATA: "market_data:",
 	NSFW_CHECK: "nsfw:",
 	POOL_DATA: "pool_data:",
-	TWITTER_FOLLOWERS: "twitter_followers:",
+	CREATOR_DATA: "creator_data:",
 } as const

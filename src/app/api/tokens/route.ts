@@ -4,6 +4,7 @@ import { GET_POOLS } from "@/graphql/pools"
 import { CONFIG_KEYS } from "@interest-protocol/memez-fun-sdk"
 import { redisGet, redisSetEx, CACHE_PREFIX, CACHE_TTL } from "@/lib/redis/client"
 import { nexaServerClient } from "@/lib/nexa-server"
+import { fetchCreatorData } from "@/lib/fetch-creator-data"
 
 export async function GET(request: NextRequest) {
 	try {
@@ -87,13 +88,15 @@ export async function GET(request: NextRequest) {
 					isProtected: !!pool.publicKey,
 				}
 
-				// rry to get cached market data and metadata separately
+				// Try to get cached market data, metadata, and creator data
 				const marketCacheKey = `${CACHE_PREFIX.MARKET_DATA}${pool.coinType}`
 				const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.coinType}`
+				const creatorCacheKey = `${CACHE_PREFIX.CREATOR_DATA}${pool.creatorAddress}`
 
-				const [cachedMarketData, cachedMetadata] = await Promise.all([
+				const [cachedMarketData, cachedMetadata, cachedCreatorData] = await Promise.all([
 					redisGet(marketCacheKey),
-					redisGet(metadataCacheKey)
+					redisGet(metadataCacheKey),
+					redisGet(creatorCacheKey)
 				])
 
 				if (cachedMarketData) {
@@ -112,6 +115,14 @@ export async function GET(request: NextRequest) {
 					}
 				}
 
+				if (cachedCreatorData) {
+					try {
+						processedPool.creatorData = JSON.parse(cachedCreatorData)
+					} catch (error) {
+						console.error(`Failed to parse cached creator data for ${pool.creatorAddress}:`, error)
+					}
+				}
+
 				// if no cached data, fetch from nexa
 				if (!processedPool.marketData) {
 					try {
@@ -125,7 +136,7 @@ export async function GET(request: NextRequest) {
 							coinPrice: restMarketData.coinPrice,
 							isCoinHoneyPot: restMarketData.isCoinHoneyPot,
 							totalLiquidityUsd: restMarketData.totalLiquidityUsd,
-							liqUsd: restMarketData.totalLiquidityUsd, // Map for backward compatibility
+							liqUsd: restMarketData.totalLiquidityUsd,
 							marketCap: restMarketData.marketCap,
 							coin24hTradeCount: restMarketData.coin24hTradeCount,
 							coin24hTradeVolumeUsd: restMarketData.coin24hTradeVolumeUsd,
@@ -165,6 +176,24 @@ export async function GET(request: NextRequest) {
 								console.error(`Failed to parse cached metadata for ${pool.coinType}:`, e)
 							}
 						}
+					}
+				}
+
+				// fetch creator data if not cached
+				if (!processedPool.creatorData) {
+					try {
+						const hideIdentity = pool.metadata?.hideIdentity || false
+						const twitterHandle = pool.metadata?.CreatorTwitterName ||
+							pool.metadata?.creatorTwitter ||
+							null
+
+						processedPool.creatorData = await fetchCreatorData(
+							pool.creatorAddress,
+							twitterHandle,
+							hideIdentity
+						)
+					} catch (error) {
+						console.error(`Failed to fetch creator data for ${pool.creatorAddress}:`, error)
 					}
 				}
 
