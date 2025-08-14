@@ -6,16 +6,16 @@ export const env = createEnv({
 		VERCEL_URL: z.string().optional(),
 
 		NEXTAUTH_URL: z.url().optional(),
-		AUTH_SECRET: z.string().min(1),
+		REDIS_URL: z.string().optional(),
 		DATABASE_URL: z.string().min(1),
+		AUTH_SECRET: z.string().min(1),
+
 		SUI_PRIVATE_KEY: z.string().min(1),
+		NEXA_API_KEY: z.string().min(1),
 
 		TWITTER_API_IO_KEY: z.string().min(1),
 		TWITTER_CLIENT_SECRET: z.string().min(1),
 		TWITTER_CLIENT_ID: z.string().min(1),
-
-		UPSTASH_REDIS_REST_URL: z.url().optional(),
-		UPSTASH_REDIS_REST_TOKEN: z.string().min(1).optional(),
 	},
 	client: {
 		NEXT_PUBLIC_DEFAULT_NETWORK: z.union([z.literal("mainnet"), z.literal("testnet")]),
@@ -30,15 +30,15 @@ export const env = createEnv({
 		VERCEL_URL: process.env.VERCEL_URL,
 
 		NEXTAUTH_URL: process.env.NEXTAUTH_URL,
-		AUTH_SECRET: process.env.AUTH_SECRET,
+		REDIS_URL: process.env.REDIS_URL,
 		DATABASE_URL: process.env.DATABASE_URL,
+		AUTH_SECRET: process.env.AUTH_SECRET,
+
 		SUI_PRIVATE_KEY: process.env.SUI_PRIVATE_KEY,
+		NEXA_API_KEY: process.env.NEXA_API_KEY,
 
 		TWITTER_API_IO_KEY: process.env.TWITTER_API_IO_KEY,
 		TWITTER_CLIENT_SECRET: process.env.TWITTER_CLIENT_SECRET,
 		TWITTER_CLIENT_ID: process.env.TWITTER_CLIENT_ID,
-
-		UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
-		UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
 	},
 })
