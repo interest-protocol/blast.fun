@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
 					isProtected: !!pool.publicKey,
 				}
 
-				// Try to get cached market data, metadata, and creator data
+				// try to get cached market data, metadata, and creator data
 				const marketCacheKey = `${CACHE_PREFIX.MARKET_DATA}${pool.coinType}`
 				const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.coinType}`
 				const creatorCacheKey = `${CACHE_PREFIX.CREATOR_DATA}${pool.creatorAddress}`

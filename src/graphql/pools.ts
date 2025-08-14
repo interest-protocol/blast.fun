@@ -17,6 +17,7 @@ export const GET_POOLS = gql`
 				nsfw
 				lastTradeAt
 				publicKey
+				innerState
       		}
 			total
     	}
@@ -47,6 +48,7 @@ export const GET_POOL = gql`
 			config
 			updatedAt
 			publicKey
+			innerState
 		}
 	}
 `

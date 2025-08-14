@@ -21,6 +21,7 @@ export type Pool = {
 	updatedAt: string
 	isProtected?: boolean
 	publicKey?: string
+	innerState?: string
 }
 
 export type CoinMetadata = {
