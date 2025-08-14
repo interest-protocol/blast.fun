@@ -1,6 +1,6 @@
 # Terms of Use
 
-**Last Updated: 2025-08-15
+**Last Updated: 2025-08-15**
 
 These Terms of Use constitute a legally binding agreement between you ("**you**" or "**your**") and **GiveRep Labs** ("**Blast**", "**Entities or affiliates**", "**we**", "**our**" or "**us**"). The Terms govern your use of all **Blast** services made available to you on or through the **Blast** Platform or otherwise. **Blast** services may be developed, maintained, and/or provided by **GiveRep Labs** or its affiliates.
 
