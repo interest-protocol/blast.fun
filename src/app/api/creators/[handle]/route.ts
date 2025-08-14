@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { isValidSuiAddress } from "@mysten/sui/utils";
 import { formatAmountWithSuffix } from "@/utils/format";
 import { env } from "@/env";
-import { getRedisClient, CACHE_TTL, CACHE_PREFIX } from "@/lib/redis/client";
+import { redisGet, redisSetEx, CACHE_TTL, CACHE_PREFIX } from "@/lib/redis/client";
 
 export async function GET(
 	request: NextRequest,
@@ -24,7 +24,6 @@ export async function GET(
 			},
 		});
 
-		// derive unique launch count
 		const launchCount = tokenLaunches.length;
 
 		let trustedFollowerCount = 0;
@@ -39,23 +38,18 @@ export async function GET(
 		}
 
 		if (twitterHandle) {
-			const redis = getRedisClient();
 			const cacheKey = `${CACHE_PREFIX.TWITTER_FOLLOWERS}${twitterHandle.toLowerCase()}`;
 			const cacheTTL = CACHE_TTL.TWITTER_FOLLOWERS;
 
-			let cachedData = null;
-			if (redis) {
-				try {
-					cachedData = await redis.get(cacheKey);
-				} catch (error) {
-					console.error("Redis get error:", error);
-				}
-			}
-
+			const cachedData = await redisGet(cacheKey);
 			if (cachedData) {
-				const cached = cachedData as { trustedFollowerCount: number; followerCount: number };
-				trustedFollowerCount = cached.trustedFollowerCount;
-				followerCount = cached.followerCount;
+				try {
+					const cached = JSON.parse(cachedData);
+					trustedFollowerCount = cached.trustedFollowerCount;
+					followerCount = cached.followerCount;
+				} catch (error) {
+					console.error("Failed to parse cached data:", error);
+				}
 			} else {
 				try {
 					const res = await fetch(
@@ -72,7 +66,6 @@ export async function GET(
 					console.error("Error fetching GiveRep data:", error);
 				}
 
-				// get follower data
 				try {
 					const twitterResponse = await fetch(
 						`https://api.twitterapi.io/twitter/user/info?userName=${twitterHandle}`,
@@ -93,57 +86,44 @@ export async function GET(
 					console.error("Error fetching Twitter data:", error);
 				}
 
-				if (redis && (trustedFollowerCount > 0 || followerCount > 0)) {
-					try {
-						await redis.set(
-							cacheKey,
-							{ trustedFollowerCount, followerCount },
-							{ ex: cacheTTL }
-						);
-					} catch (error) {
-						console.error("Redis set error:", error);
-					}
+				if (trustedFollowerCount > 0 || followerCount > 0) {
+					await redisSetEx(
+						cacheKey,
+						cacheTTL,
+						JSON.stringify({ trustedFollowerCount, followerCount })
+					);
 				}
 			}
 		}
 
-		// helper to format numbers using formatAmountWithSuffix
-		// multiply by 10^9 since formatAmountWithSuffix shifts by -9
 		const formatFollowerCount = (num: number): string => {
 			return formatAmountWithSuffix(BigInt(num) * BigInt(10 ** 9));
 		};
 
-		// band the values with ranges
 		const bandValue = (count: number, thresholds: number[]): string => {
 			if (count === 0) return "0";
 
 			for (let i = 0; i < thresholds.length; i++) {
 				if (count < thresholds[i]) {
-					// for the first threshold, just show < threshold
 					if (i === 0) {
 						return `<${formatFollowerCount(thresholds[i])}`;
 					}
 
-					// else show range: previous threshold - current threshold
 					const prevThreshold = thresholds[i - 1];
 					return `${formatFollowerCount(prevThreshold)}-${formatFollowerCount(thresholds[i])}`;
 				}
 			}
 
-			// if count exceeds all thresholds, return > last threshold
 			const lastThreshold = thresholds[thresholds.length - 1];
 			return `>${formatFollowerCount(lastThreshold)}`;
 		};
 
-		// define thresholds for different metrics
 		const trustedFollowerThresholds = [10, 50, 100, 250, 500, 1000, 5000, 10000, 25000];
 		const followerThresholds = [100, 500, 1000, 5000, 10000, 25000, 50000, 100000, 500000, 1000000];
 
 		const bandTrustedFollowers = (count: number): string => bandValue(count, trustedFollowerThresholds);
 		const bandFollowerCount = (count: number): string => bandValue(count, followerThresholds);
 
-		// only band values for wallet addresses (hidden identities)
-		// show exact values for unhidden accounts (twitter handles)
 		return NextResponse.json({
 			launchCount: launchCount,
 			trustedFollowers: isWalletAddress
