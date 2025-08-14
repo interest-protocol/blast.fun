@@ -1,6 +1,6 @@
 # **Privacy Notice**
 
-**Last Updated: 22 October 2024**
+**Last Updated: 2025-08-15**
 
 This **Privacy Notice** describes the privacy practices of **GiveRep Labs** and its affiliates (collectively, “**GiveRep Labs**,” “**our**,” “**us**,” or “**we**”) in connection with the websites and the **Blast** platform (collectively, the “**Services**”). It also explains the rights and choices available to individuals regarding their information.
 
