@@ -22,6 +22,7 @@ export type Pool = {
 	isProtected?: boolean
 	publicKey?: string
 	innerState?: string
+	mostLiquidPoolId?: string
 }
 
 export type CoinMetadata = {
