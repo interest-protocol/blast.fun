@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getRedisClient, CACHE_PREFIX, CACHE_TTL } from "@/lib/redis/client"
+import { generateUrlHash } from "@/lib/crypto-utils"
 
 interface NSFWPrediction {
 	isSafe: boolean
@@ -23,7 +24,8 @@ const NSFW_CHECKER_API = "https://api.interestlabs.io/v1/nsfw"
 const REQUEST_TIMEOUT = 5000
 
 function getCacheKey(imageUrl: string): string {
-	return `${CACHE_PREFIX.NSFW_CHECK}${imageUrl}`
+	const hash = generateUrlHash(imageUrl)
+	return `${CACHE_PREFIX.NSFW_CHECK}${hash}`
 }
 
 export async function POST(request: NextRequest) {
@@ -89,6 +91,36 @@ export async function POST(request: NextRequest) {
 	}
 }
 
-export async function GET() {
-	return NextResponse.json({ error: "Method not allowed" }, { status: 405 })
+export async function GET(request: NextRequest) {
+	try {
+		const searchParams = request.nextUrl.searchParams
+		const hash = searchParams.get("hash")
+
+		if (!hash) {
+			return NextResponse.json({ error: "Hash parameter required" }, { status: 400 })
+		}
+
+		const redis = getRedisClient()
+		if (!redis) {
+			return NextResponse.json({ found: false }, { status: 404 })
+		}
+
+		try {
+			const cacheKey = `${CACHE_PREFIX.NSFW_CHECK}${hash}`
+			const cached = await redis.get<{ isSafe: boolean }>(cacheKey)
+			
+			if (cached) {
+				const response = NextResponse.json({ isSafe: cached.isSafe, found: true })
+				response.headers.set("Cache-Control", "public, max-age=345600") // 96 hours
+				return response
+			}
+		} catch (error) {
+			console.error("Redis get error:", error)
+		}
+
+		return NextResponse.json({ found: false }, { status: 404 })
+	} catch (error) {
+		console.error("Failed to check image hash:", error)
+		return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+	}
 }

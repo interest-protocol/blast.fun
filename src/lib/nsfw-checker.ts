@@ -1,3 +1,5 @@
+import { generateUrlHash } from "@/lib/crypto-utils"
+
 interface CacheEntry {
 	isSafe: boolean
 	timestamp: number
@@ -43,6 +45,22 @@ class NSFWCheckerClient {
 		}
 
 		try {
+			// First try GET with hash
+			const hash = generateUrlHash(imageUrl)
+			const getResponse = await fetch(`/api/nsfw-check?hash=${hash}`, {
+				method: "GET",
+			})
+
+			if (getResponse.ok) {
+				const getData = await getResponse.json()
+				if (getData.found) {
+					const isSafe = getData.isSafe ?? true
+					this.setCache(imageUrl, isSafe)
+					return isSafe
+				}
+			}
+
+			// If not found, use POST
 			const response = await fetch("/api/nsfw-check", {
 				method: "POST",
 				headers: {
