@@ -74,11 +74,11 @@ const TabContent = memo(function TabContent({
 
 	if (error) {
 		return (
-			<div className="flex-1 flex items-center justify-center">
-				<div className="text-center">
-					<Logo className="w-8 h-8 mx-auto text-destructive mb-2" />
-					<p className="font-mono text-xs uppercase text-destructive">
-						ERROR::LOADING::TOKENS
+			<div className="flex items-center justify-center h-[400px]">
+				<div className="text-center space-y-3">
+					<Logo className="w-10 h-10 mx-auto text-destructive" />
+					<p className="text-sm text-muted-foreground">
+						Failed to load tokens
 					</p>
 				</div>
 			</div>
@@ -88,7 +88,7 @@ const TabContent = memo(function TabContent({
 	if (isLoading) {
 		return (
 			<div className="flex-1 overflow-y-auto">
-				<div className="pb-4">
+				<div className="space-y-1 p-2">
 					{[...Array(8)].map((_, i) => (
 						<TokenCardSkeleton key={i} />
 					))}
@@ -99,11 +99,11 @@ const TabContent = memo(function TabContent({
 
 	if (!data?.pools || data.pools.length === 0) {
 		return (
-			<div className="flex-1 flex items-center justify-center">
-				<div className="text-center">
-					<Logo className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-					<p className="font-mono text-xs uppercase text-muted-foreground">
-						NO::TOKENS::FOUND
+			<div className="flex items-center justify-center h-[400px]">
+				<div className="text-center space-y-3">
+					<Logo className="w-10 h-10 mx-auto text-muted-foreground" />
+					<p className="text-sm text-muted-foreground">
+						No tokens found
 					</p>
 				</div>
 			</div>
@@ -112,7 +112,7 @@ const TabContent = memo(function TabContent({
 
 	return (
 		<div className="flex-1 overflow-y-auto">
-			<div className="pb-4">
+			<div className="space-y-1 p-2">
 				{data.pools.map((pool: PoolWithMetadata) => (
 					<TokenCard key={pool.poolId} pool={pool} />
 				))}
@@ -124,86 +124,54 @@ const TabContent = memo(function TabContent({
 export const MobileTokenList = memo(function MobileTokenList() {
 	const [activeTab, setActiveTab] = useState<TabType>("new")
 
-	const handleTabChange = useCallback((tab: TabType) => {
-		setActiveTab(tab)
-	}, [])
-
 	return (
-		<div className="h-full flex flex-col bg-background">
+		<div className="h-full flex flex-col">
 			{/* Tab Header */}
-			<div className="bg-black/40 backdrop-blur-md sticky top-0 z-10 border-b border-border/30">
-				<div className="relative">
-					<div className="flex">
-						{TABS.map((tab, index) => {
-							const isActive = activeTab === tab.key
-							const baseColor =
-								tab.key === "new" ? "blue" :
-									tab.key === "graduating" ? "pink" :
-										"yellow"
+			<div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+				<div className="flex p-1">
+					{TABS.map((tab) => {
+						const isActive = activeTab === tab.key
+						const baseColor =
+							tab.key === "new" ? "blue" :
+								tab.key === "graduating" ? "pink" :
+									"yellow"
 
-							return (
-								<button
-									key={tab.key}
-									onClick={() => handleTabChange(tab.key)}
-									className={cn(
-										"flex-1 relative py-3 px-4 font-mono text-xs tracking-[0.15em] uppercase transition-all duration-300",
-										"hover:bg-white/5",
-										isActive ? "font-bold" : "font-medium opacity-60 hover:opacity-100"
-									)}
-								>
-									{/* Active indicator bar */}
-									{isActive && (
-										<div
-											className={cn(
-												"absolute bottom-0 left-0 right-0 h-0.5",
-												baseColor === "blue" && "bg-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.8)]",
-												baseColor === "pink" && "bg-pink-400 shadow-[0_0_10px_rgba(236,72,153,0.8)]",
-												baseColor === "yellow" && "bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.8)]"
-											)}
-										/>
-									)}
-
-									{/* Label with conditional glow */}
-									<span className={cn(
-										"relative z-10 transition-all duration-300",
-										isActive && baseColor === "blue" && "text-blue-400 drop-shadow-[0_0_8px_rgba(59,130,246,0.6)]",
-										isActive && baseColor === "pink" && "text-pink-400 drop-shadow-[0_0_8px_rgba(236,72,153,0.6)]",
-										isActive && baseColor === "yellow" && "text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.6)]",
-										!isActive && "text-gray-400"
-									)}>
-										{tab.label}
-									</span>
-
-									{/* Subtle divider between tabs */}
-									{index < TABS.length - 1 && (
-										<div className="absolute right-0 top-1/4 bottom-1/4 w-px bg-border/20" />
-									)}
-								</button>
-							)
-						})}
-					</div>
-
-					{/* Animated background for active tab */}
-					<div
-						className={cn(
-							"absolute top-0 bottom-0 transition-all duration-300 pointer-events-none",
-							"bg-gradient-to-b from-white/[0.03] to-transparent"
-						)}
-						style={{
-							left: `${(TABS.findIndex(t => t.key === activeTab) / TABS.length) * 100}%`,
-							width: `${100 / TABS.length}%`
-						}}
-					/>
+						return (
+							<Button
+								key={tab.key}
+								variant="ghost"
+								onClick={() => setActiveTab(tab.key)}
+								className={cn(
+									"flex-1 rounded-none font-mono text-xs tracking-wider uppercase h-10",
+									"hover:bg-transparent",
+									isActive && baseColor === "blue" && "text-blue-500",
+									isActive && baseColor === "pink" && "text-pink-500",
+									isActive && baseColor === "yellow" && "text-yellow-500",
+									!isActive && "text-muted-foreground"
+								)}
+								style={{
+									textShadow: isActive ?
+										baseColor === "blue" ? "0 0 20px rgba(59, 130, 246, 0.5)" :
+											baseColor === "pink" ? "0 0 20px rgba(236, 72, 153, 0.5)" :
+												"0 0 20px rgba(234, 179, 8, 0.5)"
+										: undefined
+								}}
+							>
+								{tab.label}
+							</Button>
+						)
+					})}
 				</div>
 			</div>
 
 			{/* Tab Content */}
 			{TABS.map((tab) => (
-				<TabContent
-					key={tab.key}
-					tab={tab}
-					isActive={activeTab === tab.key}
-				/>
+				<div key={tab.key} className={cn("flex-1", activeTab !== tab.key && "hidden")}>
+					<TabContent
+						tab={tab}
+						isActive={activeTab === tab.key}
+					/>
+				</div>
 			))}
 		</div>
 	)
