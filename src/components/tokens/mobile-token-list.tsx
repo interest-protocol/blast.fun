@@ -87,8 +87,8 @@ const TabContent = memo(function TabContent({
 
 	if (isLoading) {
 		return (
-			<div className="flex-1 overflow-y-auto">
-				<div className="space-y-1 p-2">
+			<div className="h-full overflow-y-auto">
+				<div className="space-y-1 p-2 pb-20">
 					{[...Array(8)].map((_, i) => (
 						<TokenCardSkeleton key={i} />
 					))}
@@ -111,8 +111,8 @@ const TabContent = memo(function TabContent({
 	}
 
 	return (
-		<div className="flex-1 overflow-y-auto">
-			<div className="space-y-1 p-2">
+		<div className="h-full overflow-y-auto">
+			<div className="space-y-1 p-2 pb-20">
 				{data.pools.map((pool: PoolWithMetadata) => (
 					<TokenCard key={pool.poolId} pool={pool} />
 				))}
@@ -125,9 +125,9 @@ export const MobileTokenList = memo(function MobileTokenList() {
 	const [activeTab, setActiveTab] = useState<TabType>("new")
 
 	return (
-		<div className="h-full flex flex-col">
+		<div className="h-full flex flex-col overflow-hidden">
 			{/* Tab Header */}
-			<div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+			<div className="flex-shrink-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
 				<div className="flex p-1">
 					{TABS.map((tab) => {
 						const isActive = activeTab === tab.key
@@ -166,7 +166,7 @@ export const MobileTokenList = memo(function MobileTokenList() {
 
 			{/* Tab Content */}
 			{TABS.map((tab) => (
-				<div key={tab.key} className={cn("flex-1", activeTab !== tab.key && "hidden")}>
+				<div key={tab.key} className={cn("flex-1 min-h-0 overflow-hidden", activeTab !== tab.key && "hidden")}>
 					<TabContent
 						tab={tab}
 						isActive={activeTab === tab.key}

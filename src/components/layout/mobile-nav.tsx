@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { navigationItems } from "@/constants/navigation"
 import { cn } from "@/utils"
 import { useCustomNavigation } from "@/hooks/use-custom-navigation"
+import { Lock } from "lucide-react"
 
 export function MobileNavigation() {
 	const pathname = usePathname()
@@ -20,6 +21,25 @@ export function MobileNavigation() {
 				{navigationItems.map((item) => {
 					const isActive = pathname === item.href
 					const Icon = item.icon
+					const isLaunchButton = item.label === "LAUNCH"
+
+					if (isLaunchButton) {
+						return (
+							<div
+								key={item.href}
+								className="group flex flex-col justify-center items-center gap-1 py-2 px-4 min-w-0 relative cursor-not-allowed opacity-50"
+							>
+								<Lock
+									className="h-5 w-5 text-muted-foreground"
+								/>
+								<span
+									className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground"
+								>
+									{item.label}
+								</span>
+							</div>
+						)
+					}
 
 					return (
 						<Link
