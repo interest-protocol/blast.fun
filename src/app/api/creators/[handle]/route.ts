@@ -144,7 +144,7 @@ export async function GET(
 
 		// only band values for wallet addresses (hidden identities)
 		// show exact values for unhidden accounts (twitter handles)
-		return NextResponse.json({
+		const response = NextResponse.json({
 			launchCount: launchCount,
 			trustedFollowers: isWalletAddress
 				? bandTrustedFollowers(trustedFollowerCount)
@@ -153,6 +153,11 @@ export async function GET(
 				? bandFollowerCount(followerCount)
 				: formatFollowerCount(followerCount),
 		});
+		
+		// Set cache headers for Vercel CDN
+		response.headers.set("Cache-Control", "public, s-maxage=60, stale-while-revalidate=30");
+		
+		return response;
 	} catch (error) {
 		console.error("Error fetching creator data:", error);
 		return NextResponse.json(
