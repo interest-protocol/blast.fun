@@ -18,12 +18,13 @@ export async function getRedisClient(): Promise<RedisClientType | null> {
 		while (isConnecting) {
 			await new Promise(resolve => setTimeout(resolve, 10))
 		}
+
 		return redisClient
 	}
 
 	try {
 		isConnecting = true
-		
+
 		redisClient = createClient({
 			url: env.REDIS_URL,
 			socket: {
@@ -43,7 +44,6 @@ export async function getRedisClient(): Promise<RedisClientType | null> {
 		})
 
 		await redisClient.connect()
-		console.log("Redis client connected successfully")
 
 		return redisClient
 	} catch (error) {
@@ -86,8 +86,10 @@ export async function redisSet(
 		if (ttl) {
 			return await client.setEx(key, ttl, value)
 		}
+
 		return await client.set(key, value)
 	})
+
 	return result === "OK"
 }
 
@@ -99,6 +101,7 @@ export async function redisSetEx(
 	const result = await withRedis(async (client) => {
 		return await client.setEx(key, ttl, value)
 	})
+
 	return result === "OK"
 }
 
@@ -106,12 +109,13 @@ export async function redisDel(key: string): Promise<boolean> {
 	const result = await withRedis(async (client) => {
 		return await client.del(key)
 	})
+
 	return result === 1
 }
 
 export const CACHE_TTL = {
 	COIN_METADATA: 43200, // 12 hours
-	MARKET_DATA: 300, // 5 minutes
+	MARKET_DATA: 120, // 2 minutes
 	NSFW_CHECK: 86400 * 30, // 30 days
 	POOL_DATA: 300, // 5 minutes
 	CREATOR_DATA: 14400, // 4 hours
