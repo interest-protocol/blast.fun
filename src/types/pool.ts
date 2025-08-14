@@ -48,7 +48,15 @@ export type CoinMetadata = {
 
 import type { MarketData } from "./market"
 
+export type CreatorData = {
+	launchCount: number
+	trustedFollowers: string | number
+	followers: string | number
+	twitterHandle?: string | null
+}
+
 export type PoolWithMetadata = Pool & {
 	coinMetadata?: CoinMetadata
 	marketData?: MarketData
+	creatorData?: CreatorData
 }
