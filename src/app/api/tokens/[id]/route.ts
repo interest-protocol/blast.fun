@@ -45,8 +45,8 @@ export async function GET(
 			isProtected: !!pool.publicKey,
 		}
 
-		const marketCacheKey = `${CACHE_PREFIX.MARKET_DATA}${pool.coinType}`
-		const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.coinType}`
+		const marketCacheKey = `${CACHE_PREFIX.MARKET_DATA}${pool.poolId}`
+		const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.poolId}`
 		const creatorCacheKey = `${CACHE_PREFIX.CREATOR_DATA}${pool.creatorAddress}`
 
 		const [cachedMarketData, cachedMetadata, cachedCreatorData] = await Promise.all([
