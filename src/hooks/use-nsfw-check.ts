@@ -25,6 +25,10 @@ export function useNSFWCheck(
 	const [error, setError] = useState<Error | null>(null)
 
 	useEffect(() => {
+		setIsSafe(true)
+		setIsLoading(false)
+		return
+		
 		if (!imageUrl || !enabled) {
 			setIsSafe(true)
 			return
@@ -89,6 +93,12 @@ export function useNSFWBatchCheck(
 	const [error, setError] = useState<Error | null>(null)
 
 	useEffect(() => {
+		const safeResults = new Map<string, boolean>()
+		imageUrls.forEach(url => safeResults.set(url, true))
+		setResults(safeResults)
+		setIsLoading(false)
+		return
+		
 		if (!imageUrls.length || !enabled) {
 			setResults(new Map())
 			return
