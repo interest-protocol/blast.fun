@@ -87,10 +87,36 @@ export async function fetchCreatorData(
 			return formatAmountWithSuffix(BigInt(num) * BigInt(10 ** 9))
 		}
 
+		// Band values when identity is hidden
+		const bandValue = (count: number, thresholds: number[]): string => {
+			if (count === 0) return "0"
+
+			for (let i = 0; i < thresholds.length; i++) {
+				if (count < thresholds[i]) {
+					if (i === 0) {
+						return `<${formatFollowerCount(thresholds[i])}`
+					}
+
+					const prevThreshold = thresholds[i - 1]
+					return `${formatFollowerCount(prevThreshold)}-${formatFollowerCount(thresholds[i])}`
+				}
+			}
+
+			const lastThreshold = thresholds[thresholds.length - 1]
+			return `>${formatFollowerCount(lastThreshold)}`
+		}
+
+		const trustedFollowerThresholds = [10, 50, 100, 250, 500, 1000, 5000, 10000, 25000]
+		const followerThresholds = [100, 500, 1000, 5000, 10000, 25000, 50000, 100000, 500000, 1000000]
+
 		const creatorData: CreatorData = {
 			launchCount,
-			trustedFollowers: formatFollowerCount(trustedFollowerCount),
-			followers: formatFollowerCount(followerCount),
+			trustedFollowers: hideIdentity
+				? bandValue(trustedFollowerCount, trustedFollowerThresholds)
+				: formatFollowerCount(trustedFollowerCount),
+			followers: hideIdentity
+				? bandValue(followerCount, followerThresholds)
+				: formatFollowerCount(followerCount),
 			twitterHandle: finalTwitterHandle
 		}
 

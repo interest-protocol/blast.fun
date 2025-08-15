@@ -36,7 +36,7 @@ export async function GET(
 			}
 		}
 
-		const creatorData = await fetchCreatorData(handle);
+		const creatorData = await fetchCreatorData(handle, null, isWalletAddress);
 		return NextResponse.json(creatorData);
 	} catch (error) {
 		console.error("Error fetching creator data:", error);
