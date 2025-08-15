@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { cn } from "@/utils"
-import { useNSFWCheck } from "@/hooks/use-nsfw-check"
 
 interface TokenAvatarProps {
 	iconUrl?: string
@@ -22,13 +21,6 @@ export function TokenAvatar({
 	enableNSFWCheck = true,
 }: TokenAvatarProps) {
 	const [imageError, setImageError] = useState(false)
-
-	const { shouldBlur } = useNSFWCheck(iconUrl, {
-		enabled: enableNSFWCheck,
-		fallbackBehavior: "blur",
-	})
-
-	// Get display character for fallback
 	const displayChar = symbol?.[0]?.toUpperCase() || name?.[0]?.toUpperCase() || "?"
 
 	if (!iconUrl || imageError) {
@@ -51,8 +43,7 @@ export function TokenAvatar({
 			alt={symbol || name || "Token"}
 			className={cn(
 				"shadow-md object-cover",
-				className,
-				shouldBlur && "blur-xl filter"
+				className
 			)}
 			onError={() => setImageError(true)}
 		/>
