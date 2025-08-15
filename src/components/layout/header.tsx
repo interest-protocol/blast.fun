@@ -30,7 +30,7 @@ export default function Header() {
 
 				{/* Actions */}
 				<div className="flex items-center gap-2">
-					{/* <SearchToken /> */}
+					<SearchToken />
 					<UserDropdown />
 					<AudioToggle />
 					<ThemeSwitcher />

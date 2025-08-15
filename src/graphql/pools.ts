@@ -24,6 +24,14 @@ export const GET_POOLS = gql`
   	}
 `
 
+export const GET_POOL_BY_COIN_TYPE = gql`
+	query GetPoolByCoinType($type: String!) {
+		coinPool(type: $type) {
+			poolId
+		}
+	}
+`
+
 export const GET_POOL = gql`
 	query GetPool($poolId: String!) {
 		pool(poolId: $poolId) {
@@ -49,14 +57,6 @@ export const GET_POOL = gql`
 			updatedAt
 			publicKey
 			innerState
-		}
-	}
-`
-
-export const GET_POOL_BY_COIN_TYPE = gql`
-	query GetPoolByCoinType($coinType: String!) {
-		coinPool(type: $coinType) {
-			poolId
 		}
 	}
 `
