@@ -94,6 +94,16 @@ class NexaClient {
 
 		return await response.json()
 	}
+
+	async searchTokens(query: string) {
+		const url = `/search/query/${encodeURIComponent(query)}?platform=xpump`
+		
+		const response = await this.fetch(url, {
+			revalidate: false,
+		})
+
+		return await response.json()
+	}
 }
 
 export const nexaClient = new NexaClient()
