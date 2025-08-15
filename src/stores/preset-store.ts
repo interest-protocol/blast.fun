@@ -16,8 +16,8 @@ interface PresetStore {
 export const usePresetStore = create<PresetStore>()(
 	persist(
 		(set) => ({
-			slippage: 15,
-			quickBuyAmounts: [0.01, 0.1, 1, 10],
+			slippage: 5,
+			quickBuyAmounts: [1, 10, 50, 100],
 			quickSellPercentages: [25, 50, 75, 100],
 
 			setSlippage: (slippage) => set({ slippage }),
@@ -26,8 +26,8 @@ export const usePresetStore = create<PresetStore>()(
 
 			resetToDefaults: () =>
 				set({
-					slippage: 15,
-					quickBuyAmounts: [0.01, 0.1, 1, 10],
+					slippage: 5,
+					quickBuyAmounts: [1, 10, 50, 100],
 					quickSellPercentages: [25, 50, 75, 100],
 				}),
 		}),
