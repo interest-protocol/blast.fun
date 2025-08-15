@@ -101,7 +101,13 @@ export async function GET(request: NextRequest) {
 
 				if (cachedMarketData) {
 					try {
-						processedPool.marketData = JSON.parse(cachedMarketData)
+						const parsedMarketData = JSON.parse(cachedMarketData)
+						processedPool.marketData = parsedMarketData
+
+						// use cached mostLiquidPoolId if available
+						if (parsedMarketData.mostLiquidPoolId) {
+							processedPool.mostLiquidPoolId = parsedMarketData.mostLiquidPoolId
+						}
 					} catch (error) {
 						console.error(`Failed to parse cached market data for ${pool.coinType}:`, error)
 					}
@@ -131,6 +137,23 @@ export async function GET(request: NextRequest) {
 						// extract coinMetadata for separate caching
 						const { coinMetadata, ...restMarketData } = marketData
 
+						// find the most liquid pool if migrated
+						if (pool.migrated && restMarketData.pools && Array.isArray(restMarketData.pools)) {
+							let mostLiquidPool = null
+							let highestLiquidity = 0
+
+							for (const p of restMarketData.pools) {
+								if (p.liqUsd && p.liqUsd > highestLiquidity) {
+									highestLiquidity = p.liqUsd
+									mostLiquidPool = p
+								}
+							}
+
+							if (mostLiquidPool && mostLiquidPool.pool) {
+								processedPool.mostLiquidPoolId = mostLiquidPool.pool
+							}
+						}
+
 						// trim market data to only what we need
 						const trimmedMarketData = {
 							coinPrice: restMarketData.coinPrice,
@@ -141,7 +164,8 @@ export async function GET(request: NextRequest) {
 							coin24hTradeCount: restMarketData.coin24hTradeCount,
 							coin24hTradeVolumeUsd: restMarketData.coin24hTradeVolumeUsd,
 							price1DayAgo: restMarketData.price1DayAgo,
-							holdersCount: restMarketData.holdersCount
+							holdersCount: restMarketData.holdersCount,
+							mostLiquidPoolId: processedPool.mostLiquidPoolId
 						}
 
 						processedPool.marketData = trimmedMarketData
