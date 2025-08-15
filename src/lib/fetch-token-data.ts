@@ -36,9 +36,8 @@ export async function fetchTokenData(poolId: string): Promise<PoolWithMetadata |
 			isProtected: !!pool.publicKey,
 		}
 
-		// try to get cached data
-		const marketCacheKey = `${CACHE_PREFIX.MARKET_DATA}${pool.coinType}`
-		const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.coinType}`
+		const marketCacheKey = `${CACHE_PREFIX.MARKET_DATA}${pool.poolId}`
+		const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.poolId}`
 		const creatorCacheKey = `${CACHE_PREFIX.CREATOR_DATA}${pool.creatorAddress}`
 
 		const [cachedMarketData, cachedMetadata, cachedCreatorData] = await Promise.all([
@@ -56,7 +55,7 @@ export async function fetchTokenData(poolId: string): Promise<PoolWithMetadata |
 					processedPool.mostLiquidPoolId = parsedMarketData.mostLiquidPoolId
 				}
 			} catch (error) {
-				console.error(`Failed to parse cached market data for ${pool.coinType}:`, error)
+				console.error(`Failed to parse cached market data for pool ${pool.poolId}:`, error)
 			}
 		}
 
@@ -64,7 +63,7 @@ export async function fetchTokenData(poolId: string): Promise<PoolWithMetadata |
 			try {
 				processedPool.coinMetadata = JSON.parse(cachedMetadata)
 			} catch (error) {
-				console.error(`Failed to parse cached metadata for ${pool.coinType}:`, error)
+				console.error(`Failed to parse cached metadata for pool ${pool.poolId}:`, error)
 			}
 		}
 
@@ -131,7 +130,7 @@ export async function fetchTokenData(poolId: string): Promise<PoolWithMetadata |
 					)
 				])
 			} catch (error) {
-				console.error(`Failed to fetch market data for ${pool.coinType}:`, error)
+				console.error(`Failed to fetch market data for pool ${pool.poolId}:`, error)
 			}
 		}
 
