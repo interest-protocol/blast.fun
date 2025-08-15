@@ -5,6 +5,7 @@ import tokenPriceSocket from "@/lib/websocket/token-price"
 import type { PoolWithMetadata } from "@/types/pool"
 import { TokenHeader } from "./token-header"
 import { CreatorDetails } from "./creator-details"
+import { TokenTabs } from "./token-tabs"
 import { NexaChart } from "@/components/shared/nexa-chart"
 import {
 	ResizablePanelGroup,
@@ -73,19 +74,7 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 					<ResizableHandle withHandle />
 
 					<ResizablePanel defaultSize={40} minSize={20}>
-						{/* Token tabs will go here */}
-						<div className="h-full p-4 overflow-auto">
-							<pre className="text-xs">
-								{JSON.stringify({
-									poolId: pool.poolId,
-									innerState: pool.innerState,
-									realtimePrice: price,
-									initialPrice: pool.marketData?.coinPrice,
-									marketData: pool.marketData,
-									creatorData: pool.creatorData
-								}, null, 2)}
-							</pre>
-						</div>
+						<TokenTabs pool={pool} className="h-full" />
 					</ResizablePanel>
 				</ResizablePanelGroup>
 			</div>
