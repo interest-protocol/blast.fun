@@ -210,12 +210,12 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 				) : (
 					<div className="relative">
 						<div className="grid grid-cols-12 gap-2 px-2 sm:px-4 py-2 border-b border-border/50 text-[10px] sm:text-xs font-mono uppercase text-muted-foreground sticky top-0 bg-background/95 backdrop-blur-sm z-10 select-none">
-							<div className="col-span-2 flex items-center gap-1">Age</div>
+							<div className="col-span-1">Age</div>
 							<div className="col-span-1">Type</div>
 							<div className="col-span-4 sm:col-span-3">Trade</div>
 							<div className="col-span-2 text-right hidden sm:block">Price</div>
 							<div className="col-span-3 sm:col-span-2 text-right">Value</div>
-							<div className="col-span-2 text-right">Trader</div>
+							<div className="col-span-3 text-right">Trader</div>
 						</div>
 
 						{unifiedTrades.map((trade) => {
@@ -223,6 +223,7 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 							const isNewTrade = trade.isRealtime &&
 								(Date.now() - trade.timestamp) < 5000
 							const volumePercentage = Math.min((trade.value / maxVolume) * 100, 100)
+							const isCreator = trade.trader === pool.creatorAddress
 
 							return (
 								<div
@@ -241,7 +242,7 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 									/>
 
 									<div className="relative grid grid-cols-12 gap-2 px-2 sm:px-4 py-2 sm:py-3 items-center border-b border-border/30">
-										<div className="col-span-2 font-mono text-[10px] sm:text-xs text-muted-foreground">
+										<div className="col-span-1 font-mono text-[10px] sm:text-xs text-muted-foreground">
 											<RelativeAge timestamp={trade.timestamp} />
 										</div>
 
@@ -295,15 +296,18 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 											{formatValue(trade.value)}
 										</div>
 
-										<div className="col-span-2 text-right flex items-center justify-end gap-0.5 sm:gap-1">
+										<div className="col-span-3 text-right flex items-center justify-end gap-0.5 sm:gap-1">
 											<a
 												href={`https://suivision.xyz/account/${trade.trader}`}
 												target="_blank"
 												rel="noopener noreferrer"
-												className="font-mono text-[10px] sm:text-xs text-muted-foreground hover:text-primary transition-colors"
+												className="font-mono text-[10px] sm:text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
 											>
 												<span className="sm:hidden">{formatAddress(trade.trader).slice(0, 4) + '...'}</span>
 												<span className="hidden sm:inline">{formatAddress(trade.trader)}</span>
+												{isCreator && (
+													<span className="text-destructive font-bold">(DEV)</span>
+												)}
 											</a>
 											<a
 												href={getTxExplorerUrl(trade.digest)}
