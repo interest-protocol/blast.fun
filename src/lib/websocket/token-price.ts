@@ -9,6 +9,7 @@ class TokenPriceSocket {
 
     constructor() {
         this.socket = io(URL, {
+            transports: ['websocket'],
             reconnection: true,
             reconnectionDelay: 1000,
             reconnectionDelayMax: 5000,
