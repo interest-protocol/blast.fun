@@ -4,25 +4,41 @@ import { Rocket } from "lucide-react"
 import type { PoolWithMetadata } from "@/types/pool"
 import { cn } from "@/utils"
 import { useQuery } from "@tanstack/react-query"
-import { fetchTokenWithMetadata } from "@/lib/pump/fetch-token"
 
 interface BondingProgressBarProps {
     pool: PoolWithMetadata
 }
 
+interface BondingProgressData {
+    poolId: string
+    bondingCurve: number | string
+    migrated: boolean
+    updatedAt: string
+}
+
 export function BondingProgressBar({ pool }: BondingProgressBarProps) {
-    const { data: updatedPool } = useQuery({
+    const { data: progressData } = useQuery<BondingProgressData>({
         queryKey: ["bonding-progress", pool.poolId],
-        queryFn: () => fetchTokenWithMetadata(pool.poolId),
+        queryFn: async () => {
+            const response = await fetch(`/api/tokens/${pool.poolId}/bonding-progress`)
+            if (!response.ok) {
+                throw new Error("Failed to fetch bonding progress")
+            }
+            return response.json()
+        },
         enabled: !!pool.poolId && !pool.migrated,
         refetchInterval: 3000,
-        initialData: pool,
+        initialData: {
+            poolId: pool.poolId,
+            bondingCurve: pool.bondingCurve,
+            migrated: pool.migrated,
+            updatedAt: new Date().toISOString()
+        },
     })
 
-    const currentPool = updatedPool || pool
-    const progress = typeof currentPool.bondingCurve === "number"
-        ? currentPool.bondingCurve
-        : parseFloat(currentPool.bondingCurve) || 0
+    const progress = typeof progressData.bondingCurve === "number"
+        ? progressData.bondingCurve
+        : parseFloat(progressData.bondingCurve) || 0
 
     const isComplete = progress >= 100
 
