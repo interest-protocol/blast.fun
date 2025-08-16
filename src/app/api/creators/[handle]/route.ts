@@ -28,7 +28,7 @@ export async function GET(
 			} else {
 				// no launches found for this twitter handle, but still try to get follower data
 				let followerCount = 0;
-				let trustedFollowerCount = 0;
+				const trustedFollowerCount = 0;
 				
 				// Try to fetch follower data from fxtwitter
 				try {
