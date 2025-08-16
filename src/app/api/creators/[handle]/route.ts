@@ -26,11 +26,39 @@ export async function GET(
 				);
 				return NextResponse.json(creatorData);
 			} else {
-				// no launches found for this twitter handle
+				// no launches found for this twitter handle, but still try to get follower data
+				let followerCount = 0;
+				let trustedFollowerCount = 0;
+				
+				// Try to fetch follower data from fxtwitter
+				try {
+					const fxTwitterResponse = await fetch(
+						`https://api.fxtwitter.com/${handle}`
+					);
+					
+					if (fxTwitterResponse.ok) {
+						const fxTwitterData = await fxTwitterResponse.json();
+						if (fxTwitterData && fxTwitterData.user && fxTwitterData.user.followers) {
+							followerCount = fxTwitterData.user.followers || 0;
+						}
+					}
+				} catch (error) {
+					console.error("Error fetching fxTwitter data:", error);
+				}
+				
+				// Format the follower count with suffix
+				const formatFollowerCount = (num: number): string => {
+					if (num === 0) return "0";
+					if (num < 1000) return num.toString();
+					if (num < 1000000) return `${(num / 1000).toFixed(1).replace(/\.0$/, '')}K`;
+					if (num < 1000000000) return `${(num / 1000000).toFixed(1).replace(/\.0$/, '')}M`;
+					return `${(num / 1000000000).toFixed(1).replace(/\.0$/, '')}B`;
+				};
+				
 				return NextResponse.json({
 					launchCount: 0,
-					trustedFollowers: "0",
-					followers: "0",
+					trustedFollowers: trustedFollowerCount.toString(),
+					followers: formatFollowerCount(followerCount),
 					twitterHandle: handle
 				});
 			}
