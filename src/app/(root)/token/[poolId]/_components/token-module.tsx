@@ -7,6 +7,7 @@ import { TokenHeader } from "./token-header"
 import { CreatorDetails } from "./creator-details"
 import { TokenTabs } from "./token-tabs"
 import { TradeTerminal } from "./trade-terminal"
+import { BondingProgress } from "./bonding-progress"
 import { ReferralShare } from "./referral-share"
 import { NexaChart } from "@/components/shared/nexa-chart"
 import {
@@ -84,6 +85,9 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 			{/* Right-side column */}
 			<div className="w-[400px] border-l flex flex-col h-full">
 				<CreatorDetails pool={pool} />
+				{!pool.migrated && (
+					<BondingProgress pool={pool} />
+				)}
 				<TradeTerminal pool={pool} referral={referral} />
 				<ReferralShare pool={pool} />
 			</div>

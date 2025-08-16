@@ -87,7 +87,7 @@ export async function fetchCreatorData(
 			return formatAmountWithSuffix(BigInt(num) * BigInt(10 ** 9))
 		}
 
-		// Band values when identity is hidden
+		// band values when identity is hidden
 		const bandValue = (count: number, thresholds: number[]): string => {
 			if (count === 0) return "0"
 
