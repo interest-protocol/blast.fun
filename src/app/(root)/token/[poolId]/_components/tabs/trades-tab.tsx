@@ -8,7 +8,7 @@ import { useInfiniteQuery } from "@tanstack/react-query"
 import { formatAddress } from "@mysten/sui/utils"
 import { getTxExplorerUrl } from "@/utils/transaction"
 import { Logo } from "@/components/ui/logo"
-import nexaSocket from "@/lib/websocket/nexa-socket"
+import tokenPriceSocket from "@/lib/websocket/token-price"
 import { nexaClient } from "@/lib/nexa"
 import { cn } from "@/utils"
 import { formatAmountWithSuffix, formatNumberWithSuffix } from "@/utils/format"
@@ -23,8 +23,9 @@ interface TradesTabProps {
 	className?: string
 }
 
-function useRealtimeTrades(coinType: string, poolSymbol?: string) {
+function useRealtimeTrades(pool: PoolWithMetadata, poolSymbol?: string) {
 	const [realtimeTrades, setRealtimeTrades] = useState<UnifiedTrade[]>([])
+	const coinType = pool.coinType
 
 	const handleNewTrade = useCallback((trade: TradeData) => {
 		const isBuy = trade.coinOut === coinType
@@ -59,10 +60,10 @@ function useRealtimeTrades(coinType: string, poolSymbol?: string) {
 	useEffect(() => {
 		if (!coinType) return
 
-		const unsubscribe = nexaSocket.subscribeToCoinTrades(coinType, handleNewTrade)
+		tokenPriceSocket.subscribeToCoinTrades(coinType, handleNewTrade)
 
 		return () => {
-			unsubscribe()
+			tokenPriceSocket.unsubscribeFromCoinTrades(coinType)
 		}
 	}, [coinType, handleNewTrade])
 
@@ -97,7 +98,7 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 		initialPageParam: 0
 	})
 
-	const { realtimeTrades } = useRealtimeTrades(pool.coinType, metadata?.symbol)
+	const { realtimeTrades } = useRealtimeTrades(pool, metadata?.symbol)
 
 	const historicalTrades = useMemo(() => {
 		if (!data?.pages) return []
