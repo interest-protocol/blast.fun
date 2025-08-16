@@ -2,6 +2,7 @@ export type MarketData = {
 	coinMetadata?: any
 
 	coinPrice: number
+	suiPrice: number
 	isCoinHoneyPot: boolean
 	totalLiquidityUsd: number
 	marketCap: number
@@ -20,6 +21,5 @@ export type MarketData = {
 	// backwards compat fields
 	liqUsd?: number
 	coinSupply?: number
-	suiPrice?: number
 	mostLiquidPoolId?: string
 }

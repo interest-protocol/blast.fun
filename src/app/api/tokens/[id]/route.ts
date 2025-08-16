@@ -113,6 +113,7 @@ export async function GET(
 				// trim market data to only what we need
 				const trimmedMarketData = {
 					coinPrice: restMarketData.coinPrice,
+					suiPrice: restMarketData.suiPrice,
 					isCoinHoneyPot: restMarketData.isCoinHoneyPot,
 					totalLiquidityUsd: restMarketData.totalLiquidityUsd,
 					liqUsd: restMarketData.totalLiquidityUsd,
