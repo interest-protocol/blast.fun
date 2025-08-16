@@ -86,7 +86,15 @@ export async function GET(request: NextRequest) {
 						filteredPools = fetchedPools.filter((p: any) => !p.migrated && parseFloat(p.bondingCurve) >= 50)
 						break
 					case "graduated":
-						filteredPools = fetchedPools.filter((p: any) => p.migrated === true)
+						// filter out test tokens created by specific addresses
+						const testCreatorAddresses = [
+							"0xd2420ad33ab5e422becf2fa0e607e1dde978197905b87d070da9ffab819071d6",
+							"0xbbf31f4075625942aa967daebcafe0b1c90e6fa9305c9064983b5052ec442ef7"
+						]
+
+						filteredPools = fetchedPools.filter((p: any) =>
+							p.migrated === true && !testCreatorAddresses.includes(p.creatorAddress)
+						)
 						break
 				}
 
@@ -113,8 +121,8 @@ export async function GET(request: NextRequest) {
 
 		// For "new" and no category, use the fetched pools directly
 		// For "graduating" and "graduated", slice the accumulated pools
-		const paginatedPools = category === "new" || !category 
-			? allPools 
+		const paginatedPools = category === "new" || !category
+			? allPools
 			: allPools.slice(0, pageSize)
 
 		const processedPools = await Promise.all(
