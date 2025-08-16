@@ -1,6 +1,6 @@
 import { CONFIG_KEYS, MIGRATOR_WITNESSES } from "@interest-protocol/memez-fun-sdk"
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions"
-import { formatAddress, formatDigest, normalizeSuiAddress, SUI_TYPE_ARG } from "@mysten/sui/utils"
+import { formatAddress, formatDigest, isValidSuiAddress, normalizeStructTag, normalizeSuiAddress, SUI_TYPE_ARG } from "@mysten/sui/utils"
 import { useState } from "react"
 import { BASE_LIQUIDITY_PROVISION, COIN_CONVENTION_BLACKLIST, TARGET_QUOTE_LIQUIDITY, TOTAL_POOL_SUPPLY, VIRTUAL_LIQUIDITY } from "@/constants"
 import { useApp } from "@/context/app.context"
@@ -13,6 +13,7 @@ import { pumpSdk } from "@/lib/pump"
 import { getCreatedObjectByType, getTxExplorerUrl } from "@/utils/transaction"
 import { TokenFormValues } from "../_components/create-token-form"
 import { useConfetti } from "@/components/shared/confetti"
+import { invariant } from "@apollo/client/utilities/globals"
 
 interface LaunchResult {
 	treasuryCapObjectId: string
@@ -143,12 +144,11 @@ export function useLaunchCoin() {
 		// should pool be protected based on sniper protection toggle
 		const isProtected = formValues.sniperProtection
 
-		const firstPurchase = formValues.devBuyAmount ? coinWithBalance({
-			balance: BigInt(formValues.devBuyAmount || 0) * BigInt(10 ** 9),
-			type: '0x2::sui::SUI',
-		}) : undefined
+		const { memeCoinType } =
+			await pumpSdk.getCoinMetadataAndType(treasuryCapObjectId);
 
-		const { tx, metadataCap } = await pumpSdk.newPool({
+
+		const { tx, metadataCap, pool } = await pumpSdk.newPoolReturnObject({
 			configurationKey: configKey,
 			metadata,
 			memeCoinTreasuryCap: treasuryCapObjectId,
@@ -161,8 +161,43 @@ export function useLaunchCoin() {
 			virtualLiquidity: VIRTUAL_LIQUIDITY,
 			targetQuoteLiquidity: TARGET_QUOTE_LIQUIDITY,
 			liquidityProvision: BASE_LIQUIDITY_PROVISION,
-			firstPurchase,
 		})
+
+
+		const buyAfterPoolCreation = formValues.devBuyAmount ? coinWithBalance({
+			balance: parseInt(formValues.devBuyAmount || "0") * 10 ** 9,
+			type: '0x2::sui::SUI',
+		}) : pumpSdk.zeroSuiCoin(tx)
+
+		const memeCoin = tx.moveCall({
+			package: pumpSdk.packages.MEMEZ_FUN.latest,
+			module: pumpSdk.modules.PUMP,
+			function: 'pump',
+			arguments: [
+			pool,
+			pumpSdk.ownedObject(tx, buyAfterPoolCreation),
+			tx.pure.option('address', null),
+			tx.pure.option('vector<u8>', null),
+			tx.pure.u64(0),
+			pumpSdk.getVersion(tx),
+			],
+			typeArguments: [memeCoinType, "0x2::sui::SUI"],
+		});
+
+		tx.transferObjects([memeCoin], tx.pure.address(address))
+		
+
+		invariant(pool, 'Pool not returned from new');
+
+		tx.moveCall({
+		package: '0x2',
+		module: 'transfer',
+		function: 'public_share_object',
+		arguments: [pool],
+		typeArguments: [
+			`${pumpSdk.packages.MEMEZ_FUN.original}::memez_fun::MemezFun<${pumpSdk.packages.MEMEZ_FUN.original}::memez_pump::Pump, ${normalizeStructTag(memeCoinType)},${normalizeStructTag("0x2::sui::SUI")}>`,
+			],
+		});
 
 		if (metadataCap) {
 			tx.transferObjects([metadataCap], tx.pure.address(address))
@@ -363,3 +398,135 @@ export function useLaunchCoin() {
 		addLog,
 	}
 }
+
+
+async function newPoolAndBuy({
+    tx = new Transaction(),
+    creationSuiFee = pumpSdk.zeroSuiCoin(tx),
+    memeCoinTreasuryCap,
+    totalSupply = pumpSdk.defaultSupply,
+    isProtected = false,
+    developer,
+    firstPurchase = pumpSdk.zeroSuiCoin(tx),
+	buyAfterPoolCreation = pumpSdk.zeroSuiCoin(tx),
+    metadata = {},
+    configurationKey,
+    migrationWitness,
+    stakeHolders = [],
+    quoteCoinType,
+    burnTax = 0,
+    virtualLiquidity,
+    targetQuoteLiquidity,
+    liquidityProvision = 0,
+  }: any) {
+    invariant(
+      burnTax >= 0 && burnTax <= pumpSdk.MAX_BPS,
+      'burnTax must be between 0 and 10_000'
+    );
+    invariant(
+      liquidityProvision >= 0 && liquidityProvision <= pumpSdk.MAX_BPS,
+      'liquidityProvision must be between 0 and 10_000'
+    );
+
+    invariant(BigInt(totalSupply) > 0n, 'totalSupply must be greater than 0');
+    invariant(
+      isValidSuiAddress(developer),
+      'developer must be a valid Sui address'
+    );
+
+    invariant(
+      stakeHolders.every((stakeHolder: any) => isValidSuiAddress(stakeHolder)),
+      'stakeHolders must be a valid Sui address'
+    );
+
+    pumpSdk.assertNotZeroAddress(developer);
+
+    const { memeCoinType, coinMetadataId } =
+      await pumpSdk.getCoinMetadataAndType(memeCoinTreasuryCap);
+
+    const memezMetadata = tx.moveCall({
+      package: pumpSdk.packages.MEMEZ_FUN.latest,
+      module: pumpSdk.modules.METADATA,
+      function: 'new',
+      arguments: [
+        tx.object(coinMetadataId),
+        tx.pure.vector('string', Object.keys(metadata)),
+        tx.pure.vector('string', Object.values(metadata)),
+      ],
+      typeArguments: [normalizeStructTag(memeCoinType)],
+    });
+
+    const pumpConfig = tx.moveCall({
+      package: pumpSdk.packages.MEMEZ_FUN.latest,
+      module: pumpSdk.modules.PUMP_CONFIG,
+      function: 'new',
+      arguments: [
+        tx.pure.vector('u64', [
+          burnTax,
+          virtualLiquidity,
+          targetQuoteLiquidity,
+          liquidityProvision,
+          totalSupply,
+        ]),
+      ],
+    });
+
+    const [pool, metadataCap] = tx.moveCall({
+      package: pumpSdk.packages.MEMEZ_FUN.latest,
+      module: pumpSdk.modules.PUMP,
+      function: 'new',
+      arguments: [
+        tx.sharedObjectRef(pumpSdk.sharedObjects.CONFIG({ mutable: false })),
+        pumpSdk.ownedObject(tx, memeCoinTreasuryCap),
+        pumpSdk.ownedObject(tx, creationSuiFee),
+        pumpConfig,
+        pumpSdk.ownedObject(tx, firstPurchase),
+        memezMetadata,
+        tx.pure.vector('address', stakeHolders),
+        tx.pure.bool(isProtected),
+        tx.pure.address(developer),
+        pumpSdk.getVersion(tx),
+      ],
+      typeArguments: [
+        normalizeStructTag(memeCoinType),
+        normalizeStructTag(quoteCoinType),
+        normalizeStructTag(configurationKey),
+        normalizeStructTag(migrationWitness),
+      ],
+    });
+
+	const memeCoin = tx.moveCall({
+		package: pumpSdk.packages.MEMEZ_FUN.latest,
+		module: pumpSdk.modules.PUMP,
+		function: 'pump',
+		arguments: [
+		  pool,
+		  pumpSdk.ownedObject(tx, buyAfterPoolCreation),
+		  tx.pure.option('address', null),
+		  tx.pure.option('vector<u8>', null),
+		  tx.pure.u64(0),
+		  pumpSdk.getVersion(tx),
+		],
+		typeArguments: [pool.memeCoinType, pool.quoteCoinType],
+	  });
+
+	tx.transferObjects([memeCoin], tx.pure.address(developer))
+	
+
+    invariant(pool, 'Pool not returned from new');
+
+    tx.moveCall({
+      package: '0x2',
+      module: 'transfer',
+      function: 'public_share_object',
+      arguments: [pool],
+      typeArguments: [
+        `${pumpSdk.packages.MEMEZ_FUN.original}::memez_fun::MemezFun<${pumpSdk.packages.MEMEZ_FUN.original}::memez_pump::Pump, ${normalizeStructTag(memeCoinType)},${normalizeStructTag(quoteCoinType)}>`,
+      ],
+    });
+
+    return {
+      metadataCap,
+      tx,
+    };
+  }
