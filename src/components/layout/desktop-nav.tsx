@@ -4,7 +4,6 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { navigationItems } from "@/constants/navigation"
 import { cn } from "@/utils"
-import { Lock } from "lucide-react"
 
 export function DesktopNav() {
 	const pathname = usePathname()
@@ -13,27 +12,6 @@ export function DesktopNav() {
 		<nav className="hidden lg:flex items-center gap-1">
 			{navigationItems.map((item) => {
 				const isActive = pathname === item.href
-
-				const isLaunchButton = item.label === "LAUNCH"
-
-				if (isLaunchButton) {
-					return (
-						<div
-							key={item.href}
-							className={cn(
-								"group relative px-5 py-2.5 rounded-xl transition-all duration-300 cursor-not-allowed opacity-50"
-							)}
-						>
-							<span className={cn(
-								"relative z-10 flex items-center gap-2.5 font-mono text-xs uppercase tracking-wider transition-all duration-300",
-								"text-muted-foreground"
-							)}>
-								<Lock className="h-4 w-4" />
-								{item.label}
-							</span>
-						</div>
-					)
-				}
 
 				return (
 					<Link
