@@ -78,7 +78,30 @@ export async function fetchCreatorData(
 					}
 				}
 			} catch (error) {
-				console.error("Error fetching Twitter data:", error)
+				console.error("Error fetching Twitter data from twitterapi.io:", error)
+			}
+
+			// Use fxtwitter as fallback if we didn't get follower count
+			if (followerCount === 0) {
+				try {
+					const fxtwitterResponse = await fetch(
+						`https://api.fxtwitter.com/${finalTwitterHandle}`,
+						{
+							headers: {
+								"User-Agent": "xpump-frontend/1.0"
+							}
+						}
+					)
+
+					if (fxtwitterResponse.ok) {
+						const fxtwitterData = await fxtwitterResponse.json()
+						if (fxtwitterData.code === 200 && fxtwitterData.user) {
+							followerCount = fxtwitterData.user.followers || 0
+						}
+					}
+				} catch (error) {
+					console.error("Error fetching Twitter data from fxtwitter:", error)
+				}
 			}
 		}
 
