@@ -46,7 +46,7 @@ export async function GET(
 				console.error("Error fetching fxTwitter data:", error);
 			}
 
-			// format the follower count with suffix
+			// Format the follower count with suffix
 			const formatFollowerCount = (num: number): string => {
 				if (num === 0) return "0";
 				if (num < 1000) return num.toString();
