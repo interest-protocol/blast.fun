@@ -79,10 +79,10 @@ export async function GET(request: NextRequest) {
 		
 		if (category === "new") {
 			// Filter for tokens with bondingCurve < 50
-			filteredPools = allPools.filter(pool => pool.bondingCurve < 50)
+			filteredPools = allPools.filter((pool: any) => pool.bondingCurve < 50)
 		} else if (category === "graduated") {
 			// Filter out test creator addresses
-			filteredPools = allPools.filter(pool => 
+			filteredPools = allPools.filter((pool: any) => 
 				!testCreatorAddresses.includes(pool.creatorAddress)
 			)
 		}
@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
 		const paginatedPools = filteredPools
 
 		const processedPools = await Promise.all(
-			paginatedPools.map(async (pool) => {
+			paginatedPools.map(async (pool: any) => {
 				const processedPool: any = {
 					...pool,
 					isProtected: !!pool.publicKey,
