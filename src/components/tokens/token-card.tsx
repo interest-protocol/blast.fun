@@ -42,7 +42,7 @@ export const TokenCard = memo(function TokenCard({
 	].filter((link) => link.href)
 
 	return (
-		<Link href={`/meme/${pool.poolId}`} className="cursor-default">
+		<Link href={`/token/${pool.poolId}`} className="cursor-default">
 			<div className="relative border-b border-border/40 group hover:bg-accent/15 transition-all duration-300 overflow-hidden">
 				{/* Content */}
 				<div className="relative p-3 sm:p-2">

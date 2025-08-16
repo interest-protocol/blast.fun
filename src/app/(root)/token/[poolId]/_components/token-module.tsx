@@ -6,6 +6,8 @@ import type { PoolWithMetadata } from "@/types/pool"
 import { TokenHeader } from "./token-header"
 import { CreatorDetails } from "./creator-details"
 import { TokenTabs } from "./token-tabs"
+import { TradeTerminal } from "./trade-terminal"
+import { ReferralShare } from "./referral-share"
 import { NexaChart } from "@/components/shared/nexa-chart"
 import {
 	ResizablePanelGroup,
@@ -79,15 +81,11 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 				</ResizablePanelGroup>
 			</div>
 
+			{/* Right-side column */}
 			<div className="w-[400px] border-l flex flex-col h-full">
 				<CreatorDetails pool={pool} />
-
-				{/* TradeTerminal, BondingProgressBar, etc. will go here */}
-				<div className="p-4">
-					<p className="font-mono text-xs uppercase text-muted-foreground">
-						Trade terminal coming soon...
-					</p>
-				</div>
+				<TradeTerminal pool={pool} referral={referral} />
+				<ReferralShare pool={pool} />
 			</div>
 		</div>
 	)
