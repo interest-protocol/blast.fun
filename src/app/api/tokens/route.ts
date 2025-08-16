@@ -83,10 +83,10 @@ export async function GET(request: NextRequest) {
 				let filteredPools = fetchedPools
 				switch (category) {
 					case "graduating":
-						filteredPools = fetchedPools.filter(p => !p.migrated && parseFloat(p.bondingCurve) >= 50)
+						filteredPools = fetchedPools.filter((p: any) => !p.migrated && parseFloat(p.bondingCurve) >= 50)
 						break
 					case "graduated":
-						filteredPools = fetchedPools.filter(p => p.migrated === true)
+						filteredPools = fetchedPools.filter((p: any) => p.migrated === true)
 						break
 				}
 
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
 				// Stop conditions
 				if (category === "graduating") {
 					// For graduating, stop if we have enough OR if there are no more pools with bondingCurve >= 50
-					const hasHighBondingCurve = fetchedPools.some(p => !p.migrated && parseFloat(p.bondingCurve) >= 50)
+					const hasHighBondingCurve = fetchedPools.some((p: any) => !p.migrated && parseFloat(p.bondingCurve) >= 50)
 					shouldContinue = allPools.length < pageSize && hasHighBondingCurve && (currentPage * batchSize) < totalPoolsCount
 				} else {
 					// For graduated, stop if we have enough pools or reached the end

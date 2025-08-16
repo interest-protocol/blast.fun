@@ -1,7 +1,7 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Upload, Shield, Users, DollarSign, ShieldCheck, UserX, XIcon } from "lucide-react"
+import { Upload, Shield, Users, DollarSign, ShieldCheck, UserX, XIcon, Wallet } from "lucide-react"
 import { useCallback, useEffect, useState, useMemo } from "react"
 import { useForm } from "react-hook-form"
 import toast from "react-hot-toast"
@@ -15,6 +15,7 @@ import { cn } from "@/utils"
 import TokenCreationButton from "./create-token-button"
 import { getBase64 } from "../launch.utils"
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible"
+import useBalance from "@/hooks/sui/use-balance"
 
 const tokenSchema = z.object({
 	name: z.string().min(3, "Minimum 3 characters").max(20, "Maximum 20 characters"),
@@ -44,6 +45,10 @@ const tokenSchema = z.object({
 		(val) => !val || (Number(val) >= 0.1 && Number(val) <= 100),
 		"Must be between 0.1% and 100%"
 	),
+	devBuyAmount: z.string().optional().refine(
+		(val) => !val || Number(val) >= 0,
+		"Must be a positive number"
+	),
 })
 
 export type TokenFormValues = z.infer<typeof tokenSchema>
@@ -55,6 +60,7 @@ interface CreateTokenFormProps {
 export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) {
 	const [isDragging, setIsDragging] = useState(false)
 	const [showProtectionSettings, setShowProtectionSettings] = useState(false)
+	const { balance } = useBalance({ autoRefetch: true, autoRefetchInterval: 5000 })
 
 	const form = useForm<TokenFormValues>({
 		resolver: zodResolver(tokenSchema),
@@ -70,6 +76,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 			sniperProtection: false,
 			requireTwitter: false,
 			maxHoldingPercent: "",
+			devBuyAmount: "",
 		},
 		mode: "onBlur",
 	})
@@ -82,6 +89,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 	const sniperProtection = form.watch("sniperProtection")
 	const requireTwitter = form.watch("requireTwitter")
 	const maxHoldingPercent = form.watch("maxHoldingPercent")
+	const devBuyAmount = form.watch("devBuyAmount")
 
 	const formData = useMemo(() => ({
 		imageUrl,
@@ -91,7 +99,8 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 		sniperProtection,
 		requireTwitter,
 		maxHoldingPercent,
-	}), [imageUrl, tokenName, tokenSymbol, hideIdentity, sniperProtection, requireTwitter, maxHoldingPercent])
+		devBuyAmount,
+	}), [imageUrl, tokenName, tokenSymbol, hideIdentity, sniperProtection, requireTwitter, maxHoldingPercent, devBuyAmount])
 
 	useEffect(() => {
 		if (onFormChange) {
@@ -346,6 +355,53 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 							/>
 						</div>
 					</div>
+
+					{/* Dev Buy Amount */}
+					<FormField
+						control={form.control}
+						name="devBuyAmount"
+						render={({ field }) => (
+							<FormItem className="rounded-lg border-2 border-dashed p-4 bg-background/50">
+								<div className="space-y-3">
+									<div className="flex items-center justify-between">
+										<FormLabel className="font-mono text-sm uppercase tracking-wider flex items-center gap-2">
+											<Wallet className="h-4 w-4 text-primary" />
+											DEV BUY AMOUNT
+										</FormLabel>
+										{balance && (
+											<span className="font-mono text-xs text-muted-foreground">
+												BALANCE: {balance} SUI
+											</span>
+										)}
+									</div>
+									<FormControl>
+										<div className="relative">
+											<Input
+												placeholder="0.00"
+												className="font-mono text-sm pr-12 focus:border-primary/50"
+												type="number"
+												step="0.01"
+												min="0"
+												{...field}
+											/>
+											<span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono text-sm text-muted-foreground">
+												SUI
+											</span>
+										</div>
+									</FormControl>
+									<FormDescription className="font-mono text-xs uppercase text-muted-foreground">
+										AMOUNT_OF_SUI_FOR_INITIAL_BUY
+									</FormDescription>
+									{devBuyAmount && balance && Number(devBuyAmount) > Number(balance) && (
+										<p className="font-mono text-xs text-destructive uppercase">
+											INSUFFICIENT::BALANCE
+										</p>
+									)}
+									<FormMessage className="font-mono text-xs" />
+								</div>
+							</FormItem>
+						)}
+					/>
 
 					{/* Hide Identity */}
 					<FormField
