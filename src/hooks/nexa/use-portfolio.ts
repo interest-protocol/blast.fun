@@ -14,7 +14,7 @@ export function usePortfolio(coinType?: string) {
 			return fetchPortfolio(account.address)
 		},
 		enabled: !!account?.address,
-		refetchInterval: 3000,
+		refetchInterval: 8000,
 		gcTime: 0,
 	})
 
