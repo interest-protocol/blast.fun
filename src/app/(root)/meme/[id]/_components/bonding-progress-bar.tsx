@@ -15,7 +15,7 @@ export function BondingProgressBar({ pool }: BondingProgressBarProps) {
         queryKey: ["bonding-progress", pool.poolId],
         queryFn: () => fetchTokenWithMetadata(pool.poolId),
         enabled: !!pool.poolId && !pool.migrated,
-        refetchInterval: 3000,
+        refetchInterval: 8000,
         initialData: pool,
     })
 
