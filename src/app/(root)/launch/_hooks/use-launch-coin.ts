@@ -1,5 +1,5 @@
 import { CONFIG_KEYS, MIGRATOR_WITNESSES } from "@interest-protocol/memez-fun-sdk"
-import { Transaction } from "@mysten/sui/transactions"
+import { coinWithBalance, Transaction } from "@mysten/sui/transactions"
 import { formatAddress, formatDigest, normalizeSuiAddress, SUI_TYPE_ARG } from "@mysten/sui/utils"
 import { useState } from "react"
 import { BASE_LIQUIDITY_PROVISION, COIN_CONVENTION_BLACKLIST, TARGET_QUOTE_LIQUIDITY, TOTAL_POOL_SUPPLY, VIRTUAL_LIQUIDITY } from "@/constants"
@@ -143,6 +143,11 @@ export function useLaunchCoin() {
 		// should pool be protected based on sniper protection toggle
 		const isProtected = formValues.sniperProtection
 
+		const firstPurchase = formValues.devBuyAmount ? coinWithBalance({
+			balance: BigInt(formValues.devBuyAmount || 0) * BigInt(10 ** 9),
+			type: '0x2::sui::SUI',
+		}) : undefined
+
 		const { tx, metadataCap } = await pumpSdk.newPool({
 			configurationKey: configKey,
 			metadata,
@@ -156,6 +161,7 @@ export function useLaunchCoin() {
 			virtualLiquidity: VIRTUAL_LIQUIDITY,
 			targetQuoteLiquidity: TARGET_QUOTE_LIQUIDITY,
 			liquidityProvision: BASE_LIQUIDITY_PROVISION,
+			firstPurchase,
 		})
 
 		if (metadataCap) {
