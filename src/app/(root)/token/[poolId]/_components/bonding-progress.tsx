@@ -1,13 +1,24 @@
 "use client"
 
 import type { PoolWithMetadata } from "@/types/pool"
+import { useQuery } from "@tanstack/react-query"
+import { fetchTokenWithMetadata } from "@/lib/pump/fetch-token"
 
 interface BondingProgressProps {
 	pool: PoolWithMetadata
 }
 
 export function BondingProgress({ pool }: BondingProgressProps) {
-	const progress = typeof pool.bondingCurve === "number" ? pool.bondingCurve : parseFloat(pool.bondingCurve) || 0
+	const { data: updatedPool } = useQuery({
+		queryKey: ["bonding-progress", pool.poolId],
+		queryFn: () => fetchTokenWithMetadata(pool.poolId),
+		enabled: !!pool.poolId && !pool.migrated,
+		refetchInterval: 3000,
+		initialData: pool,
+	})
+
+	const currentPool = updatedPool || pool
+	const progress = typeof currentPool.bondingCurve === "number" ? currentPool.bondingCurve : parseFloat(currentPool.bondingCurve) || 0
 
 	return (
 		<div className="relative border-b border-border">
