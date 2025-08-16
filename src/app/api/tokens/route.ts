@@ -16,70 +16,106 @@ export async function GET(request: NextRequest) {
 		const sortField = searchParams.get("sortField") || "createdAt"
 		const sortDirection = searchParams.get("sortDirection") || "DESC"
 
-		const { data } = await apolloClient.query({
-			query: GET_POOLS,
-			variables: {
-				page: 1,
-				pageSize: 100
-			},
-			context: {
-				headers: {
-					"config-key": CONFIG_KEYS.mainnet.XPUMP
+		let allPools: any[] = []
+		let totalPoolsCount = 0
+
+		// For "new" category, just fetch once with the requested pageSize
+		// For "graduating" and "graduated", fetch multiple pages until we have enough
+		if (category === "new" || !category) {
+			const { data } = await apolloClient.query({
+				query: GET_POOLS,
+				variables: {
+					page: page,
+					pageSize: pageSize,
+					sortField: sortField,
+					sortDirection: sortDirection
+				},
+				context: {
+					headers: {
+						"config-key": CONFIG_KEYS.mainnet.XPUMP
+					}
+				},
+				fetchPolicy: "network-only"
+			})
+
+			if (!data?.pools?.pools) {
+				throw new Error("No pools data received")
+			}
+
+			allPools = data.pools.pools
+			totalPoolsCount = data.pools.total
+
+			// Filter for "new" category if specified
+			if (category === "new") {
+				allPools = allPools.filter(p => !p.migrated && parseFloat(p.bondingCurve) < 50)
+			}
+		} else {
+			// For "graduating" and "graduated", fetch multiple pages
+			let currentPage = 1
+			const batchSize = 100 // Fetch 100 at a time from GraphQL
+			let shouldContinue = true
+
+			while (shouldContinue) {
+				const { data } = await apolloClient.query({
+					query: GET_POOLS,
+					variables: {
+						page: currentPage,
+						pageSize: batchSize,
+						sortField: sortField,
+						sortDirection: sortDirection
+					},
+					context: {
+						headers: {
+							"config-key": CONFIG_KEYS.mainnet.XPUMP
+						}
+					},
+					fetchPolicy: "network-only"
+				})
+
+				if (!data?.pools?.pools) {
+					break
 				}
-			},
-			fetchPolicy: "network-only"
-		})
 
-		if (!data?.pools?.pools) {
-			throw new Error("No pools data received")
-		}
+				const fetchedPools = data.pools.pools
+				totalPoolsCount = data.pools.total
 
-		let pools = [...data.pools.pools]
+				// Filter pools based on category
+				let filteredPools = fetchedPools
+				switch (category) {
+					case "graduating":
+						filteredPools = fetchedPools.filter((p: any) => !p.migrated && parseFloat(p.bondingCurve) >= 50)
+						break
+					case "graduated":
+						filteredPools = fetchedPools.filter((p: any) => p.migrated === true)
+						break
+				}
 
-		if (category) {
-			switch (category) {
-				case "new":
-					pools = pools.filter(p => !p.migrated && parseFloat(p.bondingCurve) < 50)
+				allPools = [...allPools, ...filteredPools]
+
+				// Stop conditions
+				if (category === "graduating") {
+					// For graduating, stop if we have enough OR if there are no more pools with bondingCurve >= 50
+					const hasHighBondingCurve = fetchedPools.some((p: any) => !p.migrated && parseFloat(p.bondingCurve) >= 50)
+					shouldContinue = allPools.length < pageSize && hasHighBondingCurve && (currentPage * batchSize) < totalPoolsCount
+				} else {
+					// For graduated, stop if we have enough pools or reached the end
+					shouldContinue = allPools.length < pageSize && (currentPage * batchSize) < totalPoolsCount
+				}
+
+				currentPage++
+
+				// Safety limit to prevent infinite loops
+				if (currentPage > 10) {
 					break
-				case "graduating":
-					pools = pools.filter(p => !p.migrated && parseFloat(p.bondingCurve) >= 50)
-					break
-				case "graduated":
-					pools = pools.filter(p => p.migrated === true)
-					break
+				}
 			}
 		}
 
-		pools.sort((a, b) => {
-			let aValue: any, bValue: any
-
-			switch (sortField) {
-				case "bondingCurve":
-					aValue = parseFloat(a.bondingCurve) || 0
-					bValue = parseFloat(b.bondingCurve) || 0
-					break
-				case "createdAt":
-					aValue = typeof a.createdAt === "string" ? parseInt(a.createdAt) : a.createdAt || 0
-					bValue = typeof b.createdAt === "string" ? parseInt(b.createdAt) : b.createdAt || 0
-					break
-				case "lastTradeAt":
-					aValue = typeof a.lastTradeAt === "string" ? parseInt(a.lastTradeAt) : a.lastTradeAt || 0
-					bValue = typeof b.lastTradeAt === "string" ? parseInt(b.lastTradeAt) : b.lastTradeAt || 0
-					break
-				case "quoteBalance":
-					aValue = parseFloat(a.quoteBalance) || 0
-					bValue = parseFloat(b.quoteBalance) || 0
-					break
-				default:
-					aValue = a[sortField] || 0
-					bValue = b[sortField] || 0
-			}
-
-			return sortDirection === "DESC" ? bValue - aValue : aValue - bValue
-		})
-
-		const startIndex = (page - 1) * pageSize
-		const paginatedPools = pools.slice(startIndex, startIndex + pageSize)
+		// For "new" and no category, use the fetched pools directly
+		// For "graduating" and "graduated", slice the accumulated pools
+		const paginatedPools = category === "new" || !category 
+			? allPools 
+			: allPools.slice(0, pageSize)
 
 		const processedPools = await Promise.all(
 			paginatedPools.map(async (pool) => {
@@ -228,12 +264,13 @@ export async function GET(request: NextRequest) {
 
 		return NextResponse.json({
 			pools: processedPools,
-			total: pools.length,
+			total: allPools.length,
 			page,
 			pageSize
 		})
-	} catch (error) {
+	} catch (error: any) {
 		console.error("Error fetching tokens:", error)
+		console.log(error)
 		return NextResponse.json(
 			{ error: "Failed to fetch tokens" },
 			{ status: 500 }
