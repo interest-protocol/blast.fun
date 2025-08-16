@@ -16,6 +16,7 @@ import {
 	ResizableHandle,
 } from "@/components/ui/resizable"
 import { useBreakpoint } from "@/hooks/use-breakpoint"
+import { TOTAL_POOL_SUPPLY, DEFAULT_TOKEN_DECIMALS } from "@/constants"
 
 interface TokenModuleProps {
 	pool: PoolWithMetadata
@@ -24,6 +25,7 @@ interface TokenModuleProps {
 
 export function TokenModule({ pool, referral }: TokenModuleProps) {
 	const [price, setPrice] = useState<number | null>(pool.marketData?.coinPrice || null)
+	const [marketCap, setMarketCap] = useState<number | null>(pool.marketData?.marketCap || null)
 	const { isMobile } = useBreakpoint()
 
 	useEffect(() => {
@@ -36,21 +38,29 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 		tokenPriceSocket.subscribeToTokenPrice(
 			subscriptionId,
 			'direct',
-			(data: any) => {
-				setPrice(data.price * data.suiPrice)
+			(data: { price: number; suiPrice: number }) => {
+				const newPrice = data.price * data.suiPrice
+				setPrice(newPrice)
+				
+				// Calculate market cap dynamically
+				// Use the decimals from coin metadata if available, otherwise use default
+				const decimals = pool.coinMetadata?.decimals || DEFAULT_TOKEN_DECIMALS
+				const totalSupply = Number(TOTAL_POOL_SUPPLY) / Math.pow(10, decimals)
+				const calculatedMarketCap = newPrice * totalSupply
+				setMarketCap(calculatedMarketCap)
 			}
 		)
 
 		return () => {
 			tokenPriceSocket.unsubscribeFromTokenPrice(subscriptionId, 'direct')
 		}
-	}, [pool.innerState, pool.mostLiquidPoolId, pool.migrated])
+	}, [pool.innerState, pool.mostLiquidPoolId, pool.migrated, pool.coinMetadata?.decimals])
 
 	// TODO: Add mobile view later
 	if (isMobile) {
 		return (
 			<div className="w-full h-full flex flex-col">
-				<TokenHeader pool={pool} realtimePrice={price} />
+				<TokenHeader pool={pool} realtimePrice={price} realtimeMarketCap={marketCap} />
 				<div className="flex-1 p-4">
 					<p className="font-mono text-xs uppercase text-muted-foreground">
 						Mobile view coming soon...
@@ -63,7 +73,7 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 	return (
 		<div className="w-full h-full flex">
 			<div className="flex-1 flex flex-col">
-				<TokenHeader pool={pool} realtimePrice={price} />
+				<TokenHeader pool={pool} realtimePrice={price} realtimeMarketCap={marketCap} />
 
 				{/* Chart and Tabs */}
 				<ResizablePanelGroup
