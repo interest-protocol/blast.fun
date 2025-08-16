@@ -1,8 +1,8 @@
 import { gql } from "@apollo/client"
 
 export const GET_POOLS = gql`
-	query GetPools($page: Int!, $pageSize: Int!) {
-    	pools(page: $page, pageSize: $pageSize) {
+	query GetPools($page: Int!, $pageSize: Int!, $sortField: PoolsSortByFields!, $sortDirection: SortByDirection) {
+    	pools(page: $page, pageSize: $pageSize, sortBy: { field: $sortField, direction: $sortDirection }) {
       		pools {
 				poolId
 				bondingCurve
