@@ -31,7 +31,8 @@ export const TokenCard = memo(function TokenCard({
 	const volume24h = marketData?.coin24hTradeVolumeUsd || 0
 
 	const creatorWallet = pool.creatorAddress
-	const creatorTwitterName = pool.metadata?.CreatorTwitterName || pool.metadata?.creatorTwitter
+	const creatorTwitterName = pool.metadata?.CreatorTwitterName
+	const creatorTwitterId = pool.metadata?.CreatorTwitterId
 
 	// social links from metadata
 	const metadata = pool.metadata || {}
@@ -224,6 +225,7 @@ export const TokenCard = memo(function TokenCard({
 											<span>
 												<CreatorDisplay
 													walletAddress={creatorWallet}
+													twitterId={creatorTwitterId}
 													twitterHandle={creatorTwitterName}
 													className="text-foreground/70 hover:text-foreground transition-colors text-left"
 												/>
