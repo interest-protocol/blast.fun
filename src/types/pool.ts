@@ -21,6 +21,8 @@ export type Pool = {
 	updatedAt: string
 	isProtected?: boolean
 	publicKey?: string
+	innerState?: string
+	mostLiquidPoolId?: string
 }
 
 export type CoinMetadata = {
@@ -48,7 +50,15 @@ export type CoinMetadata = {
 
 import type { MarketData } from "./market"
 
+export type CreatorData = {
+	launchCount: number
+	trustedFollowers: string
+	followers: string
+	twitterHandle?: string | null
+}
+
 export type PoolWithMetadata = Pool & {
 	coinMetadata?: CoinMetadata
 	marketData?: MarketData
+	creatorData?: CreatorData
 }

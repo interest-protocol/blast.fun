@@ -29,7 +29,6 @@ export const TokenCard = memo(function TokenCard({
 	const liquidity = marketData?.totalLiquidityUsd || marketData?.liqUsd || 0
 	const holdersCount = marketData?.holdersCount || 0
 	const volume24h = marketData?.coin24hTradeVolumeUsd || 0
-	const isHoneypot = marketData?.isCoinHoneyPot || false
 
 	const creatorWallet = pool.creatorAddress
 	const creatorTwitterName = pool.metadata?.CreatorTwitterName || pool.metadata?.creatorTwitter
@@ -43,7 +42,7 @@ export const TokenCard = memo(function TokenCard({
 	].filter((link) => link.href)
 
 	return (
-		<Link href={`/meme/${pool.poolId}`} className="cursor-default">
+		<Link href={`/token/${pool.poolId}`} className="cursor-default">
 			<div className="relative border-b border-border/40 group hover:bg-accent/15 transition-all duration-300 overflow-hidden">
 				{/* Content */}
 				<div className="relative p-3 sm:p-2">
@@ -183,6 +182,7 @@ export const TokenCard = memo(function TokenCard({
 										<CreatorHoverCard
 											walletAddress={creatorWallet}
 											twitterHandle={creatorTwitterName}
+											creatorData={pool.creatorData}
 										>
 											<span>
 												<CreatorDisplay
@@ -241,6 +241,7 @@ export const TokenCard = memo(function TokenCard({
 		prevProps.pool.coinType === nextProps.pool.coinType &&
 		JSON.stringify(prevProps.pool.marketData) === JSON.stringify(nextProps.pool.marketData) &&
 		JSON.stringify(prevProps.pool.metadata) === JSON.stringify(nextProps.pool.metadata) &&
-		JSON.stringify(prevProps.pool.coinMetadata) === JSON.stringify(nextProps.pool.coinMetadata)
+		JSON.stringify(prevProps.pool.coinMetadata) === JSON.stringify(nextProps.pool.coinMetadata) &&
+		JSON.stringify(prevProps.pool.creatorData) === JSON.stringify(nextProps.pool.creatorData)
 	)
 })

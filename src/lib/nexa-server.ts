@@ -43,7 +43,7 @@ class NexaServerClient {
 
 	async getMarketData(coinType: string): Promise<MarketData> {
 		const response = await this.fetch(`/coins/${coinType}/market-data`, {
-			revalidate: 300, // 5 minutes
+			revalidate: 120, // 2 minutes
 		})
 
 		return await response.json() as MarketData
@@ -55,24 +55,6 @@ class NexaServerClient {
 		})
 
 		return await response.json() as CoinMetadata
-	}
-
-	async getBatchMarketData(coinTypes: string[]): Promise<Record<string, MarketData>> {
-		const coinTypesString = coinTypes.join(',')
-		const response = await this.fetch(`/coins/multiple/market-data?coins=${encodeURIComponent(coinTypesString)}`, {
-			revalidate: 300, // 5 minutes
-		})
-
-		return await response.json()
-	}
-
-	async getBatchCoinMetadata(coinTypes: string[]): Promise<Record<string, CoinMetadata>> {
-		const coinTypesString = coinTypes.join(',')
-		const response = await this.fetch(`/coins/multiple/coin-metadata?coins=${encodeURIComponent(coinTypesString)}`, {
-			revalidate: 43200, // 12 hours
-		})
-
-		return await response.json()
 	}
 }
 

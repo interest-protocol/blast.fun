@@ -1,8 +1,7 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Upload, Shield, Users, DollarSign, ShieldCheck, UserX } from "lucide-react"
-import { BsTwitterX } from "react-icons/bs";
+import { Upload, Shield, Users, DollarSign, ShieldCheck, UserX, XIcon } from "lucide-react"
 import { useCallback, useEffect, useState, useMemo } from "react"
 import { useForm } from "react-hook-form"
 import toast from "react-hot-toast"
@@ -179,7 +178,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 														className="absolute -top-2 -right-2 h-6 w-6 rounded-full shadow-lg"
 														onClick={() => form.setValue("imageUrl", "")}
 													>
-														<BsTwitterX className="h-3 w-3" />
+														<XIcon className="h-3 w-3" />
 													</Button>
 												</>
 											) : (

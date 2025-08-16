@@ -17,10 +17,19 @@ export const GET_POOLS = gql`
 				nsfw
 				lastTradeAt
 				publicKey
+				innerState
       		}
 			total
     	}
   	}
+`
+
+export const GET_POOL_BY_COIN_TYPE = gql`
+	query GetPoolByCoinType($type: String!) {
+		coinPool(type: $type) {
+			poolId
+		}
+	}
 `
 
 export const GET_POOL = gql`
@@ -47,14 +56,7 @@ export const GET_POOL = gql`
 			config
 			updatedAt
 			publicKey
-		}
-	}
-`
-
-export const GET_POOL_BY_COIN_TYPE = gql`
-	query GetPoolByCoinType($coinType: String!) {
-		coinPool(type: $coinType) {
-			poolId
+			innerState
 		}
 	}
 `

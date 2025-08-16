@@ -1,7 +1,7 @@
 import { MarketData } from "@/types/market"
 import { CoinMetadata } from "@/types/pool"
 
-const NEXA_API_BASE = "https://api.nexa.xyz"
+const NEXA_API_BASE = "https://api-v2.nexa.xyz"
 
 interface NexaRequestOptions extends RequestInit {
 	cache?: RequestCache
@@ -90,6 +90,16 @@ class NexaClient {
 	async getPortfolio(address: string, minBalanceValue = 0) {
 		const response = await this.fetch(`/spot/portfolio/${address}?minBalanceValue=${minBalanceValue}`, {
 			revalidate: 30,
+		})
+
+		return await response.json()
+	}
+
+	async searchTokens(query: string) {
+		const url = `/search/query/${encodeURIComponent(query)}?platform=xpump`
+		
+		const response = await this.fetch(url, {
+			revalidate: false,
 		})
 
 		return await response.json()

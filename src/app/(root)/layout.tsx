@@ -15,7 +15,7 @@ export default function Layout({
 	const pathname = usePathname()
 	const { isMobile, width } = useBreakpoint()
 
-	const isTokenPage = pathname.startsWith("/meme/")
+	const isTokenPage = pathname.startsWith("/meme/") || pathname.startsWith('/token/')
 	const isHomePage = pathname === "/"
 
 	// during initial load (width === 0), default to desktop behavior for padding

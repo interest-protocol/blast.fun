@@ -4,6 +4,7 @@ import { GET_POOLS } from "@/graphql/pools"
 import { CONFIG_KEYS } from "@interest-protocol/memez-fun-sdk"
 import { redisGet, redisSetEx, CACHE_PREFIX, CACHE_TTL } from "@/lib/redis/client"
 import { nexaServerClient } from "@/lib/nexa-server"
+import { fetchCreatorData } from "@/lib/fetch-creator-data"
 
 export async function GET(request: NextRequest) {
 	try {
@@ -87,18 +88,26 @@ export async function GET(request: NextRequest) {
 					isProtected: !!pool.publicKey,
 				}
 
-				// rry to get cached market data and metadata separately
-				const marketCacheKey = `${CACHE_PREFIX.MARKET_DATA}${pool.coinType}`
-				const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.coinType}`
+				// try to get cached market data, metadata, and creator data
+				const marketCacheKey = `${CACHE_PREFIX.MARKET_DATA}${pool.poolId}`
+				const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.poolId}`
+				const creatorCacheKey = `${CACHE_PREFIX.CREATOR_DATA}${pool.creatorAddress}`
 
-				const [cachedMarketData, cachedMetadata] = await Promise.all([
+				const [cachedMarketData, cachedMetadata, cachedCreatorData] = await Promise.all([
 					redisGet(marketCacheKey),
-					redisGet(metadataCacheKey)
+					redisGet(metadataCacheKey),
+					redisGet(creatorCacheKey)
 				])
 
 				if (cachedMarketData) {
 					try {
-						processedPool.marketData = JSON.parse(cachedMarketData)
+						const parsedMarketData = JSON.parse(cachedMarketData)
+						processedPool.marketData = parsedMarketData
+
+						// use cached mostLiquidPoolId if available
+						if (parsedMarketData.mostLiquidPoolId) {
+							processedPool.mostLiquidPoolId = parsedMarketData.mostLiquidPoolId
+						}
 					} catch (error) {
 						console.error(`Failed to parse cached market data for ${pool.coinType}:`, error)
 					}
@@ -112,6 +121,14 @@ export async function GET(request: NextRequest) {
 					}
 				}
 
+				if (cachedCreatorData) {
+					try {
+						processedPool.creatorData = JSON.parse(cachedCreatorData)
+					} catch (error) {
+						console.error(`Failed to parse cached creator data for ${pool.creatorAddress}:`, error)
+					}
+				}
+
 				// if no cached data, fetch from nexa
 				if (!processedPool.marketData) {
 					try {
@@ -120,17 +137,36 @@ export async function GET(request: NextRequest) {
 						// extract coinMetadata for separate caching
 						const { coinMetadata, ...restMarketData } = marketData
 
+						// find the most liquid pool if migrated
+						if (pool.migrated && restMarketData.pools && Array.isArray(restMarketData.pools)) {
+							let mostLiquidPool = null
+							let highestLiquidity = 0
+
+							for (const p of restMarketData.pools) {
+								if (p.liqUsd && p.liqUsd > highestLiquidity) {
+									highestLiquidity = p.liqUsd
+									mostLiquidPool = p
+								}
+							}
+
+							if (mostLiquidPool && mostLiquidPool.pool) {
+								processedPool.mostLiquidPoolId = mostLiquidPool.pool
+							}
+						}
+
 						// trim market data to only what we need
 						const trimmedMarketData = {
 							coinPrice: restMarketData.coinPrice,
+							suiPrice: restMarketData.suiPrice,
 							isCoinHoneyPot: restMarketData.isCoinHoneyPot,
 							totalLiquidityUsd: restMarketData.totalLiquidityUsd,
-							liqUsd: restMarketData.totalLiquidityUsd, // Map for backward compatibility
+							liqUsd: restMarketData.totalLiquidityUsd,
 							marketCap: restMarketData.marketCap,
 							coin24hTradeCount: restMarketData.coin24hTradeCount,
 							coin24hTradeVolumeUsd: restMarketData.coin24hTradeVolumeUsd,
 							price1DayAgo: restMarketData.price1DayAgo,
-							holdersCount: restMarketData.holdersCount
+							holdersCount: restMarketData.holdersCount,
+							mostLiquidPoolId: processedPool.mostLiquidPoolId
 						}
 
 						processedPool.marketData = trimmedMarketData
@@ -145,7 +181,7 @@ export async function GET(request: NextRequest) {
 
 						// cache coinMetadata separately with longer TTL
 						if (coinMetadata) {
-							const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.coinType}`
+							const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.poolId}`
 							await redisSetEx(
 								metadataCacheKey,
 								CACHE_TTL.COIN_METADATA,
@@ -156,15 +192,33 @@ export async function GET(request: NextRequest) {
 						console.error(`Failed to fetch market data for ${pool.coinType}:`, error)
 
 						// try to get just cached metadata if market data fails
-						const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.coinType}`
+						const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.poolId}`
 						const cachedMetadata = await redisGet(metadataCacheKey)
 						if (cachedMetadata) {
 							try {
 								processedPool.coinMetadata = JSON.parse(cachedMetadata)
 							} catch (e) {
-								console.error(`Failed to parse cached metadata for ${pool.coinType}:`, e)
+								console.error(`Failed to parse cached metadata for pool ${pool.poolId}:`, e)
 							}
 						}
+					}
+				}
+
+				// fetch creator data if not cached
+				if (!processedPool.creatorData) {
+					try {
+						const hideIdentity = pool.metadata?.hideIdentity || false
+						const twitterHandle = pool.metadata?.CreatorTwitterName ||
+							pool.metadata?.creatorTwitter ||
+							null
+
+						processedPool.creatorData = await fetchCreatorData(
+							pool.creatorAddress,
+							twitterHandle,
+							hideIdentity
+						)
+					} catch (error) {
+						console.error(`Failed to fetch creator data for ${pool.creatorAddress}:`, error)
 					}
 				}
 
