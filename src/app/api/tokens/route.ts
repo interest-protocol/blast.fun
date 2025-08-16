@@ -180,7 +180,7 @@ export async function GET(request: NextRequest) {
 
 						// cache coinMetadata separately with longer TTL
 						if (coinMetadata) {
-							const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.coinType}`
+							const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.poolId}`
 							await redisSetEx(
 								metadataCacheKey,
 								CACHE_TTL.COIN_METADATA,
@@ -191,13 +191,13 @@ export async function GET(request: NextRequest) {
 						console.error(`Failed to fetch market data for ${pool.coinType}:`, error)
 
 						// try to get just cached metadata if market data fails
-						const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.coinType}`
+						const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.poolId}`
 						const cachedMetadata = await redisGet(metadataCacheKey)
 						if (cachedMetadata) {
 							try {
 								processedPool.coinMetadata = JSON.parse(cachedMetadata)
 							} catch (e) {
-								console.error(`Failed to parse cached metadata for ${pool.coinType}:`, e)
+								console.error(`Failed to parse cached metadata for pool ${pool.poolId}:`, e)
 							}
 						}
 					}
