@@ -24,7 +24,7 @@ class TokenPriceSocket {
     public subscribeToTokenPrice(
         pool: string,
         direction: string,
-        callback: (price: number) => void
+        callback: (data: { price: number; suiPrice: number }) => void
     ) {
         this.socket.emit('subscribe-price', {
             pool,

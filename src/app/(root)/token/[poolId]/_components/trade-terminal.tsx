@@ -70,73 +70,92 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	// state for quote from bonding curve
 	const [quote, setQuote] = useState<{ memeAmountOut?: bigint; suiAmountOut?: bigint; coinAmountOut?: bigint } | null>(null)
 	const [isLoadingQuote, setIsLoadingQuote] = useState(false)
+	const [isRefreshingQuote, setIsRefreshingQuote] = useState(false)
 
-	useEffect(() => {
-		const fetchQuote = async () => {
-			if (!amount || parseFloat(amount) === 0 || !pool.poolId) {
-				setQuote(null)
-				return
-			}
-
-			setIsLoadingQuote(true)
-			try {
-				const isMigrated = pool.migrated === true
-
-				if (tradeType === "buy") {
-					// convert SUI amount to MIST for the quote
-					const amountBN = new BigNumber(amount)
-					const mistPerSuiBN = new BigNumber(MIST_PER_SUI.toString())
-					const amountInMist = BigInt(amountBN.multipliedBy(mistPerSuiBN).integerValue(BigNumber.ROUND_DOWN).toString())
-
-					if (isMigrated) {
-						const quoteResult = await getBuyQuote(pool.coinType, amountInMist, slippage)
-						setQuote({
-							memeAmountOut: quoteResult.amountOut,
-							suiAmountOut: amountInMist, // Amount being spent
-							coinAmountOut: quoteResult.amountOut // Tokens received
-						})
-					} else {
-						const quoteResult = await pumpSdk.quotePump({
-							pool: pool.poolId,
-							amount: amountInMist,
-						})
-						setQuote(quoteResult)
-					}
-				} else {
-					// for sell, convert token amount to smallest unit
-					const amountBN = new BigNumber(amount)
-					const tokenInSmallestUnit = BigInt(amountBN.multipliedBy(Math.pow(10, decimals)).integerValue(BigNumber.ROUND_DOWN).toString())
-
-					if (isMigrated) {
-						const quoteResult = await getSellQuote(pool.coinType, tokenInSmallestUnit, slippage)
-						setQuote({
-							memeAmountOut: tokenInSmallestUnit,
-							suiAmountOut: quoteResult.amountOut,
-							coinAmountOut: quoteResult.amountOut
-						})
-					} else {
-						// use pump SDK for bonding curve tokens
-						const quoteResult = await pumpSdk.quoteDump({
-							pool: pool.poolId,
-							amount: tokenInSmallestUnit,
-						})
-						setQuote({
-							memeAmountOut: tokenInSmallestUnit,
-							suiAmountOut: quoteResult.quoteAmountOut,
-							coinAmountOut: quoteResult.quoteAmountOut
-						})
-					}
-				}
-			} catch (error) {
-				console.error("Failed to fetch quote:", error)
-				setQuote(null)
-			} finally {
-				setIsLoadingQuote(false)
-			}
+	const fetchQuote = async (isRefresh = false) => {
+		if (!amount || parseFloat(amount) === 0 || !pool.poolId) {
+			setQuote(null)
+			return
 		}
 
-		const timer = setTimeout(fetchQuote, 300)
+		if (isRefresh) {
+			setIsRefreshingQuote(true)
+		} else {
+			setIsLoadingQuote(true)
+		}
+
+		try {
+			const isMigrated = pool.migrated === true
+
+			if (tradeType === "buy") {
+				// convert SUI amount to MIST for the quote
+				const amountBN = new BigNumber(amount)
+				const mistPerSuiBN = new BigNumber(MIST_PER_SUI.toString())
+				const amountInMist = BigInt(amountBN.multipliedBy(mistPerSuiBN).integerValue(BigNumber.ROUND_DOWN).toString())
+
+				if (isMigrated) {
+					const quoteResult = await getBuyQuote(pool.coinType, amountInMist, slippage)
+					setQuote({
+						memeAmountOut: quoteResult.amountOut,
+						suiAmountOut: amountInMist, // Amount being spent
+						coinAmountOut: quoteResult.amountOut // Tokens received
+					})
+				} else {
+					const quoteResult = await pumpSdk.quotePump({
+						pool: pool.poolId,
+						amount: amountInMist,
+					})
+					setQuote(quoteResult)
+				}
+			} else {
+				// for sell, convert token amount to smallest unit
+				const amountBN = new BigNumber(amount)
+				const tokenInSmallestUnit = BigInt(amountBN.multipliedBy(Math.pow(10, decimals)).integerValue(BigNumber.ROUND_DOWN).toString())
+
+				if (isMigrated) {
+					const quoteResult = await getSellQuote(pool.coinType, tokenInSmallestUnit, slippage)
+					setQuote({
+						memeAmountOut: tokenInSmallestUnit,
+						suiAmountOut: quoteResult.amountOut,
+						coinAmountOut: quoteResult.amountOut
+					})
+				} else {
+					// use pump SDK for bonding curve tokens
+					const quoteResult = await pumpSdk.quoteDump({
+						pool: pool.poolId,
+						amount: tokenInSmallestUnit,
+					})
+					setQuote({
+						memeAmountOut: tokenInSmallestUnit,
+						suiAmountOut: quoteResult.quoteAmountOut,
+						coinAmountOut: quoteResult.quoteAmountOut
+					})
+				}
+			}
+		} catch (error) {
+			console.error("Failed to fetch quote:", error)
+			setQuote(null)
+		} finally {
+			setIsLoadingQuote(false)
+			setIsRefreshingQuote(false)
+		}
+	}
+
+	// initial quote fetch when amount changes
+	useEffect(() => {
+		const timer = setTimeout(() => fetchQuote(false), 300)
 		return () => clearTimeout(timer)
+	}, [amount, tradeType, pool.poolId, pool.coinType, pool.migrated, decimals, slippage])
+
+	// refresh quote every 15 seconds
+	useEffect(() => {
+		if (!amount || parseFloat(amount) === 0) return
+
+		const interval = setInterval(() => {
+			fetchQuote(true)
+		}, 15000)
+
+		return () => clearInterval(interval)
 	}, [amount, tradeType, pool.poolId, pool.coinType, pool.migrated, decimals, slippage])
 
 	// calculate output amount based on bonding curve quote
@@ -609,6 +628,11 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 						<>
 							<Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
 							Processing...
+						</>
+					) : isRefreshingQuote ? (
+						<>
+							<Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
+							Getting quotes...
 						</>
 					) : (
 						<>
