@@ -56,6 +56,14 @@ class NexaServerClient {
 
 		return await response.json() as CoinMetadata
 	}
+
+	async getPortfolio(address: string) {
+		const response = await this.fetch(`/user/${address}/portfolio`, {
+			revalidate: 10,
+		})
+
+		return await response.json()
+	}
 }
 
 export const nexaServerClient = new NexaServerClient()

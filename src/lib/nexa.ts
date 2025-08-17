@@ -104,6 +104,14 @@ class NexaClient {
 
 		return await response.json()
 	}
+
+	async getMarketStats(address: string, coinType: string) {
+		const response = await this.fetch(`/spot/market-stats/${address}/${encodeURIComponent(coinType)}`, {
+			revalidate: 10,
+		})
+
+		return await response.json()
+	}
 }
 
 export const nexaClient = new NexaClient()

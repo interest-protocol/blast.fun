@@ -9,6 +9,7 @@ import { TokenTabs } from "./token-tabs"
 import { TradeTerminal } from "./trade-terminal"
 import { BondingProgress } from "./bonding-progress"
 import { ReferralShare } from "./referral-share"
+import { PnlCardWrapper } from "./pnl-card-wrapper"
 import { NexaChart } from "@/components/shared/nexa-chart"
 import {
 	ResizablePanelGroup,
@@ -100,6 +101,7 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 				)}
 				<TradeTerminal pool={pool} referral={referral} />
 				<ReferralShare pool={pool} />
+				<PnlCardWrapper pool={pool} />
 			</div>
 		</div>
 	)
