@@ -99,9 +99,9 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 				{!pool.migrated && (
 					<BondingProgress pool={pool} />
 				)}
+				<PnlCardWrapper pool={pool} />
 				<TradeTerminal pool={pool} referral={referral} />
 				<ReferralShare pool={pool} />
-				<PnlCardWrapper pool={pool} />
 			</div>
 		</div>
 	)

@@ -16,5 +16,9 @@ interface PnlCardWrapperProps {
 }
 
 export function PnlCardWrapper({ pool }: PnlCardWrapperProps) {
-  return <PnlCard pool={pool} />
+  return (
+    <div className="px-4 py-2">
+      <PnlCard pool={pool} />
+    </div>
+  )
 }
