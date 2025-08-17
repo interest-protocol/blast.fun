@@ -54,6 +54,10 @@ export function PnlCard({ pool }: PnlCardProps) {
       const coinType = pool.coinType || pool.innerState
       console.log("Fetching PNL for address:", userAddress, "coinType:", coinType, "pool data:", pool)
       
+      if (!coinType) {
+        throw new Error("Missing coinType for PNL calculation")
+      }
+      
       const response = await fetch(`/api/nexa/pnl/${userAddress}/${encodeURIComponent(coinType)}`)
       
       if (!response.ok) {
