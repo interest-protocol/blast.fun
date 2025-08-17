@@ -152,6 +152,24 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 		<div className="w-full p-4 rounded-xl border-2 bg-background/50 backdrop-blur-sm shadow-2xl">
 			<Form {...form}>
 				<form className="space-y-6">
+					{/* Conflict Warning Banner */}
+					{devBuyAmount && parseFloat(devBuyAmount) > 0 && sniperProtection && (
+						<div className="bg-yellow-500/10 border-2 border-yellow-500/50 rounded-lg p-4">
+							<div className="flex items-start gap-3">
+								<Shield className="h-5 w-5 text-yellow-500 mt-0.5" />
+								<div className="space-y-1">
+									<p className="font-mono text-sm uppercase text-yellow-500 font-semibold">
+										CONFIGURATION::CONFLICT
+									</p>
+									<p className="font-mono text-xs text-yellow-500/80">
+										Dev buy and sniper protection cannot be used together. 
+										Please choose one or the other.
+									</p>
+								</div>
+							</div>
+						</div>
+					)}
+
 					<div className="flex gap-6">
 						{/* Image Upload */}
 						<FormField
@@ -382,7 +400,16 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 												type="number"
 												step="0.01"
 												min="0"
+												disabled={sniperProtection}
 												{...field}
+												onChange={(e) => {
+													field.onChange(e)
+													// If dev buy is entered, disable sniper protection
+													if (e.target.value && parseFloat(e.target.value) > 0) {
+														form.setValue("sniperProtection", false)
+														setShowProtectionSettings(false)
+													}
+												}}
 											/>
 											<span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono text-sm text-muted-foreground">
 												SUI
@@ -392,6 +419,11 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 									<FormDescription className="font-mono text-xs uppercase text-muted-foreground">
 										AMOUNT_OF_SUI_FOR_INITIAL_BUY
 									</FormDescription>
+									{sniperProtection && (
+										<p className="font-mono text-xs text-yellow-500 uppercase bg-yellow-500/10 p-2 rounded">
+											⚠️ DEV::BUY::DISABLED - Cannot use with sniper protection
+										</p>
+									)}
 									{devBuyAmount && balance && Number(devBuyAmount) > Number(balance) && (
 										<p className="font-mono text-xs text-destructive uppercase">
 											INSUFFICIENT::BALANCE
@@ -488,11 +520,21 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 											onCheckedChange={(checked) => {
 												field.onChange(checked)
 												setShowProtectionSettings(checked)
+												// Clear dev buy amount when enabling sniper protection
+												if (checked) {
+													form.setValue("devBuyAmount", "")
+												}
 											}}
+											disabled={!!devBuyAmount && parseFloat(devBuyAmount) > 0}
 											className="data-[state=checked]:bg-primary"
 										/>
 									</FormControl>
 								</div>
+								{devBuyAmount && parseFloat(devBuyAmount) > 0 && (
+									<p className="font-mono text-xs text-yellow-500 uppercase bg-yellow-500/10 p-2 rounded mt-3">
+										⚠️ SNIPER::PROTECTION::DISABLED - Cannot use with dev buy
+									</p>
+								)}
 							</FormItem>
 						)}
 					/>

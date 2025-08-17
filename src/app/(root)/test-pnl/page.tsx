@@ -29,7 +29,7 @@ export default function TestPnlPage() {
   } as PoolWithMetadata
 
   // Mock pool without coinType to test error handling (should show zeros)
-  const mockPoolNoCoinType: PoolWithMetadata = {
+  const mockPoolNoCoinType = {
     poolId: "test-pool-2",
     coinType: undefined,
     innerState: undefined,
@@ -50,7 +50,7 @@ export default function TestPnlPage() {
       coinPrice: 0.001,
       marketCap: 1000
     }
-  } as PoolWithMetadata
+  } as any as PoolWithMetadata
 
   return (
     <div className="min-h-screen bg-background p-8">
@@ -94,7 +94,7 @@ export default function TestPnlPage() {
         <div className="mt-8 p-4 border rounded-lg bg-muted">
           <h2 className="text-xl font-semibold mb-4">Error Handling Verification:</h2>
           <p className="text-sm">
-            The second card should display "$0.00" for all values without throwing any JSON parsing errors.
+            The second card should display &quot;$0.00&quot; for all values without throwing any JSON parsing errors.
             This confirms the error handling is working correctly when the API returns empty or invalid data.
           </p>
         </div>
