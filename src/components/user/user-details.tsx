@@ -14,7 +14,7 @@ export function UserDetails() {
 
 	return (
 		<>
-			{user && <TwitterUserAvatar user={user} className="h-10 w-10" />}
+			{user && <TwitterUserAvatar user={user} className="h-10 w-10 rounded-lg" />}
 
 			<div className="flex flex-col flex-1 min-w-0">
 				<div className="flex items-center gap-2">

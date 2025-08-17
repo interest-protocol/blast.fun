@@ -201,7 +201,7 @@ export default function LaunchContent() {
 														<div className="absolute inset-0 bg-primary/20 blur-md rounded-full opacity-0 group-hover:opacity-100 duration-300 ease-in-out transition-opacity" />
 														<TwitterUserAvatar
 															user={user}
-															className="relative h-10 w-10 rounded-lg border-2"
+															className="h-10 w-10 rounded-lg border-2"
 														/>
 													</div>
 													<div>

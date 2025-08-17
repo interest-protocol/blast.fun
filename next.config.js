@@ -16,6 +16,22 @@ export default {
                 hostname: '*'
             }
         ],
-        minimumCacheTTL: 1500000
+        minimumCacheTTL: 1500000,
+        dangerouslyAllowSVG: true,
+        contentDispositionType: 'attachment',
+        contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    },
+    async headers() {
+        return [
+            {
+                source: '/_next/image(.*)',
+                headers: [
+                    {
+                        key: 'Cache-Control',
+                        value: 'public, max-age=31536000, immutable',
+                    },
+                ],
+            },
+        ]
     }
 }

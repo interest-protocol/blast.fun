@@ -55,7 +55,7 @@ export function UserDropdown() {
 					className="rounded-xl px-2 ease-in-out duration-300 transition-all"
 					onClick={() => setIsConnectDialogOpen(true)}
 				>
-					{user && <TwitterUserAvatar user={user} className="h-4 w-4" />}
+					{user && <TwitterUserAvatar user={user} className="h-4 w-4 rounded-md" />}
 					<span className="text-muted-foreground group-hover:text-primary transition-colors duration-300 font-semibold text-sm">
 						@{user?.username || "twitter"}
 					</span>
@@ -66,7 +66,7 @@ export function UserDropdown() {
 				<Popover open={open} onOpenChange={setOpen}>
 					<PopoverTrigger asChild>
 						<Button variant="outline" className="rounded-xl px-2 ease-in-out duration-300 transition-all">
-							{user && <TwitterUserAvatar user={user} className="h-4 w-4" />}
+							{user && <TwitterUserAvatar user={user} className="h-4 w-4 rounded-md" />}
 							<span className="text-muted-foreground group-hover:text-primary transition-colors duration-300 font-semibold text-sm">
 								{user?.username ? `@${user.username}` : domain || formatAddress(address || "")}
 							</span>
@@ -88,7 +88,7 @@ export function UserDropdown() {
 								{isLoggedIn && user ? (
 									<div className="flex items-center justify-between p-2 bg-muted rounded-md">
 										<div className="flex items-center gap-2">
-											<TwitterUserAvatar user={user} className="h-8 w-8" />
+											<TwitterUserAvatar user={user} className="h-8 w-8 rounded-md" />
 											<span className="text-sm font-semibold">@{user.username}</span>
 										</div>
 										<Button variant="outline" size="icon" onClick={logout}>
