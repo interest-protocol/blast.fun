@@ -211,7 +211,17 @@ export const TokenCard = memo(function TokenCard({
 							<div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs font-mono">
 								<div className="flex items-center gap-1.5">
 									<RelativeAge
-										timestamp={pool.createdAt ? parseInt(pool.createdAt) : Date.now()}
+										timestamp={(() => {
+											if (!pool.createdAt) return Date.now()
+											// Check if it's a numeric string (timestamp in ms)
+											const numericValue = Number(pool.createdAt)
+											if (!isNaN(numericValue) && numericValue > 0) {
+												return numericValue
+											}
+											// Try parsing as ISO date string
+											const dateValue = new Date(pool.createdAt).getTime()
+											return isNaN(dateValue) ? Date.now() : dateValue
+										})()}
 										className="text-muted-foreground/60 uppercase font-medium tracking-wide"
 									/>
 									<span className="text-muted-foreground/40 hidden sm:inline">·</span>
