@@ -31,7 +31,8 @@ export const TokenCard = memo(function TokenCard({
 	const volume24h = marketData?.coin24hTradeVolumeUsd || 0
 
 	const creatorWallet = pool.creatorAddress
-	const creatorTwitterName = pool.metadata?.CreatorTwitterName || pool.metadata?.creatorTwitter
+	const creatorTwitterName = pool.metadata?.CreatorTwitterName
+	const creatorTwitterId = pool.metadata?.CreatorTwitterId
 
 	// social links from metadata
 	const metadata = pool.metadata || {}
@@ -48,49 +49,86 @@ export const TokenCard = memo(function TokenCard({
 				<div className="relative p-3 sm:p-2">
 					<div className="flex gap-3 sm:gap-2.5">
 						<div className="flex-shrink-0">
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<div className="relative h-[48px] w-[48px] sm:h-[56px] sm:w-[56px] overflow-hidden rounded-md cursor-pointer">
-										<div className="relative w-full h-full">
-											{/* Dimmed background for incomplete progress */}
-											<div className={`absolute inset-0 rounded-md ${bondingProgress >= 100
-												? 'bg-gradient-to-br from-yellow-600/30 to-amber-600/30' // True gold for graduated
-												: bondingProgress >= 50
-													? 'bg-gradient-to-br from-pink-400/30 to-rose-500/30' // Pink for mid-tier
-													: 'bg-gradient-to-br from-blue-400/30 to-cyan-500/30' // Blue for new
-												}`} />
+							{pool.migrated ? (
+								<div className="relative h-[48px] w-[48px] sm:h-[56px] sm:w-[56px] overflow-hidden rounded-md cursor-pointer">
+									<div className="relative w-full h-full">
+										{/* Dimmed background for incomplete progress */}
+										<div className={`absolute inset-0 rounded-md ${bondingProgress >= 100
+											? 'bg-gradient-to-br from-yellow-600/30 to-amber-600/30' // True gold for graduated
+											: bondingProgress >= 50
+												? 'bg-gradient-to-br from-pink-400/30 to-rose-500/30' // Pink for mid-tier
+												: 'bg-gradient-to-br from-blue-400/30 to-cyan-500/30' // Blue for new
+											}`} />
 
-											{/* Conic gradient progress */}
-											<div
-												className="absolute inset-0 rounded-md"
-												style={{
-													background: `conic-gradient(${bondingProgress >= 100
-														? 'rgb(202, 138, 4)' // True gold color
-														: bondingProgress >= 50
-															? 'rgb(236, 72, 153)' // Pink
-															: 'rgb(59, 130, 246)' // Blue
-														} ${bondingProgress}%, transparent ${bondingProgress}%)`
-												}}
+										{/* Conic gradient progress */}
+										<div
+											className="absolute inset-0 rounded-md"
+											style={{
+												background: `conic-gradient(${bondingProgress >= 100
+													? 'rgb(202, 138, 4)' // True gold color
+													: bondingProgress >= 50
+														? 'rgb(236, 72, 153)' // Pink
+														: 'rgb(59, 130, 246)' // Blue
+													} ${bondingProgress}%, transparent ${bondingProgress}%)`
+											}}
+										/>
+
+										{/* Token Avatar */}
+										<div className="absolute inset-[3px] rounded overflow-hidden">
+											<TokenAvatar
+												iconUrl={coinMetadata?.iconUrl || coinMetadata?.icon_url || undefined}
+												symbol={coinMetadata?.symbol}
+												name={coinMetadata?.name}
+												className="h-full w-full object-cover"
 											/>
-
-											{/* Token Avatar */}
-											<div className="absolute inset-[3px] rounded overflow-hidden">
-												<TokenAvatar
-													iconUrl={coinMetadata?.iconUrl || coinMetadata?.icon_url || undefined}
-													symbol={coinMetadata?.symbol}
-													name={coinMetadata?.name}
-													className="h-full w-full object-cover"
-												/>
-											</div>
 										</div>
 									</div>
-								</TooltipTrigger>
-								<TooltipContent>
-									<p className="text-xs font-mono uppercase">
-										Bonding: {bondingProgress}%
-									</p>
-								</TooltipContent>
-							</Tooltip>
+								</div>
+							) : (
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<div className="relative h-[48px] w-[48px] sm:h-[56px] sm:w-[56px] overflow-hidden rounded-md cursor-pointer">
+											<div className="relative w-full h-full">
+												{/* Dimmed background for incomplete progress */}
+												<div className={`absolute inset-0 rounded-md ${bondingProgress >= 100
+													? 'bg-gradient-to-br from-yellow-600/30 to-amber-600/30' // True gold for graduated
+													: bondingProgress >= 50
+														? 'bg-gradient-to-br from-pink-400/30 to-rose-500/30' // Pink for mid-tier
+														: 'bg-gradient-to-br from-blue-400/30 to-cyan-500/30' // Blue for new
+													}`} />
+
+												{/* Conic gradient progress */}
+												<div
+													className="absolute inset-0 rounded-md"
+													style={{
+														background: `conic-gradient(${bondingProgress >= 100
+															? 'rgb(202, 138, 4)' // True gold color
+															: bondingProgress >= 50
+																? 'rgb(236, 72, 153)' // Pink
+																: 'rgb(59, 130, 246)' // Blue
+															} ${bondingProgress}%, transparent ${bondingProgress}%)`
+													}}
+												/>
+
+												{/* Token Avatar */}
+												<div className="absolute inset-[3px] rounded overflow-hidden">
+													<TokenAvatar
+														iconUrl={coinMetadata?.iconUrl || coinMetadata?.icon_url || undefined}
+														symbol={coinMetadata?.symbol}
+														name={coinMetadata?.name}
+														className="h-full w-full object-cover"
+													/>
+												</div>
+											</div>
+										</div>
+									</TooltipTrigger>
+									<TooltipContent>
+										<p className="text-xs font-mono uppercase">
+											Bonding: {bondingProgress}%
+										</p>
+									</TooltipContent>
+								</Tooltip>
+							)}
 						</div>
 
 						{/* Content */}
@@ -173,7 +211,17 @@ export const TokenCard = memo(function TokenCard({
 							<div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs font-mono">
 								<div className="flex items-center gap-1.5">
 									<RelativeAge
-										timestamp={pool.createdAt ? parseInt(pool.createdAt) : Date.now()}
+										timestamp={(() => {
+											if (!pool.createdAt) return Date.now()
+											// Check if it's a numeric string (timestamp in ms)
+											const numericValue = Number(pool.createdAt)
+											if (!isNaN(numericValue) && numericValue > 0) {
+												return numericValue
+											}
+											// Try parsing as ISO date string
+											const dateValue = new Date(pool.createdAt).getTime()
+											return isNaN(dateValue) ? Date.now() : dateValue
+										})()}
 										className="text-muted-foreground/60 uppercase font-medium tracking-wide"
 									/>
 									<span className="text-muted-foreground/40 hidden sm:inline">·</span>
@@ -187,6 +235,7 @@ export const TokenCard = memo(function TokenCard({
 											<span>
 												<CreatorDisplay
 													walletAddress={creatorWallet}
+													twitterId={creatorTwitterId}
 													twitterHandle={creatorTwitterName}
 													className="text-foreground/70 hover:text-foreground transition-colors text-left"
 												/>

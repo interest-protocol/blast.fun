@@ -15,7 +15,14 @@ export async function fetchCreatorData(
 
 		if (cachedData) {
 			try {
-				return JSON.parse(cachedData)
+				const parsed = JSON.parse(cachedData)
+				
+				// If cached followers is 0, we might want to try fetching updated data
+				if (parsed.followers === "0" && parsed.twitterHandle) {
+					// Don't return here, continue to fetch fresh data
+				} else {
+					return parsed
+				}
 			} catch (error) {
 				console.error("Failed to parse cached creator data:", error)
 			}
@@ -101,6 +108,24 @@ export async function fetchCreatorData(
 					}
 				} catch (error) {
 					console.error("Error fetching Twitter data from fxtwitter:", error)
+				}
+			}
+
+			// Use fxtwitter as fallback when follower count is 0
+			if (followerCount === 0) {
+				try {
+					const fxTwitterResponse = await fetch(
+						`https://api.fxtwitter.com/${finalTwitterHandle}`
+					)
+
+					if (fxTwitterResponse.ok) {
+						const fxTwitterData = await fxTwitterResponse.json()
+						if (fxTwitterData && fxTwitterData.user && fxTwitterData.user.followers) {
+							followerCount = fxTwitterData.user.followers || 0
+						}
+					}
+				} catch (error) {
+					console.error("Error fetching fxTwitter data:", error)
 				}
 			}
 		}

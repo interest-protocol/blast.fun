@@ -11,12 +11,12 @@ export async function POST(request: NextRequest) {
 		const { poolId, amount, walletAddress, twitterId } = body
 
 		if (!poolId || !amount || !walletAddress) {
-			return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+			return NextResponse.json({ message: "Missing required fields" }, { status: 400 })
 		}
 
 		const poolSettings = await prisma.tokenProtectionSettings.findUnique({ where: { poolId } })
 		if (!poolSettings || !poolSettings.settings) {
-			return NextResponse.json({ error: "Token not protected" }, { status: 404 })
+			return NextResponse.json({ message: "Token not protected" }, { status: 404 })
 		}
 
 		const settings = poolSettings.settings as {
@@ -27,13 +27,13 @@ export async function POST(request: NextRequest) {
 
 		// check if sniper protection is enabled
 		if (!settings.sniperProtection) {
-			return NextResponse.json({ error: "Token does not have sniper protection enabled" }, { status: 404 })
+			return NextResponse.json({ message: "Token does not have sniper protection enabled" }, { status: 404 })
 		}
 
 		// check if Twitter is required but not provided
 		if (settings.requireTwitter && !twitterId) {
 			return NextResponse.json({
-				error: "X authentication is required for this token",
+				message: "X authentication is required for this token",
 				requiresTwitter: true
 			}, { status: 403 })
 		}
@@ -69,14 +69,14 @@ export async function POST(request: NextRequest) {
 		} catch (signError) {
 			console.error("Signature generation error:", signError)
 			return NextResponse.json(
-				{ error: "Failed to generate signature" },
+				{ message: "Failed to generate signature" },
 				{ status: 500 }
 			)
 		}
 	} catch (error) {
 		console.error("Protected token signature error:", error)
 		return NextResponse.json(
-			{ error: "Internal server error" },
+			{ message: "Internal server error" },
 			{ status: 500 }
 		)
 	}

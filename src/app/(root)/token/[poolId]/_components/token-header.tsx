@@ -15,13 +15,16 @@ import { BsTwitterX } from "react-icons/bs"
 interface TokenHeaderProps {
 	pool: PoolWithMetadata
 	realtimePrice: number | null
+	realtimeMarketCap?: number | null
 }
 
-export function TokenHeader({ pool, realtimePrice }: TokenHeaderProps) {
+export function TokenHeader({ pool, realtimePrice, realtimeMarketCap }: TokenHeaderProps) {
 	const metadata = pool.coinMetadata || pool.metadata
 	const marketData = pool.marketData
 	const [priceFlash, setPriceFlash] = useState<'up' | 'down' | null>(null)
 	const [previousPrice, setPreviousPrice] = useState<number | null>(null)
+	const [marketCapFlash, setMarketCapFlash] = useState<'up' | 'down' | null>(null)
+	const [previousMarketCap, setPreviousMarketCap] = useState<number | null>(null)
 
 	// calculate price metrics from server data
 	const priceChange24h = marketData?.price1DayAgo && marketData?.coinPrice
@@ -30,10 +33,11 @@ export function TokenHeader({ pool, realtimePrice }: TokenHeaderProps) {
 
 	const volume24h = marketData?.coin24hTradeVolumeUsd || 0
 	const basePrice = marketData?.coinPrice || 0
-	const marketCap = marketData?.marketCap || 0
+	const baseMarketCap = marketData?.marketCap || 0
 	const totalLiquidityUsd = marketData?.totalLiquidityUsd || marketData?.liqUsd || 0
 
 	const currentPrice = realtimePrice || basePrice
+	const currentMarketCap = realtimeMarketCap || baseMarketCap
 
 	// Handle price flash when price changes
 	useEffect(() => {
@@ -43,6 +47,17 @@ export function TokenHeader({ pool, realtimePrice }: TokenHeaderProps) {
 		}
 		setPreviousPrice(realtimePrice)
 	}, [realtimePrice, previousPrice])
+
+	// Handle market cap flash when it changes
+	useEffect(() => {
+		if (realtimeMarketCap !== null && realtimeMarketCap !== undefined && previousMarketCap !== null && realtimeMarketCap !== previousMarketCap) {
+			setMarketCapFlash(realtimeMarketCap > previousMarketCap ? 'up' : 'down')
+			setTimeout(() => setMarketCapFlash(null), 500)
+		}
+		if (realtimeMarketCap !== undefined) {
+			setPreviousMarketCap(realtimeMarketCap)
+		}
+	}, [realtimeMarketCap, previousMarketCap])
 
 	return (
 		<div className="w-full border-b border-border select-none">
@@ -171,9 +186,16 @@ export function TokenHeader({ pool, realtimePrice }: TokenHeaderProps) {
 						<div className="flex items-center gap-4">
 							<div>
 								<p className="font-mono text-[10px] uppercase text-muted-foreground mb-0.5">Market Cap</p>
-								<p className="font-mono text-sm font-bold text-yellow-500">
-									${formatNumberWithSuffix(marketCap)}
-								</p>
+								<RollingNumber
+									value={currentMarketCap}
+									formatFn={(v) => `$${formatNumberWithSuffix(v)}`}
+									staggerDelay={40}
+									className={cn(
+										"font-mono text-sm font-bold text-yellow-500 transition-colors",
+										marketCapFlash === 'up' && "dark:text-green-400 text-green-500",
+										marketCapFlash === 'down' && "text-destructive"
+									)}
+								/>
 							</div>
 							<div>
 								<p className="font-mono text-[10px] uppercase text-muted-foreground mb-0.5">24h Volume</p>

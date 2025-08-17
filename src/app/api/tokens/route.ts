@@ -16,116 +16,81 @@ export async function GET(request: NextRequest) {
 		const sortField = searchParams.get("sortField") || "createdAt"
 		const sortDirection = searchParams.get("sortDirection") || "DESC"
 
-		let allPools: any[] = []
-		let totalPoolsCount = 0
-
-		// For "new" category, just fetch once with the requested pageSize
-		// For "graduating" and "graduated", fetch multiple pages until we have enough
-		if (category === "new" || !category) {
-			const { data } = await apolloClient.query({
-				query: GET_POOLS,
-				variables: {
-					page: page,
-					pageSize: pageSize,
-					sortField: sortField,
-					sortDirection: sortDirection
-				},
-				context: {
-					headers: {
-						"config-key": CONFIG_KEYS.mainnet.XPUMP
-					}
-				},
-				fetchPolicy: "network-only"
-			})
-
-			if (!data?.pools?.pools) {
-				throw new Error("No pools data received")
-			}
-
-			allPools = data.pools.pools
-			totalPoolsCount = data.pools.total
-
-			// Filter for "new" category if specified
-			if (category === "new") {
-				allPools = allPools.filter(p => !p.migrated && parseFloat(p.bondingCurve) < 50)
-			}
-		} else {
-			// For "graduating" and "graduated", fetch multiple pages
-			let currentPage = 1
-			const batchSize = 100 // Fetch 100 at a time from GraphQL
-			let shouldContinue = true
-
-			while (shouldContinue) {
-				const { data } = await apolloClient.query({
-					query: GET_POOLS,
-					variables: {
-						page: currentPage,
-						pageSize: batchSize,
-						sortField: sortField,
-						sortDirection: sortDirection
-					},
-					context: {
-						headers: {
-							"config-key": CONFIG_KEYS.mainnet.XPUMP
-						}
-					},
-					fetchPolicy: "network-only"
-				})
-
-				if (!data?.pools?.pools) {
-					break
+		// Build filters based on category
+		let filters: any = {}
+		
+		// Test creator addresses to exclude from graduated tokens
+		const testCreatorAddresses = [
+			"0xd2420ad33ab5e422becf2fa0e607e1dde978197905b87d070da9ffab819071d6",
+			"0xbbf31f4075625942aa967daebcafe0b1c90e6fa9305c9064983b5052ec442ef7"
+		]
+		
+		switch (category) {
+			case "graduating":
+				filters = {
+					migrated: false,
+					minBondingCurve: 50
 				}
-
-				const fetchedPools = data.pools.pools
-				totalPoolsCount = data.pools.total
-
-				// Filter pools based on category
-				let filteredPools = fetchedPools
-				switch (category) {
-					case "graduating":
-						filteredPools = fetchedPools.filter((p: any) => !p.migrated && parseFloat(p.bondingCurve) >= 50)
-						break
-					case "graduated":
-						// Filter out test tokens created by specific addresses
-						const testCreatorAddresses = [
-							"0xd2420ad33ab5e422becf2fa0e607e1dde978197905b87d070da9ffab819071d6",
-							"0xbbf31f4075625942aa967daebcafe0b1c90e6fa9305c9064983b5052ec442ef7"
-						]
-						filteredPools = fetchedPools.filter((p: any) => 
-							p.migrated === true && !testCreatorAddresses.includes(p.creatorAddress)
-						)
-						break
+				break
+			case "graduated":
+				// Can't exclude addresses via GraphQL filter, will handle in backend
+				filters = {
+					migrated: true
 				}
-
-				allPools = [...allPools, ...filteredPools]
-
-				// Stop conditions
-				if (category === "graduating") {
-					// For graduating, stop if we have enough OR if there are no more pools with bondingCurve >= 50
-					const hasHighBondingCurve = fetchedPools.some((p: any) => !p.migrated && parseFloat(p.bondingCurve) >= 50)
-					shouldContinue = allPools.length < pageSize && hasHighBondingCurve && (currentPage * batchSize) < totalPoolsCount
-				} else {
-					// For graduated, stop if we have enough pools or reached the end
-					shouldContinue = allPools.length < pageSize && (currentPage * batchSize) < totalPoolsCount
+				break
+			case "new":
+				// Can't use maxBondingCurve in GraphQL, will filter in backend
+				filters = {
+					migrated: false
 				}
-
-				currentPage++
-
-				// Safety limit to prevent infinite loops
-				if (currentPage > 10) {
-					break
-				}
-			}
+				break
+			default:
+				// No filter for all pools
+				break
 		}
 
-		// For "new" and no category, use the fetched pools directly
-		// For "graduating" and "graduated", slice the accumulated pools
-		const paginatedPools = category === "new" || !category 
-			? allPools 
-			: allPools.slice(0, pageSize)
+		// Single query with filters
+		const { data } = await apolloClient.query({
+			query: GET_POOLS,
+			variables: {
+				page: page,
+				pageSize: pageSize,
+				sortField: sortField,
+				sortDirection: sortDirection,
+				filters: Object.keys(filters).length > 0 ? filters : undefined
+			},
+			context: {
+				headers: {
+					"config-key": CONFIG_KEYS.mainnet.XPUMP
+				}
+			},
+			fetchPolicy: "network-only"
+		})
+
+		if (!data?.pools?.pools) {
+			throw new Error("No pools data received")
+		}
+
+		const allPools = data.pools.pools
+		const totalPoolsCount = data.pools.total
+
+		// Apply additional filtering for categories that GraphQL doesn't support
+		let filteredPools = allPools
+		
+		if (category === "new") {
+			// Filter for tokens with bondingCurve < 50
+			filteredPools = allPools.filter((pool: any) => pool.bondingCurve < 50)
+		} else if (category === "graduated") {
+			// Filter out test creator addresses
+			filteredPools = allPools.filter((pool: any) => 
+				!testCreatorAddresses.includes(pool.creatorAddress)
+			)
+		}
+		
+		const paginatedPools = filteredPools
 
 		const processedPools = await Promise.all(
-			paginatedPools.map(async (pool) => {
+			paginatedPools.map(async (pool: any) => {
 				const processedPool: any = {
 					...pool,
 					isProtected: !!pool.publicKey,
@@ -271,7 +236,7 @@ export async function GET(request: NextRequest) {
 
 		return NextResponse.json({
 			pools: processedPools,
-			total: allPools.length,
+			total: filteredPools.length, // Use filtered count instead of total
 			page,
 			pageSize
 		})
