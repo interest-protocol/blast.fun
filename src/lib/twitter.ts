@@ -9,9 +9,7 @@ interface TwitterUser {
 
 export async function getFxtwitterProfileImage(username: string): Promise<string | null> {
 	try {
-		const response = await fetch(`https://api.fxtwitter.com/${username}`, {
-			cache: 'no-store'
-		})
+		const response = await fetch(`https://api.fxtwitter.com/${username}`)
 		if (!response.ok) {
 			console.warn(`fxtwitter API returned ${response.status} for username: ${username}`)
 			return null
