@@ -9,7 +9,7 @@ interface CustomNavConfig {
 
 const customNavConfigs: CustomNavConfig[] = [
 	{
-		pathPattern: /^\/meme\/[^\/]+$/,  // /meme/[id]
+		pathPattern: /^\/token\/[^\/]+$/,  // /token/[poolId]
 		hideMainNav: true
 	},
 ]
