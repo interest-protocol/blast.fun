@@ -73,20 +73,39 @@ export function PnlCard({ pool }: PnlCardProps) {
         return
       }
       
-      // Calculate entry price (average buy price)
-      const entryPrice = stats.buyTrades > 0 ? stats.usdBought / stats.amountBought : 0
+      // Get decimals from coin metadata, default to 9 if not available
+      const decimals = pool.coinMetadata?.decimals || pool.metadata?.decimals || 9
       
-      // Calculate PNL percentage
-      const totalPnlPercentage = stats.usdBought > 0 ? (stats.pnl / stats.usdBought) * 100 : 0
+      // Calculate average entry price per token
+      // amountBought is in smallest units, convert to actual tokens
+      const tokensBought = stats.amountBought / Math.pow(10, decimals)
+      const entryPrice = tokensBought > 0 ? stats.usdBought / tokensBought : 0
       
       // Get current market price from pool data
       const currentPrice = pool.marketData?.coinPrice || 0
       
-      // Calculate current holding value in USD
-      const currentHoldingValue = Math.abs(stats.currentHolding) * currentPrice / 1e9 // Assuming 9 decimals
+      // Calculate current holding value
+      // currentHolding is in smallest units, convert to actual tokens
+      const holdingInTokens = Math.abs(stats.currentHolding) / Math.pow(10, decimals)
+      const currentHoldingValue = holdingInTokens * currentPrice
+      
+      // Calculate PNL
+      // Total PNL = Value from sold tokens + Current holding value - Total investment
+      const totalPnl = stats.usdSold + currentHoldingValue - stats.usdBought
+      
+      // Calculate PNL percentage based on total investment
+      const totalPnlPercentage = stats.usdBought > 0 ? (totalPnl / stats.usdBought) * 100 : 0
+      
+      console.log("PNL Calculation:", {
+        stats,
+        currentPrice,
+        currentHoldingValue,
+        totalPnl,
+        totalPnlPercentage
+      })
       
       setPnlData({
-        totalPnl: stats.pnl,
+        totalPnl: totalPnl,
         totalPnlPercentage: totalPnlPercentage,
         entryPrice: entryPrice,
         totalSold: stats.usdSold,
@@ -112,158 +131,227 @@ export function PnlCard({ pool }: PnlCardProps) {
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
-    // Set canvas size for high resolution
-    const scale = 2 // For retina displays
-    const width = 1920
-    const height = 1080
+    // Set canvas size to fit dialog better (16:9 aspect ratio, smaller)
+    const width = 800
+    const height = 450
     
     canvas.width = width
     canvas.height = height
-    canvas.style.width = `${width / scale / 2}px`
-    canvas.style.height = `${height / scale / 2}px`
+    canvas.style.width = `${width}px`
+    canvas.style.height = `${height}px`
 
-    // Black background
-    ctx.fillStyle = "#000000"
-    ctx.fillRect(0, 0, width, height)
+    // Load and draw background image
+    const bgImg = new Image()
+    bgImg.onload = () => {
+      // Draw background image
+      ctx.drawImage(bgImg, 0, 0, width, height)
 
-    const drawTextContent = () => {
-      const symbol = pool.coinMetadata?.symbol || pool.metadata?.symbol || "UNKNOWN"
-      const name = pool.coinMetadata?.name || pool.metadata?.name || "Unknown Token"
-      
-      // Token symbol with $ prefix (big and white)
-      ctx.fillStyle = "#ffffff"
-      ctx.font = "bold 100px monospace"
-      ctx.fillText(`$${symbol.toUpperCase()}`, 700, 320)
-      
-      // Token name (smaller, secondary color)
-      ctx.fillStyle = "#888888"
-      ctx.font = "60px monospace"
-      ctx.fillText(name.toLowerCase(), 700, 420)
-      
-      // PNL Amount
-      const isProfit = pnlData.totalPnl >= 0
-      ctx.fillStyle = isProfit ? "#00ff88" : "#ff5555"
-      ctx.font = "bold 130px monospace"
-      const pnlSign = isProfit ? "+" : "-"
-      ctx.fillText(`${pnlSign}$${Math.abs(pnlData.totalPnl).toFixed(2)}`, 700, 580)
-      
-      // PNL Percentage
-      ctx.fillStyle = isProfit ? "#00ff88" : "#ff5555"
-      ctx.font = "85px monospace"
-      const percentageText = `(${pnlSign === '+' ? '' : '-'}${Math.abs(pnlData.totalPnlPercentage).toFixed(1)}%)`
-      ctx.fillText(percentageText, 1250, 580)
-      
-      // Stats section at bottom
-      const statsY = 820
-      const statsSpacing = 450
-      
-      // Labels
-      ctx.fillStyle = "#666666"
-      ctx.font = "55px monospace"
-      ctx.fillText("entry", 150, statsY)
-      ctx.fillText("sold", 150 + statsSpacing, statsY)
-      ctx.fillText("holding", 150 + statsSpacing * 2, statsY)
-      
-      // Values
-      ctx.fillStyle = "#ffffff"
-      ctx.font = "65px monospace"
-      
-      // Format entry price with subscript for small values
-      const formatEntryPrice = () => {
-        if (pnlData.entryPrice === 0) {
-          return "$0.00"
-        } else if (pnlData.entryPrice < 0.0001) {
-          // Count leading zeros after decimal
-          const str = pnlData.entryPrice.toFixed(20)
-          const match = str.match(/^0\.0*/)
-          if (match) {
-            const zeros = match[0].length - 2 // Subtract "0."
-            const significantDigits = pnlData.entryPrice.toFixed(20).replace(/^0\.0*/, '').substring(0, 4)
-            return `$0.0{${zeros}}${significantDigits}`
-          }
+      const drawTextContent = () => {
+        const symbol = pool.coinMetadata?.symbol || pool.metadata?.symbol || "UNKNOWN"
+        const name = pool.coinMetadata?.name || pool.metadata?.name || symbol
+        
+        // Master base position
+        const masterBaseX = 600  // Master X position
+        const masterBaseY = 150  // Master Y position
+        
+        // Individual base positions for each section (relative to master)
+        const tokenBase = {
+          x: masterBaseX + 45,  // Token/Name position (centered at right)
+          y: masterBaseY - 40   // Higher up
         }
-        return `$${pnlData.entryPrice.toFixed(6)}`
+        
+        const pnlPercentBase = {
+          x: masterBaseX + 45,  // PNL percentage position
+          y: masterBaseY + 15   // Below token name
+        }
+        
+        const investedBase = {
+          x: masterBaseX - 110,  // Invested position (left side)
+          labelY: masterBaseY + 50,
+          amountY: masterBaseY + 73,
+          usdY: masterBaseY + 88
+        }
+        
+        const pnlBase = {
+          x: masterBaseX + 45,  // PNL position (right aligned with token)
+          labelY: masterBaseY + 50,
+          amountY: masterBaseY + 73,
+          usdY: masterBaseY + 88
+        }
+        
+        const entryBase = {
+          x: masterBaseX - 120,  // Entry position
+          labelY: masterBaseY + 185,  // Labels at Y=335
+          valueY: masterBaseY + 205   // Values at Y=355
+        }
+        
+        const soldBase = {
+          x: masterBaseX - 5,  // Sold position
+          labelY: masterBaseY + 185,  // Labels at Y=335
+          valueY: masterBaseY + 205   // Values at Y=355
+        }
+        
+        const holdingBase = {
+          x: masterBaseX + 85,  // Holding position
+          labelY: masterBaseY + 185,  // Labels at Y=335
+          valueY: masterBaseY + 205   // Values at Y=355
+        }
+        
+        // Token ticker (large, at top)
+        ctx.fillStyle = "#ffffff"
+        ctx.font = "bold 32px monospace"
+        ctx.textAlign = "center"
+        ctx.fillText(`$${symbol.toUpperCase()}`, tokenBase.x, tokenBase.y)
+        
+        // Token full name (smaller, below ticker)
+        ctx.fillStyle = "#888888"
+        ctx.font = "14px monospace"
+        ctx.textAlign = "center"
+        const displayName = name.length > 25 ? name.substring(0, 22) + "..." : name
+        ctx.fillText(displayName, tokenBase.x, tokenBase.y + 22)
+        
+        // PNL Percentage (below token pair)
+        const isProfit = pnlData.totalPnl >= 0
+        ctx.fillStyle = isProfit ? "#00ff88" : "#ff5555"
+        ctx.font = "bold 36px monospace"
+        const pnlSign = isProfit ? "+" : ""
+        ctx.fillText(`${pnlSign}${pnlData.totalPnlPercentage.toFixed(2)}%`, pnlPercentBase.x, pnlPercentBase.y)
+        
+        // Labels for Invested and PNL (bigger, gray)
+        ctx.fillStyle = "#888888"
+        ctx.font = "16px monospace"
+        ctx.textAlign = "center"
+        ctx.fillText("Invested", investedBase.x, investedBase.labelY)
+        ctx.fillText("PNL", pnlBase.x, pnlBase.labelY)
+        
+        // Invested amount with SUI icon
+        ctx.fillStyle = "#00aaff"
+        ctx.font = "24px monospace"
+        const investedSui = (pnlData.totalBought || 0) / (pool.marketData?.suiPrice || 1)
+        ctx.fillText(`💧${investedSui.toFixed(2)}`, investedBase.x, investedBase.amountY)
+        ctx.fillStyle = "#888888"
+        ctx.font = "14px monospace"
+        ctx.fillText(`($${(pnlData.totalBought || 0).toFixed(2)})`, investedBase.x, investedBase.usdY)
+        
+        // PNL amount with SUI icon
+        ctx.fillStyle = isProfit ? "#00ff88" : "#ff5555"
+        ctx.font = "24px monospace"
+        const pnlInSui = pnlData.totalPnl / (pool.marketData?.suiPrice || 1)
+        ctx.fillText(`💧${pnlInSui.toFixed(2)}`, pnlBase.x, pnlBase.amountY)
+        ctx.fillStyle = "#888888"
+        ctx.font = "14px monospace"
+        ctx.fillText(`($${pnlData.totalPnl.toFixed(2)})`, pnlBase.x, pnlBase.usdY)
+        
+        // Reset alignment
+        ctx.textAlign = "left"
+        
+        // Labels for Entry, Sold, Holding
+        ctx.fillStyle = "#888888"
+        ctx.font = "16px monospace"
+        ctx.textAlign = "center"
+        ctx.fillText("Entry", entryBase.x, entryBase.labelY)
+        ctx.fillText("Sold", soldBase.x, soldBase.labelY)
+        ctx.fillText("Holding", holdingBase.x, holdingBase.labelY)
+        
+        // Values positioned to align with the background template
+        ctx.fillStyle = "#ffffff"
+        ctx.font = "18px monospace"
+        ctx.textAlign = "center"
+        
+        // Format entry price with subscript for small values
+        const formatEntryPrice = () => {
+          if (pnlData.entryPrice === 0) {
+            return "$0.00"
+          } else if (pnlData.entryPrice < 0.01) {
+            // Count leading zeros after decimal
+            const str = pnlData.entryPrice.toFixed(20)
+            const match = str.match(/^0\.0*/)
+            if (match) {
+              const zeros = match[0].length - 2 // Subtract "0."
+              const significantDigits = pnlData.entryPrice.toFixed(20).replace(/^0\.0*/, '').substring(0, 2)
+              return `$0.0{${zeros}}${significantDigits}`
+            }
+          }
+          return `$${pnlData.entryPrice.toFixed(6)}`
+        }
+        
+        const entryPriceText = formatEntryPrice()
+        
+        // Handle subscript notation for entry price
+        if (entryPriceText.includes('{')) {
+          const parts = entryPriceText.split('{')
+          const beforeSubscript = parts[0] // "$0.0"
+          const afterParts = parts[1].split('}')
+          const subscriptNum = afterParts[0] // number of zeros
+          const afterSubscript = afterParts[1] // significant digits
+          
+          // Calculate total width for centering
+          ctx.font = "18px monospace"
+          const beforeWidth = ctx.measureText(beforeSubscript).width
+          ctx.font = "16px monospace"
+          const subscriptWidth = ctx.measureText(subscriptNum).width
+          ctx.font = "18px monospace"
+          const afterWidth = ctx.measureText(afterSubscript).width
+          const totalWidth = beforeWidth + subscriptWidth + afterWidth
+          
+          // Start position for centered text
+          const startX = entryBase.x - totalWidth / 2
+          
+          // Draw "$0.0"
+          ctx.textAlign = "left"
+          ctx.font = "18px monospace"
+          ctx.fillText(beforeSubscript, startX, entryBase.valueY)
+          
+          // Draw subscript number
+          ctx.font = "16px monospace"
+          ctx.fillStyle = "#ffffff"
+          ctx.fillText(subscriptNum, startX + beforeWidth, entryBase.valueY + 3)
+          
+          // Draw significant digits
+          ctx.font = "18px monospace"
+          ctx.fillStyle = "#ffffff"
+          ctx.fillText(afterSubscript, startX + beforeWidth + subscriptWidth, entryBase.valueY)
+          
+          ctx.textAlign = "center"
+        } else {
+          ctx.fillText(entryPriceText, entryBase.x, entryBase.valueY)
+        }
+        
+        ctx.font = "18px monospace"
+        ctx.fillStyle = "#ffffff"
+        ctx.fillText(`$${pnlData.totalSold.toFixed(2)}`, soldBase.x, soldBase.valueY)
+        ctx.fillText(`$${pnlData.totalHolding.toFixed(2)}`, holdingBase.x, holdingBase.valueY)
       }
-      
-      const entryPriceText = formatEntryPrice()
-      
-      // Handle subscript notation for entry price
-      if (entryPriceText.includes('{')) {
-        const parts = entryPriceText.split('{')
-        const beforeSubscript = parts[0]
-        const afterParts = parts[1].split('}')
-        const subscriptNum = afterParts[0]
-        const afterSubscript = afterParts[1]
-        
-        // Draw main part
-        ctx.fillText(beforeSubscript, 150, statsY + 90)
-        
-        // Measure width of main part
-        const mainWidth = ctx.measureText(beforeSubscript).width
-        
-        // Draw subscript (smaller font)
-        ctx.font = "40px monospace"
-        ctx.fillText(subscriptNum, 150 + mainWidth, statsY + 100)
-        
-        // Measure subscript width
-        const subscriptWidth = ctx.measureText(subscriptNum).width
-        
-        // Draw remaining digits (back to normal font)
-        ctx.font = "65px monospace"
-        ctx.fillText(afterSubscript, 150 + mainWidth + subscriptWidth, statsY + 90)
-      } else {
-        ctx.fillText(entryPriceText, 150, statsY + 90)
-      }
-      
-      ctx.fillText(`$${pnlData.totalSold.toFixed(2)}`, 150 + statsSpacing, statsY + 90)
-      ctx.fillText(`$${pnlData.totalHolding.toFixed(2)}`, 150 + statsSpacing * 2, statsY + 90)
-      
-      // Footer
-      ctx.fillStyle = "#444444"
-      ctx.font = "35px monospace"
-      ctx.fillText("Traded on blast.fun", 150, height - 80)
-    }
 
-    // Draw text content first
-    drawTextContent()
-
-    // Then try to load and draw the icon
-    const img = new Image()
-    img.onload = () => {
-      // Clear and redraw everything with the icon
-      ctx.fillStyle = "#000000"
-      ctx.fillRect(0, 0, width, height)
-      
-      // Draw icon on the left side
-      const iconSize = 420
-      const iconX = 120
-      const iconY = 280
-      
-      ctx.imageSmoothingEnabled = false // For pixel art style
-      ctx.drawImage(img, iconX, iconY, iconSize, iconSize)
-      
-      // Redraw text content
+      // Draw text content
       drawTextContent()
     }
     
-    img.onerror = () => {
-      console.error("Failed to load blast icon")
+    bgImg.onerror = () => {
+      console.error("Failed to load background image")
+      // Fallback to black background
+      ctx.fillStyle = "#000000"
+      ctx.fillRect(0, 0, width, height)
     }
     
-    img.src = "/logo/blast_card_icon.png"
+    bgImg.src = "/logo/blast_card.png"
   }
 
   useEffect(() => {
-    if (isOpen && !pnlData) {
+    if (isOpen) {
+      // Always fetch fresh data when opening
       fetchPnlData()
     }
   }, [isOpen])
 
   useEffect(() => {
-    if (pnlData && canvasRef.current) {
-      drawPnlCard()
+    if (pnlData && canvasRef.current && isOpen) {
+      // Add a small delay to ensure canvas is mounted
+      setTimeout(() => {
+        drawPnlCard()
+      }, 100)
     }
-  }, [pnlData])
+  }, [pnlData, isOpen])
 
   const handleCopy = async () => {
     const canvas = canvasRef.current
@@ -307,7 +395,7 @@ export function PnlCard({ pool }: PnlCardProps) {
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[450px]">
+        <DialogContent className="sm:max-w-[850px] p-4">
           <DialogHeader>
             <DialogTitle className="font-mono uppercase">PNL Card</DialogTitle>
           </DialogHeader>
