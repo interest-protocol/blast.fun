@@ -26,7 +26,7 @@ export async function fetchTokenWithMetadata(poolId: string): Promise<PoolWithMe
 		let coinMetadata = null
 		try {
 			const marketData = await nexaClient.getMarketData(pool.coinType)
-			coinMetadata = marketData.coinMetadata
+			coinMetadata = marketData?.coinMetadata || pool.metadata
 		} catch (error) {
 			console.error("Failed to fetch metadata:", error)
 			coinMetadata = pool.metadata

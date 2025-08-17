@@ -148,7 +148,7 @@ export function PnlCard({ pool }: PnlCardProps) {
 
       const drawTextContent = () => {
         const symbol = pool.coinMetadata?.symbol || pool.metadata?.symbol || "UNKNOWN"
-        const iconUrl = pool.coinMetadata?.iconUrl || pool.metadata?.iconUrl || pool.iconUrl
+        const iconUrl = pool.coinMetadata?.iconUrl || pool.metadata?.iconUrl || (pool as any).iconUrl
         
         // Format large numbers with K/M
         const formatNumber = (num: number) => {
