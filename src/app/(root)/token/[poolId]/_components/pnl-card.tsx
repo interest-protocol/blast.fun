@@ -12,6 +12,7 @@ import { Loader2, Copy, Download } from "lucide-react"
 import toast from "react-hot-toast"
 import { useApp } from "@/context/app.context"
 import type { PoolWithMetadata } from "@/types/pool"
+import { nexaClient, type MarketStats } from "@/lib/nexa"
 
 interface PnlData {
   totalPnl: number
@@ -45,30 +46,22 @@ export function PnlCard({ pool }: PnlCardProps) {
     
     try {
       // Use actual user address if connected, otherwise use test address
-      // For now, using your actual address for testing
       const yourTestAddress = "0xd6eb850fdab4143fa973ab119a1b27d5db8744cb8ef7a88125fd33a6ab85b351"
-      const fallbackAddress = "0x8506c3f396f0868299fe9fcf6ba1e2398cb7e6e0469158243903a66b876f21dc"
-      const userAddress = address || yourTestAddress  // Will use connected wallet when available
+      const userAddress = address || yourTestAddress
       
       // Use coinType for the API call
       const coinType = pool.coinType || pool.innerState
-      console.log("Fetching PNL for address:", userAddress, "coinType:", coinType, "pool data:", pool)
+      console.log("Fetching PNL for address:", userAddress, "coinType:", coinType)
       
       if (!coinType) {
         throw new Error("Missing coinType for PNL calculation")
       }
       
-      const response = await fetch(`/api/nexa/pnl/${userAddress}/${encodeURIComponent(coinType)}`)
+      // Use the real Nexa API
+      const stats = await nexaClient.getMarketStats(userAddress, coinType)
       
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to fetch PNL data")
-      }
-      
-      const data = await response.json()
-      
-      // Even if no position, show the card with 0 values
-      if (!data.hasPosition) {
+      // If no stats returned or no trades, show zero values
+      if (!stats || (stats.buyTrades === 0 && stats.sellTrades === 0)) {
         setPnlData({
           totalPnl: 0,
           totalPnlPercentage: 0,
@@ -80,18 +73,28 @@ export function PnlCard({ pool }: PnlCardProps) {
         return
       }
       
+      // Calculate entry price (average buy price)
+      const entryPrice = stats.buyTrades > 0 ? stats.usdBought / stats.amountBought : 0
+      
+      // Calculate PNL percentage
+      const totalPnlPercentage = stats.usdBought > 0 ? (stats.pnl / stats.usdBought) * 100 : 0
+      
+      // Get current market price from pool data
+      const currentPrice = pool.marketData?.coinPrice || 0
+      
+      // Calculate current holding value in USD
+      const currentHoldingValue = Math.abs(stats.currentHolding) * currentPrice / 1e9 // Assuming 9 decimals
+      
       setPnlData({
-        totalPnl: data.totalPnl || 0,
-        totalPnlPercentage: data.totalPnlPercentage || 0,
-        entryPrice: data.entryPrice || 0,
-        totalSold: data.totalSold || 0,
-        totalHolding: data.totalHolding || 0,
-        hasPosition: data.hasPosition,
-        realizedPnl: data.realizedPnl,
-        unrealizedPnl: data.unrealizedPnl,
-        totalBought: data.totalBought,
-        currentPrice: data.currentPrice,
-        balance: data.balance
+        totalPnl: stats.pnl,
+        totalPnlPercentage: totalPnlPercentage,
+        entryPrice: entryPrice,
+        totalSold: stats.usdSold,
+        totalHolding: currentHoldingValue,
+        hasPosition: true,
+        totalBought: stats.usdBought,
+        currentPrice: currentPrice,
+        balance: stats.currentHolding
       })
     } catch (err) {
       console.error("Error fetching PNL:", err)
@@ -164,7 +167,54 @@ export function PnlCard({ pool }: PnlCardProps) {
       // Values
       ctx.fillStyle = "#ffffff"
       ctx.font = "65px monospace"
-      ctx.fillText(`$${pnlData.entryPrice.toFixed(6)}`, 150, statsY + 90)
+      
+      // Format entry price with subscript for small values
+      const formatEntryPrice = () => {
+        if (pnlData.entryPrice === 0) {
+          return "$0.00"
+        } else if (pnlData.entryPrice < 0.0001) {
+          // Count leading zeros after decimal
+          const str = pnlData.entryPrice.toFixed(20)
+          const match = str.match(/^0\.0*/)
+          if (match) {
+            const zeros = match[0].length - 2 // Subtract "0."
+            const significantDigits = pnlData.entryPrice.toFixed(20).replace(/^0\.0*/, '').substring(0, 4)
+            return `$0.0{${zeros}}${significantDigits}`
+          }
+        }
+        return `$${pnlData.entryPrice.toFixed(6)}`
+      }
+      
+      const entryPriceText = formatEntryPrice()
+      
+      // Handle subscript notation for entry price
+      if (entryPriceText.includes('{')) {
+        const parts = entryPriceText.split('{')
+        const beforeSubscript = parts[0]
+        const afterParts = parts[1].split('}')
+        const subscriptNum = afterParts[0]
+        const afterSubscript = afterParts[1]
+        
+        // Draw main part
+        ctx.fillText(beforeSubscript, 150, statsY + 90)
+        
+        // Measure width of main part
+        const mainWidth = ctx.measureText(beforeSubscript).width
+        
+        // Draw subscript (smaller font)
+        ctx.font = "40px monospace"
+        ctx.fillText(subscriptNum, 150 + mainWidth, statsY + 100)
+        
+        // Measure subscript width
+        const subscriptWidth = ctx.measureText(subscriptNum).width
+        
+        // Draw remaining digits (back to normal font)
+        ctx.font = "65px monospace"
+        ctx.fillText(afterSubscript, 150 + mainWidth + subscriptWidth, statsY + 90)
+      } else {
+        ctx.fillText(entryPriceText, 150, statsY + 90)
+      }
+      
       ctx.fillText(`$${pnlData.totalSold.toFixed(2)}`, 150 + statsSpacing, statsY + 90)
       ctx.fillText(`$${pnlData.totalHolding.toFixed(2)}`, 150 + statsSpacing * 2, statsY + 90)
       

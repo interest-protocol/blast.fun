@@ -8,6 +8,20 @@ interface NexaRequestOptions extends RequestInit {
 	revalidate?: number | false
 }
 
+export interface MarketStats {
+	_id: string
+	user: string
+	coin: string
+	amountBought: number
+	amountSold: number
+	buyTrades: number
+	currentHolding: number
+	pnl: number
+	sellTrades: number
+	usdBought: number
+	usdSold: number
+}
+
 class NexaClient {
 	private baseUrl: string
 
@@ -105,12 +119,12 @@ class NexaClient {
 		return await response.json()
 	}
 
-	async getMarketStats(address: string, coinType: string) {
+	async getMarketStats(address: string, coinType: string): Promise<MarketStats> {
 		const response = await this.fetch(`/spot/market-stats/${address}/${encodeURIComponent(coinType)}`, {
 			revalidate: 10,
 		})
 
-		return await response.json()
+		return await response.json() as MarketStats
 	}
 }
 
