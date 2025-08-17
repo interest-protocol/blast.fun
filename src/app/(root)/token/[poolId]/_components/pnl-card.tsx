@@ -387,19 +387,20 @@ export function PnlCard({ pool }: PnlCardProps) {
         if (!stats) return
         
         const decimals = pool.coinMetadata?.decimals || pool.metadata?.decimals || 9
-        const suiPrice = pool.marketData?.suiPrice || 3.8
+        const currentPrice = pool.marketData?.coinPrice || 0
         
-        // Convert to SUI amounts
-        const boughtInSui = stats.usdBought / suiPrice
-        const soldInSui = stats.usdSold / suiPrice
-        const holdingInSui = (Math.abs(stats.currentHolding) / Math.pow(10, decimals)) * (pool.marketData?.coinPrice || 0) / suiPrice
-        const pnlInSui = (stats.usdSold + holdingInSui * suiPrice - stats.usdBought) / suiPrice
+        // Calculate holding value in USD
+        const tokensHeld = Math.abs(stats.currentHolding) / Math.pow(10, decimals)
+        const holdingValue = tokensHeld * currentPrice
+        
+        // Calculate PNL (realized + unrealized)
+        const totalPnl = stats.usdSold + holdingValue - stats.usdBought
         
         setButtonStats({
-          bought: boughtInSui,
-          sold: soldInSui,
-          holding: holdingInSui,
-          pnl: pnlInSui
+          bought: stats.usdBought,
+          sold: stats.usdSold,
+          holding: holdingValue,
+          pnl: totalPnl
         })
       } catch (err) {
         console.error("Error fetching button stats:", err)
@@ -408,6 +409,17 @@ export function PnlCard({ pool }: PnlCardProps) {
     
     fetchButtonStats()
   }, [address, pool])
+
+  // Format button numbers with $, K, M
+  const formatButtonValue = (num: number, showSign: boolean = false) => {
+    const sign = showSign && num >= 0 ? "+" : ""
+    if (Math.abs(num) >= 1000000) {
+      return `${sign}$${(num / 1000000).toFixed(2)}M`
+    } else if (Math.abs(num) >= 1000) {
+      return `${sign}$${(num / 1000).toFixed(2)}K`
+    }
+    return `${sign}$${num.toFixed(2)}`
+  }
 
   return (
     <>
@@ -420,25 +432,25 @@ export function PnlCard({ pool }: PnlCardProps) {
           <div>
             <div className="text-[10px] text-muted-foreground">Bought</div>
             <div className="text-xs font-mono">
-              {buttonStats ? buttonStats.bought.toFixed(2) : "0.00"}
+              {buttonStats ? formatButtonValue(buttonStats.bought) : "$0.00"}
             </div>
           </div>
           <div>
             <div className="text-[10px] text-muted-foreground">Sold</div>
             <div className="text-xs font-mono text-red-500">
-              {buttonStats ? buttonStats.sold.toFixed(2) : "0.00"}
+              {buttonStats ? formatButtonValue(buttonStats.sold) : "$0.00"}
             </div>
           </div>
           <div>
             <div className="text-[10px] text-muted-foreground">Holding</div>
             <div className="text-xs font-mono">
-              {buttonStats ? buttonStats.holding.toFixed(2) : "0.00"}
+              {buttonStats ? formatButtonValue(buttonStats.holding) : "$0.00"}
             </div>
           </div>
           <div>
             <div className="text-[10px] text-muted-foreground">PnL</div>
             <div className={`text-xs font-mono ${buttonStats && buttonStats.pnl >= 0 ? "text-green-500" : "text-red-500"}`}>
-              {buttonStats ? `${buttonStats.pnl >= 0 ? "+" : ""}${buttonStats.pnl.toFixed(2)}` : "+0.00"}
+              {buttonStats ? formatButtonValue(buttonStats.pnl, true) : "+$0.00"}
             </div>
           </div>
         </div>
