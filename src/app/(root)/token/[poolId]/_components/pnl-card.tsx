@@ -381,10 +381,29 @@ export function PnlCard({ pool }: PnlCardProps) {
         const userAddress = address || yourTestAddress
         const coinType = pool.coinType || pool.innerState
         
-        if (!coinType) return
+        if (!coinType) {
+          // Set zero values if no coinType
+          setButtonStats({
+            bought: 0,
+            sold: 0,
+            holding: 0,
+            pnl: 0
+          })
+          return
+        }
         
         const stats = await nexaClient.getMarketStats(userAddress, coinType)
-        if (!stats) return
+        
+        // If no stats or no trades, show zero values
+        if (!stats || (stats.buyTrades === 0 && stats.sellTrades === 0)) {
+          setButtonStats({
+            bought: 0,
+            sold: 0,
+            holding: 0,
+            pnl: 0
+          })
+          return
+        }
         
         const decimals = pool.coinMetadata?.decimals || pool.metadata?.decimals || 9
         const currentPrice = pool.marketData?.coinPrice || 0
@@ -397,13 +416,20 @@ export function PnlCard({ pool }: PnlCardProps) {
         const totalPnl = stats.usdSold + holdingValue - stats.usdBought
         
         setButtonStats({
-          bought: stats.usdBought,
-          sold: stats.usdSold,
-          holding: holdingValue,
-          pnl: totalPnl
+          bought: stats.usdBought || 0,
+          sold: stats.usdSold || 0,
+          holding: holdingValue || 0,
+          pnl: totalPnl || 0
         })
       } catch (err) {
         console.error("Error fetching button stats:", err)
+        // Set zero values on error
+        setButtonStats({
+          bought: 0,
+          sold: 0,
+          holding: 0,
+          pnl: 0
+        })
       }
     }
     
