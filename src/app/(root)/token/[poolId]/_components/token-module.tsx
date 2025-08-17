@@ -56,15 +56,39 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 		}
 	}, [pool.innerState, pool.mostLiquidPoolId, pool.migrated, pool.coinMetadata?.decimals])
 
-	// TODO: Add mobile view later
 	if (isMobile) {
 		return (
-			<div className="w-full h-full flex flex-col">
+			<div className="w-full h-full flex flex-col overflow-hidden">
 				<TokenHeader pool={pool} realtimePrice={price} realtimeMarketCap={marketCap} />
-				<div className="flex-1 p-4">
-					<p className="font-mono text-xs uppercase text-muted-foreground">
-						Mobile view coming soon...
-					</p>
+				
+				<div className="flex-1 overflow-auto">
+					{/* Chart Section */}
+					<div className="h-[300px] border-b">
+						<NexaChart pool={pool} />
+					</div>
+					
+					{/* Creator Details */}
+					<CreatorDetails pool={pool} />
+					
+					{/* Bonding Progress (if not migrated) */}
+					{!pool.migrated && (
+						<BondingProgress pool={pool} />
+					)}
+					
+					{/* Trade Terminal */}
+					<div className="border-t">
+						<TradeTerminal pool={pool} referral={referral} />
+					</div>
+					
+					{/* Referral Share (if not migrated) */}
+					{!pool.migrated && (
+						<ReferralShare pool={pool} />
+					)}
+					
+					{/* Token Tabs */}
+					<div className="border-t">
+						<TokenTabs pool={pool} className="min-h-[400px]" />
+					</div>
 				</div>
 			</div>
 		)
