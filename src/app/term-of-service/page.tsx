@@ -17,9 +17,9 @@ export default function TermsOfServicePage() {
 				
 				<div className="space-y-6 text-base leading-relaxed">
 					<p>
-						These Terms of Use constitute a legally binding agreement between you ("<strong>you</strong>" or "<strong>your</strong>") 
-						and <strong>GiveRep Labs</strong> ("<strong>Blast</strong>", "<strong>Entities or affiliates</strong>", "<strong>we</strong>", 
-						"<strong>our</strong>" or "<strong>us</strong>"). The Terms govern your use of all <strong>Blast</strong> services made available 
+						These Terms of Use constitute a legally binding agreement between you (&ldquo;<strong>you</strong>&rdquo; or &ldquo;<strong>your</strong>&rdquo;) 
+						and <strong>GiveRep Labs</strong> (&ldquo;<strong>Blast</strong>&rdquo;, &ldquo;<strong>Entities or affiliates</strong>&rdquo;, &ldquo;<strong>we</strong>&rdquo;, 
+						&ldquo;<strong>our</strong>&rdquo; or &ldquo;<strong>us</strong>&rdquo;). The Terms govern your use of all <strong>Blast</strong> services made available 
 						to you on or through the <strong>Blast</strong> Platform or otherwise. <strong>Blast</strong> services may be developed, maintained, 
 						and/or provided by <strong>GiveRep Labs</strong> or its affiliates.
 					</p>
@@ -168,7 +168,7 @@ export default function TermsOfServicePage() {
 					<h2 className="text-2xl font-semibold tracking-tight">10. Disclaimers and Warranties</h2>
 					
 					<div className="text-base leading-relaxed">
-						<p>The Platform is provided "as is" without warranties of any kind.</p>
+						<p>The Platform is provided &ldquo;as is&rdquo; without warranties of any kind.</p>
 					</div>
 				</div>
 				

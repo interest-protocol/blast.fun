@@ -18,8 +18,8 @@ export default function PrivacyPolicyPage() {
 				<div className="space-y-6 text-base leading-relaxed">
 					<p>
 						This <strong>Privacy Notice</strong> describes the privacy practices of <strong>GiveRep Labs</strong> and its affiliates 
-						(collectively, "<strong>GiveRep Labs</strong>," "<strong>our</strong>," "<strong>us</strong>," or "<strong>we</strong>") 
-						in connection with the websites and the <strong>Blast</strong> platform (collectively, the "<strong>Services</strong>"). 
+						(collectively, &ldquo;<strong>GiveRep Labs</strong>,&rdquo; &ldquo;<strong>our</strong>,&rdquo; &ldquo;<strong>us</strong>,&rdquo; or &ldquo;<strong>we</strong>&rdquo;) 
+						in connection with the websites and the <strong>Blast</strong> platform (collectively, the &ldquo;<strong>Services</strong>&rdquo;). 
 						It also explains the rights and choices available to individuals regarding their information.
 					</p>
 					
@@ -45,7 +45,7 @@ export default function PrivacyPolicyPage() {
 					
 					<div className="text-base leading-relaxed">
 						<p>
-							"Personal Data" means information that can be associated with a specific person and can identify them. 
+							&ldquo;Personal Data&rdquo; means information that can be associated with a specific person and can identify them. 
 							It excludes aggregated or anonymized data. For purposes of applicable law, <strong>GiveRep Labs</strong> acts 
 							as the Personal Data controller, meaning we determine the purposes and means of processing Personal Data.
 						</p>
@@ -91,7 +91,7 @@ export default function PrivacyPolicyPage() {
 					
 					<div className="space-y-4 text-base leading-relaxed">
 						<p>
-							We use cookies and similar technologies ("Cookies") to enable core functionality, improve performance, and analyze usage.
+							We use cookies and similar technologies (&ldquo;Cookies&rdquo;) to enable core functionality, improve performance, and analyze usage.
 							Cookies may be:
 						</p>
 						
