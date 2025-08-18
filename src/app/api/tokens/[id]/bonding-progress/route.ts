@@ -1,22 +1,16 @@
 import { NextRequest, NextResponse } from "next/server"
 import { gql } from "@apollo/client"
 import { apolloClient } from "@/lib/apollo-client"
+import { redisGet, redisSetEx, CACHE_PREFIX } from "@/lib/redis/client"
 
 interface BondingProgressData {
-  coinType: string
   progress: number
-  totalBought: number
-  totalSold: number
-  netAmount: number
-  targetAmount: number
   migrated: boolean
   migrationPending: boolean
-  timestamp: number
 }
 
 // Cache configuration
-const CACHE_TTL = 30 * 1000 // 30 seconds
-const cache = new Map<string, { data: BondingProgressData; timestamp: number }>()
+const CACHE_TTL = 30 // 30 seconds
 
 const BONDING_PROGRESS_QUERY = gql`
   query GetBondingProgress($coinType: String!) {
@@ -47,12 +41,12 @@ export async function GET(
       )
     }
 
-    // Check cache first
-    const cached = cache.get(coinType)
-    const now = Date.now()
+    // Check Redis cache first
+    const cacheKey = `${CACHE_PREFIX.POOL_DATA}bonding_progress:${coinType}`
+    const cached = await redisGet(cacheKey)
     
-    if (cached && (now - cached.timestamp < CACHE_TTL)) {
-      return NextResponse.json(cached.data, {
+    if (cached) {
+      return NextResponse.json(JSON.parse(cached), {
         headers: {
           'X-Cache': 'HIT',
           'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
@@ -81,40 +75,16 @@ export async function GET(
     
     const migrated = pool.migrated || false
     const migrationPending = pool.canMigrate || false
-    
-    // Calculate net amounts from pool balances
-    const coinBalance = Number(pool.coinBalance || 0)
-    const quoteBalance = Number(pool.quoteBalance || 0)
-    const virtualLiquidity = Number(pool.virtualLiquidity || 0)
-    const targetQuoteLiquidity = Number(pool.targetQuoteLiquidity || 0)
 
-    const responseData = {
-      coinType,
+    // Simplified response - only bonding progress data
+    const responseData: BondingProgressData = {
       progress,
-      totalBought: quoteBalance,
-      totalSold: 0, // Not available from pool data
-      netAmount: quoteBalance,
-      targetAmount: targetQuoteLiquidity,
       migrated,
-      migrationPending,
-      timestamp: now
+      migrationPending
     }
 
-    // Update cache
-    cache.set(coinType, {
-      data: responseData,
-      timestamp: now
-    })
-
-    // Clean up old cache entries
-    if (cache.size > 1000) {
-      const entries = Array.from(cache.entries())
-      const oldestEntries = entries
-        .sort((a, b) => a[1].timestamp - b[1].timestamp)
-        .slice(0, 100)
-      
-      oldestEntries.forEach(([key]) => cache.delete(key))
-    }
+    // Cache in Redis
+    await redisSetEx(cacheKey, CACHE_TTL, JSON.stringify(responseData))
 
     return NextResponse.json(responseData, {
       headers: {
