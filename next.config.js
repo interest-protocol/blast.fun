@@ -17,5 +17,14 @@ export default {
             }
         ],
         minimumCacheTTL: 1500000
+    },
+    async redirects() {
+        return [
+            {
+                source: '/meme/:path*',
+                destination: '/token/:path*',
+                permanent: true,
+            },
+        ]
     }
 }
