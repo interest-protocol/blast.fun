@@ -159,7 +159,17 @@ export function useLaunchCoin() {
 
 		const { memeCoinType } = await pumpSdk.getCoinMetadataAndType(treasuryCapObjectId)
 
-		const { tx, metadataCap, pool } = await pumpSdk.newPoolReturnObject({
+		const tx = new Transaction();
+
+		const firstPurchase = formValues.devBuyAmount
+				? coinWithBalance({
+						balance: parseFloat(formValues.devBuyAmount || "0") * 10 ** 9,
+						type: "0x2::sui::SUI",
+					})
+				: pumpSdk.zeroSuiCoin(tx)
+
+		const { metadataCap, firstPurchase: purchasedCoin } = await pumpSdk.newPoolWithFirstBuy({
+			tx,
 			configurationKey: configKey,
 			metadata,
 			memeCoinTreasuryCap: treasuryCapObjectId,
@@ -172,46 +182,11 @@ export function useLaunchCoin() {
 			virtualLiquidity: VIRTUAL_LIQUIDITY,
 			targetQuoteLiquidity: TARGET_QUOTE_LIQUIDITY,
 			liquidityProvision: BASE_LIQUIDITY_PROVISION,
+			firstPurchase,
 		})
 
-		if (formValues.devBuyAmount && parseFloat(formValues.devBuyAmount) > 0) {
-			const buyAfterPoolCreation = formValues.devBuyAmount
-				? coinWithBalance({
-						balance: parseFloat(formValues.devBuyAmount || "0") * 10 ** 9,
-						type: "0x2::sui::SUI",
-					})
-				: pumpSdk.zeroSuiCoin(tx)
-
-			const memeCoin = tx.moveCall({
-				package: PACKAGES.mainnet.MEMEZ_FUN.latest,
-				module: Modules.PUMP,
-				function: "pump",
-				arguments: [
-					pool,
-					pumpSdk.ownedObject(tx, buyAfterPoolCreation),
-					tx.pure.option("address", null),
-					tx.pure.option("vector<u8>", null),
-					tx.pure.u64(0),
-					pumpSdk.getVersion(tx),
-				],
-				typeArguments: [memeCoinType, "0x2::sui::SUI"],
-			})
-
-			tx.transferObjects([memeCoin], tx.pure.address(address))
-		}
-
-		invariant(pool, "Pool not returned from new")
-
-		tx.moveCall({
-			package: "0x2",
-			module: "transfer",
-			function: "public_share_object",
-			arguments: [pool],
-			typeArguments: [
-				`${pumpSdk.packages.MEMEZ_FUN.original}::memez_fun::MemezFun<${pumpSdk.packages.MEMEZ_FUN.original}::memez_pump::Pump, ${normalizeStructTag(memeCoinType)},${normalizeStructTag("0x2::sui::SUI")}>`,
-			],
-		})
-
+		tx.transferObjects([purchasedCoin], tx.pure.address(address))
+		
 		if (metadataCap) {
 			tx.transferObjects([metadataCap], tx.pure.address(address))
 		}
