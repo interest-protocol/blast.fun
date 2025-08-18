@@ -85,7 +85,7 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 			</div>
 
 			{/* Right-side column */}
-			<div className="w-[400px] border-l flex flex-col h-full">
+			<div className="w-[400px] border-l flex flex-col h-full overflow-y-auto">
 				<CreatorDetails pool={pool} />
 
 				{!pool.migrated && (
