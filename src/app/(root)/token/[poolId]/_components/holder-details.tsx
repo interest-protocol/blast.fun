@@ -6,7 +6,7 @@ import type { PoolWithMetadata } from "@/types/pool"
 import { useUserHoldings } from "@/hooks/use-user-holdings"
 import { PnlDialog } from "@/components/dialogs/pnl-share.dialog"
 import { formatNumberWithSuffix } from "@/utils/format"
-import { Share2, ChartLine } from "lucide-react"
+import { ChartLine } from "lucide-react"
 import {
 	Tooltip,
 	TooltipContent,
