@@ -7,7 +7,7 @@ import Link from "next/link"
 import { Activity, Users, TrendingUp, BarChart3 } from "lucide-react"
 import { cn } from "@/utils"
 import { PoolWithMetadata } from "@/types/pool"
-import { TradesTab } from "./tabs/trades-tab"
+import { TradesAndHoldersTab } from "./tabs/trades-and-holders-tab"
 import { HoldersTab } from "./tabs/holders-tab"
 import { PositionsTab } from "./tabs/positions-tab"
 import { TopTradersTab } from "./tabs/top-traders-tab"
@@ -28,9 +28,9 @@ interface Tab {
 const tabs: Tab[] = [
 	{
 		id: "trades",
-		label: "Trades",
+		label: "Trades & Holders",
 		icon: Activity,
-		component: TradesTab
+		component: TradesAndHoldersTab
 	},
 	{
 		id: "holders",
@@ -55,7 +55,7 @@ const tabs: Tab[] = [
 export function TokenTabs({ pool, marketData, className }: TokenTabsProps) {
 	const [activeTab, setActiveTab] = useState("trades")
 	const { resolvedTheme } = useTheme()
-	const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || TradesTab
+	const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || TradesAndHoldersTab
 	const holdersCount = marketData?.holdersCount
 
 	return (
@@ -116,7 +116,7 @@ export function TokenTabs({ pool, marketData, className }: TokenTabsProps) {
 			{/* Tab Content */}
 			<div className="flex-1 overflow-hidden">
 				{activeTab === "trades" ? (
-					<TradesTab pool={pool} className="h-full" isVisible={true} />
+					<TradesAndHoldersTab pool={pool} className="h-full" isVisible={true} />
 				) : (
 					<ActiveComponent pool={pool} className="h-full" />
 				)}

@@ -7,7 +7,7 @@ import Link from "next/link"
 import { Activity } from "lucide-react"
 import { cn } from "@/utils"
 import { PoolWithMetadata } from "@/types/pool"
-import { TradesTab } from "./tabs/trades-tab"
+import { TradesAndHoldersTab } from "./tabs/trades-and-holders-tab"
 
 interface TokenTabsProps {
 	pool: PoolWithMetadata
@@ -24,16 +24,16 @@ interface Tab {
 const tabs: Tab[] = [
 	{
 		id: "trades",
-		label: "Trades",
+		label: "Trades & Holders",
 		icon: Activity,
-		component: TradesTab
+		component: TradesAndHoldersTab
 	},
 ]
 
 export function TokenTabs({ pool, className }: TokenTabsProps) {
 	const [activeTab, setActiveTab] = useState("trades")
 	const { resolvedTheme } = useTheme()
-	const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || TradesTab
+	const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || TradesAndHoldersTab
 
 	return (
 		<div className={cn("flex flex-col h-full", className)}>
