@@ -32,9 +32,8 @@ export function TermsPrivacyDialog() {
 		
 		// Don't show dialog on specific pages
 		const excludedPaths = ['/term-of-service', '/privacy-policy']
-		const isTokenPage = currentPath.startsWith('/token/')
 		
-		if (excludedPaths.includes(currentPath) || isTokenPage) {
+		if (excludedPaths.includes(currentPath)) {
 			return
 		}
 
