@@ -27,18 +27,18 @@ export default function XCardPage({ params }: { params: Promise<{ id: string }> 
 			})
 		}
 	}, [refCode, checkReferralCode])
-	
+
 	useEffect(() => {
 		// Check if we're not in an iframe after a small delay
 		const checkIframe = setTimeout(() => {
 			if (typeof window !== 'undefined' && window.self === window.top) {
 				setIsRedirecting(true)
 				// Redirect to main token page
-				const tokenUrl = refCode ? `/meme/${id}?ref=${refCode}` : `/meme/${id}`
+				const tokenUrl = refCode ? `/token/${id}?ref=${refCode}` : `/token/${id}`
 				window.location.replace(tokenUrl)
 			}
 		}, 100)
-		
+
 		return () => clearTimeout(checkIframe)
 	}, [id, refCode])
 

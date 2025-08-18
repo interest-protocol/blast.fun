@@ -28,7 +28,7 @@ export function QuickBuy({ poolObjectId, className }: QuickBuyProps) {
 			const amountInMist = String(amountInSui * Number(MIST_PER_SUI))
 			await handleBuy(amountInMist)
 
-			router.push(`/meme/${poolObjectId}`)
+			router.push(`/token/${poolObjectId}`)
 		} catch (error) {
 			console.error("Quick buy failed:", error)
 		} finally {
@@ -51,7 +51,7 @@ export function QuickBuy({ poolObjectId, className }: QuickBuyProps) {
 					QUICK::BUY
 				</p>
 				<button
-					onClick={() => router.push(`/meme/${poolObjectId}`)}
+					onClick={() => router.push(`/token/${poolObjectId}`)}
 					className="font-mono text-xs uppercase text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
 					disabled={isLoading}
 				>
