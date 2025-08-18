@@ -33,7 +33,7 @@ export function PortfolioTable({ portfolio, hideSmallBalance, onHideSmallBalance
 		}
 	}
 
-	const filteredBalances = hideSmallBalance 
+	const filteredBalances = hideSmallBalance
 		? portfolio.balances.filter(balance => balance.value >= 1)
 		: portfolio.balances
 
@@ -61,7 +61,7 @@ export function PortfolioTable({ portfolio, hideSmallBalance, onHideSmallBalance
 	})
 
 	return (
-		<Card className="overflow-hidden bg-card/50 backdrop-blur-sm p-0">
+		<div className="overflow-hidden border rounded-xl bg-card/50 backdrop-blur-sm">
 			<div className="overflow-x-auto">
 				<table className="w-full">
 					<thead className="border-b border-border bg-muted/30">
@@ -212,6 +212,6 @@ export function PortfolioTable({ portfolio, hideSmallBalance, onHideSmallBalance
 					Showing {sortedBalances.length} of {portfolio.balances.length} tokens
 				</div>
 			</div>
-		</Card>
+		</div>
 	)
 }

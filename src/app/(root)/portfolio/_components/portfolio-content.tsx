@@ -99,8 +99,8 @@ export function PortfolioContent() {
 				{portfolio && (
 					<>
 						<PortfolioStats portfolio={portfolio} />
-						<PortfolioTable 
-							portfolio={portfolio} 
+						<PortfolioTable
+							portfolio={portfolio}
 							hideSmallBalance={hideSmallBalance}
 							onHideSmallBalanceChange={setHideSmallBalance}
 						/>
