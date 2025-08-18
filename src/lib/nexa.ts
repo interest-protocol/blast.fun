@@ -1,7 +1,7 @@
 import { MarketData } from "@/types/market"
 import { CoinMetadata } from "@/types/pool"
 
-const NEXA_API_BASE = "https://api-v2.nexa.xyz"
+const NEXA_API_BASE = "https://api.nexa.xyz"
 
 interface NexaRequestOptions extends RequestInit {
 	cache?: RequestCache
