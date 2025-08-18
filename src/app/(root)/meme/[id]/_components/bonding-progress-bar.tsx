@@ -3,26 +3,19 @@
 import { Rocket } from "lucide-react"
 import type { PoolWithMetadata } from "@/types/pool"
 import { cn } from "@/utils"
-import { useQuery } from "@tanstack/react-query"
-import { fetchTokenWithMetadata } from "@/lib/pump/fetch-token"
+import { useBondingProgress } from "@/hooks/use-bonding-progress"
 
 interface BondingProgressBarProps {
     pool: PoolWithMetadata
 }
 
 export function BondingProgressBar({ pool }: BondingProgressBarProps) {
-    const { data: updatedPool } = useQuery({
-        queryKey: ["bonding-progress", pool.poolId],
-        queryFn: () => fetchTokenWithMetadata(pool.poolId),
-        enabled: !!pool.poolId && !pool.migrated,
-        refetchInterval: 8000,
-        initialData: pool,
-    })
-
-    const currentPool = updatedPool || pool
-    const progress = typeof currentPool.bondingCurve === "number"
-        ? currentPool.bondingCurve
-        : parseFloat(currentPool.bondingCurve) || 0
+    const { data } = useBondingProgress(pool.coinType)
+    
+    // Use real-time data if available, otherwise fall back to pool data
+    const progress = data?.progress ?? (typeof pool.bondingCurve === "number"
+        ? pool.bondingCurve
+        : parseFloat(pool.bondingCurve) || 0)
 
     const isComplete = progress >= 100
 
