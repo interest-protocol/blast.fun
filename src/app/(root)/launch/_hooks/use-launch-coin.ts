@@ -168,7 +168,7 @@ export function useLaunchCoin() {
 					})
 				: pumpSdk.zeroSuiCoin(tx)
 
-		const { metadataCap } = await pumpSdk.newPoolWithFirstBuy({
+		const { metadataCap, firstPurchase: purchasedCoin } = await pumpSdk.newPoolWithFirstBuy({
 			tx,
 			configurationKey: configKey,
 			metadata,
@@ -184,6 +184,8 @@ export function useLaunchCoin() {
 			liquidityProvision: BASE_LIQUIDITY_PROVISION,
 			firstPurchase,
 		})
+
+		tx.transferObjects([purchasedCoin], tx.pure.address(address))
 		
 		if (metadataCap) {
 			tx.transferObjects([metadataCap], tx.pure.address(address))
