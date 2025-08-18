@@ -49,6 +49,14 @@ class NexaServerClient {
 		return await response.json() as MarketData
 	}
 
+	async getHolders(coinType: string, limit = 10, skip = 0) {
+		const response = await this.fetch(`/coin-holders/${encodeURIComponent(coinType)}/holders?limit=${limit}&skip=${skip}`, {
+			revalidate: 30, // 30 seconds
+		})
+
+		return await response.json()
+	}
+
 	async getCoinMetadata(coinType: string): Promise<CoinMetadata> {
 		const response = await this.fetch(`/coins/${coinType}/coin-metadata`, {
 			revalidate: 43200, // 12 hours

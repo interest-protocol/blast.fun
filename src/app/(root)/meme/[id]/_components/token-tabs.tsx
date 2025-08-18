@@ -4,10 +4,12 @@ import { useState } from "react"
 import { useTheme } from "next-themes"
 import Image from "next/image"
 import Link from "next/link"
-import { Activity, Users, TrendingUp, BarChart3 } from "lucide-react"
+import { Activity, Users, TrendingUp, BarChart3, Crown } from "lucide-react"
 import { cn } from "@/utils"
 import { PoolWithMetadata } from "@/types/pool"
 import { TradesAndHoldersTab } from "./tabs/trades-and-holders-tab"
+import { TradesTab } from "./tabs/trades-tab"
+import { TopHoldersTab } from "./tabs/top-holders-tab"
 import { HoldersTab } from "./tabs/holders-tab"
 import { PositionsTab } from "./tabs/positions-tab"
 import { TopTradersTab } from "./tabs/top-traders-tab"
@@ -22,15 +24,55 @@ interface Tab {
 	id: string
 	label: string
 	icon: React.ComponentType<{ className?: string }>
-	component: React.ComponentType<{ pool: PoolWithMetadata; className?: string }>
+	component: React.ComponentType<{ pool: PoolWithMetadata; className?: string; isVisible?: boolean }>
+	hideOnXl?: boolean // Hide this tab on XL screens and above
+	showOnlyOnXl?: boolean // Show this tab only on XL screens and above
 }
 
-const tabs: Tab[] = [
+// Tabs for XL screens and above (with split view)
+const tabsXl: Tab[] = [
 	{
-		id: "trades",
+		id: "trades-split",
 		label: "Trades & Holders",
 		icon: Activity,
-		component: TradesAndHoldersTab
+		component: TradesAndHoldersTab,
+		showOnlyOnXl: true
+	},
+	{
+		id: "holders",
+		label: "Holders",
+		icon: Users,
+		component: HoldersTab
+	},
+	{
+		id: "positions",
+		label: "Positions",
+		icon: BarChart3,
+		component: PositionsTab
+	},
+	{
+		id: "top-traders",
+		label: "Top Traders",
+		icon: TrendingUp,
+		component: TopTradersTab
+	}
+]
+
+// Tabs for LG screens and below (separate tabs)
+const tabsLg: Tab[] = [
+	{
+		id: "trades",
+		label: "Trades",
+		icon: Activity,
+		component: TradesTab,
+		hideOnXl: true
+	},
+	{
+		id: "top-holders",
+		label: "Top 10 Holders",
+		icon: Crown,
+		component: TopHoldersTab,
+		hideOnXl: true
 	},
 	{
 		id: "holders",
@@ -53,9 +95,13 @@ const tabs: Tab[] = [
 ]
 
 export function TokenTabs({ pool, marketData, className }: TokenTabsProps) {
-	const [activeTab, setActiveTab] = useState("trades")
+	const [activeTabXl, setActiveTabXl] = useState("trades-split")
+	const [activeTabLg, setActiveTabLg] = useState("trades")
 	const { resolvedTheme } = useTheme()
-	const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || TradesAndHoldersTab
+	
+	// Find the active component based on screen size
+	const activeXlTab = tabsXl.find(tab => tab.id === activeTabXl)
+	const activeLgTab = tabsLg.find(tab => tab.id === activeTabLg)
 	const holdersCount = marketData?.holdersCount
 
 	return (
@@ -64,29 +110,60 @@ export function TokenTabs({ pool, marketData, className }: TokenTabsProps) {
 			<div className="border-b">
 				<div className="flex items-center justify-between p-2">
 					<div className="flex items-center gap-1">
-						{tabs.map((tab) => {
-							const Icon = tab.icon
-							const isActive = activeTab === tab.id
+						{/* Show different tabs based on screen size */}
+						{/* For XL and above */}
+						<div className="hidden xl:flex items-center gap-1">
+							{tabsXl.map((tab) => {
+								const Icon = tab.icon
+								const isActive = activeTabXl === tab.id
 
-							return (
-								<button
-									key={tab.id}
-									onClick={() => setActiveTab(tab.id)}
-									className={cn(
-										"flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
-										isActive
-											? "bg-primary/10 text-primary border border-primary/20"
-											: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-									)}
-								>
-									<Icon className="h-3.5 w-3.5" />
-									<span className="hidden sm:inline">
-										{tab.label}
-										{tab.id === "holders" && holdersCount ? ` (${holdersCount})` : ""}
-									</span>
-								</button>
-							)
-						})}
+								return (
+									<button
+										key={`xl-${tab.id}`}
+										onClick={() => setActiveTabXl(tab.id)}
+										className={cn(
+											"flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
+											isActive
+												? "bg-primary/10 text-primary border border-primary/20"
+												: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+										)}
+									>
+										<Icon className="h-3.5 w-3.5" />
+										<span className="hidden sm:inline">
+											{tab.label}
+											{tab.id === "holders" && holdersCount ? ` (${holdersCount})` : ""}
+										</span>
+									</button>
+								)
+							})}
+						</div>
+						
+						{/* For LG and below */}
+						<div className="flex xl:hidden items-center gap-1">
+							{tabsLg.map((tab) => {
+								const Icon = tab.icon
+								const isActive = activeTabLg === tab.id
+
+								return (
+									<button
+										key={`lg-${tab.id}`}
+										onClick={() => setActiveTabLg(tab.id)}
+										className={cn(
+											"flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
+											isActive
+												? "bg-primary/10 text-primary border border-primary/20"
+												: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+										)}
+									>
+										<Icon className="h-3.5 w-3.5" />
+										<span className="hidden sm:inline">
+											{tab.label}
+											{tab.id === "holders" && holdersCount ? ` (${holdersCount})` : ""}
+										</span>
+									</button>
+								)
+							})}
+						</div>
 					</div>
 
 					<Link
@@ -115,11 +192,27 @@ export function TokenTabs({ pool, marketData, className }: TokenTabsProps) {
 
 			{/* Tab Content */}
 			<div className="flex-1 overflow-hidden">
-				{activeTab === "trades" ? (
-					<TradesAndHoldersTab pool={pool} className="h-full" isVisible={true} />
-				) : (
-					<ActiveComponent pool={pool} className="h-full" />
-				)}
+				{/* XL screens and above */}
+				<div className="hidden xl:block h-full">
+					{activeXlTab && (
+						<activeXlTab.component 
+							pool={pool} 
+							className="h-full" 
+							isVisible={activeTabXl === "trades-split"} 
+						/>
+					)}
+				</div>
+				
+				{/* LG screens and below */}
+				<div className="xl:hidden h-full">
+					{activeLgTab && (
+						<activeLgTab.component 
+							pool={pool} 
+							className="h-full" 
+							isVisible={activeTabLg === "trades"} 
+						/>
+					)}
+				</div>
 			</div>
 		</div>
 	)

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { nexaClient } from "@/lib/nexa"
+import { nexaServerClient } from "@/lib/nexa-server"
 import { gql } from "@apollo/client"
 import { apolloClient } from "@/lib/apollo-client"
 
@@ -61,7 +61,7 @@ export async function GET(
 
     // Fetch fresh data - get holders and pool data in parallel
     const [holdersData, { data: poolData }] = await Promise.all([
-      nexaClient.getHolders(coinType, 10, 0),
+      nexaServerClient.getHolders(coinType, 10, 0),
       apolloClient.query({
         query: POOL_QUERY,
         variables: { coinType },

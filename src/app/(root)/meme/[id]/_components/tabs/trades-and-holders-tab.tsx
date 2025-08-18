@@ -22,32 +22,15 @@ export function TradesAndHoldersTab({ pool, className, isVisible = true }: Trade
   const coinDecimals = metadata?.decimals || 9
 
   return (
-    <div className={cn("flex flex-col lg:flex-row h-full gap-0 lg:gap-px bg-border", className)}>
-      {/* Trades Section - Full width on mobile, 50% on desktop */}
-      <div className="w-full lg:w-1/2 h-1/2 lg:h-full bg-background">
+    <div className={cn("flex flex-row h-full gap-px bg-border", className)}>
+      {/* Trades Section - 50% width */}
+      <div className="w-1/2 h-full bg-background">
         <TradesTab pool={pool} className="h-full" isVisible={isVisible} />
       </div>
 
-      {/* Holders Section - Full width on mobile, 50% on desktop */}
-      <div className="w-full lg:w-1/2 h-1/2 lg:h-full bg-background">
-        <div className="h-full flex flex-col">
-          {/* Header */}
-          <div className="border-b p-3 flex items-center justify-between bg-background/95 backdrop-blur-sm">
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-muted-foreground" />
-              <h3 className="font-mono text-xs uppercase tracking-wider">
-                TOP 10 HOLDERS
-              </h3>
-            </div>
-            {holdersData && (
-              <div className="font-mono text-xs text-muted-foreground">
-                Total: {formatAmountWithSuffix(holdersData.totalHoldings / Math.pow(10, coinDecimals))}
-              </div>
-            )}
-          </div>
-
-          {/* Content */}
-          <ScrollArea className="flex-1">
+      {/* Holders Section - 50% width */}
+      <div className="w-1/2 h-full bg-background">
+        <ScrollArea className="h-full">
             {isLoading ? (
               <div className="p-4 space-y-2">
                 <div className="text-center py-8">
@@ -76,39 +59,31 @@ export function TradesAndHoldersTab({ pool, className, isVisible = true }: Trade
                 </div>
               </div>
             ) : (
-              <div className="p-2">
-                {/* Table Header */}
-                <div className="grid grid-cols-12 gap-2 px-2 py-1.5 text-[10px] font-mono uppercase text-muted-foreground sticky top-0 bg-background/95 backdrop-blur-sm">
-                  <div className="col-span-1">#</div>
-                  <div className="col-span-6">Wallet</div>
-                  <div className="col-span-3 text-right">Amount</div>
-                  <div className="col-span-2 text-right">%</div>
+              <div className="relative">
+                {/* Header matching trades header */}
+                <div className="grid grid-cols-12 gap-2 px-2 sm:px-4 py-2 border-b border-border/50 text-[10px] sm:text-xs font-mono uppercase text-muted-foreground sticky top-0 bg-background/95 backdrop-blur-sm z-10 select-none">
+                  <div className="col-span-8">TOP 10 HOLDERS</div>
+                  <div className="col-span-4 text-right">%</div>
                 </div>
 
                 {/* Holders List */}
                 {holdersData?.holders.map((holder) => {
-                  const amount = holder.balance / Math.pow(10, coinDecimals)
-                  
                   return (
                     <div
                       key={holder.user}
-                      className="grid grid-cols-12 gap-2 px-2 py-1.5 items-center hover:bg-muted/5 transition-colors border-b border-border/30"
+                      className="grid grid-cols-12 gap-2 px-2 sm:px-4 py-2 sm:py-3 items-center border-b border-border/30 hover:bg-muted/5 transition-colors"
                     >
-                      {/* Rank */}
-                      <div className="col-span-1">
+                      {/* Rank + Wallet */}
+                      <div className="col-span-8 flex items-center gap-2">
                         <span className={cn(
-                          "font-mono text-[11px]",
+                          "font-mono text-[10px] sm:text-xs",
                           holder.rank <= 3 ? "text-primary font-semibold" : "text-muted-foreground"
                         )}>
-                          {holder.rank}
+                          #{holder.rank}
                         </span>
-                      </div>
-
-                      {/* Wallet */}
-                      <div className="col-span-6 flex items-center gap-1">
                         <CopyableAddress
                           address={holder.user}
-                          className="text-[11px] hover:text-primary"
+                          className="text-[10px] sm:text-xs text-muted-foreground hover:text-primary"
                           maxLength={8}
                         />
                         {holder.isCreator && (
@@ -121,17 +96,10 @@ export function TradesAndHoldersTab({ pool, className, isVisible = true }: Trade
                         )}
                       </div>
 
-                      {/* Amount */}
-                      <div className="col-span-3 text-right">
-                        <span className="font-mono text-[11px] text-foreground/80">
-                          {formatAmountWithSuffix(amount)}
-                        </span>
-                      </div>
-
                       {/* Percentage */}
-                      <div className="col-span-2 text-right">
+                      <div className="col-span-4 text-right">
                         <span className={cn(
-                          "font-mono text-[11px]",
+                          "font-mono text-[10px] sm:text-xs",
                           holder.percentage >= 5
                             ? "text-primary font-semibold"
                             : holder.percentage >= 1
@@ -147,7 +115,6 @@ export function TradesAndHoldersTab({ pool, className, isVisible = true }: Trade
               </div>
             )}
           </ScrollArea>
-        </div>
       </div>
     </div>
   )
