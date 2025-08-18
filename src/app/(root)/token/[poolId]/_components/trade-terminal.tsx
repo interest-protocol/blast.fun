@@ -181,9 +181,9 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 		if (tradeType === "buy") {
 			return (parseFloat(amount) * suiPrice).toFixed(2)
 		} else {
-			return (parseFloat(amount) * tokenPrice).toFixed(2)
+			return (calculateOutputAmount * suiPrice).toFixed(2)
 		}
-	}, [amount, tradeType, suiPrice, tokenPrice])
+	}, [amount, tradeType, suiPrice, calculateOutputAmount])
 
 	// fetch referrer wallet if referral code exists
 	useEffect(() => {
