@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import {
 	Dialog,
 	DialogContent,
@@ -20,11 +21,23 @@ const TERMS_VERSION_KEY = "blast-terms-version"
 const CURRENT_TERMS_VERSION = "1.0.0"
 
 export function TermsPrivacyDialog() {
+	const pathname = usePathname()
 	const [open, setOpen] = useState(false)
 	const [agreed, setAgreed] = useState(false)
 	const [isUpdate, setIsUpdate] = useState(false)
 
 	useEffect(() => {
+		// Get current path from window if pathname is not available
+		const currentPath = pathname || (typeof window !== 'undefined' ? window.location.pathname : '')
+		
+		// Don't show dialog on specific pages
+		const excludedPaths = ['/term-of-service', '/privacy-policy']
+		const isTokenPage = currentPath.startsWith('/token/')
+		
+		if (excludedPaths.includes(currentPath) || isTokenPage) {
+			return
+		}
+
 		// Check if user has accepted the current version of terms
 		const acceptedVersion = localStorage.getItem(TERMS_VERSION_KEY)
 		
@@ -33,7 +46,7 @@ export function TermsPrivacyDialog() {
 			setOpen(true)
 			setIsUpdate(!!acceptedVersion) // It's an update if there was a previous version
 		}
-	}, [])
+	}, [pathname])
 
 	const handleAccept = () => {
 		if (agreed) {
