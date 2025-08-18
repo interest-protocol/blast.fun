@@ -16,6 +16,7 @@ export default function XCardPage({ params }: { params: Promise<{ id: string }> 
 	const refCode = searchParams.get("ref")
 	const { checkReferralCode } = useReferrals()
 	const [referrerWallet, setReferrerWallet] = useState<string | null>(null)
+	const [isRedirecting, setIsRedirecting] = useState(false)
 
 	useEffect(() => {
 		if (refCode) {
@@ -26,9 +27,32 @@ export default function XCardPage({ params }: { params: Promise<{ id: string }> 
 			})
 		}
 	}, [refCode, checkReferralCode])
+	
+	useEffect(() => {
+		// Check if we're not in an iframe after a small delay
+		const checkIframe = setTimeout(() => {
+			if (typeof window !== 'undefined' && window.self === window.top) {
+				setIsRedirecting(true)
+				// Redirect to main token page
+				const tokenUrl = refCode ? `/meme/${id}?ref=${refCode}` : `/meme/${id}`
+				window.location.replace(tokenUrl)
+			}
+		}, 100)
+		
+		return () => clearTimeout(checkIframe)
+	}, [id, refCode])
 
-	if (isLoading) {
-		return <SplashLoader />
+	if (isLoading || isRedirecting) {
+		return (
+			<div className="bg-background h-screen flex items-center justify-center">
+				<div className="text-center">
+					<Logo className="w-16 h-16 mx-auto mb-4 animate-pulse" />
+					<p className="font-mono text-sm uppercase tracking-wider text-foreground/60">
+						{isRedirecting ? "REDIRECTING..." : "LOADING..."}
+					</p>
+				</div>
+			</div>
+		)
 	}
 
 	if (error || !pool) {

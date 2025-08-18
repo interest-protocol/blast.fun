@@ -10,9 +10,19 @@ export async function GET(
     const searchParams = request.nextUrl.searchParams
     const refCode = searchParams.get("ref")
     const appUrl = new URL(BASE_DOMAIN)
+    
+    // Get user agent to detect Twitter/social media bots
+    const userAgent = request.headers.get("user-agent") || ""
+    const isBot = /bot|crawler|spider|twitter|facebook|whatsapp|telegram|discord|slack/i.test(userAgent)
 
-    // build URL with referral code if present
+    // build URLs
     const xCardUrl = refCode ? `${appUrl}/x-card/${id}?ref=${refCode}` : `${appUrl}/x-card/${id}`
+    const tokenUrl = refCode ? `${appUrl}/meme/${id}?ref=${refCode}` : `${appUrl}/meme/${id}`
+    
+    // If not a bot, redirect to the actual token page
+    if (!isBot) {
+        return NextResponse.redirect(tokenUrl, { status: 302 })
+    }
 
     const html = `<!DOCTYPE html>
 <html>
@@ -51,7 +61,27 @@ export async function GET(
     <meta property="og:url" content="${xCardUrl}" />
     
     <title>blast.fun terminal</title>
+    
+    <!-- Fallback redirect for regular browsers -->
+    <script>
+        // Small delay to allow Twitter to process meta tags
+        setTimeout(function() {
+            // Check if we're not in an iframe (not embedded)
+            if (window.self === window.top) {
+                // Not in iframe, redirect to main site
+                window.location.replace("${tokenUrl}");
+            }
+        }, 100);
+    </script>
 </head>
+<body style="margin: 0; padding: 0; background: #000;">
+    <div style="display: flex; align-items: center; justify-content: center; height: 100vh; color: #fff; font-family: monospace;">
+        <div style="text-align: center;">
+            <p style="font-size: 14px; opacity: 0.8;">Loading blast.fun...</p>
+            <p style="font-size: 12px; opacity: 0.6; margin-top: 10px;">If you're not redirected, <a href="${tokenUrl}" style="color: #00ff00;">click here</a></p>
+        </div>
+    </div>
+</body>
 </html>`
 
     return new NextResponse(html, {
