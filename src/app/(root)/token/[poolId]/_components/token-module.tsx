@@ -9,7 +9,7 @@ import { TokenTabs } from "./token-tabs"
 import { TradeTerminal } from "./trade-terminal"
 import { BondingProgress } from "./bonding-progress"
 import { ReferralShare } from "./referral-share"
-import { PnlCardWrapper } from "./pnl-card-wrapper"
+import { HolderDetails } from "./holder-details"
 import { NexaChart } from "@/components/shared/nexa-chart"
 import {
 	ResizablePanelGroup,
@@ -42,7 +42,7 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 			(data: { price: number; suiPrice: number }) => {
 				const newPrice = data.price * data.suiPrice
 				setPrice(newPrice)
-				
+
 				// Calculate market cap dynamically
 				// Use the decimals from coin metadata if available, otherwise use default
 				const decimals = pool.coinMetadata?.decimals || DEFAULT_TOKEN_DECIMALS
@@ -96,10 +96,12 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 			{/* Right-side column */}
 			<div className="w-[400px] border-l flex flex-col h-full">
 				<CreatorDetails pool={pool} />
+
 				{!pool.migrated && (
 					<BondingProgress pool={pool} />
 				)}
-				<PnlCardWrapper pool={pool} />
+
+				<HolderDetails pool={pool} />
 				<TradeTerminal pool={pool} referral={referral} />
 				<ReferralShare pool={pool} />
 			</div>
