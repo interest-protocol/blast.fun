@@ -59,7 +59,7 @@ class NexaClient {
 
 			const text = await response.text()
 			if (!text || text.trim() === '') return null
-			
+
 			try {
 				return JSON.parse(text) as CoinMetadata
 			} catch {
@@ -80,7 +80,7 @@ class NexaClient {
 
 			const text = await response.text()
 			if (!text || text.trim() === '') return {}
-			
+
 			try {
 				return JSON.parse(text)
 			} catch {
@@ -100,7 +100,7 @@ class NexaClient {
 
 			const text = await response.text()
 			if (!text || text.trim() === '') return null
-			
+
 			try {
 				return JSON.parse(text) as MarketData
 			} catch {
@@ -121,7 +121,7 @@ class NexaClient {
 
 			const text = await response.text()
 			if (!text || text.trim() === '') return []
-			
+
 			try {
 				return JSON.parse(text)
 			} catch {
@@ -141,7 +141,7 @@ class NexaClient {
 
 			const text = await response.text()
 			if (!text || text.trim() === '') return { holders: [], total: 0 }
-			
+
 			try {
 				return JSON.parse(text)
 			} catch {
@@ -161,7 +161,7 @@ class NexaClient {
 
 			const text = await response.text()
 			if (!text || text.trim() === '') return { trades: [], total: 0 }
-			
+
 			try {
 				return JSON.parse(text)
 			} catch {
@@ -181,7 +181,7 @@ class NexaClient {
 
 			const text = await response.text()
 			if (!text || text.trim() === '') return null
-			
+
 			try {
 				return JSON.parse(text)
 			} catch {
@@ -196,14 +196,14 @@ class NexaClient {
 	async searchTokens(query: string) {
 		try {
 			const url = `/search/query/${encodeURIComponent(query)}?platform=xpump`
-			
+
 			const response = await this.fetch(url, {
 				revalidate: false,
 			})
 
 			const text = await response.text()
 			if (!text || text.trim() === '') return []
-			
+
 			try {
 				return JSON.parse(text)
 			} catch {
@@ -221,13 +221,9 @@ class NexaClient {
 				revalidate: 10,
 			})
 
-			// Check if response has content
 			const text = await response.text()
-			if (!text || text.trim() === '') {
-				return null
-			}
+			if (!text || text.trim() === '') return null
 
-			// Try to parse JSON
 			try {
 				return JSON.parse(text) as MarketStats
 			} catch {
