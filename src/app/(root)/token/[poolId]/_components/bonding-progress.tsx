@@ -1,13 +1,17 @@
 "use client"
 
 import type { PoolWithMetadata } from "@/types/pool"
+import { useBondingProgress } from "@/hooks/use-bonding-progress"
 
 interface BondingProgressProps {
 	pool: PoolWithMetadata
 }
 
 export function BondingProgress({ pool }: BondingProgressProps) {
-	const progress = typeof pool.bondingCurve === "number" ? pool.bondingCurve : parseFloat(pool.bondingCurve) || 0
+	const { data } = useBondingProgress(pool.coinType)
+	
+	// Use real-time data if available, otherwise fall back to pool data
+	const progress = data?.progress ?? (typeof pool.bondingCurve === "number" ? pool.bondingCurve : parseFloat(pool.bondingCurve) || 0)
 
 	return (
 		<div className="relative border-b border-border">
