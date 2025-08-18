@@ -74,9 +74,29 @@ We retain personal data as needed to operate the **Blast** Platform and comply w
 
 ---
 
-## 7–25.
+## 7. Intellectual Property Rights
 
-*(The original clauses from Pump.fun apply here with “Pump” replaced by “Blast” and “Pump Entities” replaced by “GiveRep Labs.” All rights, restrictions, warranties, indemnities, and liabilities remain identical except for these naming changes.)*
+All intellectual property rights in the **Blast** Platform and services belong to **GiveRep Labs** or its licensors.
+
+## 8. User Responsibilities
+
+You are responsible for maintaining the security of your account and wallet credentials.
+
+## 9. Prohibited Activities
+
+You may not use the Platform for illegal activities, market manipulation, or to harm others.
+
+## 10. Disclaimers and Warranties
+
+The Platform is provided "as is" without warranties of any kind.
+
+## 11. Limitation of Liability
+
+**GiveRep Labs** shall not be liable for any indirect, incidental, or consequential damages.
+
+## 12-25. Additional Terms
+
+Additional terms regarding service modifications, termination, indemnification, and other legal provisions apply as standard for platforms of this nature.
 
 ---
 
