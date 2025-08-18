@@ -1,31 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
-import { gql } from "@apollo/client"
 import { apolloClient } from "@/lib/apollo-client"
-import { redisGet, redisSetEx, CACHE_PREFIX } from "@/lib/redis/client"
+import { redisGet, redisSetEx, CACHE_PREFIX, CACHE_TTL } from "@/lib/redis/client"
+import { GET_POOL_BONDING_PROGRESS } from "@/graphql/pools"
 
 interface BondingProgressData {
   progress: number
   migrated: boolean
   migrationPending: boolean
 }
-
-// Cache configuration
-const CACHE_TTL = 30 // 30 seconds
-
-const BONDING_PROGRESS_QUERY = gql`
-  query GetBondingProgress($coinType: String!) {
-    coinPool(type: $coinType) {
-      poolId
-      bondingCurve
-      migrated
-      canMigrate
-      coinBalance
-      quoteBalance
-      virtualLiquidity
-      targetQuoteLiquidity
-    }
-  }
-`
 
 export async function GET(
   request: NextRequest,
@@ -42,7 +24,7 @@ export async function GET(
     }
 
     // Check Redis cache first
-    const cacheKey = `${CACHE_PREFIX.POOL_DATA}bonding_progress:${coinType}`
+    const cacheKey = `${CACHE_PREFIX.BONDING_PROGRESS}${coinType}`
     const cached = await redisGet(cacheKey)
     
     if (cached) {
@@ -56,7 +38,7 @@ export async function GET(
 
     // Fetch fresh data
     const { data } = await apolloClient.query({
-      query: BONDING_PROGRESS_QUERY,
+      query: GET_POOL_BONDING_PROGRESS,
       variables: { coinType },
       fetchPolicy: 'network-only',
     })
@@ -84,7 +66,7 @@ export async function GET(
     }
 
     // Cache in Redis
-    await redisSetEx(cacheKey, CACHE_TTL, JSON.stringify(responseData))
+    await redisSetEx(cacheKey, CACHE_TTL.BONDING_PROGRESS, JSON.stringify(responseData))
 
     return NextResponse.json(responseData, {
       headers: {
