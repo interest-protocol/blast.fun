@@ -1,5 +1,3 @@
-import { CoinMetadata } from "./pool"
-
 export type MarketStats = {
 	_id: string
 	coin: string
@@ -12,6 +10,34 @@ export type MarketStats = {
 	sellTrades: number
 	usdBought: number
 	usdSold: number
+}
+
+export type CoinMetadata = {
+	_id?: string
+	coinType?: string
+	decimals: number
+	name: string
+	symbol: string
+	description?: string
+	iconUrl?: string
+	icon_url?: string
+	id: string
+	supply?: number
+	createdAt?: number
+	dev?: string
+	lastTradeAt?: string
+	treasuryCap?: string
+	treasuryCapOwner?: any
+	isHoneypot?: boolean
+	bondingProgress?: number
+	circulating?: number
+	circulatingUpdatedAt?: number
+	dexPaid?: boolean
+	isMemeZone?: boolean
+	platform?: string
+	threshold?: number
+	virtualSui?: number
+	poolId?: string
 }
 
 export type PortfolioBalanceItem = {
