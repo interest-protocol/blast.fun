@@ -10,6 +10,7 @@ import { TradeTerminal } from "./trade-terminal"
 import { BondingProgress } from "./bonding-progress"
 import { ReferralShare } from "./referral-share"
 import { HolderDetails } from "./holder-details"
+import MobileTokenView from "./mobile-token-view"
 import { NexaChart } from "@/components/shared/nexa-chart"
 import {
 	ResizablePanelGroup,
@@ -57,18 +58,8 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 		}
 	}, [pool.innerState, pool.mostLiquidPoolId, pool.migrated, pool.coinMetadata?.decimals])
 
-	// TODO: Add mobile view later
 	if (isMobile) {
-		return (
-			<div className="w-full h-full flex flex-col">
-				<TokenHeader pool={pool} realtimePrice={price} realtimeMarketCap={marketCap} />
-				<div className="flex-1 p-4">
-					<p className="font-mono text-xs uppercase text-muted-foreground">
-						Mobile view coming soon...
-					</p>
-				</div>
-			</div>
-		)
+		return <MobileTokenView pool={pool} referral={referral} />
 	}
 
 	return (
