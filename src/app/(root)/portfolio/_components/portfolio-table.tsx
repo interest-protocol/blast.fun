@@ -8,15 +8,18 @@ import { TrendingUp, TrendingDown } from "lucide-react"
 import { cn } from "@/utils"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
+import { Switch } from "@/components/ui/switch"
 
 interface PortfolioTableProps {
 	portfolio: PortfolioResponse
+	hideSmallBalance: boolean
+	onHideSmallBalanceChange: (value: boolean) => void
 }
 
 type SortField = "name" | "value" | "pnl" | "pnlPercentage"
 type SortOrder = "asc" | "desc"
 
-export function PortfolioTable({ portfolio }: PortfolioTableProps) {
+export function PortfolioTable({ portfolio, hideSmallBalance, onHideSmallBalanceChange }: PortfolioTableProps) {
 	const router = useRouter()
 	const [sortField, setSortField] = useState<SortField>("value")
 	const [sortOrder, setSortOrder] = useState<SortOrder>("desc")
@@ -30,7 +33,11 @@ export function PortfolioTable({ portfolio }: PortfolioTableProps) {
 		}
 	}
 
-	const sortedBalances = [...portfolio.balances].sort((a, b) => {
+	const filteredBalances = hideSmallBalance 
+		? portfolio.balances.filter(balance => balance.value >= 1)
+		: portfolio.balances
+
+	const sortedBalances = [...filteredBalances].sort((a, b) => {
 		let compareValue = 0
 
 		switch (sortField) {
@@ -54,7 +61,7 @@ export function PortfolioTable({ portfolio }: PortfolioTableProps) {
 	})
 
 	return (
-		<Card className="overflow-hidden bg-card/50 backdrop-blur-sm">
+		<Card className="overflow-hidden bg-card/50 backdrop-blur-sm p-0">
 			<div className="overflow-x-auto">
 				<table className="w-full">
 					<thead className="border-b border-border bg-muted/30">
@@ -186,6 +193,24 @@ export function PortfolioTable({ portfolio }: PortfolioTableProps) {
 						})}
 					</tbody>
 				</table>
+			</div>
+			<div className="flex items-center justify-between p-4 border-t border-border">
+				<div className="flex items-center gap-2">
+					<Switch
+						id="hide-small-balance"
+						checked={hideSmallBalance}
+						onCheckedChange={onHideSmallBalanceChange}
+					/>
+					<label
+						htmlFor="hide-small-balance"
+						className="font-mono text-sm text-muted-foreground cursor-pointer"
+					>
+						Hide small balances (&lt; $1)
+					</label>
+				</div>
+				<div className="font-mono text-xs text-muted-foreground">
+					Showing {sortedBalances.length} of {portfolio.balances.length} tokens
+				</div>
 			</div>
 		</Card>
 	)
