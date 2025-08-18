@@ -54,12 +54,12 @@ export function PortfolioTable({ portfolio }: PortfolioTableProps) {
 	})
 
 	return (
-		<Card className="overflow-hidden bg-card/50 backdrop-blur-sm">
+		<Card className="overflow-hidden bg-card/50 backdrop-blur-sm p-0">
 			<div className="overflow-x-auto">
 				<table className="w-full">
 					<thead className="border-b border-border bg-muted/30">
 						<tr>
-							<th 
+							<th
 								className="px-3 md:px-6 py-4 text-left cursor-pointer hover:bg-muted/50 transition-colors"
 								onClick={() => handleSort("name")}
 							>
@@ -68,7 +68,7 @@ export function PortfolioTable({ portfolio }: PortfolioTableProps) {
 									{sortField === "name" && <span>{sortOrder === "asc" ? "↑" : "↓"}</span>}
 								</span>
 							</th>
-							<th 
+							<th
 								className="px-3 md:px-6 py-4 text-right cursor-pointer hover:bg-muted/50 transition-colors"
 								onClick={() => handleSort("value")}
 							>
@@ -87,7 +87,7 @@ export function PortfolioTable({ portfolio }: PortfolioTableProps) {
 									Current Price
 								</span>
 							</th>
-							<th 
+							<th
 								className="px-3 md:px-6 py-4 text-right cursor-pointer hover:bg-muted/50 transition-colors"
 								onClick={() => handleSort("pnl")}
 							>
@@ -104,8 +104,8 @@ export function PortfolioTable({ portfolio }: PortfolioTableProps) {
 							const isProfitable = item.unrealizedPnl >= 0
 
 							return (
-								<tr 
-									key={item.coinType} 
+								<tr
+									key={item.coinType}
 									className="hover:bg-muted/20 transition-colors cursor-pointer"
 									onClick={() => {
 										if (item.coinMetadata?.poolId) {
