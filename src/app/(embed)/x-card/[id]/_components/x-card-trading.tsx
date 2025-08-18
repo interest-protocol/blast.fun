@@ -133,8 +133,8 @@ export function XCardTrading({ pool, referrerWallet, refCode }: XCardTradingProp
 							className="font-mono text-xs h-7"
 							onClick={() => {
 								const url = refCode
-									? `${window.location.origin}/meme/${pool.poolId}?ref=${refCode}`
-									: `${window.location.origin}/meme/${pool.poolId}`
+									? `${window.location.origin}/token/${pool.poolId}?ref=${refCode}`
+									: `${window.location.origin}/token/${pool.poolId}`
 								window.open(url, "_blank")
 							}}
 						>

@@ -161,19 +161,19 @@ export function TokenTabsHeader() {
 	}
 
 	const handleTabClick = (poolId: string) => {
-		router.push(`/meme/${poolId}`)
+		router.push(`/token/${poolId}`)
 	}
 
 	const handleCloseTab = (e: React.MouseEvent, poolId: string) => {
 		e.stopPropagation()
 		removeTab(poolId)
 
-		if (pathname === `/meme/${poolId}`) {
+		if (pathname === `/token/${poolId}`) {
 			const remainingTabs = tabs.filter(t => t.poolId !== poolId)
 			if (remainingTabs.length > 0) {
 				const currentIndex = tabs.findIndex(t => t.poolId === poolId)
 				const nextIndex = Math.min(currentIndex, remainingTabs.length - 1)
-				router.push(`/meme/${remainingTabs[nextIndex].poolId}`)
+				router.push(`/token/${remainingTabs[nextIndex].poolId}`)
 			} else {
 				router.push("/")
 			}
@@ -268,7 +268,7 @@ export function TokenTabsHeader() {
 							<TokenTabItem
 								key={tab.poolId}
 								tab={tab}
-								isActive={pathname === `/meme/${tab.poolId}`}
+								isActive={pathname === `/token/${tab.poolId}`}
 								onTabClick={handleTabClick}
 								onCloseTab={handleCloseTab}
 							/>

@@ -19,7 +19,7 @@ export function TokenLink({ iconUrl, symbol, poolId }: { iconUrl?: string; symbo
 	}
 
 	return (
-		<Link href={`/meme/${poolId}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+		<Link href={`/token/${poolId}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
 			<TokenAvatar
 				iconUrl={iconUrl}
 				symbol={symbol}
