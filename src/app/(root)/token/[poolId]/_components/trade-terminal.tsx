@@ -256,7 +256,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 		setAmount("")
 	}
 
-	const isMigrating = pool.canMigrate === true
+	const isMigrating = pool.canMigrate === true && !pool.migrated
 
 	if (!isConnected) {
 		return (
