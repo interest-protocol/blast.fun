@@ -100,7 +100,7 @@ export function SearchToken() {
 				onClick={() => setOpen(true)}
 			>
 				<Search className="h-4 w-4 text-muted-foreground" />
-				<span className="text-muted-foreground font-semibold text-sm hidden sm:inline-block">
+				<span className="text-muted-foreground font-semibold text-sm hidden md:inline-block">
 					Search for tokens...
 				</span>
 			</Button>
