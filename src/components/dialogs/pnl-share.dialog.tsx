@@ -35,52 +35,70 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 	const pnlPercentage = Math.abs(pnlData?.pnlPercentage ?? 0)
 
 	const handleCopy = async () => {
-		if (!cardRef.current) return
+		if (!cardRef.current) {
+			toast.error("Unable to capture the image")
+			return
+		}
 
 		try {
 			const blob = await htmlToImage.toBlob(cardRef.current, {
 				quality: 1,
 				pixelRatio: 2,
-				cacheBust: true,
-				fetchRequestInit: {
-					mode: 'cors'
-				}
+				cacheBust: true
 			})
 
-			if (!blob) return
+			if (!blob) {
+				toast.error("Failed to generate image")
+				return
+			}
 
 			const item = new ClipboardItem({ "image/png": blob })
 			await navigator.clipboard.write([item])
 
 			toast.success("Successfully copied the image")
-		} catch (err) {
+		} catch (err: any) {
 			console.error("Failed to copy:", err)
-			toast.error("Failed to copy the image")
+			// Better error message for debugging
+			if (err?.message?.includes('trim')) {
+				toast.error("Image generation failed. Please try again.")
+			} else {
+				toast.error(err?.message || "Failed to copy the image")
+			}
 		}
 	}
 
 	const handleDownload = async () => {
-		if (!cardRef.current) return
+		if (!cardRef.current) {
+			toast.error("Unable to capture the image")
+			return
+		}
 
 		try {
 			const dataUrl = await htmlToImage.toPng(cardRef.current, {
 				quality: 1,
 				pixelRatio: 2,
-				cacheBust: true,
-				fetchRequestInit: {
-					mode: 'cors'
-				}
+				cacheBust: true
 			})
 
+			if (!dataUrl) {
+				toast.error("Failed to generate image")
+				return
+			}
+
 			const link = document.createElement("a")
-			link.download = `pnl-${symbol}.png`
+			link.download = `pnl-${symbol || 'token'}.png`
 			link.href = dataUrl
 			link.click()
 
 			toast.success("Successfully downloaded the image")
-		} catch (err) {
+		} catch (err: any) {
 			console.error("Failed to download:", err)
-			toast.error("Failed to download the image")
+			// Better error message for debugging
+			if (err?.message?.includes('trim')) {
+				toast.error("Image generation failed. Please try again.")
+			} else {
+				toast.error(err?.message || "Failed to download the image")
+			}
 		}
 	}
 
@@ -110,7 +128,8 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 									width: "400px",
 									height: "200px",
 									maxWidth: "100%",
-									backgroundColor: "#000000"
+									backgroundColor: "#000000",
+									position: "relative"
 								}}
 							>
 								{/* Background Image */}
@@ -122,7 +141,8 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 										width: "100%",
 										height: "100%",
 										objectFit: "cover",
-										objectPosition: "center top"
+										objectPosition: "center top",
+										pointerEvents: "none"
 									}}
 								/>
 
@@ -139,12 +159,11 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 														src={iconUrl}
 														alt={symbol}
 														className="h-14 w-14 rounded-full object-cover"
-														crossOrigin="anonymous"
 													/>
 												) : (
-													<div className="flex h-14 w-14 items-center justify-center rounded-full bg-zinc-800">
-														<span className="text-xl font-bold text-white">
-															{symbol[0]?.toUpperCase()}
+													<div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+														<span className="text-xl font-bold">
+															{symbol?.[0]?.toUpperCase() || '?'}
 														</span>
 													</div>
 												)}
@@ -153,13 +172,13 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 											{/* Token Name and PNL */}
 											<div>
 												<div className="text-sm font-bold text-gray-300">
-													{name} ({symbol})
+													{name || 'Unknown'} ({symbol || '?'})
 												</div>
 												<div className={`text-xl font-bold ${isProfit ? 'text-green-500' : 'text-red-500'}`}>
-													{isProfit ? '+' : '-'}${formatNumberWithSuffix(pnlAmount)}
+													{isProfit ? '+' : '-'}${formatNumberWithSuffix(pnlAmount || 0)}
 												</div>
 												<div className={`text-sm font-semibold ${isProfit ? 'text-green-400' : 'text-red-400'}`}>
-													{isProfit ? '↑' : '↓'}{pnlPercentage.toFixed(1)}%
+													{isProfit ? '↑' : '↓'}{(pnlPercentage || 0).toFixed(1)}%
 												</div>
 											</div>
 										</div>
@@ -168,21 +187,21 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 									{/* Bottom Stats */}
 									<div className="flex flex-row gap-8 text-xs">
 										<div>
-											<div className="text-gray-500 uppercase text-[10px] tracking-wider">entry</div>
-											<div className="font-bold text-white text-sm">
-												${formatSmallPrice(pnlData?.entryPrice || 0)}
+											<div className="text-muted-foreground uppercase text-[10px] tracking-wider">entry</div>
+											<div className="font-bold text-sm">
+												${pnlData?.entryPrice ? formatSmallPrice(pnlData.entryPrice) : '0.00'}
 											</div>
 										</div>
 										<div>
-											<div className="text-gray-500 uppercase text-[10px] tracking-wider">sold</div>
-											<div className="font-bold text-white text-sm">
-												${formatNumberWithSuffix(pnlData?.sold || 0)}
+											<div className="text-muted-foreground uppercase text-[10px] tracking-wider">sold</div>
+											<div className="font-bold text-sm">
+												${pnlData?.sold ? formatNumberWithSuffix(pnlData.sold) : '0'}
 											</div>
 										</div>
 										<div>
-											<div className="text-gray-500 uppercase text-[10px] tracking-wider">holding</div>
-											<div className="font-bold text-white text-sm">
-												${formatNumberWithSuffix(pnlData?.holding || 0)}
+											<div className="text-muted-foreground uppercase text-[10px] tracking-wider">holding</div>
+											<div className="font-bold text-sm">
+												${pnlData?.holding ? formatNumberWithSuffix(pnlData.holding) : '0'}
 											</div>
 										</div>
 									</div>
