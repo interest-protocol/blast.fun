@@ -9,6 +9,8 @@ import { TokenTabs } from "./token-tabs"
 import { TradeTerminal } from "./trade-terminal"
 import { BondingProgress } from "./bonding-progress"
 import { ReferralShare } from "./referral-share"
+import { HolderDetails } from "./holder-details"
+import MobileTokenView from "./mobile-token-view"
 import { NexaChart } from "@/components/shared/nexa-chart"
 import {
 	ResizablePanelGroup,
@@ -41,7 +43,7 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 			(data: { price: number; suiPrice: number }) => {
 				const newPrice = data.price * data.suiPrice
 				setPrice(newPrice)
-				
+
 				// Calculate market cap dynamically
 				// Use the decimals from coin metadata if available, otherwise use default
 				const decimals = pool.coinMetadata?.decimals || DEFAULT_TOKEN_DECIMALS
@@ -56,18 +58,8 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 		}
 	}, [pool.innerState, pool.mostLiquidPoolId, pool.migrated, pool.coinMetadata?.decimals])
 
-	// TODO: Add mobile view later
 	if (isMobile) {
-		return (
-			<div className="w-full h-full flex flex-col">
-				<TokenHeader pool={pool} realtimePrice={price} realtimeMarketCap={marketCap} />
-				<div className="flex-1 p-4">
-					<p className="font-mono text-xs uppercase text-muted-foreground">
-						Mobile view coming soon...
-					</p>
-				</div>
-			</div>
-		)
+		return <MobileTokenView pool={pool} referral={referral} />
 	}
 
 	return (
@@ -95,9 +87,12 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 			{/* Right-side column */}
 			<div className="w-[400px] border-l flex flex-col h-full">
 				<CreatorDetails pool={pool} />
+
 				{!pool.migrated && (
 					<BondingProgress pool={pool} />
 				)}
+
+				<HolderDetails pool={pool} />
 				<TradeTerminal pool={pool} referral={referral} />
 				<ReferralShare pool={pool} />
 			</div>

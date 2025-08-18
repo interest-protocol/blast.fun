@@ -7,6 +7,25 @@ interface TwitterUser {
 	profile_image_url: string | null
 }
 
+export async function getFxtwitterProfileImage(username: string): Promise<string | null> {
+	try {
+		const response = await fetch(`https://api.fxtwitter.com/${username}`)
+		if (!response.ok) {
+			console.warn(`fxtwitter API returned ${response.status} for username: ${username}`)
+			return null
+		}
+		const data = await response.json()
+		if (data?.user?.avatar_url) {
+			const fullResUrl = data.user.avatar_url.replace('_normal', '')
+			return fullResUrl
+		}
+		return null
+	} catch (error) {
+		console.error('Failed to fetch profile image from fxtwitter:', error)
+		return null
+	}
+}
+
 export class TwitterAPI {
 	async getUserInfoByUsername(username: string): Promise<TwitterUser> {
 		const response = await fetch(`https://api.twitterapi.io/user/username/${username}`, {

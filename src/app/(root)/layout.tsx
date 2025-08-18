@@ -15,7 +15,7 @@ export default function Layout({
 	const pathname = usePathname()
 	const { isMobile, width } = useBreakpoint()
 
-	const isTokenPage = pathname.startsWith("/meme/") || pathname.startsWith('/token/')
+	const isTokenPage = pathname.startsWith('/token/')
 	const isHomePage = pathname === "/"
 
 	// during initial load (width === 0), default to desktop behavior for padding
@@ -27,7 +27,7 @@ export default function Layout({
 			<Header />
 			{/* <TokenTabsHeader /> */}
 
-			<main className="flex-1 overflow-hidden pb-16 lg:pb-0">
+			<main className="flex-1 overflow-hidden">
 				{shouldHavePadding ? (
 					<div className={cn(
 						"h-full overflow-auto p-2"

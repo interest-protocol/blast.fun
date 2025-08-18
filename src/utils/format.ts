@@ -1,3 +1,4 @@
+import { type ReactNode, createElement } from "react"
 import { MIST_PER_SUI } from "@mysten/sui/utils"
 import BigNumber from "bignumber.js"
 
@@ -78,4 +79,32 @@ export const formatNumberWithSuffix = (value: number | undefined): string => {
 	const formatted = parseFloat(scaled.toFixed(decimals)).toString()
 
 	return `${formatted}${suffix}`
+}
+
+export const formatSmallPrice = (value: number | undefined): ReactNode => {
+	if (!value || value === 0) return "0"
+
+	if (value < 0.01) {
+		const str = value.toString()
+		const match = str.match(/^0\.0*/)
+		if (match) {
+			const zeros = match[0].length - 2 // -2 for "0."
+			if (zeros > 2) {
+				const significantPart = str.substring(match[0].length)
+				const digits = significantPart.substring(0, 6)
+
+				return createElement(
+					'span',
+					null,
+					'0.0',
+					createElement('sub', { style: { fontSize: '0.7em', verticalAlign: 'sub' } }, zeros),
+					digits
+				)
+			}
+		}
+
+		return value.toFixed(6).replace(/\.?0+$/, '')
+	}
+
+	return formatNumberWithSuffix(value)
 }
