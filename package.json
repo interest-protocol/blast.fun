@@ -46,6 +46,7 @@
 		"copy-to-clipboard": "^3.3.3",
 		"date-fns": "^4.1.0",
 		"graphql": "^16.11.0",
+		"html-to-image": "^1.11.13",
 		"jiti": "^2.4.2",
 		"lightweight-charts": "^5.0.8",
 		"lucide-react": "^0.511.0",
