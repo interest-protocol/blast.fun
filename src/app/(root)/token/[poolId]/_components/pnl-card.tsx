@@ -131,14 +131,16 @@ export function PnlCard({ pool }: PnlCardProps) {
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
-    // Set canvas size to fit dialog better (16:9 aspect ratio, smaller)
+    // Set canvas size (16:9 aspect ratio)
     const width = 800
     const height = 450
     
+    // Set actual canvas dimensions - this determines the resolution
     canvas.width = width
     canvas.height = height
-    canvas.style.width = `${width}px`
-    canvas.style.height = `${height}px`
+    
+    // Don't set CSS size - let it use natural dimensions
+    // This prevents scaling and maintains crisp resolution
 
     // Load and draw background image
     const bgImg = new Image()
@@ -483,27 +485,29 @@ export function PnlCard({ pool }: PnlCardProps) {
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[850px] p-4">
+        <DialogContent className="max-w-[850px] p-4">
           <DialogHeader>
             <DialogTitle className="font-mono uppercase">PNL Card</DialogTitle>
           </DialogHeader>
 
           <div className="flex flex-col items-center space-y-4">
             {isLoading ? (
-              <div className="flex items-center justify-center h-[200px]">
+              <div className="flex items-center justify-center w-full aspect-[16/9]">
                 <Loader2 className="h-8 w-8 animate-spin" />
               </div>
             ) : error ? (
-              <div className="text-center text-muted-foreground h-[200px] flex items-center justify-center">
+              <div className="text-center text-muted-foreground w-full aspect-[16/9] flex items-center justify-center">
                 <div className="text-sm">{error}</div>
               </div>
             ) : (
               <>
-                <canvas
-                  ref={canvasRef}
-                  className="border border-border rounded"
-                  style={{ imageRendering: "pixelated" }}
-                />
+                <div className="w-full overflow-hidden rounded border border-border">
+                  <canvas
+                    ref={canvasRef}
+                    className="w-full h-auto block"
+                    style={{ maxWidth: '800px', margin: '0 auto' }}
+                  />
+                </div>
                 
                 <div className="flex gap-2 w-full">
                   <Button
