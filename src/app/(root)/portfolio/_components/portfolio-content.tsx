@@ -14,6 +14,7 @@ export function PortfolioContent() {
 	const [portfolio, setPortfolio] = useState<PortfolioResponse | null>(null)
 	const [isLoading, setIsLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
+	const [hideSmallBalance, setHideSmallBalance] = useState(true)
 
 	useEffect(() => {
 		if (!address) {
@@ -98,7 +99,11 @@ export function PortfolioContent() {
 				{portfolio && (
 					<>
 						<PortfolioStats portfolio={portfolio} />
-						<PortfolioTable portfolio={portfolio} />
+						<PortfolioTable 
+							portfolio={portfolio} 
+							hideSmallBalance={hideSmallBalance}
+							onHideSmallBalanceChange={setHideSmallBalance}
+						/>
 					</>
 				)}
 
