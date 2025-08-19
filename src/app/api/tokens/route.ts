@@ -96,30 +96,35 @@ export async function GET(request: NextRequest) {
 					isProtected: !!pool.publicKey,
 				}
 
-				// try to get cached market data, metadata, and creator data
-				const marketCacheKey = `${CACHE_PREFIX.MARKET_DATA}${pool.poolId}`
+				// Caching Strategy:
+				// - Market data: No Redis cache, using Vercel edge caching (3s) for entire response instead
+				//   This provides better consistency and reduces Redis operations while keeping data fresh
+				// - Metadata & Creator data: Still using Redis cache (12h & 4h respectively) as these are more static
+				
+				// const marketCacheKey = `${CACHE_PREFIX.MARKET_DATA}${pool.poolId}` // Removed - using Vercel edge cache
 				const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.poolId}`
 				const creatorCacheKey = `${CACHE_PREFIX.CREATOR_DATA}${pool.creatorAddress}`
 
-				const [cachedMarketData, cachedMetadata, cachedCreatorData] = await Promise.all([
-					redisGet(marketCacheKey),
+				const [cachedMetadata, cachedCreatorData] = await Promise.all([
+					// redisGet(marketCacheKey), // Removed - fetching fresh market data every time
 					redisGet(metadataCacheKey),
 					redisGet(creatorCacheKey)
 				])
 
-				if (cachedMarketData) {
-					try {
-						const parsedMarketData = JSON.parse(cachedMarketData)
-						processedPool.marketData = parsedMarketData
+				// Market data Redis cache disabled - relying on Vercel edge cache instead
+				// if (cachedMarketData) {
+				// 	try {
+				// 		const parsedMarketData = JSON.parse(cachedMarketData)
+				// 		processedPool.marketData = parsedMarketData
 
-						// use cached mostLiquidPoolId if available
-						if (parsedMarketData.mostLiquidPoolId) {
-							processedPool.mostLiquidPoolId = parsedMarketData.mostLiquidPoolId
-						}
-					} catch (error) {
-						console.error(`Failed to parse cached market data for ${pool.coinType}:`, error)
-					}
-				}
+				// 		// use cached mostLiquidPoolId if available
+				// 		if (parsedMarketData.mostLiquidPoolId) {
+				// 			processedPool.mostLiquidPoolId = parsedMarketData.mostLiquidPoolId
+				// 		}
+				// 	} catch (error) {
+				// 		console.error(`Failed to parse cached market data for ${pool.coinType}:`, error)
+				// 	}
+				// }
 
 				if (cachedMetadata) {
 					try {
@@ -137,80 +142,79 @@ export async function GET(request: NextRequest) {
 					}
 				}
 
-				// if no cached data, fetch from nexa
-				if (!processedPool.marketData) {
-					try {
-						const marketData = await nexaServerClient.getMarketData(pool.coinType)
+				// Always fetch fresh market data (no Redis cache) - will be cached at edge level
+				try {
+					const marketData = await nexaServerClient.getMarketData(pool.coinType)
 
-						// extract coinMetadata for separate caching
-						const { coinMetadata, ...restMarketData } = marketData
+					// extract coinMetadata for separate caching
+					const { coinMetadata, ...restMarketData } = marketData
 
-						// find the most liquid pool if migrated
-						if (pool.migrated && restMarketData.pools && Array.isArray(restMarketData.pools)) {
-							let mostLiquidPool = null
-							let highestLiquidity = 0
+					// find the most liquid pool if migrated
+					if (pool.migrated && restMarketData.pools && Array.isArray(restMarketData.pools)) {
+						let mostLiquidPool = null
+						let highestLiquidity = 0
 
-							for (const p of restMarketData.pools) {
-								if (p.liqUsd && p.liqUsd > highestLiquidity) {
-									highestLiquidity = p.liqUsd
-									mostLiquidPool = p
-								}
-							}
-
-							if (mostLiquidPool && mostLiquidPool.pool) {
-								processedPool.mostLiquidPoolId = mostLiquidPool.pool
+						for (const p of restMarketData.pools) {
+							if (p.liqUsd && p.liqUsd > highestLiquidity) {
+								highestLiquidity = p.liqUsd
+								mostLiquidPool = p
 							}
 						}
 
-						// trim market data to only what we need
-						const trimmedMarketData = {
-							coinPrice: restMarketData.coinPrice,
-							suiPrice: restMarketData.suiPrice,
-							isCoinHoneyPot: restMarketData.isCoinHoneyPot,
-							totalLiquidityUsd: restMarketData.totalLiquidityUsd,
-							liqUsd: restMarketData.totalLiquidityUsd,
-							marketCap: restMarketData.marketCap,
-							coin24hTradeCount: restMarketData.coin24hTradeCount,
-							coin24hTradeVolumeUsd: restMarketData.coin24hTradeVolumeUsd,
-							price1DayAgo: restMarketData.price1DayAgo,
-							holdersCount: restMarketData.holdersCount,
-							mostLiquidPoolId: processedPool.mostLiquidPoolId
+						if (mostLiquidPool && mostLiquidPool.pool) {
+							processedPool.mostLiquidPoolId = mostLiquidPool.pool
 						}
+					}
 
-						processedPool.marketData = trimmedMarketData
-						processedPool.coinMetadata = coinMetadata
+					// trim market data to only what we need
+					const trimmedMarketData = {
+						coinPrice: restMarketData.coinPrice,
+						suiPrice: restMarketData.suiPrice,
+						isCoinHoneyPot: restMarketData.isCoinHoneyPot,
+						totalLiquidityUsd: restMarketData.totalLiquidityUsd,
+						liqUsd: restMarketData.totalLiquidityUsd,
+						marketCap: restMarketData.marketCap,
+						coin24hTradeCount: restMarketData.coin24hTradeCount,
+						coin24hTradeVolumeUsd: restMarketData.coin24hTradeVolumeUsd,
+						price1DayAgo: restMarketData.price1DayAgo,
+						holdersCount: restMarketData.holdersCount,
+						mostLiquidPoolId: processedPool.mostLiquidPoolId
+					}
 
-						// cache the trimmed market data WITHOUT coinMetadata to reduce size
-						await redisSetEx(
-							marketCacheKey,
-							CACHE_TTL.MARKET_DATA,
-							JSON.stringify(trimmedMarketData)
-						)
+					processedPool.marketData = trimmedMarketData
+					processedPool.coinMetadata = coinMetadata
 
-						// cache coinMetadata separately with longer TTL
-						if (coinMetadata) {
-							const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.poolId}`
-							await redisSetEx(
-								metadataCacheKey,
-								CACHE_TTL.COIN_METADATA,
-								JSON.stringify(coinMetadata)
-							)
-						}
-					} catch (error) {
-						console.error(`Failed to fetch market data for ${pool.coinType}:`, error)
+					// Market data Redis caching disabled - using Vercel edge cache instead
+					// await redisSetEx(
+					// 	marketCacheKey,
+					// 	CACHE_TTL.MARKET_DATA,
+					// 	JSON.stringify(trimmedMarketData)
+					// )
 
-						// try to get just cached metadata if market data fails
+					// cache coinMetadata separately with longer TTL (keeping this cache)
+					if (coinMetadata) {
 						const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.poolId}`
-						const cachedMetadata = await redisGet(metadataCacheKey)
-						if (cachedMetadata) {
-							try {
-								processedPool.coinMetadata = JSON.parse(cachedMetadata)
-							} catch (e) {
-								console.error(`Failed to parse cached metadata for pool ${pool.poolId}:`, e)
-							}
+						await redisSetEx(
+							metadataCacheKey,
+							CACHE_TTL.COIN_METADATA,
+							JSON.stringify(coinMetadata)
+						)
+					}
+				} catch (error) {
+					console.error(`Failed to fetch market data for ${pool.coinType}:`, error)
+
+					// try to get just cached metadata if market data fails
+					const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.poolId}`
+					const cachedMetadata = await redisGet(metadataCacheKey)
+					if (cachedMetadata) {
+						try {
+							processedPool.coinMetadata = JSON.parse(cachedMetadata)
+						} catch (e) {
+							console.error(`Failed to parse cached metadata for pool ${pool.poolId}:`, e)
 						}
 					}
 				}
+				
 
 				// fetch creator data if not cached
 				if (!processedPool.creatorData) {
@@ -234,12 +238,21 @@ export async function GET(request: NextRequest) {
 			})
 		)
 
-		return NextResponse.json({
-			pools: processedPools,
-			total: filteredPools.length, // Use filtered count instead of total
-			page,
-			pageSize
-		})
+		return NextResponse.json(
+			{
+				pools: processedPools,
+				total: filteredPools.length, // Use filtered count instead of total
+				page,
+				pageSize
+			},
+			{
+				headers: {
+					// Vercel Edge Cache: Cache the entire response for 3 seconds
+					// This replaces per-pool market data Redis caching for better consistency
+					'Cache-Control': 's-maxage=3, stale-while-revalidate'
+				}
+			}
+		)
 	} catch (error: any) {
 		console.error("Error fetching tokens:", error)
 		console.log(error)
