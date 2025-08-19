@@ -43,7 +43,7 @@ class NexaServerClient {
 
 	async getMarketData(coinType: string): Promise<MarketData> {
 		const response = await this.fetch(`/coins/${coinType}/market-data`, {
-			revalidate: 120, // 2 minutes
+			// revalidate: 120, // 2 minutes
 		})
 
 		return await response.json() as MarketData
