@@ -16,7 +16,7 @@
 		"@interest-protocol/memez-fun-sdk": "11.3.0",
 		"@mysten/dapp-kit": "^0.17.0",
 		"@mysten/sui": "^1.36.2",
-		"@mysten/wallet-standard": "^0.16.7",
+		"@mysten/wallet-standard": "^0.16.11",
 		"@next/third-parties": "^15.4.4",
 		"@prisma/client": "^6.12.0",
 		"@radix-ui/react-alert-dialog": "^1.1.14",
