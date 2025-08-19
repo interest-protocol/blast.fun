@@ -143,80 +143,78 @@ export async function GET(request: NextRequest) {
 				}
 
 				// Always fetch fresh market data (no Redis cache) - will be cached at edge level
-				// if (!processedPool.marketData) { // Always true now since we removed market data caching
-				if (true) {
-					try {
-						const marketData = await nexaServerClient.getMarketData(pool.coinType)
+				try {
+					const marketData = await nexaServerClient.getMarketData(pool.coinType)
 
-						// extract coinMetadata for separate caching
-						const { coinMetadata, ...restMarketData } = marketData
+					// extract coinMetadata for separate caching
+					const { coinMetadata, ...restMarketData } = marketData
 
-						// find the most liquid pool if migrated
-						if (pool.migrated && restMarketData.pools && Array.isArray(restMarketData.pools)) {
-							let mostLiquidPool = null
-							let highestLiquidity = 0
+					// find the most liquid pool if migrated
+					if (pool.migrated && restMarketData.pools && Array.isArray(restMarketData.pools)) {
+						let mostLiquidPool = null
+						let highestLiquidity = 0
 
-							for (const p of restMarketData.pools) {
-								if (p.liqUsd && p.liqUsd > highestLiquidity) {
-									highestLiquidity = p.liqUsd
-									mostLiquidPool = p
-								}
-							}
-
-							if (mostLiquidPool && mostLiquidPool.pool) {
-								processedPool.mostLiquidPoolId = mostLiquidPool.pool
+						for (const p of restMarketData.pools) {
+							if (p.liqUsd && p.liqUsd > highestLiquidity) {
+								highestLiquidity = p.liqUsd
+								mostLiquidPool = p
 							}
 						}
 
-						// trim market data to only what we need
-						const trimmedMarketData = {
-							coinPrice: restMarketData.coinPrice,
-							suiPrice: restMarketData.suiPrice,
-							isCoinHoneyPot: restMarketData.isCoinHoneyPot,
-							totalLiquidityUsd: restMarketData.totalLiquidityUsd,
-							liqUsd: restMarketData.totalLiquidityUsd,
-							marketCap: restMarketData.marketCap,
-							coin24hTradeCount: restMarketData.coin24hTradeCount,
-							coin24hTradeVolumeUsd: restMarketData.coin24hTradeVolumeUsd,
-							price1DayAgo: restMarketData.price1DayAgo,
-							holdersCount: restMarketData.holdersCount,
-							mostLiquidPoolId: processedPool.mostLiquidPoolId
+						if (mostLiquidPool && mostLiquidPool.pool) {
+							processedPool.mostLiquidPoolId = mostLiquidPool.pool
 						}
+					}
 
-						processedPool.marketData = trimmedMarketData
-						processedPool.coinMetadata = coinMetadata
+					// trim market data to only what we need
+					const trimmedMarketData = {
+						coinPrice: restMarketData.coinPrice,
+						suiPrice: restMarketData.suiPrice,
+						isCoinHoneyPot: restMarketData.isCoinHoneyPot,
+						totalLiquidityUsd: restMarketData.totalLiquidityUsd,
+						liqUsd: restMarketData.totalLiquidityUsd,
+						marketCap: restMarketData.marketCap,
+						coin24hTradeCount: restMarketData.coin24hTradeCount,
+						coin24hTradeVolumeUsd: restMarketData.coin24hTradeVolumeUsd,
+						price1DayAgo: restMarketData.price1DayAgo,
+						holdersCount: restMarketData.holdersCount,
+						mostLiquidPoolId: processedPool.mostLiquidPoolId
+					}
 
-						// Market data Redis caching disabled - using Vercel edge cache instead
-						// await redisSetEx(
-						// 	marketCacheKey,
-						// 	CACHE_TTL.MARKET_DATA,
-						// 	JSON.stringify(trimmedMarketData)
-						// )
+					processedPool.marketData = trimmedMarketData
+					processedPool.coinMetadata = coinMetadata
 
-						// cache coinMetadata separately with longer TTL (keeping this cache)
-						if (coinMetadata) {
-							const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.poolId}`
-							await redisSetEx(
-								metadataCacheKey,
-								CACHE_TTL.COIN_METADATA,
-								JSON.stringify(coinMetadata)
-							)
-						}
-					} catch (error) {
-						console.error(`Failed to fetch market data for ${pool.coinType}:`, error)
+					// Market data Redis caching disabled - using Vercel edge cache instead
+					// await redisSetEx(
+					// 	marketCacheKey,
+					// 	CACHE_TTL.MARKET_DATA,
+					// 	JSON.stringify(trimmedMarketData)
+					// )
 
-						// try to get just cached metadata if market data fails
+					// cache coinMetadata separately with longer TTL (keeping this cache)
+					if (coinMetadata) {
 						const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.poolId}`
-						const cachedMetadata = await redisGet(metadataCacheKey)
-						if (cachedMetadata) {
-							try {
-								processedPool.coinMetadata = JSON.parse(cachedMetadata)
-							} catch (e) {
-								console.error(`Failed to parse cached metadata for pool ${pool.poolId}:`, e)
-							}
+						await redisSetEx(
+							metadataCacheKey,
+							CACHE_TTL.COIN_METADATA,
+							JSON.stringify(coinMetadata)
+						)
+					}
+				} catch (error) {
+					console.error(`Failed to fetch market data for ${pool.coinType}:`, error)
+
+					// try to get just cached metadata if market data fails
+					const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.poolId}`
+					const cachedMetadata = await redisGet(metadataCacheKey)
+					if (cachedMetadata) {
+						try {
+							processedPool.coinMetadata = JSON.parse(cachedMetadata)
+						} catch (e) {
+							console.error(`Failed to parse cached metadata for pool ${pool.poolId}:`, e)
 						}
 					}
 				}
+				
 
 				// fetch creator data if not cached
 				if (!processedPool.creatorData) {
