@@ -1,9 +1,9 @@
 "use client"
 
 import { formatAddress } from "@mysten/sui/utils"
+import { useResolveSuiNSName } from "@mysten/dapp-kit"
 import { Wallet, Check } from "lucide-react"
 import { useApp } from "@/context/app.context"
-import { useResolveSuiNSName } from "@mysten/dapp-kit"
 
 interface WalletAccountItemProps {
 	account: any

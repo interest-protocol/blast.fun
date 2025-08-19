@@ -8,7 +8,7 @@ import { TwitterUserAvatar } from "./user-avatar"
 
 export function UserDetails() {
 	const { user } = useTwitter()
-	const { isConnected, address, domain, currentAccount, currentWalletName } = useApp()
+	const { isConnected, address, domain, currentAccount } = useApp()
 
 	if (!isConnected || !address) return null
 

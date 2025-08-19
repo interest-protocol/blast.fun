@@ -16,10 +16,9 @@ import { WalletManager } from "./wallet-manager"
 
 export function UserDropdown() {
 	const [open, setOpen] = useState(false)
-	const [showAccountSelector, setShowAccountSelector] = useState(false)
 
 	const { user, isLoggedIn, login, logout } = useTwitter()
-	const { isConnected, address, domain, disconnect, isConnecting, connect, isConnectDialogOpen, setIsConnectDialogOpen, accounts, currentAccount, switchAccount, currentWalletName } = useApp()
+	const { isConnected, address, domain, disconnect, isConnecting, connect, isConnectDialogOpen, setIsConnectDialogOpen, accounts, currentAccount, switchAccount } = useApp()
 
 	const showConnectButton = !isConnected && !isLoggedIn
 	const showTwitterOnlyState = isLoggedIn && !isConnected
