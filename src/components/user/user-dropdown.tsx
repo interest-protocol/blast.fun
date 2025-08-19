@@ -12,12 +12,14 @@ import { UserDetails } from "./user-details"
 import { BsTwitterX } from 'react-icons/bs'
 import { WalletList } from "../shared/wallet-list"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog"
+import { WalletManager } from "./wallet-manager"
 
 export function UserDropdown() {
 	const [open, setOpen] = useState(false)
+	const [showAccountSelector, setShowAccountSelector] = useState(false)
 
 	const { user, isLoggedIn, login, logout } = useTwitter()
-	const { isConnected, address, domain, disconnect, isConnecting, connect, isConnectDialogOpen, setIsConnectDialogOpen } = useApp()
+	const { isConnected, address, domain, disconnect, isConnecting, connect, isConnectDialogOpen, setIsConnectDialogOpen, accounts, currentAccount, switchAccount, currentWalletName } = useApp()
 
 	const showConnectButton = !isConnected && !isLoggedIn
 	const showTwitterOnlyState = isLoggedIn && !isConnected
@@ -68,15 +70,20 @@ export function UserDropdown() {
 						<Button variant="outline" className="rounded-xl px-2 ease-in-out duration-300 transition-all">
 							{user && <TwitterUserAvatar user={user} className="h-4 w-4" />}
 							<span className="text-muted-foreground group-hover:text-primary transition-colors duration-300 font-semibold text-sm">
-								{user?.username ? `@${user.username}` : domain || formatAddress(address || "")}
+								{user?.username ? `@${user.username}` : currentAccount?.label || domain || formatAddress(address || "")}
 							</span>
 						</Button>
 					</PopoverTrigger>
 
-					<PopoverContent className="min-w-[280px] p-2" align="end">
-						<div className="space-y-2">
-							<div className="flex gap-2 pb-2 border-b">
+					<PopoverContent className="min-w-[320px] p-3" align="end">
+						<div className="space-y-3">
+							<div className="pb-2 border-b">
 								<UserDetails />
+							</div>
+							
+							{/* Wallet Manager */}
+							<div className="pb-2 border-b">
+								<WalletManager />
 							</div>
 
 							{/* Social Accounts */}
@@ -112,7 +119,7 @@ export function UserDropdown() {
 							>
 								<span className="flex flex-grow items-center gap-2 text-destructive">
 									<Unplug className="w-4 h-4" />
-									Disconnect Wallet
+									{accounts.length > 1 ? "Disconnect All" : "Disconnect Wallet"}
 								</span>
 							</Button>
 						</div>
