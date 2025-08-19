@@ -21,7 +21,7 @@ export function CreatorDetails({ pool }: CreatorDetailsProps) {
 	const creatorTwitterId = pool.metadata?.CreatorTwitterId;
 	const creatorTwitterName = pool.metadata?.CreatorTwitterName;
 	const creatorWallet = pool.creatorAddress;
-	const showTwitterCreator = creatorTwitterId && creatorTwitterName && !pool.metadata?.hideIdentity;
+	const showTwitterCreator = creatorTwitterId && creatorTwitterName;
 	const data = pool.creatorData;
 
 	const { data: resolvedDomain } = useResolveSuiNSName(!showTwitterCreator && creatorWallet ? creatorWallet : null);

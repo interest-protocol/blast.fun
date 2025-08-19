@@ -18,13 +18,13 @@ export async function GET(request: NextRequest) {
 
 		// Build filters based on category
 		let filters: any = {}
-		
+
 		// Test creator addresses to exclude from graduated tokens
 		const testCreatorAddresses = [
 			"0xd2420ad33ab5e422becf2fa0e607e1dde978197905b87d070da9ffab819071d6",
 			"0xbbf31f4075625942aa967daebcafe0b1c90e6fa9305c9064983b5052ec442ef7"
 		]
-		
+
 		switch (category) {
 			case "graduating":
 				filters = {
@@ -76,17 +76,17 @@ export async function GET(request: NextRequest) {
 
 		// Apply additional filtering for categories that GraphQL doesn't support
 		let filteredPools = allPools
-		
+
 		if (category === "new") {
 			// Filter for tokens with bondingCurve < 50
 			filteredPools = allPools.filter((pool: any) => pool.bondingCurve < 50)
 		} else if (category === "graduated") {
 			// Filter out test creator addresses
-			filteredPools = allPools.filter((pool: any) => 
+			filteredPools = allPools.filter((pool: any) =>
 				!testCreatorAddresses.includes(pool.creatorAddress)
 			)
 		}
-		
+
 		const paginatedPools = filteredPools
 
 		const processedPools = await Promise.all(
@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
 				// - Market data: No Redis cache, using Vercel edge caching (3s) for entire response instead
 				//   This provides better consistency and reduces Redis operations while keeping data fresh
 				// - Metadata & Creator data: Still using Redis cache (12h & 4h respectively) as these are more static
-				
+
 				// const marketCacheKey = `${CACHE_PREFIX.MARKET_DATA}${pool.poolId}` // Removed - using Vercel edge cache
 				const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.poolId}`
 				const creatorCacheKey = `${CACHE_PREFIX.CREATOR_DATA}${pool.creatorAddress}`
@@ -214,20 +214,17 @@ export async function GET(request: NextRequest) {
 						}
 					}
 				}
-				
+
 
 				// fetch creator data if not cached
 				if (!processedPool.creatorData) {
 					try {
-						const hideIdentity = pool.metadata?.hideIdentity || false
-						const twitterHandle = pool.metadata?.CreatorTwitterName ||
-							pool.metadata?.creatorTwitter ||
-							null
+						const twitterHandle = pool.metadata?.CreatorTwitterName || null
 
 						processedPool.creatorData = await fetchCreatorData(
 							pool.creatorAddress,
 							twitterHandle,
-							hideIdentity
+							!!twitterHandle
 						)
 					} catch (error) {
 						console.error(`Failed to fetch creator data for ${pool.creatorAddress}:`, error)

@@ -148,15 +148,12 @@ export async function GET(
 		// fetch creator data if not cached
 		if (!processedPool.creatorData) {
 			try {
-				const hideIdentity = pool.metadata?.hideIdentity || false
-				const twitterHandle = pool.metadata?.CreatorTwitterName ||
-					pool.metadata?.creatorTwitter ||
-					null
+				const twitterHandle = pool.metadata?.CreatorTwitterName || null
 
 				processedPool.creatorData = await fetchCreatorData(
 					pool.creatorAddress,
 					twitterHandle,
-					hideIdentity
+					!!twitterHandle
 				)
 			} catch (error) {
 				console.error(`Failed to fetch creator data for ${pool.creatorAddress}:`, error)
