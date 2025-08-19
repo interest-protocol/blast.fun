@@ -1,6 +1,7 @@
 "use client"
 
 import { useConnectWallet, useCurrentAccount, useDisconnectWallet, useResolveSuiNSName, useAccounts, useSwitchAccount, useCurrentWallet } from "@mysten/dapp-kit"
+import { formatAddress } from "@mysten/sui/utils"
 import type { WalletAccount, WalletWithRequiredFeatures } from "@mysten/wallet-standard"
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react"
 import toast from "react-hot-toast"
@@ -79,7 +80,7 @@ export function AppContextProvider({ children }: { children: ReactNode }) {
 	const switchAccount = useCallback(async (account: WalletAccount) => {
 		try {
 			switchAccountMutation({ account })
-			toast.success(`Switched to ${account.label || account.address.slice(0, 6)}...`)
+			toast.success(`Switched to ${account.label || formatAddress(account.address)}...`)
 		} catch (error) {
 			console.error("Failed to switch account:", error)
 			toast.error("Failed to switch account")
