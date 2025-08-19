@@ -41,7 +41,7 @@ export function CreatorHoverCard({
 	const displayName = twitterHandle
 		? `@${twitterHandle}`
 		: resolvedDomain
-			? `@${resolvedDomain.replace(/\.sui$/i, "")}`
+			? resolvedDomain
 			: formatAddress(walletAddress || "");
 
 	return (

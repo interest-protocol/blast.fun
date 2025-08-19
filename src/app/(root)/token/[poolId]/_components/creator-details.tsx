@@ -29,7 +29,7 @@ export function CreatorDetails({ pool }: CreatorDetailsProps) {
 	const displayName = showTwitterCreator
 		? `@${creatorTwitterName}`
 		: resolvedDomain
-			? `@${resolvedDomain.replace(/\.sui$/i, "")}`
+			? resolvedDomain
 			: formatAddress(creatorWallet || "");
 
 	const parseFormattedNumber = (str: string): number => {

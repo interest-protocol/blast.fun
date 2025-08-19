@@ -42,7 +42,7 @@ export function AppContextProvider({ children }: { children: ReactNode }) {
 	const address = currentAccount?.address || null
 	const isConnected = !!currentAccount
 	const { data: walletDomain } = useResolveSuiNSName(currentAccount?.label ? null : address)
-	const domain = walletDomain ? `@${walletDomain.replace(/\.sui$/i, "")}` : null
+	const domain = walletDomain || null
 
 	const connect = useCallback(
 		async (wallet: WalletWithRequiredFeatures) => {
