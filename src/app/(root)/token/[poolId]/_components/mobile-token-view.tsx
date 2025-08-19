@@ -7,6 +7,7 @@ import { cn } from "@/utils"
 import { TradeTerminal } from "./trade-terminal"
 import { NexaChart } from "@/components/shared/nexa-chart"
 import { TradesTab } from "./tabs/trades-tab"
+import { HolderDetails } from "./holder-details"
 import type { PoolWithMetadata } from "@/types/pool"
 
 interface MobileTab {
@@ -37,6 +38,8 @@ export default function MobileTokenView({ pool, referral }: { pool: PoolWithMeta
 
 	return (
 		<div className="flex flex-col h-full lg:hidden">
+			<HolderDetails pool={pool} />
+
 			<div className="flex-1 overflow-hidden">
 				{activeTab === "chart" && (
 					<NexaChart pool={pool} className="w-full h-full" />
