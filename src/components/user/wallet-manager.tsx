@@ -44,7 +44,7 @@ export function WalletManager() {
 				<h3 className="text-sm font-semibold">Connected Wallets</h3>
 			</div>
 			
-			<div className="space-y-2">
+			<div className="space-y-2 max-h-[50vh] overflow-y-auto">
 				{accounts.map((account) => (
 					<WalletAccountItem
 						key={account.address}
