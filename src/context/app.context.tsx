@@ -11,7 +11,7 @@ interface AppContextValue {
 	domain: string | null
 	
 	// Multi-wallet support
-	accounts: WalletAccount[]
+	accounts: readonly WalletAccount[]
 	currentAccount: WalletAccount | null
 	currentWalletName: string | null
 	switchAccount: (account: WalletAccount) => Promise<void>
