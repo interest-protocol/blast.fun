@@ -56,6 +56,14 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	const balanceInDisplayUnit = effectiveBalance ? Number(effectiveBalance) / Math.pow(10, decimals) : 0
 	const hasBalance = balanceInDisplayUnit > 0
 	const suiBalanceInDisplayUnit = suiBalance ? Number(suiBalance) / Number(MIST_PER_SUI) : 0
+	
+	// Precise balance calculation for MAX button using BigNumber
+	const balanceInDisplayUnitPrecise = useMemo(() => {
+		if (!effectiveBalance) return "0"
+		const balanceBN = new BigNumber(effectiveBalance)
+		const divisor = new BigNumber(10).pow(decimals)
+		return balanceBN.dividedBy(divisor).toFixed()
+	}, [effectiveBalance, decimals])
 
 	// prices for USD calculations from server data
 	const suiPrice = marketData?.suiPrice || 4
@@ -212,14 +220,17 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 		} else {
 			// for sell, calculate percentage
 			const percentage = value
-			let tokenAmountToSell: number
-
+			
 			if (percentage === 100) {
-				tokenAmountToSell = balanceInDisplayUnit
+				// Use precise balance for 100%
+				setAmount(balanceInDisplayUnitPrecise)
 			} else {
-				tokenAmountToSell = Math.floor(balanceInDisplayUnit * (percentage / 100) * 1e9) / 1e9
+				// For other percentages, use BigNumber for precise calculation
+				const balanceBN = new BigNumber(balanceInDisplayUnitPrecise)
+				const percentageBN = new BigNumber(percentage).dividedBy(100)
+				const tokenAmountToSell = balanceBN.multipliedBy(percentageBN).toFixed(9, BigNumber.ROUND_DOWN)
+				setAmount(tokenAmountToSell)
 			}
-			setAmount(tokenAmountToSell.toString())
 		}
 	}
 
@@ -355,7 +366,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 										const maxSui = Math.max(0, suiBalanceInDisplayUnit - 0.02)
 										setAmount(maxSui.toString())
 									} else {
-										setAmount(balanceInDisplayUnit.toString())
+										setAmount(balanceInDisplayUnitPrecise)
 									}
 								}}
 								className="text-blue-400 hover:text-blue-300 font-medium text-xs transition-colors"
