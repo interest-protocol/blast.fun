@@ -11,6 +11,7 @@ interface TokenListLayoutProps {
 	headerClassName?: string
 	scrollClassName?: string
 	glowColor?: "blue" | "pink" | "gold"
+	headerAction?: ReactNode
 }
 
 export const TokenListLayout = memo(function TokenListLayout({
@@ -19,7 +20,8 @@ export const TokenListLayout = memo(function TokenListLayout({
 	className,
 	headerClassName,
 	scrollClassName,
-	glowColor = "blue"
+	glowColor = "blue",
+	headerAction
 }: TokenListLayoutProps) {
 	const textGlowStyles = {
 		blue: "text-blue-400 drop-shadow-[0_0_15px_rgba(59,130,246,0.7)] animate-pulse",
@@ -29,13 +31,18 @@ export const TokenListLayout = memo(function TokenListLayout({
 
 	return (
 		<div className={cn("border border-border/50 rounded-xl flex flex-col min-h-0 overflow-hidden", className)}>
-			<div className={cn("px-4 py-3 border-b border-border/50 flex-shrink-0", headerClassName)}>
+			<div className={cn("px-4 py-3 border-b border-border/50 flex-shrink-0 flex items-center justify-between", headerClassName)}>
 				<h2 className={cn(
 					"font-mono text-xs uppercase tracking-wider font-bold",
 					textGlowStyles[glowColor]
 				)}>
 					{title}
 				</h2>
+				{headerAction && (
+					<div className="ml-auto">
+						{headerAction}
+					</div>
+				)}
 			</div>
 			<ScrollArea className={cn("flex-1 overflow-hidden", scrollClassName)}>
 				<div className="divide-y divide-border/30">
