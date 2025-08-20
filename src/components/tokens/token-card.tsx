@@ -1,6 +1,6 @@
 "use client"
 
-import { memo } from "react"
+import { memo, useEffect, useRef, useState } from "react"
 import { Users, Globe, Send } from "lucide-react"
 import Link from "next/link"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -12,6 +12,7 @@ import { CreatorHoverCard } from "@/components/creator/creator-hover-card"
 import { CreatorDisplay } from "@/components/creator/creator-display"
 import { RelativeAge } from "@/components/shared/relative-age"
 import { BsTwitterX } from "react-icons/bs"
+import { cn } from "@/utils"
 
 interface TokenCardProps {
 	pool: PoolWithMetadata
@@ -20,6 +21,13 @@ interface TokenCardProps {
 export const TokenCard = memo(function TokenCard({
 	pool
 }: TokenCardProps) {
+	const [shouldShake, setShouldShake] = useState(false)
+	const prevStatsRef = useRef<{
+		marketCap: number
+		volume24h: number
+		holdersCount: number
+	}>()
+	
 	const coinMetadata = pool.coinMetadata || pool.metadata
 	const bondingProgress = parseFloat(pool.bondingCurve)
 
@@ -29,6 +37,24 @@ export const TokenCard = memo(function TokenCard({
 	const liquidity = marketData?.totalLiquidityUsd || marketData?.liqUsd || 0
 	const holdersCount = marketData?.holdersCount || 0
 	const volume24h = marketData?.coin24hTradeVolumeUsd || 0
+	
+	// Detect changes and trigger shake animation
+	useEffect(() => {
+		if (prevStatsRef.current) {
+			const hasChanges = 
+				prevStatsRef.current.marketCap !== marketCap ||
+				prevStatsRef.current.volume24h !== volume24h ||
+				prevStatsRef.current.holdersCount !== holdersCount
+			
+			if (hasChanges && (marketCap > 0 || volume24h > 0)) {
+				setShouldShake(true)
+				const timer = setTimeout(() => setShouldShake(false), 500)
+				return () => clearTimeout(timer)
+			}
+		}
+		
+		prevStatsRef.current = { marketCap, volume24h, holdersCount }
+	}, [marketCap, volume24h, holdersCount])
 
 	const creatorWallet = pool.creatorAddress
 	const creatorTwitterName = pool.metadata?.CreatorTwitterName
@@ -44,7 +70,10 @@ export const TokenCard = memo(function TokenCard({
 
 	return (
 		<Link href={`/token/${pool.poolId}`} className="cursor-default">
-			<div className="relative border-b border-border/40 group hover:bg-accent/15 transition-all duration-300 overflow-hidden">
+			<div className={cn(
+				"relative border-b border-border/40 group hover:bg-accent/15 transition-all duration-300 overflow-hidden",
+				shouldShake && "animate-shake"
+			)}>
 				{/* Content */}
 				<div className="relative p-3 sm:p-2">
 					<div className="flex gap-3 sm:gap-2.5">
