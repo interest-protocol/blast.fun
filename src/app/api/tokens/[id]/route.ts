@@ -85,9 +85,9 @@ export async function GET(
 			}
 		}
 
-		// fetch market data if not cached
-		if (!processedPool.marketData || !processedPool.coinMetadata) {
-			try {
+		// Always try to fetch fresh market data from Nexa
+		// Fall back to Redis cache if it fails
+		try {
 				const marketData = await nexaServerClient.getMarketData(pool.coinType)
 
 				// extract coinMetadata for separate caching
@@ -140,8 +140,19 @@ export async function GET(
 						JSON.stringify(coinMetadata)
 					)
 				])
-			} catch (error) {
-				console.error(`Failed to fetch market data for ${pool.coinType}:`, error)
+		} catch (error) {
+			console.error(`Failed to fetch market data for ${pool.coinType}:`, error)
+			
+			// Nexa failed - use Redis cached data if available
+			if (!processedPool.marketData && cachedMarketData) {
+				console.log(`Using cached market data for ${pool.coinType} due to Nexa failure`)
+				// Already parsed and set above from cachedMarketData
+			}
+			
+			// Also try to get cached metadata if not already loaded
+			if (!processedPool.coinMetadata && cachedMetadata) {
+				console.log(`Using cached metadata for ${pool.coinType} due to Nexa failure`)
+				// Already parsed and set above from cachedMetadata
 			}
 		}
 
@@ -160,7 +171,26 @@ export async function GET(
 			}
 		}
 
-		return NextResponse.json(processedPool)
+		// Check environment for response
+		const isLocalhost = request.headers.get('host')?.includes('localhost') || 
+						   request.headers.get('host')?.includes('127.0.0.1') ||
+						   process.env.NODE_ENV === 'development'
+		
+		if (isLocalhost) {
+			// For localhost: return without cache headers
+			return NextResponse.json(processedPool)
+		} else {
+			// For production: return with Vercel Edge Cache headers
+			return NextResponse.json(
+				processedPool,
+				{
+					headers: {
+						// Vercel Edge Cache: Cache for 3 seconds with stale-while-revalidate
+						'Cache-Control': 's-maxage=3, stale-while-revalidate'
+					}
+				}
+			)
+		}
 	} catch (error) {
 		console.error("Error fetching token:", error)
 		return NextResponse.json(
