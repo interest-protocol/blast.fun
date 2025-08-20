@@ -90,9 +90,15 @@ export async function GET(
 			}
 		}
 
-		// Always try to fetch fresh market data from Nexa
-		// Fall back to Redis cache if it fails
-		try {
+		// Check environment
+		const isLocalhost = request.headers.get('host')?.includes('localhost') || 
+						   request.headers.get('host')?.includes('127.0.0.1') ||
+						   process.env.NODE_ENV === 'development'
+
+		// For localhost: use Redis cache if available
+		// For production: always fetch fresh, fallback to Redis
+		if (!isLocalhost || !processedPool.marketData) {
+			try {
 				const marketData = await nexaServerClient.getMarketData(pool.coinType)
 
 				// extract coinMetadata for separate caching
@@ -145,19 +151,20 @@ export async function GET(
 						JSON.stringify(coinMetadata)
 					)
 				])
-		} catch (error) {
-			console.error(`Failed to fetch market data for ${pool.coinType}:`, error)
-			
-			// Nexa failed - use Redis cached data if available
-			if (!processedPool.marketData && cachedMarketData) {
-				console.log(`Using cached market data for ${pool.coinType} due to Nexa failure`)
-				// Already parsed and set above from cachedMarketData
-			}
-			
-			// Also try to get cached metadata if not already loaded
-			if (!processedPool.coinMetadata && cachedMetadata) {
-				console.log(`Using cached metadata for ${pool.coinType} due to Nexa failure`)
-				// Already parsed and set above from cachedMetadata
+			} catch (error) {
+				console.error(`Failed to fetch market data for ${pool.coinType}:`, error)
+				
+				// Nexa failed - use Redis cached data if available
+				if (!processedPool.marketData && cachedMarketData) {
+					console.log(`Using cached market data for ${pool.coinType} due to Nexa failure`)
+					// Already parsed and set above from cachedMarketData
+				}
+				
+				// Also try to get cached metadata if not already loaded
+				if (!processedPool.coinMetadata && cachedMetadata) {
+					console.log(`Using cached metadata for ${pool.coinType} due to Nexa failure`)
+					// Already parsed and set above from cachedMetadata
+				}
 			}
 		}
 		
@@ -189,26 +196,26 @@ export async function GET(
 			}
 		}
 
-		// fetch creator data if not cached
-		if (!processedPool.creatorData) {
-			try {
-				const twitterHandle = pool.metadata?.CreatorTwitterName || null
+		// For localhost: use cached creator data if available
+		// For production: always fetch fresh
+		if (!isLocalhost || !processedPool.creatorData) {
+			// fetch creator data if not cached or in production
+			if (!processedPool.creatorData) {
+				try {
+					const twitterHandle = pool.metadata?.CreatorTwitterName || null
 
-				processedPool.creatorData = await fetchCreatorData(
-					pool.creatorAddress,
-					twitterHandle,
-					!twitterHandle // hideIdentity should be true when NO twitter handle
-				)
-			} catch (error) {
-				console.error(`Failed to fetch creator data for ${pool.creatorAddress}:`, error)
+					processedPool.creatorData = await fetchCreatorData(
+						pool.creatorAddress,
+						twitterHandle,
+						!twitterHandle // hideIdentity should be true when NO twitter handle
+					)
+				} catch (error) {
+					console.error(`Failed to fetch creator data for ${pool.creatorAddress}:`, error)
+				}
 			}
 		}
 
-		// Check environment for response
-		const isLocalhost = request.headers.get('host')?.includes('localhost') || 
-						   request.headers.get('host')?.includes('127.0.0.1') ||
-						   process.env.NODE_ENV === 'development'
-		
+		// Return response based on environment
 		if (isLocalhost) {
 			// For localhost: return without cache headers
 			return NextResponse.json(processedPool)
