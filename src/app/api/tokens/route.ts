@@ -5,6 +5,7 @@ import { CONFIG_KEYS } from "@interest-protocol/memez-fun-sdk"
 import { redisGet, redisSetEx, CACHE_PREFIX, CACHE_TTL } from "@/lib/redis/client"
 import { nexaServerClient } from "@/lib/nexa-server"
 import { fetchCreatorData } from "@/lib/fetch-creator-data"
+import { suiClient } from "@/lib/sui-client"
 
 export async function GET(request: NextRequest) {
 	try {
@@ -220,6 +221,34 @@ export async function GET(request: NextRequest) {
 								console.error(`Failed to parse cached metadata for pool ${pool.poolId}:`, e)
 							}
 						}
+					}
+				}
+				
+				// Final fallback: If still no metadata, fetch directly from blockchain
+				if (!processedPool.coinMetadata && pool.coinType) {
+					try {
+						console.log(`Fetching metadata from blockchain for ${pool.coinType}`)
+						const metadata = await suiClient.getCoinMetadata({ coinType: pool.coinType })
+						if (metadata) {
+							processedPool.coinMetadata = {
+								id: pool.coinType, // Use coinType as ID
+								name: metadata.name,
+								symbol: metadata.symbol,
+								description: metadata.description,
+								iconUrl: metadata.iconUrl || undefined,
+								decimals: metadata.decimals
+							}
+							
+							// Cache it for future use
+							const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.poolId}`
+							await redisSetEx(
+								metadataCacheKey,
+								CACHE_TTL.COIN_METADATA,
+								JSON.stringify(processedPool.coinMetadata)
+							)
+						}
+					} catch (err) {
+						console.error(`Failed to fetch metadata from blockchain for ${pool.coinType}:`, err)
 					}
 				}
 
