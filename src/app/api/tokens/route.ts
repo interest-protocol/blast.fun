@@ -5,6 +5,7 @@ import { CONFIG_KEYS } from "@interest-protocol/memez-fun-sdk"
 import { redisGet, redisSetEx, CACHE_PREFIX, CACHE_TTL } from "@/lib/redis/client"
 import { nexaServerClient } from "@/lib/nexa-server"
 import { fetchCreatorData } from "@/lib/fetch-creator-data"
+import { suiClient } from "@/lib/sui-client"
 
 export async function GET(request: NextRequest) {
 	try {
@@ -97,34 +98,33 @@ export async function GET(request: NextRequest) {
 				}
 
 				// Caching Strategy:
-				// - Market data: No Redis cache, using Vercel edge caching (3s) for entire response instead
-				//   This provides better consistency and reduces Redis operations while keeping data fresh
-				// - Metadata & Creator data: Still using Redis cache (12h & 4h respectively) as these are more static
+				// - Market data: Redis cache (2 min) for localhost & fallback, plus Vercel edge cache (3s) for production
+				// - Metadata & Creator data: Redis cache (12h & 4h respectively) as these are more static
+				// This ensures localhost has caching and production has both Redis fallback and edge cache
 
-				// const marketCacheKey = `${CACHE_PREFIX.MARKET_DATA}${pool.poolId}` // Removed - using Vercel edge cache
+				const marketCacheKey = `${CACHE_PREFIX.MARKET_DATA}${pool.poolId}`
 				const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.poolId}`
 				const creatorCacheKey = `${CACHE_PREFIX.CREATOR_DATA}${pool.creatorAddress}`
 
-				const [cachedMetadata, cachedCreatorData] = await Promise.all([
-					// redisGet(marketCacheKey), // Removed - fetching fresh market data every time
+				const [cachedMarketData, cachedMetadata, cachedCreatorData] = await Promise.all([
+					redisGet(marketCacheKey),
 					redisGet(metadataCacheKey),
 					redisGet(creatorCacheKey)
 				])
 
-				// Market data Redis cache disabled - relying on Vercel edge cache instead
-				// if (cachedMarketData) {
-				// 	try {
-				// 		const parsedMarketData = JSON.parse(cachedMarketData)
-				// 		processedPool.marketData = parsedMarketData
+				if (cachedMarketData) {
+					try {
+						const parsedMarketData = JSON.parse(cachedMarketData)
+						processedPool.marketData = parsedMarketData
 
-				// 		// use cached mostLiquidPoolId if available
-				// 		if (parsedMarketData.mostLiquidPoolId) {
-				// 			processedPool.mostLiquidPoolId = parsedMarketData.mostLiquidPoolId
-				// 		}
-				// 	} catch (error) {
-				// 		console.error(`Failed to parse cached market data for ${pool.coinType}:`, error)
-				// 	}
-				// }
+						// use cached mostLiquidPoolId if available
+						if (parsedMarketData.mostLiquidPoolId) {
+							processedPool.mostLiquidPoolId = parsedMarketData.mostLiquidPoolId
+						}
+					} catch (error) {
+						console.error(`Failed to parse cached market data for ${pool.coinType}:`, error)
+					}
+				}
 
 				if (cachedMetadata) {
 					try {
@@ -136,13 +136,18 @@ export async function GET(request: NextRequest) {
 
 				if (cachedCreatorData) {
 					try {
-						processedPool.creatorData = JSON.parse(cachedCreatorData)
+						const parsed = JSON.parse(cachedCreatorData)
+						// Only use cache if followers is not "0" (to avoid bad cached data)
+						if (parsed.followers !== "0") {
+							processedPool.creatorData = parsed
+						}
 					} catch (error) {
 						console.error(`Failed to parse cached creator data for ${pool.creatorAddress}:`, error)
 					}
 				}
 
-				// Always fetch fresh market data (no Redis cache) - will be cached at edge level
+				// Always try to fetch fresh market data from Nexa
+				// Fall back to Redis cache if it fails
 				try {
 					const marketData = await nexaServerClient.getMarketData(pool.coinType)
 
@@ -184,14 +189,14 @@ export async function GET(request: NextRequest) {
 					processedPool.marketData = trimmedMarketData
 					processedPool.coinMetadata = coinMetadata
 
-					// Market data Redis caching disabled - using Vercel edge cache instead
-					// await redisSetEx(
-					// 	marketCacheKey,
-					// 	CACHE_TTL.MARKET_DATA,
-					// 	JSON.stringify(trimmedMarketData)
-					// )
+					// Cache market data in Redis (2 min TTL)
+					await redisSetEx(
+						marketCacheKey,
+						CACHE_TTL.MARKET_DATA,
+						JSON.stringify(trimmedMarketData)
+					)
 
-					// cache coinMetadata separately with longer TTL (keeping this cache)
+					// cache coinMetadata separately with longer TTL
 					if (coinMetadata) {
 						const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.poolId}`
 						await redisSetEx(
@@ -202,16 +207,52 @@ export async function GET(request: NextRequest) {
 					}
 				} catch (error) {
 					console.error(`Failed to fetch market data for ${pool.coinType}:`, error)
+					
+					// Nexa failed - use Redis cached data if available
+					if (!processedPool.marketData && cachedMarketData) {
+						console.log(`Using cached market data for ${pool.coinType} due to Nexa failure`)
+						// Already parsed and set above from cachedMarketData
+					}
 
-					// try to get just cached metadata if market data fails
-					const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.poolId}`
-					const cachedMetadata = await redisGet(metadataCacheKey)
-					if (cachedMetadata) {
-						try {
-							processedPool.coinMetadata = JSON.parse(cachedMetadata)
-						} catch (e) {
-							console.error(`Failed to parse cached metadata for pool ${pool.poolId}:`, e)
+					// Also try to get cached metadata if not already loaded
+					if (!processedPool.coinMetadata) {
+						const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.poolId}`
+						const cachedMetadata = await redisGet(metadataCacheKey)
+						if (cachedMetadata) {
+							try {
+								processedPool.coinMetadata = JSON.parse(cachedMetadata)
+							} catch (e) {
+								console.error(`Failed to parse cached metadata for pool ${pool.poolId}:`, e)
+							}
 						}
+					}
+				}
+				
+				// Final fallback: If still no metadata, fetch directly from blockchain
+				if (!processedPool.coinMetadata && pool.coinType) {
+					try {
+						console.log(`Fetching metadata from blockchain for ${pool.coinType}`)
+						const metadata = await suiClient.getCoinMetadata({ coinType: pool.coinType })
+						if (metadata) {
+							processedPool.coinMetadata = {
+								id: pool.coinType, // Use coinType as ID
+								name: metadata.name,
+								symbol: metadata.symbol,
+								description: metadata.description,
+								iconUrl: metadata.iconUrl || undefined,
+								decimals: metadata.decimals
+							}
+							
+							// Cache it for future use
+							const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.poolId}`
+							await redisSetEx(
+								metadataCacheKey,
+								CACHE_TTL.COIN_METADATA,
+								JSON.stringify(processedPool.coinMetadata)
+							)
+						}
+					} catch (err) {
+						console.error(`Failed to fetch metadata from blockchain for ${pool.coinType}:`, err)
 					}
 				}
 
@@ -224,7 +265,7 @@ export async function GET(request: NextRequest) {
 						processedPool.creatorData = await fetchCreatorData(
 							pool.creatorAddress,
 							twitterHandle,
-							!!twitterHandle
+							!twitterHandle // hideIdentity should be true when NO twitter handle
 						)
 					} catch (error) {
 						console.error(`Failed to fetch creator data for ${pool.creatorAddress}:`, error)

@@ -7,6 +7,7 @@ import { nexaServerClient } from "@/lib/nexa-server"
 import { fetchCreatorData } from "@/lib/fetch-creator-data"
 import { isValidSuiObjectId } from "@mysten/sui/utils"
 import type { PoolWithMetadata } from "@/types/pool"
+import { suiClient } from "@/lib/sui-client"
 
 export async function GET(
 	request: NextRequest,
@@ -79,15 +80,19 @@ export async function GET(
 
 		if (cachedCreatorData) {
 			try {
-				processedPool.creatorData = JSON.parse(cachedCreatorData)
+				const parsed = JSON.parse(cachedCreatorData)
+				// Only use cache if followers is not "0" (to avoid bad cached data)
+				if (parsed.followers !== "0") {
+					processedPool.creatorData = parsed
+				}
 			} catch (error) {
 				console.error(`Failed to parse cached creator data for ${pool.creatorAddress}:`, error)
 			}
 		}
 
-		// fetch market data if not cached
-		if (!processedPool.marketData || !processedPool.coinMetadata) {
-			try {
+		// Always try to fetch fresh market data from Nexa
+		// Fall back to Redis cache if it fails
+		try {
 				const marketData = await nexaServerClient.getMarketData(pool.coinType)
 
 				// extract coinMetadata for separate caching
@@ -140,8 +145,47 @@ export async function GET(
 						JSON.stringify(coinMetadata)
 					)
 				])
-			} catch (error) {
-				console.error(`Failed to fetch market data for ${pool.coinType}:`, error)
+		} catch (error) {
+			console.error(`Failed to fetch market data for ${pool.coinType}:`, error)
+			
+			// Nexa failed - use Redis cached data if available
+			if (!processedPool.marketData && cachedMarketData) {
+				console.log(`Using cached market data for ${pool.coinType} due to Nexa failure`)
+				// Already parsed and set above from cachedMarketData
+			}
+			
+			// Also try to get cached metadata if not already loaded
+			if (!processedPool.coinMetadata && cachedMetadata) {
+				console.log(`Using cached metadata for ${pool.coinType} due to Nexa failure`)
+				// Already parsed and set above from cachedMetadata
+			}
+		}
+		
+		// Final fallback: If still no metadata, fetch directly from blockchain
+		if (!processedPool.coinMetadata && pool.coinType) {
+			try {
+				console.log(`Fetching metadata from blockchain for ${pool.coinType}`)
+				const metadata = await suiClient.getCoinMetadata({ coinType: pool.coinType })
+				if (metadata) {
+					processedPool.coinMetadata = {
+						id: pool.coinType, // Use coinType as ID
+						name: metadata.name,
+						symbol: metadata.symbol,
+						description: metadata.description,
+						iconUrl: metadata.iconUrl || undefined,
+						decimals: metadata.decimals
+					}
+					
+					// Cache it for future use
+					const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.poolId}`
+					await redisSetEx(
+						metadataCacheKey,
+						CACHE_TTL.COIN_METADATA,
+						JSON.stringify(processedPool.coinMetadata)
+					)
+				}
+			} catch (err) {
+				console.error(`Failed to fetch metadata from blockchain for ${pool.coinType}:`, err)
 			}
 		}
 
@@ -153,14 +197,33 @@ export async function GET(
 				processedPool.creatorData = await fetchCreatorData(
 					pool.creatorAddress,
 					twitterHandle,
-					!!twitterHandle
+					!twitterHandle // hideIdentity should be true when NO twitter handle
 				)
 			} catch (error) {
 				console.error(`Failed to fetch creator data for ${pool.creatorAddress}:`, error)
 			}
 		}
 
-		return NextResponse.json(processedPool)
+		// Check environment for response
+		const isLocalhost = request.headers.get('host')?.includes('localhost') || 
+						   request.headers.get('host')?.includes('127.0.0.1') ||
+						   process.env.NODE_ENV === 'development'
+		
+		if (isLocalhost) {
+			// For localhost: return without cache headers
+			return NextResponse.json(processedPool)
+		} else {
+			// For production: return with Vercel Edge Cache headers
+			return NextResponse.json(
+				processedPool,
+				{
+					headers: {
+						// Vercel Edge Cache: Cache for 3 seconds with stale-while-revalidate
+						'Cache-Control': 's-maxage=3, stale-while-revalidate'
+					}
+				}
+			)
+		}
 	} catch (error) {
 		console.error("Error fetching token:", error)
 		return NextResponse.json(

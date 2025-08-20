@@ -1,10 +1,10 @@
-import { env } from "@/env"
-
 interface TwitterUser {
 	id: string
 	username: string
 	name: string
 	profile_image_url: string | null
+	followers?: number
+	following?: number
 }
 
 export async function getFxtwitterProfileImage(username: string): Promise<string | null> {
@@ -26,24 +26,27 @@ export async function getFxtwitterProfileImage(username: string): Promise<string
 	}
 }
 
-export class TwitterAPI {
-	async getUserInfoByUsername(username: string): Promise<TwitterUser> {
-		const response = await fetch(`https://api.twitterapi.io/user/username/${username}`, {
-			headers: {
-				"X-API-Key": env.TWITTER_API_IO_KEY,
-			},
-		})
-
+export async function getFxtwitterUserInfo(username: string): Promise<TwitterUser | null> {
+	try {
+		const response = await fetch(`https://api.fxtwitter.com/${username}`)
 		if (!response.ok) {
-			throw new Error("Failed to fetch user info from twitterapi.io")
+			console.warn(`fxtwitter API returned ${response.status} for username: ${username}`)
+			return null
 		}
-
 		const data = await response.json()
-		return {
-			id: data.data.id,
-			username: data.data.username,
-			name: data.data.name,
-			profile_image_url: data.data.profile_image_url,
+		if (data?.user) {
+			return {
+				id: data.user.id || '',
+				username: data.user.screen_name || username,
+				name: data.user.name || '',
+				profile_image_url: data.user.avatar_url ? data.user.avatar_url.replace('_normal', '') : null,
+				followers: data.user.followers || 0,
+				following: data.user.following || 0
+			}
 		}
+		return null
+	} catch (error) {
+		console.error('Failed to fetch user info from fxtwitter:', error)
+		return null
 	}
 }

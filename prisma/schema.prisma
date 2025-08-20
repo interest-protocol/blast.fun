@@ -104,3 +104,16 @@ model TokenProtectionSettings {
   @@index([poolId])
   @@map("token_protection_settings")
 }
+
+model TwitterAccountUserBuyRelation {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  twitterUserId String
+  poolId        String
+  address       String
+  purchases     Json
+
+  @@index([twitterUserId, poolId])
+  @@map("twitter_account_user_buy_relation")
+}
