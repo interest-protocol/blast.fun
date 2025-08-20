@@ -27,13 +27,6 @@ export function MobileNavigation() {
 							href={item.href}
 							className="group flex flex-col justify-center items-center gap-1 py-2 px-4 min-w-0 relative"
 						>
-							{/* Active indicator dot */}
-							{isActive && (
-								<div className="absolute top-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-destructive rounded-full animate-pulse">
-									<div className="absolute inset-0 bg-destructive rounded-full blur-sm" />
-								</div>
-							)}
-							
 							<Icon
 								className={cn(
 									"h-5 w-5 transition-all duration-300",
