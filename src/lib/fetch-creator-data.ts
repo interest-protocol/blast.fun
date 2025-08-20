@@ -4,13 +4,30 @@ import { redisGet, redisSetEx, CACHE_TTL, CACHE_PREFIX } from "@/lib/redis/clien
 import type { CreatorData } from "@/types/pool"
 
 export async function fetchCreatorData(
-	creatorAddress: string,
+	creatorAddressOrHandle: string,
 	twitterHandle?: string | null,
 	hideIdentity?: boolean
 ): Promise<CreatorData> {
 	try {
+		// determine if we need to find the creator address from twitter handle
+		let creatorAddress = creatorAddressOrHandle
+		let finalTwitterHandle = twitterHandle
+
+		// @dev: if twitterHandle is provided and matches creatorAddressOrHandle, 
+		// we need to find the actual creator address
+		if (twitterHandle && creatorAddressOrHandle === twitterHandle) {
+			const tokenLaunch = await prisma.tokenLaunches.findFirst({
+				where: { twitterUsername: twitterHandle },
+				select: { creatorAddress: true }
+			})
+
+			if (tokenLaunch) {
+				creatorAddress = tokenLaunch.creatorAddress
+			}
+		}
+
 		const cacheKey = `${CACHE_PREFIX.CREATOR_DATA}${creatorAddress}`
-		
+
 		// First, get basic data we always need
 		const tokenLaunches = await prisma.tokenLaunches.findMany({
 			where: { creatorAddress },
@@ -24,7 +41,7 @@ export async function fetchCreatorData(
 		const launchCount = tokenLaunches.length
 
 		// get twitter handle if not provided and not hiding identity
-		let finalTwitterHandle = hideIdentity ? null : twitterHandle
+		finalTwitterHandle = hideIdentity ? null : finalTwitterHandle
 		if (!hideIdentity && !finalTwitterHandle && tokenLaunches.length > 0) {
 			const launchWithTwitter = tokenLaunches.find(l => l.twitterUsername)
 			if (launchWithTwitter) {
