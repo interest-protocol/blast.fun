@@ -27,16 +27,27 @@ export function MobileNavigation() {
 							href={item.href}
 							className="group flex flex-col justify-center items-center gap-1 py-2 px-4 min-w-0 relative"
 						>
+							{/* Active indicator dot */}
+							{isActive && (
+								<div className="absolute top-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-destructive rounded-full animate-pulse">
+									<div className="absolute inset-0 bg-destructive rounded-full blur-sm" />
+								</div>
+							)}
+							
 							<Icon
 								className={cn(
 									"h-5 w-5 transition-all duration-300",
-									isActive ? "text-destructive scale-110" : "text-muted-foreground group-active:scale-95"
+									isActive 
+										? "text-primary" 
+										: "text-muted-foreground/60 group-active:scale-95"
 								)}
 							/>
 							<span
 								className={cn(
-									"text-[10px] font-mono uppercase tracking-wider transition-colors duration-300",
-									isActive ? "text-destructive font-semibold" : "text-muted-foreground"
+									"text-[10px] font-mono uppercase tracking-wider transition-all duration-300",
+									isActive 
+										? "text-primary/90 font-semibold" 
+										: "text-muted-foreground/60"
 								)}
 							>
 								{item.label}
