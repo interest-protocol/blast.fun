@@ -11,23 +11,8 @@ export async function fetchCreatorData(
 ): Promise<CreatorData> {
 	try {
 		const cacheKey = `${CACHE_PREFIX.CREATOR_DATA}${creatorAddress}`
-		const cachedData = await redisGet(cacheKey)
-
-		if (cachedData) {
-			try {
-				const parsed = JSON.parse(cachedData)
-				
-				// If cached followers is 0, we might want to try fetching updated data
-				if (parsed.followers === "0" && parsed.twitterHandle) {
-					// Don't return here, continue to fetch fresh data
-				} else {
-					return parsed
-				}
-			} catch (error) {
-				console.error("Failed to parse cached creator data:", error)
-			}
-		}
-
+		
+		// First, get basic data we always need
 		const tokenLaunches = await prisma.tokenLaunches.findMany({
 			where: { creatorAddress },
 			select: {
@@ -45,6 +30,23 @@ export async function fetchCreatorData(
 			const launchWithTwitter = tokenLaunches.find(l => l.twitterUsername)
 			if (launchWithTwitter) {
 				finalTwitterHandle = launchWithTwitter.twitterUsername
+			}
+		}
+
+		// Check cache only if we have a twitter handle (otherwise we can't fetch followers anyway)
+		if (finalTwitterHandle) {
+			const cachedData = await redisGet(cacheKey)
+			if (cachedData) {
+				try {
+					const parsed = JSON.parse(cachedData)
+					// Only use cache if followers is not "0"
+					if (parsed.followers !== "0") {
+						return parsed
+					}
+					// If followers is "0", continue to fetch fresh data
+				} catch (error) {
+					console.error("Failed to parse cached creator data:", error)
+				}
 			}
 		}
 
@@ -145,12 +147,15 @@ export async function fetchCreatorData(
 			twitterHandle: finalTwitterHandle
 		}
 
-		// cache the complete creator data
-		await redisSetEx(
-			cacheKey,
-			CACHE_TTL.CREATOR_DATA,
-			JSON.stringify(creatorData)
-		)
+		// Only cache if we have non-zero follower count
+		// This ensures we don't cache failed API calls or users with genuinely 0 followers
+		if (creatorData.followers !== "0") {
+			await redisSetEx(
+				cacheKey,
+				CACHE_TTL.CREATOR_DATA,
+				JSON.stringify(creatorData)
+			)
+		}
 
 		return creatorData
 	} catch (error) {
