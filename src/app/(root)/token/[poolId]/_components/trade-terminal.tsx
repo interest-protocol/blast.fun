@@ -6,9 +6,11 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { TokenAvatar } from "@/components/tokens/token-avatar"
 import { useApp } from "@/context/app.context"
+import { useTwitter } from "@/context/twitter.context"
 import { useTrading } from "@/hooks/pump/use-trading"
 import { useTokenBalance } from "@/hooks/sui/use-token-balance"
 import { usePortfolio } from "@/hooks/nexa/use-portfolio"
+import { useTokenProtection } from "@/hooks/use-token-protection"
 import { usePresetStore } from "@/stores/preset-store"
 import type { PoolWithMetadata } from "@/types/pool"
 import { cn } from "@/utils"
@@ -27,6 +29,8 @@ interface TradeTerminalProps {
 
 export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	const { isConnected } = useApp()
+	const { isLoggedIn: isTwitterLoggedIn, login: twitterLogin } = useTwitter()
+	const { settings: protectionSettings } = useTokenProtection(pool.poolId, pool.isProtected)
 	const [tradeType, setTradeType] = useState<"buy" | "sell">("buy")
 	const [amount, setAmount] = useState("")
 	const [settingsOpen, setSettingsOpen] = useState(false)
@@ -607,8 +611,8 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 					</button>
 				</div>
 
-				{/* Error */}
-				{error && (
+				{/* Error - Only show if not related to Twitter auth */}
+				{error && !error.includes("AUTHENTICATED WITH X") && (
 					<Alert className="py-1.5 border-destructive/50 bg-destructive/10">
 						<AlertDescription className="font-mono text-[10px] uppercase text-destructive">
 							{error}
@@ -616,44 +620,56 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 					</Alert>
 				)}
 
-				{/* Trade Button */}
-				<Button
-					className={cn(
-						"w-full h-10 font-mono text-xs uppercase",
-						tradeType === "buy"
-							? "bg-green-400/50 hover:bg-green-500/90 text-foreground"
-							: "bg-destructive/80 hover:bg-destructive text-foreground",
-						(isMigrating || !amount || isProcessing) && "opacity-50"
-					)}
-					onClick={handleTrade}
-					disabled={
-						!amount ||
-						isProcessing ||
-						isMigrating ||
-						(tradeType === "sell" && !hasBalance) ||
-						(tradeType === "buy" && parseFloat(amount) > suiBalanceInDisplayUnit) ||
-						(tradeType === "sell" && parseFloat(amount) > balanceInDisplayUnit)
-					}
-				>
-					{isProcessing ? (
-						<>
-							<Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
-							Processing...
-						</>
-					) : isRefreshingQuote ? (
-						<>
-							<Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
-							Getting quotes...
-						</>
-					) : (
-						<>
-							{tradeType === "buy"
-								? isLoadingQuote ? `Calculating...` : `Buy ${formatNumberWithSuffix(calculateOutputAmount)} ${metadata?.symbol}`
-								: isLoadingQuote ? `Calculating...` : `Sell ${formatNumberWithSuffix(parseFloat(amount) || 0)} ${metadata?.symbol} for ${formatNumberWithSuffix(calculateOutputAmount)} SUI`
-							}
-						</>
-					)}
-				</Button>
+				{/* Trade Button or X Connect Button */}
+				{protectionSettings?.requireTwitter && !isTwitterLoggedIn ? (
+					<Button
+						className="w-full h-10 font-mono text-xs uppercase bg-black hover:bg-gray-900 text-white border border-white/80 hover:border-white"
+						onClick={twitterLogin}
+					>
+						<svg className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="currentColor">
+							<path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+						</svg>
+						Connect X to Trade
+					</Button>
+				) : (
+					<Button
+						className={cn(
+							"w-full h-10 font-mono text-xs uppercase",
+							tradeType === "buy"
+								? "bg-green-400/50 hover:bg-green-500/90 text-foreground"
+								: "bg-destructive/80 hover:bg-destructive text-foreground",
+							(isMigrating || !amount || isProcessing) && "opacity-50"
+						)}
+						onClick={handleTrade}
+						disabled={
+							!amount ||
+							isProcessing ||
+							isMigrating ||
+							(tradeType === "sell" && !hasBalance) ||
+							(tradeType === "buy" && parseFloat(amount) > suiBalanceInDisplayUnit) ||
+							(tradeType === "sell" && parseFloat(amount) > balanceInDisplayUnit)
+						}
+					>
+						{isProcessing ? (
+							<>
+								<Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
+								Processing...
+							</>
+						) : isRefreshingQuote ? (
+							<>
+								<Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
+								Getting quotes...
+							</>
+						) : (
+							<>
+								{tradeType === "buy"
+									? isLoadingQuote ? `Calculating...` : `Buy ${formatNumberWithSuffix(calculateOutputAmount)} ${metadata?.symbol}`
+									: isLoadingQuote ? `Calculating...` : `Sell ${formatNumberWithSuffix(parseFloat(amount) || 0)} ${metadata?.symbol} for ${formatNumberWithSuffix(calculateOutputAmount)} SUI`
+								}
+							</>
+						)}
+					</Button>
+				)}
 			</div>
 
 			{/* Trade Settings Dialog */}
