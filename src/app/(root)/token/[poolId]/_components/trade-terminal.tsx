@@ -21,6 +21,7 @@ import { MIST_PER_SUI } from "@mysten/sui/utils"
 import { pumpSdk } from "@/lib/pump"
 import { getBuyQuote, getSellQuote } from "@/lib/aftermath"
 import BigNumber from "bignumber.js"
+import { BsTwitterX } from "react-icons/bs"
 
 interface TradeTerminalProps {
 	pool: PoolWithMetadata
@@ -60,7 +61,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	const balanceInDisplayUnit = effectiveBalance ? Number(effectiveBalance) / Math.pow(10, decimals) : 0
 	const hasBalance = balanceInDisplayUnit > 0
 	const suiBalanceInDisplayUnit = suiBalance ? Number(suiBalance) / Number(MIST_PER_SUI) : 0
-	
+
 	// Precise balance calculation for MAX button using BigNumber
 	const balanceInDisplayUnitPrecise = useMemo(() => {
 		if (!effectiveBalance) return "0"
@@ -224,7 +225,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 		} else {
 			// for sell, calculate percentage
 			const percentage = value
-			
+
 			if (percentage === 100) {
 				// Use precise balance for 100%
 				setAmount(balanceInDisplayUnitPrecise)
@@ -623,12 +624,11 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 				{/* Trade Button or X Connect Button */}
 				{protectionSettings?.requireTwitter && !isTwitterLoggedIn ? (
 					<Button
-						className="w-full h-10 font-mono text-xs uppercase bg-black hover:bg-gray-900 text-white border border-white/80 hover:border-white"
+						variant="outline"
+						className="w-full h-10 font-mono text-xs uppercase"
 						onClick={twitterLogin}
 					>
-						<svg className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="currentColor">
-							<path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-						</svg>
+						<BsTwitterX className="h-4 w-4 mr-2" />
 						Connect X to Trade
 					</Button>
 				) : (
