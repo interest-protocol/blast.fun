@@ -14,7 +14,7 @@
 		"@auth/prisma-adapter": "^2.10.0",
 		"@hookform/resolvers": "^5.1.1",
 		"@interest-protocol/memez-fun-sdk": "12.1.0",
-		"@mysten/dapp-kit": "^0.17.0",
+		"@mysten/dapp-kit": "^0.17.4",
 		"@mysten/sui": "^1.36.2",
 		"@mysten/wallet-standard": "^0.16.7",
 		"@next/third-parties": "^15.4.4",
