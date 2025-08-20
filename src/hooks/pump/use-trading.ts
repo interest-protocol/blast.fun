@@ -225,7 +225,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 
 		const amountBN = new BigNumber(amount)
 		const decimalMultiplier = new BigNumber(10).pow(decimals)
-		let amountInSmallestUnitBN = amountBN.multipliedBy(decimalMultiplier)
+		const amountInSmallestUnitBN = amountBN.multipliedBy(decimalMultiplier)
 		let amountInSmallestUnit = BigInt(amountInSmallestUnitBN.integerValue(BigNumber.ROUND_DOWN).toString())
 
 		if (actualBalance) {
