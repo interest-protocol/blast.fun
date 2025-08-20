@@ -68,8 +68,8 @@ export const NearGraduation = memo(function NearGraduation({
 		switch (settings.sortBy) {
 			case "bondingCurve":
 				return pools.sort((a: PoolWithMetadata, b: PoolWithMetadata) => {
-					const aBonding = a.bondingCurve || 0
-					const bBonding = b.bondingCurve || 0
+					const aBonding = Number(a.bondingCurve) || 0
+					const bBonding = Number(b.bondingCurve) || 0
 					return bBonding - aBonding
 				})
 			case "marketCap":
@@ -80,8 +80,8 @@ export const NearGraduation = memo(function NearGraduation({
 				})
 			case "date":
 				return pools.sort((a: PoolWithMetadata, b: PoolWithMetadata) => {
-					const aDate = a.lastTradeAt || a.createdAt || 0
-					const bDate = b.lastTradeAt || b.createdAt || 0
+					const aDate = new Date(a.lastTradeAt || a.createdAt || 0).getTime()
+					const bDate = new Date(b.lastTradeAt || b.createdAt || 0).getTime()
 					return bDate - aDate
 				})
 			case "volume":

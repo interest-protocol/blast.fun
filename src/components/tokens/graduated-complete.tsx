@@ -74,8 +74,8 @@ export const GraduatedComplete = memo(function GraduatedComplete({
 				})
 			case "date":
 				return pools.sort((a: PoolWithMetadata, b: PoolWithMetadata) => {
-					const aDate = a.lastTradeAt || a.createdAt || 0
-					const bDate = b.lastTradeAt || b.createdAt || 0
+					const aDate = new Date(a.lastTradeAt || a.createdAt || 0).getTime()
+					const bDate = new Date(b.lastTradeAt || b.createdAt || 0).getTime()
 					return bDate - aDate
 				})
 			case "volume":

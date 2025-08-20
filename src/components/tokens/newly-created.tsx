@@ -74,8 +74,8 @@ export const NewlyCreated = memo(function NewlyCreated({
 				})
 			case "date":
 				return pools.sort((a: PoolWithMetadata, b: PoolWithMetadata) => {
-					const aDate = a.createdAt || 0
-					const bDate = b.createdAt || 0
+					const aDate = new Date(a.createdAt || 0).getTime()
+					const bDate = new Date(b.createdAt || 0).getTime()
 					return bDate - aDate
 				})
 			case "volume":
