@@ -225,16 +225,29 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 
 		const amountBN = new BigNumber(amount)
 		const decimalMultiplier = new BigNumber(10).pow(decimals)
-		const amountInSmallestUnitBN = amountBN.multipliedBy(decimalMultiplier).integerValue(BigNumber.ROUND_HALF_UP)
-		const amountInSmallestUnit = BigInt(amountInSmallestUnitBN.toString())
+		let amountInSmallestUnitBN = amountBN.multipliedBy(decimalMultiplier)
+		let amountInSmallestUnit = BigInt(amountInSmallestUnitBN.integerValue(BigNumber.ROUND_DOWN).toString())
 
 		if (actualBalance) {
 			const actualBalanceBN = new BigNumber(actualBalance)
-			const actualBalanceNumber = actualBalanceBN.dividedBy(decimalMultiplier).toNumber()
+			const actualBalanceInDisplayUnit = actualBalanceBN.dividedBy(decimalMultiplier)
 			const actualBalanceBigInt = BigInt(actualBalance)
 
-			if (amountInSmallestUnit > actualBalanceBigInt) {
-				setError(`You don't have enough for this. You only have ${actualBalanceNumber.toFixed(4)} ${pool.coinMetadata?.symbol || "TOKEN"}`)
+			// Check if trying to sell exact balance by comparing display strings
+			const inputString = amountBN.toFixed()
+			const balanceString = actualBalanceInDisplayUnit.toFixed()
+			const isExactBalance = inputString === balanceString
+
+			// Also check if the input is very close to the balance (within 0.000000001%)
+			const ratio = amountBN.dividedBy(actualBalanceInDisplayUnit)
+			const isNearExact = ratio.isGreaterThanOrEqualTo(0.99999999) && ratio.isLessThanOrEqualTo(1.00000001)
+
+			if (isExactBalance || isNearExact) {
+				// If selling exact balance, use the actual balance directly
+				amountInSmallestUnit = actualBalanceBigInt
+				console.log('[Trading] Using exact balance for sell:', actualBalance)
+			} else if (amountInSmallestUnit > actualBalanceBigInt) {
+				setError(`You don't have enough for this. You only have ${actualBalanceInDisplayUnit.toFixed()} ${pool.coinMetadata?.symbol || "TOKEN"}`)
 				return
 			}
 		}
@@ -261,29 +274,9 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 					`ORDER::FILLED - Sold ${amount} ${pool.coinMetadata?.symbol || "TOKEN"} for ${formatMistToSui(quote.amountOut)} SUI via Aftermath`
 				)
 			} else {
-				let amountToSell: bigint
-				let isSellingAll = false
-
-				if (actualBalance) {
-					const actualBalanceBN = new BigNumber(actualBalance)
-					const actualBalanceNumber = actualBalanceBN.dividedBy(decimalMultiplier).toNumber()
-
-					// check if user is trying to sell all (within 0.01% tolerance)
-					const amountDiff = new BigNumber(amount).minus(actualBalanceNumber).abs()
-					const tolerance = new BigNumber(actualBalanceNumber).multipliedBy(0.0001)
-					isSellingAll = amountDiff.isLessThanOrEqualTo(tolerance)
-
-					if (isSellingAll) {
-						const sellPercentage = new BigNumber("0.999")
-						const amountToSellBN = actualBalanceBN.multipliedBy(sellPercentage).integerValue(BigNumber.ROUND_DOWN)
-						amountToSell = BigInt(amountToSellBN.toString())
-						console.log(`[Trading] Selling 99.9% of balance to avoid dust issues: ${amountToSell}`)
-					} else {
-						amountToSell = amountInSmallestUnit
-					}
-				} else {
-					amountToSell = amountInSmallestUnit
-				}
+				// For non-migrated tokens, amountInSmallestUnit has already been set correctly
+				// in the balance check above (either exact balance or the calculated amount)
+				const amountToSell = amountInSmallestUnit
 
 				const quote = await pumpSdk.quoteDump({
 					pool: pool.poolId,
