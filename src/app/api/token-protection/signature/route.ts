@@ -38,6 +38,53 @@ export async function POST(request: NextRequest) {
 			}, { status: 403 })
 		}
 
+		// Check Twitter account-address binding when requireTwitter is enabled
+		if (settings.requireTwitter && twitterId) {
+			// Check if this Twitter account has already been used with a different address for this pool
+			const existingRelation = await prisma.twitterAccountUserBuyRelation.findFirst({
+				where: {
+					twitterUserId: twitterId,
+					poolId: poolId
+				}
+			})
+
+			if (existingRelation && existingRelation.address !== walletAddress) {
+				return NextResponse.json({
+					message: `This X account is already bound to a different wallet address for this pool. You must use wallet ${existingRelation.address.slice(0, 6)}...${existingRelation.address.slice(-4)} to buy this token.`,
+					error: "TWITTER_ACCOUNT_BOUND_TO_DIFFERENT_ADDRESS"
+				}, { status: 403 })
+			}
+
+			// If no existing relation, create one to bind this Twitter account to this address for this pool
+			if (!existingRelation) {
+				const amountInMist = BigInt(Math.floor(parseFloat(amount) * Number(MIST_PER_SUI)))
+				await prisma.twitterAccountUserBuyRelation.create({
+					data: {
+						twitterUserId: twitterId,
+						poolId: poolId,
+						address: walletAddress,
+						purchases: [{
+							timestamp: new Date().toISOString(),
+							amount: amountInMist.toString()
+						}]
+					}
+				})
+			} else {
+				// Update existing relation with new purchase
+				const amountInMist = BigInt(Math.floor(parseFloat(amount) * Number(MIST_PER_SUI)))
+				const purchases = existingRelation.purchases as Array<{ timestamp: string; amount: string }>
+				purchases.push({
+					timestamp: new Date().toISOString(),
+					amount: amountInMist.toString()
+				})
+				
+				await prisma.twitterAccountUserBuyRelation.update({
+					where: { id: existingRelation.id },
+					data: { purchases }
+				})
+			}
+		}
+
 		try {
 			const keyPair = getServerKeypair()
 			const MessageStruct = bcs.struct('Message', {
