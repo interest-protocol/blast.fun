@@ -29,8 +29,25 @@ export async function GET(
 
 			// no launches found for this twitter handle, but still try to get follower data
 			let followerCount = 0;
+			let trustedFollowerCount = 0;
 
-			// try to fetch follower data from fxtwitter
+			// Fetch trusted followers from GiveRep
+			try {
+				const res = await fetch(
+					`https://giverep.com/api/trust-count/user-count/${handle}`
+				);
+
+				if (res.ok) {
+					const giveRepData = await res.json();
+					if (giveRepData.success && giveRepData.data) {
+						trustedFollowerCount = giveRepData.data.trustedFollowerCount || 0;
+					}
+				}
+			} catch (error) {
+				console.error("Error fetching GiveRep data:", error);
+			}
+
+			// Fetch follower data from fxtwitter
 			try {
 				const fxTwitterResponse = await fetch(
 					`https://api.fxtwitter.com/${handle}`
@@ -38,7 +55,7 @@ export async function GET(
 
 				if (fxTwitterResponse.ok) {
 					const fxTwitterData = await fxTwitterResponse.json();
-					if (fxTwitterData && fxTwitterData.user && fxTwitterData.user.followers) {
+					if (fxTwitterData && fxTwitterData.user) {
 						followerCount = fxTwitterData.user.followers || 0;
 					}
 				}
@@ -57,7 +74,7 @@ export async function GET(
 
 			return NextResponse.json({
 				launchCount: 0,
-				trustedFollowers: 0,
+				trustedFollowers: formatFollowerCount(trustedFollowerCount),
 				followers: formatFollowerCount(followerCount),
 				twitterHandle: handle
 			});

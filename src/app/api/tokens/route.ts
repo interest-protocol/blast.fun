@@ -136,7 +136,11 @@ export async function GET(request: NextRequest) {
 
 				if (cachedCreatorData) {
 					try {
-						processedPool.creatorData = JSON.parse(cachedCreatorData)
+						const parsed = JSON.parse(cachedCreatorData)
+						// Only use cache if followers is not "0" (to avoid bad cached data)
+						if (parsed.followers !== "0") {
+							processedPool.creatorData = parsed
+						}
 					} catch (error) {
 						console.error(`Failed to parse cached creator data for ${pool.creatorAddress}:`, error)
 					}
@@ -261,7 +265,7 @@ export async function GET(request: NextRequest) {
 						processedPool.creatorData = await fetchCreatorData(
 							pool.creatorAddress,
 							twitterHandle,
-							!!twitterHandle
+							!twitterHandle // hideIdentity should be true when NO twitter handle
 						)
 					} catch (error) {
 						console.error(`Failed to fetch creator data for ${pool.creatorAddress}:`, error)

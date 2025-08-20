@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma"
-import { env } from "@/env"
 import { formatAmountWithSuffix } from "@/utils/format"
 import { redisGet, redisSetEx, CACHE_TTL, CACHE_PREFIX } from "@/lib/redis/client"
 import type { CreatorData } from "@/types/pool"
@@ -55,6 +54,7 @@ export async function fetchCreatorData(
 
 		// fetch Twitter followers data if we have a handle
 		if (finalTwitterHandle) {
+			// Fetch trusted followers from GiveRep
 			try {
 				const res = await fetch(
 					`https://giverep.com/api/trust-count/user-count/${finalTwitterHandle}`
@@ -70,42 +70,22 @@ export async function fetchCreatorData(
 				console.error("Error fetching GiveRep data:", error)
 			}
 
+			// Use fxtwitter as the primary and only source for follower count
 			try {
-				const twitterResponse = await fetch(
-					`https://api.twitterapi.io/twitter/user/info?userName=${finalTwitterHandle}`,
-					{
-						headers: {
-							"X-API-Key": env.TWITTER_API_IO_KEY,
-						},
-					}
+				const fxTwitterResponse = await fetch(
+					`https://api.fxtwitter.com/${finalTwitterHandle}`
 				)
 
-				if (twitterResponse.ok) {
-					const twitterData = await twitterResponse.json()
-					if (twitterData.status === "success" && twitterData.data) {
-						followerCount = twitterData.data.followers || 0
+				if (fxTwitterResponse.ok) {
+					const fxTwitterData = await fxTwitterResponse.json()
+					if (fxTwitterData && fxTwitterData.user) {
+						followerCount = fxTwitterData.user.followers || 0
 					}
+				} else {
+					console.error(`fxTwitter returned status ${fxTwitterResponse.status} for @${finalTwitterHandle}`)
 				}
 			} catch (error) {
-				console.error("Error fetching Twitter data:", error)
-			}
-
-			// Use fxtwitter as fallback when follower count is 0
-			if (followerCount === 0) {
-				try {
-					const fxTwitterResponse = await fetch(
-						`https://api.fxtwitter.com/${finalTwitterHandle}`
-					)
-
-					if (fxTwitterResponse.ok) {
-						const fxTwitterData = await fxTwitterResponse.json()
-						if (fxTwitterData && fxTwitterData.user && fxTwitterData.user.followers) {
-							followerCount = fxTwitterData.user.followers || 0
-						}
-					}
-				} catch (error) {
-					console.error("Error fetching fxTwitter data:", error)
-				}
+				console.error(`Error fetching fxTwitter data for @${finalTwitterHandle}:`, error)
 			}
 		}
 
