@@ -625,7 +625,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 				{protectionSettings?.requireTwitter && !isTwitterLoggedIn ? (
 					<Button
 						variant="outline"
-						className="w-full h-10 font-mono text-xs uppercas"
+						className="w-full h-10 font-mono text-xs uppercase"
 						onClick={twitterLogin}
 					>
 						<BsTwitterX className="h-4 w-4 mr-2" />
