@@ -4,11 +4,19 @@ import { MIST_PER_SUI, normalizeSuiAddress, toHex } from "@mysten/sui/utils"
 import { bcs } from "@mysten/sui/bcs"
 import { getServerKeypair } from "@/lib/server-keypair"
 import { getNextNonceFromPool } from "@/lib/pump/get-nonce"
+import { auth } from "@/auth"
 
 export async function POST(request: NextRequest) {
 	try {
 		const body = await request.json()
-		const { poolId, amount, walletAddress, twitterId } = body
+		const { poolId, amount, walletAddress } = body
+		
+		// Get authenticated user from session
+		const session = await auth()
+		const twitterId = session?.user?.twitterId || null
+		const twitterUsername = session?.user?.username || null
+
+		console.log(session?.user);
 
 		if (!poolId || !amount || !walletAddress) {
 			return NextResponse.json({ message: "Missing required fields" }, { status: 400 })
@@ -30,10 +38,18 @@ export async function POST(request: NextRequest) {
 			return NextResponse.json({ message: "Token does not have sniper protection enabled" }, { status: 404 })
 		}
 
-		// check if Twitter is required but not provided
+		// check if Twitter is required but user is not authenticated
+		if (settings.requireTwitter && !session?.user) {
+			return NextResponse.json({
+				message: "X authentication is required for this token. Please log in with X to continue.",
+				requiresTwitter: true
+			}, { status: 401 })
+		}
+		
+		// check if Twitter is required but session doesn't have Twitter ID
 		if (settings.requireTwitter && !twitterId) {
 			return NextResponse.json({
-				message: "X authentication is required for this token",
+				message: "X authentication session is invalid. Please log in again.",
 				requiresTwitter: true
 			}, { status: 403 })
 		}
@@ -61,6 +77,7 @@ export async function POST(request: NextRequest) {
 				await prisma.twitterAccountUserBuyRelation.create({
 					data: {
 						twitterUserId: twitterId,
+						twitterUsername: twitterUsername,
 						poolId: poolId,
 						address: walletAddress,
 						purchases: [{

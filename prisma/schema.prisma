@@ -106,14 +106,16 @@ model TokenProtectionSettings {
 }
 
 model TwitterAccountUserBuyRelation {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  twitterUserId String
-  poolId        String
-  address       String
-  purchases     Json
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  twitterUserId   String
+  twitterUsername String   @default("")
+  poolId          String
+  address         String
+  purchases       Json
 
   @@index([twitterUserId, poolId])
+  @@index([poolId])
   @@map("twitter_account_user_buy_relation")
 }

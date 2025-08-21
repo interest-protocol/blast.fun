@@ -41,6 +41,7 @@ const tokenSchema = z.object({
 	hideIdentity: z.boolean(),
 	sniperProtection: z.boolean(),
 	requireTwitter: z.boolean(),
+	revealTraderIdentity: z.boolean(),
 	maxHoldingPercent: z.string().optional().refine(
 		(val) => !val || (Number(val) >= 0.1 && Number(val) <= 100),
 		"Must be between 0.1% and 100%"
@@ -59,7 +60,7 @@ interface CreateTokenFormProps {
 
 export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) {
 	const [isDragging, setIsDragging] = useState(false)
-	const [showProtectionSettings, setShowProtectionSettings] = useState(false)
+	const [showProtectionSettings, setShowProtectionSettings] = useState(true) // Default to true since sniperProtection defaults to true
 	const { balance } = useBalance({ autoRefetch: true, autoRefetchInterval: 5000 })
 
 	const form = useForm<TokenFormValues>({
@@ -73,8 +74,9 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 			telegram: "",
 			twitter: "",
 			hideIdentity: false,
-			sniperProtection: false,
+			sniperProtection: true, // Default to enabled
 			requireTwitter: false,
+			revealTraderIdentity: false,
 			maxHoldingPercent: "",
 			devBuyAmount: "",
 		},
@@ -530,6 +532,37 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 									)}
 								/>
 
+								{/* Reveal Trader Identity - Same level as Twitter auth */}
+								<FormField
+									control={form.control}
+									name="revealTraderIdentity"
+									render={({ field }) => (
+										<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-background/50">
+											<div className="space-y-1">
+												<FormLabel className="font-mono text-sm uppercase tracking-wider flex items-center gap-2">
+													<UserX className="h-4 w-4 text-primary" />
+													REVEAL TRADER X IDENTITY
+												</FormLabel>
+												<FormDescription className="font-mono text-xs uppercase text-muted-foreground">
+													SHOW_X_USERNAME_IN_TRADING_HISTORY
+												</FormDescription>
+											</div>
+											<FormControl>
+												<Switch
+													checked={field.value}
+													onCheckedChange={(checked) => {
+														field.onChange(checked)
+														// If revealing identity, also enable X login requirement
+														if (checked) {
+															form.setValue("requireTwitter", true)
+														}
+													}}
+												/>
+											</FormControl>
+										</FormItem>
+									)}
+								/>
+
 								{/* Max Holding Percentage */}
 								<FormField
 									control={form.control}
@@ -538,12 +571,12 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 										<FormItem className="rounded-lg border p-4 bg-background/50">
 											<FormLabel className="font-mono text-sm uppercase tracking-wider flex items-center gap-2">
 												<DollarSign className="h-4 w-4 text-primary" />
-												MAX HOLDINGS PER WALLET
+												MAX HOLDINGS % PER WALLET (OPTIONAL)
 											</FormLabel>
 											<FormControl>
 												<div className="relative">
 													<Input
-														placeholder="10"
+														placeholder=""
 														className="font-mono text-sm pr-12 focus:border-primary/50"
 														type="number"
 														step="0.1"
