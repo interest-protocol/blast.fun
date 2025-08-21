@@ -13,6 +13,8 @@ import { RelativeAge } from "@/components/shared/relative-age"
 import { BsTwitterX } from "react-icons/bs"
 import { BurnDialog } from "./burn-dialog"
 import { useApp } from "@/context/app.context"
+import { useTokenBalance } from "@/hooks/sui/use-token-balance"
+import { usePortfolio } from "@/hooks/nexa/use-portfolio"
 
 interface TokenHeaderProps {
 	pool: PoolWithMetadata
@@ -29,6 +31,12 @@ export function TokenHeader({ pool, realtimePrice, realtimeMarketCap }: TokenHea
 	const [marketCapFlash, setMarketCapFlash] = useState<'up' | 'down' | null>(null)
 	const [previousMarketCap, setPreviousMarketCap] = useState<number | null>(null)
 	const [burnDialogOpen, setBurnDialogOpen] = useState(false)
+	
+	// Get user's token balance
+	const { balance: tokenBalance } = useTokenBalance(pool.coinType)
+	const { balance: actualBalance } = usePortfolio(pool.coinType)
+	const effectiveBalance = actualBalance !== "0" ? actualBalance : tokenBalance
+	const hasTokenBalance = effectiveBalance && Number(effectiveBalance) > 0
 
 	// calculate price metrics from server data
 	const priceChange24h = marketData?.price1DayAgo && marketData?.coinPrice
@@ -156,79 +164,79 @@ export function TokenHeader({ pool, realtimePrice, realtimeMarketCap }: TokenHea
 							</div>
 						</div>
 					</div>
+				</div>
 
-					<div className="flex items-center gap-6 ml-auto">
-						{/* Price */}
-						<div className="flex items-start gap-2">
+				<div className="flex items-center gap-6 flex-1">
+					{/* Price */}
+					<div className="flex items-start gap-2">
+						<RollingNumber
+							value={currentPrice}
+							formatFn={(v) => {
+								if (v >= 1) return v.toFixed(2)
+								if (v >= 0.01) return v.toFixed(4)
+								return v.toFixed(8)
+							}}
+							staggerDelay={40}
+							prefix="$"
+							className={cn(
+								"flex items-center font-mono text-2xl font-bold transition-colors",
+								priceFlash === 'up' && "dark:text-green-400 text-green-500",
+								priceFlash === 'down' && "text-destructive"
+							)}
+						/>
+
+						{priceChange24h !== null && priceChange24h !== 0 && (
+							<span className={cn(
+								"text-xs font-mono font-semibold",
+								priceChange24h > 0 ? "dark:text-green-400 text-green-500" : "text-destructive"
+							)}>
+								{priceChange24h > 0 ? "+" : ""}{priceChange24h.toFixed(2)}%
+							</span>
+						)}
+					</div>
+
+					{/* Market Stats */}
+					<div className="flex items-center gap-4">
+						<div>
+							<p className="font-mono text-[10px] uppercase text-muted-foreground mb-0.5">Market Cap</p>
 							<RollingNumber
-								value={currentPrice}
-								formatFn={(v) => {
-									if (v >= 1) return v.toFixed(2)
-									if (v >= 0.01) return v.toFixed(4)
-									return v.toFixed(8)
-								}}
+								value={currentMarketCap}
+								formatFn={(v) => `$${formatNumberWithSuffix(v)}`}
 								staggerDelay={40}
-								prefix="$"
 								className={cn(
-									"flex items-center font-mono text-2xl font-bold transition-colors",
-									priceFlash === 'up' && "dark:text-green-400 text-green-500",
-									priceFlash === 'down' && "text-destructive"
+									"font-mono text-sm font-bold text-yellow-500 transition-colors",
+									marketCapFlash === 'up' && "dark:text-green-400 text-green-500",
+									marketCapFlash === 'down' && "text-destructive"
 								)}
 							/>
-
-							{priceChange24h !== null && priceChange24h !== 0 && (
-								<span className={cn(
-									"text-xs font-mono font-semibold",
-									priceChange24h > 0 ? "dark:text-green-400 text-green-500" : "text-destructive"
-								)}>
-									{priceChange24h > 0 ? "+" : ""}{priceChange24h.toFixed(2)}%
-								</span>
-							)}
 						</div>
-
-						{/* Market Stats */}
-						<div className="flex items-center gap-4">
-							<div>
-								<p className="font-mono text-[10px] uppercase text-muted-foreground mb-0.5">Market Cap</p>
-								<RollingNumber
-									value={currentMarketCap}
-									formatFn={(v) => `$${formatNumberWithSuffix(v)}`}
-									staggerDelay={40}
-									className={cn(
-										"font-mono text-sm font-bold text-yellow-500 transition-colors",
-										marketCapFlash === 'up' && "dark:text-green-400 text-green-500",
-										marketCapFlash === 'down' && "text-destructive"
-									)}
-								/>
-							</div>
-							<div>
-								<p className="font-mono text-[10px] uppercase text-muted-foreground mb-0.5">24h Volume</p>
-								<p className="font-mono text-sm font-bold text-purple-500">
-									${formatNumberWithSuffix(volume24h)}
-								</p>
-							</div>
-							<div>
-								<p className="font-mono text-[10px] uppercase text-muted-foreground mb-0.5">Liquidity</p>
-								<p className="font-mono text-sm font-bold text-blue-500">
-									${formatNumberWithSuffix(totalLiquidityUsd)}
-								</p>
-							</div>
-							
-							{/* Burn Button */}
-							{isConnected && (
-								<Button
-									variant="outline"
-									size="sm"
-									onClick={() => setBurnDialogOpen(true)}
-									className="ml-2 border-orange-500/50 hover:bg-orange-500/10 hover:border-orange-500"
-								>
-									<Flame className="h-4 w-4 text-orange-500 mr-1" />
-									<span className="text-xs font-mono uppercase">Burn</span>
-								</Button>
-							)}
+						<div>
+							<p className="font-mono text-[10px] uppercase text-muted-foreground mb-0.5">24h Volume</p>
+							<p className="font-mono text-sm font-bold text-purple-500">
+								${formatNumberWithSuffix(volume24h)}
+							</p>
+						</div>
+						<div>
+							<p className="font-mono text-[10px] uppercase text-muted-foreground mb-0.5">Liquidity</p>
+							<p className="font-mono text-sm font-bold text-blue-500">
+								${formatNumberWithSuffix(totalLiquidityUsd)}
+							</p>
 						</div>
 					</div>
 				</div>
+				
+				{/* Burn Button */}
+				{isConnected && hasTokenBalance && (
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => setBurnDialogOpen(true)}
+						className="border-orange-500/50 hover:bg-orange-500/10 hover:border-orange-500"
+					>
+						<Flame className="h-4 w-4 text-orange-500 mr-1" />
+						<span className="text-xs font-mono uppercase">Burn</span>
+					</Button>
+				)}
 			</div>
 			
 			{/* Burn Dialog */}

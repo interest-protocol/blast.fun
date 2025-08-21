@@ -26,7 +26,6 @@ export function useBuyMeme(poolId: string) {
 
 		const tx = new Transaction()
 		const quoteCoin = tx.splitCoins(tx.gas, [tx.pure.u64(amountInMistBigInt)])
-		pumpSdk.burnMeme
 
 		const { memeCoin, tx: pumpTx } = await pumpSdk.pump({
 			tx,

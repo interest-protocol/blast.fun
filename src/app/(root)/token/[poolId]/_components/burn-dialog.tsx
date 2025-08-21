@@ -111,41 +111,27 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
 			const burnAmount = BigInt(amountInSmallestUnit)
 			
 			console.log("Burning tokens:", {
-				pool: pool.poolId,
+				pool: pool,
 				coinType: pool.coinType,
 				amount: amount,
 				symbol: metadata?.symbol,
 				decimals: decimals,
-				amountInSmallestUnit: burnAmount.toString()
+				amountInSmallestUnit: burnAmount.toString(),
+				
 			})
 			
-			// Get metadata caps for burning
-			const caps = await pumpSdk.getMetadataCaps({
-				owner: address
-			})
-			
-			if (!caps.caps || caps.caps.length === 0) {
-				throw new Error("No metadata caps found for this token. You may not have permission to burn.")
-			}
-			
-			// Find the cap for this specific token
-			const cap = caps.caps.find(c => c.coinType === pool.coinType) || caps.caps[0]
-			
-			if (!cap) {
-				throw new Error("No metadata cap found for this token")
-			}
 			
 			// Create the coin object with the amount to burn
 			const memeCoin = coinWithBalance({
-				type: cap.coinType,
+				type: pool.coinType,
 				balance: burnAmount,
 			})
 			
 			// Create burn transaction
 			const { tx } = await pumpSdk.burnMeme({
-				ipxTreasury: cap.ipxTreasury,
+				ipxTreasury: pool.coinIpxTreasuryCap,
 				memeCoin,
-				coinType: cap.coinType,
+				coinType: pool.coinType,
 			})
 			
 			// Execute the transaction
