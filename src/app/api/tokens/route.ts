@@ -84,14 +84,18 @@ export async function GET(request: NextRequest) {
 		// Apply additional filtering for categories that GraphQL doesn't support
 		let filteredPools = allPools
 
+		// Always filter out test creator addresses first
+		filteredPools = allPools.filter((pool: any) =>
+			!testCreatorAddresses.includes(pool.creatorAddress)
+		)
+
+		// Then apply category-specific filters
 		if (category === "new") {
 			// Filter for tokens with bondingCurve < 50
-			filteredPools = allPools.filter((pool: any) => pool.bondingCurve < 50)
+			filteredPools = filteredPools.filter((pool: any) => pool.bondingCurve < 50)
 		} else if (category === "graduated") {
-			// Filter out test creator addresses
-			filteredPools = allPools.filter((pool: any) =>
-				!testCreatorAddresses.includes(pool.creatorAddress)
-			)
+			// Already filtered test addresses above, just ensure migrated
+			filteredPools = filteredPools.filter((pool: any) => pool.migrated === true)
 		}
 
 		const paginatedPools = filteredPools
