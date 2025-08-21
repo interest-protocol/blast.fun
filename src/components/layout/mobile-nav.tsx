@@ -30,13 +30,17 @@ export function MobileNavigation() {
 							<Icon
 								className={cn(
 									"h-5 w-5 transition-all duration-300",
-									isActive ? "text-destructive scale-110" : "text-muted-foreground group-active:scale-95"
+									isActive 
+										? "text-primary" 
+										: "text-muted-foreground/60 group-active:scale-95"
 								)}
 							/>
 							<span
 								className={cn(
-									"text-[10px] font-mono uppercase tracking-wider transition-colors duration-300",
-									isActive ? "text-destructive font-semibold" : "text-muted-foreground"
+									"text-[10px] font-mono uppercase tracking-wider transition-all duration-300",
+									isActive 
+										? "text-primary/90 font-semibold" 
+										: "text-muted-foreground/60"
 								)}
 							>
 								{item.label}

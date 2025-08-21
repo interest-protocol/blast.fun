@@ -17,6 +17,11 @@ export async function GET(request: NextRequest) {
 		const sortField = searchParams.get("sortField") || "createdAt"
 		const sortDirection = searchParams.get("sortDirection") || "DESC"
 
+		// Check environment
+		const isLocalhost = request.headers.get('host')?.includes('localhost') || 
+						   request.headers.get('host')?.includes('127.0.0.1') ||
+						   process.env.NODE_ENV === 'development'
+
 		// Build filters based on category
 		let filters: any = {}
 
@@ -146,9 +151,10 @@ export async function GET(request: NextRequest) {
 					}
 				}
 
-				// Always try to fetch fresh market data from Nexa
-				// Fall back to Redis cache if it fails
-				try {
+				// For localhost: use Redis cache if available
+				// For production: always fetch fresh, fallback to Redis
+				if (!isLocalhost || !processedPool.marketData) {
+					try {
 					const marketData = await nexaServerClient.getMarketData(pool.coinType)
 
 					// extract coinMetadata for separate caching
@@ -205,24 +211,25 @@ export async function GET(request: NextRequest) {
 							JSON.stringify(coinMetadata)
 						)
 					}
-				} catch (error) {
-					console.error(`Failed to fetch market data for ${pool.coinType}:`, error)
-					
-					// Nexa failed - use Redis cached data if available
-					if (!processedPool.marketData && cachedMarketData) {
-						console.log(`Using cached market data for ${pool.coinType} due to Nexa failure`)
-						// Already parsed and set above from cachedMarketData
-					}
+					} catch (error) {
+						console.error(`Failed to fetch market data for ${pool.coinType}:`, error)
+						
+						// Nexa failed - use Redis cached data if available
+						if (!processedPool.marketData && cachedMarketData) {
+							console.log(`Using cached market data for ${pool.coinType} due to Nexa failure`)
+							// Already parsed and set above from cachedMarketData
+						}
 
-					// Also try to get cached metadata if not already loaded
-					if (!processedPool.coinMetadata) {
-						const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.poolId}`
-						const cachedMetadata = await redisGet(metadataCacheKey)
-						if (cachedMetadata) {
-							try {
-								processedPool.coinMetadata = JSON.parse(cachedMetadata)
-							} catch (e) {
-								console.error(`Failed to parse cached metadata for pool ${pool.poolId}:`, e)
+						// Also try to get cached metadata if not already loaded
+						if (!processedPool.coinMetadata) {
+							const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.poolId}`
+							const cachedMetadata = await redisGet(metadataCacheKey)
+							if (cachedMetadata) {
+								try {
+									processedPool.coinMetadata = JSON.parse(cachedMetadata)
+								} catch (e) {
+									console.error(`Failed to parse cached metadata for pool ${pool.poolId}:`, e)
+								}
 							}
 						}
 					}
@@ -257,18 +264,22 @@ export async function GET(request: NextRequest) {
 				}
 
 
-				// fetch creator data if not cached
-				if (!processedPool.creatorData) {
-					try {
-						const twitterHandle = pool.metadata?.CreatorTwitterName || null
+				// For localhost: use cached creator data if available
+				// For production: always fetch fresh
+				if (!isLocalhost || !processedPool.creatorData) {
+					// fetch creator data if not cached or in production
+					if (!processedPool.creatorData) {
+						try {
+							const twitterHandle = pool.metadata?.CreatorTwitterName || null
 
-						processedPool.creatorData = await fetchCreatorData(
-							pool.creatorAddress,
-							twitterHandle,
-							!twitterHandle // hideIdentity should be true when NO twitter handle
-						)
-					} catch (error) {
-						console.error(`Failed to fetch creator data for ${pool.creatorAddress}:`, error)
+							processedPool.creatorData = await fetchCreatorData(
+								pool.creatorAddress,
+								twitterHandle,
+								!twitterHandle // hideIdentity should be true when NO twitter handle
+							)
+						} catch (error) {
+							console.error(`Failed to fetch creator data for ${pool.creatorAddress}:`, error)
+						}
 					}
 				}
 
