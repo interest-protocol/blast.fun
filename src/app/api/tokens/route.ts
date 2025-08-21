@@ -28,7 +28,8 @@ export async function GET(request: NextRequest) {
 		// Test creator addresses to exclude from graduated tokens
 		const testCreatorAddresses = [
 			"0xd2420ad33ab5e422becf2fa0e607e1dde978197905b87d070da9ffab819071d6",
-			"0xbbf31f4075625942aa967daebcafe0b1c90e6fa9305c9064983b5052ec442ef7"
+			"0xbbf31f4075625942aa967daebcafe0b1c90e6fa9305c9064983b5052ec442ef7",
+			"0xd6eb850fdab4143fa973ab119a1b27d5db8744cb8ef7a88125fd33a6ab85b351"
 		]
 
 		switch (category) {
@@ -83,14 +84,18 @@ export async function GET(request: NextRequest) {
 		// Apply additional filtering for categories that GraphQL doesn't support
 		let filteredPools = allPools
 
+		// Always filter out test creator addresses first
+		filteredPools = allPools.filter((pool: any) =>
+			!testCreatorAddresses.includes(pool.creatorAddress)
+		)
+
+		// Then apply category-specific filters
 		if (category === "new") {
 			// Filter for tokens with bondingCurve < 50
-			filteredPools = allPools.filter((pool: any) => pool.bondingCurve < 50)
+			filteredPools = filteredPools.filter((pool: any) => pool.bondingCurve < 50)
 		} else if (category === "graduated") {
-			// Filter out test creator addresses
-			filteredPools = allPools.filter((pool: any) =>
-				!testCreatorAddresses.includes(pool.creatorAddress)
-			)
+			// Already filtered test addresses above, just ensure migrated
+			filteredPools = filteredPools.filter((pool: any) => pool.migrated === true)
 		}
 
 		const paginatedPools = filteredPools

@@ -59,7 +59,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 					poolId: pool.poolId,
 					amount,
 					walletAddress: address,
-					twitterId: twitterUser?.id || null,
+					// Twitter credentials are now obtained from the authenticated session on the server
 				}),
 			})
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Upload, Shield, Users, DollarSign, ShieldCheck, UserX, XIcon, Wallet } from "lucide-react"
+import { Upload, Shield, Users, DollarSign, ShieldCheck, UserX, XIcon, Wallet, Twitter } from "lucide-react"
 import { useCallback, useEffect, useState, useMemo } from "react"
 import { useForm } from "react-hook-form"
 import toast from "react-hot-toast"
@@ -41,6 +41,11 @@ const tokenSchema = z.object({
 	hideIdentity: z.boolean(),
 	sniperProtection: z.boolean(),
 	requireTwitter: z.boolean(),
+	revealTraderIdentity: z.boolean(),
+	minFollowerCount: z.string().optional().refine(
+		(val) => !val || Number(val) >= 0,
+		"Must be a positive number"
+	),
 	maxHoldingPercent: z.string().optional().refine(
 		(val) => !val || (Number(val) >= 0.1 && Number(val) <= 100),
 		"Must be between 0.1% and 100%"
@@ -59,7 +64,7 @@ interface CreateTokenFormProps {
 
 export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) {
 	const [isDragging, setIsDragging] = useState(false)
-	const [showProtectionSettings, setShowProtectionSettings] = useState(false)
+	const [showProtectionSettings, setShowProtectionSettings] = useState(true) // Default to true since sniperProtection defaults to true
 	const { balance } = useBalance({ autoRefetch: true, autoRefetchInterval: 5000 })
 
 	const form = useForm<TokenFormValues>({
@@ -73,8 +78,10 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 			telegram: "",
 			twitter: "",
 			hideIdentity: false,
-			sniperProtection: false,
+			sniperProtection: true, // Default to enabled
 			requireTwitter: false,
+			revealTraderIdentity: false,
+			minFollowerCount: "",
 			maxHoldingPercent: "",
 			devBuyAmount: "",
 		},
@@ -88,6 +95,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 	const hideIdentity = form.watch("hideIdentity")
 	const sniperProtection = form.watch("sniperProtection")
 	const requireTwitter = form.watch("requireTwitter")
+	const minFollowerCount = form.watch("minFollowerCount")
 	const maxHoldingPercent = form.watch("maxHoldingPercent")
 	const devBuyAmount = form.watch("devBuyAmount")
 
@@ -513,7 +521,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 										<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-background/50">
 											<div className="space-y-1">
 												<FormLabel className="font-mono text-sm uppercase tracking-wider flex items-center gap-2">
-													<Users className="h-4 w-4 text-primary" />
+													<Twitter className="h-4 w-4 text-primary" />
 													REQUIRE X LOGIN
 												</FormLabel>
 												<FormDescription className="font-mono text-xs uppercase text-muted-foreground">
@@ -530,6 +538,77 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 									)}
 								/>
 
+								{/* Reveal Trader Identity - Same level as Twitter auth */}
+								<FormField
+									control={form.control}
+									name="revealTraderIdentity"
+									render={({ field }) => (
+										<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-background/50">
+											<div className="space-y-1">
+												<FormLabel className="font-mono text-sm uppercase tracking-wider flex items-center gap-2">
+													<UserX className="h-4 w-4 text-primary" />
+													REVEAL TRADER X IDENTITY
+												</FormLabel>
+												<FormDescription className="font-mono text-xs uppercase text-muted-foreground">
+													SHOW_X_USERNAME_IN_TRADING_HISTORY
+												</FormDescription>
+											</div>
+											<FormControl>
+												<Switch
+													checked={field.value}
+													onCheckedChange={(checked) => {
+														field.onChange(checked)
+														// If revealing identity, also enable X login requirement
+														if (checked) {
+															form.setValue("requireTwitter", true)
+														}
+													}}
+												/>
+											</FormControl>
+										</FormItem>
+									)}
+								/>
+
+								{/* Minimum Follower Count */}
+								<FormField
+									control={form.control}
+									name="minFollowerCount"
+									render={({ field }) => (
+										<FormItem className="rounded-lg border p-4 bg-background/50">
+											<FormLabel className="font-mono text-sm uppercase tracking-wider flex items-center gap-2">
+												<Users className="h-4 w-4 text-primary" />
+												MIN X FOLLOWER COUNT (OPTIONAL)
+											</FormLabel>
+											<FormControl>
+												<div className="relative">
+													<Input
+														placeholder="100"
+														className="font-mono text-sm pr-20 focus:border-primary/50"
+														type="number"
+														step="1"
+														min="0"
+														{...field}
+														onChange={(e) => {
+															field.onChange(e)
+															// If setting min follower count, also enable X login requirement
+															if (e.target.value && Number(e.target.value) > 0) {
+																form.setValue("requireTwitter", true)
+															}
+														}}
+													/>
+													<span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono text-sm text-muted-foreground">
+														followers
+													</span>
+												</div>
+											</FormControl>
+											<FormDescription className="font-mono text-xs uppercase text-muted-foreground">
+												MINIMUM_FOLLOWERS_REQUIRED_TO_BUY
+											</FormDescription>
+											<FormMessage className="font-mono text-xs" />
+										</FormItem>
+									)}
+								/>
+
 								{/* Max Holding Percentage */}
 								<FormField
 									control={form.control}
@@ -538,12 +617,12 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 										<FormItem className="rounded-lg border p-4 bg-background/50">
 											<FormLabel className="font-mono text-sm uppercase tracking-wider flex items-center gap-2">
 												<DollarSign className="h-4 w-4 text-primary" />
-												MAX HOLDINGS PER WALLET
+												MAX HOLDINGS % PER WALLET (OPTIONAL)
 											</FormLabel>
 											<FormControl>
 												<div className="relative">
 													<Input
-														placeholder="10"
+														placeholder=""
 														className="font-mono text-sm pr-12 focus:border-primary/50"
 														type="number"
 														step="0.1"
