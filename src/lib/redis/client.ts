@@ -120,6 +120,7 @@ export const CACHE_TTL = {
 	POOL_DATA: 300, // 5 minutes
 	CREATOR_DATA: 14400, // 4 hours
 	BONDING_PROGRESS: 30, // 30 seconds
+	PROTECTION_SETTINGS: 86400 * 30, // 30 days - immutable after creation
 } as const
 
 export const CACHE_PREFIX = {
@@ -129,4 +130,5 @@ export const CACHE_PREFIX = {
 	POOL_DATA: "pool_data:",
 	CREATOR_DATA: "creator_data:",
 	BONDING_PROGRESS: "bonding_progress:",
+	PROTECTION_SETTINGS: "protection_settings:",
 } as const

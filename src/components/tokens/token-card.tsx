@@ -12,6 +12,7 @@ import { CreatorHoverCard } from "@/components/creator/creator-hover-card"
 import { CreatorDisplay } from "@/components/creator/creator-display"
 import { RelativeAge } from "@/components/shared/relative-age"
 import { BsTwitterX } from "react-icons/bs"
+import { ProtectionIndicators } from "./protection-indicators"
 
 interface TokenCardProps {
 	pool: PoolWithMetadata
@@ -137,6 +138,19 @@ export const TokenCard = memo(function TokenCard({
 								<h3 className="font-mono font-bold text-xs sm:text-sm uppercase tracking-wider text-foreground/90 truncate">
 									{coinMetadata?.name || "[UNNAMED]"}
 								</h3>
+								{/* Protection Indicators */}
+								<ProtectionIndicators 
+									settings={{
+										sniperProtection: pool.metadata?.SniperProtection === "true",
+										requireTwitter: pool.metadata?.RequireTwitter === "true",
+										revealTraderIdentity: pool.metadata?.RevealTraderIdentity === "true",
+										minFollowerCount: pool.metadata?.MinFollowerCount,
+										maxHoldingPercent: pool.metadata?.MaxHoldingPercent,
+										hideCreatorIdentity: pool.metadata?.HideCreatorIdentity === "true"
+									}}
+									variant="card"
+									className="ml-1"
+								/>
 								<CopyableToken symbol={coinMetadata?.symbol || "[???]"} coinType={pool.coinType} className="ml-auto text-xs" />
 							</div>
 

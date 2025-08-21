@@ -12,6 +12,7 @@ import {
 import { BsTwitterX } from "react-icons/bs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { PoolWithMetadata } from "@/types/pool";
+import { ProtectionIndicators } from "@/components/tokens/protection-indicators";
 
 interface CreatorDetailsProps {
 	pool: PoolWithMetadata;
@@ -96,7 +97,8 @@ export function CreatorDetails({ pool }: CreatorDetailsProps) {
 
 				{/* Stats Grid */}
 				{data ? (
-					<div className="flex gap-2">
+					<div className="space-y-3">
+						<div className="flex gap-2">
 						{/* Tokens Launched */}
 						<div className="relative flex-1 group">
 							<div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-primary/5 blur-sm rounded-lg opacity-75 group-hover:opacity-100 transition-opacity" />
@@ -171,6 +173,24 @@ export function CreatorDetails({ pool }: CreatorDetailsProps) {
 								</p>
 							</div>
 						</div>
+					</div>
+
+						{/* Protection Indicators */}
+						{pool.metadata && (
+							<div className="flex justify-center w-full">
+								<ProtectionIndicators 
+									settings={{
+										sniperProtection: pool.metadata?.SniperProtection === "true",
+										requireTwitter: pool.metadata?.RequireTwitter === "true",
+										revealTraderIdentity: pool.metadata?.RevealTraderIdentity === "true",
+										minFollowerCount: pool.metadata?.MinFollowerCount,
+										maxHoldingPercent: pool.metadata?.MaxHoldingPercent,
+										hideCreatorIdentity: pool.metadata?.HideCreatorIdentity === "true"
+									}}
+									variant="page"
+								/>
+							</div>
+						)}
 					</div>
 				) : (
 					<div className="text-center py-3">

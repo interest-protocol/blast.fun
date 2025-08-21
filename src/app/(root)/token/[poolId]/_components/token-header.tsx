@@ -15,6 +15,7 @@ import { BurnDialog } from "./burn-dialog"
 import { useApp } from "@/context/app.context"
 import { useTokenBalance } from "@/hooks/sui/use-token-balance"
 import { usePortfolio } from "@/hooks/nexa/use-portfolio"
+import { ProtectionIndicators } from "@/components/tokens/protection-indicators"
 
 interface TokenHeaderProps {
 	pool: PoolWithMetadata
@@ -93,6 +94,19 @@ export function TokenHeader({ pool, realtimePrice, realtimeMarketCap }: TokenHea
 								symbol={metadata?.symbol || "[???]"}
 								coinType={pool.coinType}
 								className="text-sm font-mono text-muted-foreground"
+							/>
+							{/* Protection Indicators */}
+							<ProtectionIndicators 
+								settings={{
+									sniperProtection: pool.metadata?.SniperProtection === "true",
+									requireTwitter: pool.metadata?.RequireTwitter === "true",
+									revealTraderIdentity: pool.metadata?.RevealTraderIdentity === "true",
+									minFollowerCount: pool.metadata?.MinFollowerCount,
+									maxHoldingPercent: pool.metadata?.MaxHoldingPercent,
+									hideCreatorIdentity: pool.metadata?.HideCreatorIdentity === "true"
+								}}
+								variant="page"
+								className="ml-2"
 							/>
 						</div>
 

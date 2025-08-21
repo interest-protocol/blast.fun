@@ -8,6 +8,7 @@ import { nexaServerClient } from "@/lib/nexa-server"
 import { fetchCreatorData } from "@/lib/fetch-creator-data"
 import { isValidSuiObjectId } from "@mysten/sui/utils"
 import type { PoolWithMetadata } from "@/types/pool"
+import { prisma } from "@/lib/prisma"
 
 export async function fetchTokenData(poolId: string): Promise<PoolWithMetadata | null> {
 	try {
@@ -39,11 +40,13 @@ export async function fetchTokenData(poolId: string): Promise<PoolWithMetadata |
 		const marketCacheKey = `${CACHE_PREFIX.MARKET_DATA}${pool.poolId}`
 		const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.poolId}`
 		const creatorCacheKey = `${CACHE_PREFIX.CREATOR_DATA}${pool.creatorAddress}`
+		const protectionCacheKey = `${CACHE_PREFIX.PROTECTION_SETTINGS}${pool.poolId}`
 
-		const [cachedMarketData, cachedMetadata, cachedCreatorData] = await Promise.all([
+		const [cachedMarketData, cachedMetadata, cachedCreatorData, cachedProtectionSettings] = await Promise.all([
 			redisGet(marketCacheKey),
 			redisGet(metadataCacheKey),
-			redisGet(creatorCacheKey)
+			redisGet(creatorCacheKey),
+			redisGet(protectionCacheKey)
 		])
 
 		if (cachedMarketData) {
@@ -72,6 +75,22 @@ export async function fetchTokenData(poolId: string): Promise<PoolWithMetadata |
 				processedPool.creatorData = JSON.parse(cachedCreatorData)
 			} catch (error) {
 				console.error(`Failed to parse cached creator data for ${pool.creatorAddress}:`, error)
+			}
+		}
+
+		// Handle cached protection settings
+		if (cachedProtectionSettings) {
+			try {
+				const protectionData = JSON.parse(cachedProtectionSettings)
+				// Add protection settings to metadata if they exist
+				if (protectionData && processedPool.metadata) {
+					processedPool.metadata = {
+						...processedPool.metadata,
+						...protectionData
+					}
+				}
+			} catch (error) {
+				console.error(`Failed to parse cached protection settings for ${pool.poolId}:`, error)
 			}
 		}
 
@@ -147,6 +166,43 @@ export async function fetchTokenData(poolId: string): Promise<PoolWithMetadata |
 				)
 			} catch (error) {
 				console.error(`Failed to fetch creator data for ${pool.creatorAddress}:`, error)
+			}
+		}
+
+		// Fetch protection settings if not cached and pool is protected
+		if (!cachedProtectionSettings && processedPool.isProtected) {
+			try {
+				const protectionSettings = await prisma.tokenProtectionSettings.findUnique({
+					where: { poolId: pool.poolId },
+					select: { settings: true }
+				})
+
+				if (protectionSettings && protectionSettings.settings) {
+					const settings = protectionSettings.settings as any
+					const protectionData = {
+						SniperProtection: settings.sniperProtection ? "true" : "false",
+						RequireTwitter: settings.requireTwitter ? "true" : "false",
+						RevealTraderIdentity: settings.revealTraderIdentity ? "true" : "false",
+						MinFollowerCount: settings.minFollowerCount?.toString() || "",
+						MaxHoldingPercent: settings.maxHoldingPercent?.toString() || "",
+						HideCreatorIdentity: settings.hideCreatorIdentity ? "true" : "false"
+					}
+
+					// Add to metadata
+					processedPool.metadata = {
+						...processedPool.metadata,
+						...protectionData
+					}
+
+					// Cache the protection settings (immutable, so cache for long time)
+					await redisSetEx(
+						protectionCacheKey,
+						CACHE_TTL.PROTECTION_SETTINGS,
+						JSON.stringify(protectionData)
+					)
+				}
+			} catch (error) {
+				console.error(`Failed to fetch protection settings for ${pool.poolId}:`, error)
 			}
 		}
 
