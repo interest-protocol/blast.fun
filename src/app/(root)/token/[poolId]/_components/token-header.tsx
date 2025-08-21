@@ -1,6 +1,6 @@
 "use client"
 
-import { Globe, Send, Search, Flame } from "lucide-react"
+import { Globe, Send, Search, Flame, Edit2 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -12,6 +12,7 @@ import { RollingNumber } from "@/components/ui/rolling-number"
 import { RelativeAge } from "@/components/shared/relative-age"
 import { BsTwitterX } from "react-icons/bs"
 import { BurnDialog } from "./burn-dialog"
+import { UpdateMetadataDialog } from "./update-metadata-dialog"
 import { useApp } from "@/context/app.context"
 import { useTokenBalance } from "@/hooks/sui/use-token-balance"
 import { usePortfolio } from "@/hooks/nexa/use-portfolio"
@@ -23,7 +24,7 @@ interface TokenHeaderProps {
 }
 
 export function TokenHeader({ pool, realtimePrice, realtimeMarketCap }: TokenHeaderProps) {
-	const { isConnected } = useApp()
+	const { isConnected, address } = useApp()
 	const metadata = pool.coinMetadata || pool.metadata
 	const marketData = pool.marketData
 	const [priceFlash, setPriceFlash] = useState<'up' | 'down' | null>(null)
@@ -31,12 +32,16 @@ export function TokenHeader({ pool, realtimePrice, realtimeMarketCap }: TokenHea
 	const [marketCapFlash, setMarketCapFlash] = useState<'up' | 'down' | null>(null)
 	const [previousMarketCap, setPreviousMarketCap] = useState<number | null>(null)
 	const [burnDialogOpen, setBurnDialogOpen] = useState(false)
+	const [updateMetadataDialogOpen, setUpdateMetadataDialogOpen] = useState(false)
 	
 	// Get user's token balance
 	const { balance: tokenBalance } = useTokenBalance(pool.coinType)
 	const { balance: actualBalance } = usePortfolio(pool.coinType)
 	const effectiveBalance = actualBalance !== "0" ? actualBalance : tokenBalance
 	const hasTokenBalance = effectiveBalance && Number(effectiveBalance) > 0
+	
+	// Check if user is the token creator
+	const isCreator = address && pool.creatorAddress && address === pool.creatorAddress
 
 	// calculate price metrics from server data
 	const priceChange24h = marketData?.price1DayAgo && marketData?.coinPrice
@@ -225,6 +230,19 @@ export function TokenHeader({ pool, realtimePrice, realtimeMarketCap }: TokenHea
 					</div>
 				</div>
 				
+				{/* Update Metadata Button - Only for creator */}
+				{isConnected && isCreator && (
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => setUpdateMetadataDialogOpen(true)}
+						className="border-primary/50 hover:bg-primary/10 hover:border-primary"
+					>
+						<Edit2 className="h-4 w-4 text-primary mr-1" />
+						<span className="text-xs font-mono uppercase">Edit</span>
+					</Button>
+				)}
+				
 				{/* Burn Button */}
 				{isConnected && hasTokenBalance && (
 					<Button
@@ -243,6 +261,13 @@ export function TokenHeader({ pool, realtimePrice, realtimeMarketCap }: TokenHea
 			<BurnDialog
 				open={burnDialogOpen}
 				onOpenChange={setBurnDialogOpen}
+				pool={pool}
+			/>
+			
+			{/* Update Metadata Dialog */}
+			<UpdateMetadataDialog
+				open={updateMetadataDialogOpen}
+				onOpenChange={setUpdateMetadataDialogOpen}
 				pool={pool}
 			/>
 		</div>
