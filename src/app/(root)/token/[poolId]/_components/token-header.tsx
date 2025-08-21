@@ -1,6 +1,6 @@
 "use client"
 
-import { Globe, Send, Search } from "lucide-react"
+import { Globe, Send, Search, Flame } from "lucide-react"
 import { useState, useEffect } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -11,6 +11,8 @@ import { cn } from "@/utils"
 import { RollingNumber } from "@/components/ui/rolling-number"
 import { RelativeAge } from "@/components/shared/relative-age"
 import { BsTwitterX } from "react-icons/bs"
+import { BurnDialog } from "./burn-dialog"
+import { useApp } from "@/context/app.context"
 
 interface TokenHeaderProps {
 	pool: PoolWithMetadata
@@ -19,12 +21,14 @@ interface TokenHeaderProps {
 }
 
 export function TokenHeader({ pool, realtimePrice, realtimeMarketCap }: TokenHeaderProps) {
+	const { isConnected } = useApp()
 	const metadata = pool.coinMetadata || pool.metadata
 	const marketData = pool.marketData
 	const [priceFlash, setPriceFlash] = useState<'up' | 'down' | null>(null)
 	const [previousPrice, setPreviousPrice] = useState<number | null>(null)
 	const [marketCapFlash, setMarketCapFlash] = useState<'up' | 'down' | null>(null)
 	const [previousMarketCap, setPreviousMarketCap] = useState<number | null>(null)
+	const [burnDialogOpen, setBurnDialogOpen] = useState(false)
 
 	// calculate price metrics from server data
 	const priceChange24h = marketData?.price1DayAgo && marketData?.coinPrice
@@ -209,10 +213,30 @@ export function TokenHeader({ pool, realtimePrice, realtimeMarketCap }: TokenHea
 									${formatNumberWithSuffix(totalLiquidityUsd)}
 								</p>
 							</div>
+							
+							{/* Burn Button */}
+							{isConnected && (
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => setBurnDialogOpen(true)}
+									className="ml-2 border-orange-500/50 hover:bg-orange-500/10 hover:border-orange-500"
+								>
+									<Flame className="h-4 w-4 text-orange-500 mr-1" />
+									<span className="text-xs font-mono uppercase">Burn</span>
+								</Button>
+							)}
 						</div>
 					</div>
 				</div>
 			</div>
+			
+			{/* Burn Dialog */}
+			<BurnDialog
+				open={burnDialogOpen}
+				onOpenChange={setBurnDialogOpen}
+				pool={pool}
+			/>
 		</div>
 	)
 }
