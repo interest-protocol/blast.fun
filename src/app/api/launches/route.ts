@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
 						sniperProtection: protectionSettings.sniperProtection || false,
 						requireTwitter: protectionSettings.requireTwitter || false,
 						revealTraderIdentity: protectionSettings.revealTraderIdentity || false,
+						minFollowerCount: protectionSettings.minFollowerCount || null,
 						maxHoldingPercent: protectionSettings.maxHoldingPercent || null,
 					},
 				},

@@ -1,7 +1,7 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Upload, Shield, Users, DollarSign, ShieldCheck, UserX, XIcon, Wallet } from "lucide-react"
+import { Upload, Shield, Users, DollarSign, ShieldCheck, UserX, XIcon, Wallet, Twitter } from "lucide-react"
 import { useCallback, useEffect, useState, useMemo } from "react"
 import { useForm } from "react-hook-form"
 import toast from "react-hot-toast"
@@ -42,6 +42,10 @@ const tokenSchema = z.object({
 	sniperProtection: z.boolean(),
 	requireTwitter: z.boolean(),
 	revealTraderIdentity: z.boolean(),
+	minFollowerCount: z.string().optional().refine(
+		(val) => !val || Number(val) >= 0,
+		"Must be a positive number"
+	),
 	maxHoldingPercent: z.string().optional().refine(
 		(val) => !val || (Number(val) >= 0.1 && Number(val) <= 100),
 		"Must be between 0.1% and 100%"
@@ -77,6 +81,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 			sniperProtection: true, // Default to enabled
 			requireTwitter: false,
 			revealTraderIdentity: false,
+			minFollowerCount: "",
 			maxHoldingPercent: "",
 			devBuyAmount: "",
 		},
@@ -90,6 +95,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 	const hideIdentity = form.watch("hideIdentity")
 	const sniperProtection = form.watch("sniperProtection")
 	const requireTwitter = form.watch("requireTwitter")
+	const minFollowerCount = form.watch("minFollowerCount")
 	const maxHoldingPercent = form.watch("maxHoldingPercent")
 	const devBuyAmount = form.watch("devBuyAmount")
 
@@ -515,7 +521,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 										<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-background/50">
 											<div className="space-y-1">
 												<FormLabel className="font-mono text-sm uppercase tracking-wider flex items-center gap-2">
-													<Users className="h-4 w-4 text-primary" />
+													<Twitter className="h-4 w-4 text-primary" />
 													REQUIRE X LOGIN
 												</FormLabel>
 												<FormDescription className="font-mono text-xs uppercase text-muted-foreground">
@@ -559,6 +565,46 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 													}}
 												/>
 											</FormControl>
+										</FormItem>
+									)}
+								/>
+
+								{/* Minimum Follower Count */}
+								<FormField
+									control={form.control}
+									name="minFollowerCount"
+									render={({ field }) => (
+										<FormItem className="rounded-lg border p-4 bg-background/50">
+											<FormLabel className="font-mono text-sm uppercase tracking-wider flex items-center gap-2">
+												<Users className="h-4 w-4 text-primary" />
+												MIN X FOLLOWER COUNT (OPTIONAL)
+											</FormLabel>
+											<FormControl>
+												<div className="relative">
+													<Input
+														placeholder="100"
+														className="font-mono text-sm pr-20 focus:border-primary/50"
+														type="number"
+														step="1"
+														min="0"
+														{...field}
+														onChange={(e) => {
+															field.onChange(e)
+															// If setting min follower count, also enable X login requirement
+															if (e.target.value && Number(e.target.value) > 0) {
+																form.setValue("requireTwitter", true)
+															}
+														}}
+													/>
+													<span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono text-sm text-muted-foreground">
+														followers
+													</span>
+												</div>
+											</FormControl>
+											<FormDescription className="font-mono text-xs uppercase text-muted-foreground">
+												MINIMUM_FOLLOWERS_REQUIRED_TO_BUY
+											</FormDescription>
+											<FormMessage className="font-mono text-xs" />
 										</FormItem>
 									)}
 								/>

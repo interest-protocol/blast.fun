@@ -30,6 +30,8 @@ export async function POST(request: NextRequest) {
 		const settings = poolSettings.settings as {
 			sniperProtection?: boolean
 			requireTwitter?: boolean
+			revealTraderIdentity?: boolean
+			minFollowerCount?: string | null
 			maxHoldingPercent?: string | null
 		}
 
@@ -52,6 +54,34 @@ export async function POST(request: NextRequest) {
 				message: "X authentication session is invalid. Please log in again.",
 				requiresTwitter: true
 			}, { status: 403 })
+		}
+
+		// Check minimum follower count requirement if set
+		if (settings.minFollowerCount && Number(settings.minFollowerCount) > 0 && twitterUsername) {
+			try {
+				const fxTwitterResponse = await fetch(`https://api.fxtwitter.com/${twitterUsername}`)
+				
+				if (fxTwitterResponse.ok) {
+					const fxTwitterData = await fxTwitterResponse.json()
+					const followerCount = fxTwitterData?.user?.followers || 0
+					const requiredFollowers = Number(settings.minFollowerCount)
+					
+					if (followerCount < requiredFollowers) {
+						return NextResponse.json({
+							message: `Your X account needs at least ${requiredFollowers} followers to buy this token. You currently have ${followerCount} followers.`,
+							error: "INSUFFICIENT_FOLLOWERS",
+							currentFollowers: followerCount,
+							requiredFollowers: requiredFollowers
+						}, { status: 403 })
+					}
+				} else {
+					console.error(`Failed to fetch follower count for @${twitterUsername}`)
+					// Don't block the purchase if we can't verify followers
+				}
+			} catch (error) {
+				console.error(`Error checking follower count for @${twitterUsername}:`, error)
+				// Don't block the purchase if we can't verify followers
+			}
 		}
 
 		// Check Twitter account-address binding when requireTwitter is enabled
@@ -77,7 +107,7 @@ export async function POST(request: NextRequest) {
 				await prisma.twitterAccountUserBuyRelation.create({
 					data: {
 						twitterUserId: twitterId,
-						twitterUsername: twitterUsername,
+						twitterUsername: twitterUsername || "",
 						poolId: poolId,
 						address: walletAddress,
 						purchases: [{
