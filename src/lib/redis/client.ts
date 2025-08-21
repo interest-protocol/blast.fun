@@ -115,7 +115,7 @@ export async function redisDel(key: string): Promise<boolean> {
 
 export const CACHE_TTL = {
 	COIN_METADATA: 43200, // 12 hours
-	MARKET_DATA: 60, // 1 minute
+	MARKET_DATA: 120, // 2 minutes
 	NSFW_CHECK: 86400 * 30, // 30 days
 	POOL_DATA: 300, // 5 minutes
 	CREATOR_DATA: 14400, // 4 hours
