@@ -17,32 +17,27 @@ export function DesktopNav() {
 					<Link
 						key={item.href}
 						href={item.href}
-						className={cn(
-							"group relative px-4 py-2 transition-all duration-300",
-							"hover:bg-muted/20",
-							isActive && "bg-transparent"
-						)}
+						className="group relative px-4 py-2 transition-all duration-300"
 					>
 						{/* Cyberpunk active border effect */}
 						{isActive && (
 							<>
-								<div className="absolute bottom-0 left-0 right-0 h-[2px] bg-destructive animate-pulse" />
+								<div className="absolute bottom-0 left-0 right-0 h-[2px] bg-destructive" />
 								<div className="absolute bottom-0 left-0 right-0 h-[2px] bg-destructive/50 blur-sm" />
 							</>
 						)}
-						
+
 						<span className={cn(
-							"relative z-10 flex items-center gap-2 font-mono text-xs uppercase tracking-wider transition-all duration-300",
-							isActive 
-								? "text-primary" 
-								: "text-muted-foreground/70 hover:text-foreground/90"
+							"relative z-10 flex items-center gap-2 font-mono text-xs uppercase tracking-wider transition-all duration-200",
+							isActive
+								? "text-primary"
+								: "text-muted-foreground/70 group-hover:text-foreground/90"
 						)}>
 							<item.icon className={cn(
 								"h-4 w-4 transition-all duration-300",
-								isActive 
-									? "text-primary" 
-									: "text-muted-foreground/70 group-hover:text-foreground/90",
-								"group-hover:scale-105"
+								isActive
+									? "text-primary"
+									: "text-muted-foreground/70 group-hover:text-foreground/90"
 							)} />
 							{item.label}
 						</span>
