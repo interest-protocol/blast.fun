@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useMemo } from "react"
-import { Loader2, Settings2, Wallet, Activity, Pencil, Check, X, Rocket } from "lucide-react"
+import { Loader2, Settings2, Wallet, Activity, Pencil, Check, X, Rocket, Flame } from "lucide-react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { TokenAvatar } from "@/components/tokens/token-avatar"
@@ -22,6 +22,8 @@ import { pumpSdk } from "@/lib/pump"
 import { getBuyQuote, getSellQuote } from "@/lib/aftermath"
 import BigNumber from "bignumber.js"
 import { BsTwitterX } from "react-icons/bs"
+import { BurnDialog } from "./burn-dialog"
+import { Separator } from "@/components/ui/separator"
 
 interface TradeTerminalProps {
 	pool: PoolWithMetadata
@@ -35,6 +37,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	const [tradeType, setTradeType] = useState<"buy" | "sell">("buy")
 	const [amount, setAmount] = useState("")
 	const [settingsOpen, setSettingsOpen] = useState(false)
+	const [burnDialogOpen, setBurnDialogOpen] = useState(false)
 	const [referrerWallet, setReferrerWallet] = useState<string | null>(null)
 	const [editingQuickBuy, setEditingQuickBuy] = useState(false)
 	const [editingQuickSell, setEditingQuickSell] = useState(false)
@@ -700,12 +703,37 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 						)}
 					</Button>
 				)}
+				
+				{/* Burn Button - Only on mobile */}
+				{isConnected && hasBalance && (
+					<>
+						<div className="lg:hidden">
+							<Separator className="bg-border/30" />
+						</div>
+						
+						<Button
+							variant="outline"
+							className="w-full h-10 font-mono text-xs uppercase lg:hidden border-orange-500/50 hover:bg-orange-500/10 hover:border-orange-500"
+							onClick={() => setBurnDialogOpen(true)}
+						>
+							<Flame className="h-4 w-4 text-orange-500 mr-2" />
+							Burn {metadata?.symbol}
+						</Button>
+					</>
+				)}
 			</div>
 
 			{/* Trade Settings Dialog */}
 			<TradeSettings
 				open={settingsOpen}
 				onOpenChange={setSettingsOpen}
+			/>
+			
+			{/* Burn Dialog */}
+			<BurnDialog
+				open={burnDialogOpen}
+				onOpenChange={setBurnDialogOpen}
+				pool={pool}
 			/>
 		</div>
 	)
