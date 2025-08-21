@@ -16,7 +16,32 @@ export async function GET(
 			)
 		}
 
-		// Fetch all TwitterAccountUserBuyRelation records for this pool
+		// First check if the pool has revealTraderIdentity enabled
+		const poolSettings = await prisma.tokenProtectionSettings.findUnique({
+			where: { poolId },
+			select: { settings: true }
+		})
+
+		// Check if pool has protection settings and revealTraderIdentity is enabled
+		const settings = poolSettings?.settings as {
+			sniperProtection?: boolean
+			requireTwitter?: boolean
+			revealTraderIdentity?: boolean
+			maxHoldingPercent?: string | null
+		} | null
+
+		if (!settings?.revealTraderIdentity) {
+			// Return empty relations if reveal identity is not enabled
+			// This prevents exposing trader identities when not authorized
+			return NextResponse.json({
+				poolId,
+				relations: [],
+				total: 0,
+				message: "Trader identities are not revealed for this pool"
+			})
+		}
+
+		// Only fetch relations if revealTraderIdentity is true
 		const relations = await prisma.twitterAccountUserBuyRelation.findMany({
 			where: { poolId },
 			select: {

@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
 					settings: {
 						sniperProtection: protectionSettings.sniperProtection || false,
 						requireTwitter: protectionSettings.requireTwitter || false,
+						revealTraderIdentity: protectionSettings.revealTraderIdentity || false,
 						maxHoldingPercent: protectionSettings.maxHoldingPercent || null,
 					},
 				},

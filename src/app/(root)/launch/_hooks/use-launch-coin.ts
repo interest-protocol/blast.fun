@@ -217,6 +217,7 @@ export function useLaunchCoin() {
 		hideIdentity: boolean
 		protectionSettings?: {
 			requireTwitter: boolean
+			revealTraderIdentity: boolean
 			maxHoldingPercent?: string
 		}
 	}): Promise<void> => {
@@ -275,6 +276,7 @@ export function useLaunchCoin() {
 				? {
 						sniperProtection: true,
 						requireTwitter: formValues.requireTwitter,
+						revealTraderIdentity: formValues.revealTraderIdentity,
 						maxHoldingPercent: formValues.maxHoldingPercent,
 					}
 				: undefined
@@ -342,6 +344,7 @@ export function useLaunchCoin() {
 				? {
 						sniperProtection: true,
 						requireTwitter: pendingToken.formValues.requireTwitter,
+						revealTraderIdentity: pendingToken.formValues.revealTraderIdentity,
 						maxHoldingPercent: pendingToken.formValues.maxHoldingPercent,
 					}
 				: undefined
