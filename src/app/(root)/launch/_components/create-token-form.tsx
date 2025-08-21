@@ -583,7 +583,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 												<div className="relative">
 													<Input
 														placeholder="100"
-														className="font-mono text-sm pr-20 focus:border-primary/50"
+														className="font-mono text-sm pr-24 focus:border-primary/50"
 														type="number"
 														step="1"
 														min="0"
