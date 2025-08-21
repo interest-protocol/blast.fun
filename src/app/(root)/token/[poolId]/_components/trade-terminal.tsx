@@ -64,10 +64,24 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 
 	// Precise balance calculation for MAX button using BigNumber
 	const balanceInDisplayUnitPrecise = useMemo(() => {
-		if (!effectiveBalance) return "0"
-		const balanceBN = new BigNumber(effectiveBalance)
-		const divisor = new BigNumber(10).pow(decimals)
-		return balanceBN.dividedBy(divisor).toFixed()
+		// Guard against undefined or null effectiveBalance
+		if (!effectiveBalance || effectiveBalance === undefined || effectiveBalance === null) {
+			return "0"
+		}
+		
+		// Additional safety check to ensure effectiveBalance is a valid value
+		try {
+			const balanceBN = new BigNumber(effectiveBalance)
+			// Check if BigNumber is valid
+			if (balanceBN.isNaN()) {
+				return "0"
+			}
+			const divisor = new BigNumber(10).pow(decimals)
+			return balanceBN.dividedBy(divisor).toFixed()
+		} catch (error) {
+			console.error("Error calculating precise balance:", error)
+			return "0"
+		}
 	}, [effectiveBalance, decimals])
 
 	// prices for USD calculations from server data
@@ -226,15 +240,26 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 			// for sell, calculate percentage
 			const percentage = value
 
+			// Safety check: ensure we have a valid balance before calculating
+			if (!balanceInDisplayUnitPrecise || balanceInDisplayUnitPrecise === "0") {
+				setAmount("0")
+				return
+			}
+
 			if (percentage === 100) {
 				// Use precise balance for 100%
 				setAmount(balanceInDisplayUnitPrecise)
 			} else {
 				// For other percentages, use BigNumber for precise calculation
-				const balanceBN = new BigNumber(balanceInDisplayUnitPrecise)
-				const percentageBN = new BigNumber(percentage).dividedBy(100)
-				const tokenAmountToSell = balanceBN.multipliedBy(percentageBN).toFixed(9, BigNumber.ROUND_DOWN)
-				setAmount(tokenAmountToSell)
+				try {
+					const balanceBN = new BigNumber(balanceInDisplayUnitPrecise)
+					const percentageBN = new BigNumber(percentage).dividedBy(100)
+					const tokenAmountToSell = balanceBN.multipliedBy(percentageBN).toFixed(9, BigNumber.ROUND_DOWN)
+					setAmount(tokenAmountToSell)
+				} catch (error) {
+					console.error("Error calculating quick sell amount:", error)
+					setAmount("0")
+				}
 			}
 		}
 	}
@@ -371,7 +396,12 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 										const maxSui = Math.max(0, suiBalanceInDisplayUnit - 0.02)
 										setAmount(maxSui.toString())
 									} else {
-										setAmount(balanceInDisplayUnitPrecise)
+										// Safety check for sell - ensure we have a valid balance
+										if (!balanceInDisplayUnitPrecise || balanceInDisplayUnitPrecise === "0") {
+											setAmount("0")
+										} else {
+											setAmount(balanceInDisplayUnitPrecise)
+										}
 									}
 								}}
 								className="text-blue-400 hover:text-blue-300 font-medium text-xs transition-colors"
