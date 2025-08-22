@@ -33,19 +33,19 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
 	const [isProcessing, setIsProcessing] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 	const [success, setSuccess] = useState<string | null>(null)
-	
+
 	const { address } = useApp()
 	const { executeTransaction } = useTransaction()
-	
+
 	const metadata = pool.coinMetadata
 	const decimals = metadata?.decimals || 9
-	
+
 	// Get token balance
 	const { balance: tokenBalance } = useTokenBalance(pool.coinType)
 	const { balance: actualBalance } = usePortfolio(pool.coinType)
 	const effectiveBalance = actualBalance !== "0" ? actualBalance : tokenBalance
 	const balanceInDisplayUnit = effectiveBalance ? Number(effectiveBalance) / Math.pow(10, decimals) : 0
-	
+
 	// Calculate precise balance for MAX button
 	const balanceInDisplayUnitPrecise = (() => {
 		if (!effectiveBalance || effectiveBalance === undefined || effectiveBalance === null) {
@@ -63,13 +63,13 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
 			return "0"
 		}
 	})()
-	
+
 	const handleQuickAmount = (percentage: number) => {
 		if (!balanceInDisplayUnitPrecise || balanceInDisplayUnitPrecise === "0") {
 			setAmount("0")
 			return
 		}
-		
+
 		if (percentage === 100) {
 			setAmount(balanceInDisplayUnitPrecise)
 		} else {
@@ -84,32 +84,32 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
 			}
 		}
 	}
-	
+
 	const handleBurn = async () => {
 		if (!amount || parseFloat(amount) <= 0) {
 			setError("Please enter a valid amount")
 			return
 		}
-		
+
 		if (parseFloat(amount) > balanceInDisplayUnit) {
 			setError(`Insufficient balance. You only have ${formatNumberWithSuffix(balanceInDisplayUnit)} ${metadata?.symbol}`)
 			return
 		}
-		
+
 		if (!address) {
 			setError("Please connect your wallet")
 			return
 		}
-		
+
 		setIsProcessing(true)
 		setError(null)
-		
+
 		try {
 			// Calculate amount in smallest unit
 			const amountBN = new BigNumber(amount)
 			const amountInSmallestUnit = amountBN.multipliedBy(Math.pow(10, decimals)).toFixed(0)
 			const burnAmount = BigInt(amountInSmallestUnit)
-			
+
 			console.log("Burning tokens:", {
 				pool: pool,
 				coinType: pool.coinType,
@@ -117,30 +117,30 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
 				symbol: metadata?.symbol,
 				decimals: decimals,
 				amountInSmallestUnit: burnAmount.toString(),
-				
+
 			})
-			
-			
+
+
 			// Create the coin object with the amount to burn
 			const memeCoin = coinWithBalance({
 				type: pool.coinType,
 				balance: burnAmount,
 			})
-			
+
 			// Create burn transaction
 			const { tx } = await pumpSdk.burnMeme({
 				ipxTreasury: pool.coinIpxTreasuryCap,
 				memeCoin,
 				coinType: pool.coinType,
 			})
-			
+
 			// Execute the transaction
 			const result = await executeTransaction(tx)
-			
+
 			// Show success message
 			setSuccess(`Successfully burned ${amount} ${metadata?.symbol}! Transaction: ${result.digest.slice(0, 8)}...`)
 			setAmount("")
-			
+
 			// Close dialog after a delay to show success
 			setTimeout(() => {
 				onOpenChange(false)
@@ -154,7 +154,7 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
 			setIsProcessing(false)
 		}
 	}
-	
+
 	// Reset states when dialog closes
 	const handleOpenChange = (open: boolean) => {
 		if (!open) {
@@ -164,7 +164,7 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
 		}
 		onOpenChange(open)
 	}
-	
+
 	return (
 		<Dialog open={open} onOpenChange={handleOpenChange}>
 			<DialogContent className="sm:max-w-md">
@@ -174,10 +174,10 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
 						Burn {metadata?.symbol || "Tokens"}
 					</DialogTitle>
 					<DialogDescription>
-						Permanently destroy tokens by sending them to a burn address. This action cannot be undone.
+						Permanently burn supply for this token, this action cannot be undone.
 					</DialogDescription>
 				</DialogHeader>
-				
+
 				<div className="space-y-4">
 					{/* Balance Display */}
 					<div className="p-3 rounded-lg bg-muted/50 space-y-1">
@@ -188,7 +188,7 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
 							</span>
 						</div>
 					</div>
-					
+
 					{/* Amount Input */}
 					<div className="space-y-2">
 						<div className="flex items-center justify-between">
@@ -210,7 +210,7 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
 							className="font-mono"
 						/>
 					</div>
-					
+
 					{/* Quick Percentage Buttons */}
 					<div className="grid grid-cols-4 gap-2">
 						{[25, 50, 75, 100].map((percentage) => (
@@ -226,7 +226,7 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
 							</Button>
 						))}
 					</div>
-					
+
 					{/* Success Message */}
 					{success && (
 						<Alert className="border-green-500/50 bg-green-500/10">
@@ -236,7 +236,7 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
 							</AlertDescription>
 						</Alert>
 					)}
-					
+
 					{/* Warning Message */}
 					{!success && (
 						<Alert className="border-orange-500/50 bg-orange-500/10">
@@ -246,7 +246,7 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
 							</AlertDescription>
 						</Alert>
 					)}
-					
+
 					{/* Error Message */}
 					{error && (
 						<Alert className="border-destructive/50 bg-destructive/10">
@@ -255,7 +255,7 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
 							</AlertDescription>
 						</Alert>
 					)}
-					
+
 					{/* Action Buttons */}
 					<div className="flex gap-2">
 						<Button
