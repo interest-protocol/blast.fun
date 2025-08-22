@@ -91,19 +91,19 @@ export const formatSmallPrice = (value: number | undefined): ReactNode => {
 			const zeros = match[0].length - 2 // -2 for "0."
 			if (zeros > 2) {
 				const significantPart = str.substring(match[0].length)
-				const digits = significantPart.substring(0, 6)
+				const digits = significantPart.substring(0, 4)
 
 				return createElement(
 					'span',
 					null,
 					'0.0',
-					createElement('sub', { style: { fontSize: '0.7em', verticalAlign: 'sub' } }, zeros),
+					createElement('sub', { style: { fontSize: '0.75em' } }, zeros),
 					digits
 				)
 			}
 		}
 
-		return value.toFixed(6).replace(/\.?0+$/, '')
+		return value.toFixed(4).replace(/\.?0+$/, '')
 	}
 
 	return formatNumberWithSuffix(value)

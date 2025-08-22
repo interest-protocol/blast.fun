@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react"
 import tokenPriceSocket from "@/lib/websocket/token-price"
 import type { PoolWithMetadata } from "@/types/pool"
-import { TokenHeader } from "./token-header"
-import { CreatorDetails } from "./creator-details"
+import { TokenInfo } from "./token-info"
 import { TokenTabs } from "./token-tabs"
 import { TradeTerminal } from "./trade-terminal"
 import { BondingProgress } from "./bonding-progress"
@@ -44,8 +43,6 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 				const newPrice = data.price * data.suiPrice
 				setPrice(newPrice)
 
-				// Calculate market cap dynamically
-				// Use the decimals from coin metadata if available, otherwise use default
 				const decimals = pool.coinMetadata?.decimals || DEFAULT_TOKEN_DECIMALS
 				const totalSupply = Number(TOTAL_POOL_SUPPLY) / Math.pow(10, decimals)
 				const calculatedMarketCap = newPrice * totalSupply
@@ -65,8 +62,6 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 	return (
 		<div className="w-full h-full flex">
 			<div className="flex-1 flex flex-col">
-				<TokenHeader pool={pool} realtimePrice={price} realtimeMarketCap={marketCap} />
-
 				{/* Chart and Tabs */}
 				<ResizablePanelGroup
 					direction="vertical"
@@ -86,14 +81,14 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 
 			{/* Right-side column */}
 			<div className="w-[400px] border-l flex flex-col h-full overflow-y-auto">
-				<CreatorDetails pool={pool} />
+				<TokenInfo pool={pool} realtimePrice={price} realtimeMarketCap={marketCap} />
 
 				{!pool.migrated && (
 					<BondingProgress pool={pool} />
 				)}
 
-				<HolderDetails pool={pool} />
 				<TradeTerminal pool={pool} referral={referral} />
+				<HolderDetails pool={pool} />
 				<ReferralShare pool={pool} />
 			</div>
 		</div>
