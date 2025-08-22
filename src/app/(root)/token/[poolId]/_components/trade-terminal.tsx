@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useMemo } from "react"
-import { Loader2, Settings2, Wallet, Activity, Pencil, Check, X, Rocket, Flame, Edit2 } from "lucide-react"
+import { Loader2, Settings2, Wallet, Activity, Pencil, Check, X, Rocket, Flame, Edit2, AlertTriangle } from "lucide-react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { TokenAvatar } from "@/components/tokens/token-avatar"
@@ -649,6 +649,16 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 						<Settings2 className="h-3 w-3" />
 					</button>
 				</div>
+
+				{/* X Identity Reveal Warning - Only for bonding curve tokens */}
+				{tradeType === "buy" && protectionSettings?.revealTraderIdentity && !pool.migrated && (
+					<div className="flex items-center gap-2 p-3 rounded-lg border border-yellow-500/30 bg-yellow-500/5">
+						<AlertTriangle className="h-4 w-4 text-yellow-500 shrink-0" />
+						<span className="text-xs text-yellow-500 font-medium">
+							This buy will reveal your X (Twitter) username in trade history table.
+						</span>
+					</div>
+				)}
 
 				{/* Error - Only show if not related to Twitter auth */}
 				{error && !error.includes("AUTHENTICATED WITH X") && (

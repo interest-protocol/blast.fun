@@ -3,7 +3,9 @@ import { useState, useEffect } from "react"
 interface TokenProtectionSettings {
 	sniperProtection?: boolean
 	requireTwitter?: boolean
+	revealTraderIdentity?: boolean
 	maxHoldingPercent?: string | null
+	minFollowerCount?: string | null
 }
 
 export function useTokenProtection(poolId: string, isProtected?: boolean) {
