@@ -71,6 +71,10 @@ export async function processPoolData(pool: any): Promise<ProcessedPool> {
 		}
 	}
 
+	if (process.env.NODE_ENV === "development" && processedPool.marketData && processedPool.coinMetadata && processedPool.creatorData) {
+		return processedPool
+	}
+
 	try {
 		const marketData = await nexaServerClient.getMarketData(pool.coinType)
 

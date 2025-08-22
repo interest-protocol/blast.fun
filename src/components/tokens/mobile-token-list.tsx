@@ -190,8 +190,16 @@ const TabContent = memo(function TabContent({
 
 export const MobileTokenList = memo(function MobileTokenList() {
 	const [activeTab, setActiveTab] = useState<TabType>("new")
+	
+	// Store separate sort preferences for each tab (in memory only, no persistence)
+	const [tabSortPreferences, setTabSortPreferences] = useState<Record<TabType, SortOption>>({
+		new: "date",
+		graduating: "bondingCurve",
+		graduated: "marketCap" // Default to market cap for graduated
+	})
+	
 	const [settings, setSettings] = useState<TokenListSettings>({
-		sortBy: "date",
+		sortBy: tabSortPreferences[activeTab], // Use the tab's default sort
 		socialFilters: {
 			requireWebsite: false,
 			requireTwitter: false,
@@ -201,7 +209,22 @@ export const MobileTokenList = memo(function MobileTokenList() {
 
 	const handleSettingsChange = useCallback((newSettings: TokenListSettings) => {
 		setSettings(newSettings)
-	}, [])
+		// Update the sort preference for the current tab
+		setTabSortPreferences(prev => ({
+			...prev,
+			[activeTab]: newSettings.sortBy
+		}))
+	}, [activeTab])
+	
+	// Update settings when tab changes
+	const handleTabChange = useCallback((tab: TabType) => {
+		setActiveTab(tab)
+		// Apply the saved sort preference for this tab
+		setSettings(prev => ({
+			...prev,
+			sortBy: tabSortPreferences[tab]
+		}))
+	}, [tabSortPreferences])
 
 	const availableSortOptions = useMemo(() => {
 		const baseOptions: { value: SortOption; label: string }[] = [
@@ -236,7 +259,7 @@ export const MobileTokenList = memo(function MobileTokenList() {
 								<Button
 									key={tab.key}
 									variant="ghost"
-									onClick={() => setActiveTab(tab.key)}
+									onClick={() => handleTabChange(tab.key)}
 									className={cn(
 										"flex-1 rounded-none font-mono text-xs tracking-wider uppercase h-10",
 										"hover:bg-transparent",
