@@ -6,7 +6,7 @@ import { TokenCard } from "./token-card"
 import { TokenCardSkeleton } from "./token-card.skeleton"
 import { Logo } from "@/components/ui/logo"
 import { Button } from "@/components/ui/button"
-import { TokenListSettingsDialog, type TokenListSettings, type SortOption } from "./token-list-settings"
+import { TokenListSettingsDialog, type TokenListSettings, type SortOption } from "./token-list.settings"
 import type { PoolWithMetadata } from "@/types/pool"
 import { cn } from "@/utils"
 
@@ -99,7 +99,7 @@ const TabContent = memo(function TabContent({
 	const sortedPools = useMemo(() => {
 		if (!data?.pools || data.pools.length === 0) return []
 
-		let pools = [...data.pools]
+		const pools = [...data.pools]
 
 		switch (settings.sortBy) {
 			case "marketCap":

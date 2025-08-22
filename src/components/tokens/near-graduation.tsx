@@ -3,10 +3,10 @@
 import { memo, useCallback, useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { TokenCard } from "./token-card"
-import { TokenListLayout } from "./token-list-layout"
+import { TokenListLayout } from "./token-list.layout"
 import { TokenCardSkeleton } from "./token-card.skeleton"
 import { Logo } from "@/components/ui/logo"
-import { TokenListSettingsDialog, type TokenListSettings } from "./token-list-settings"
+import { TokenListSettingsDialog, type TokenListSettings } from "./token-list.settings"
 import type { PoolWithMetadata } from "@/types/pool"
 
 interface NearGraduationProps {
@@ -30,37 +30,37 @@ export const NearGraduation = memo(function NearGraduation({
 			requireTelegram: false,
 		}
 	})
-	
+
 	const { data, isLoading, error } = useQuery({
 		queryKey: ["tokens", "graduating"],
 		queryFn: fetchGraduatingTokens,
 		refetchInterval: pollInterval,
 		staleTime: 5000
 	})
-	
+
 	const filteredAndSortedPools = useMemo(() => {
 		if (!data?.pools || data.pools.length === 0) return []
-		
+
 		let pools = [...data.pools]
-		
+
 		// Apply social filters
 		if (settings.socialFilters.requireWebsite ||
-		    settings.socialFilters.requireTwitter ||
-		    settings.socialFilters.requireTelegram) {
-			
+			settings.socialFilters.requireTwitter ||
+			settings.socialFilters.requireTelegram) {
+
 			pools = pools.filter((pool: PoolWithMetadata) => {
 				const metadata = pool.metadata
 				if (!metadata) return false
-				
+
 				// Check for social links with proper field names (capital letters)
 				if (settings.socialFilters.requireWebsite && (!metadata.Website || metadata.Website === '')) return false
 				if (settings.socialFilters.requireTwitter && (!metadata.X || metadata.X === '')) return false
 				if (settings.socialFilters.requireTelegram && (!metadata.Telegram || metadata.Telegram === '')) return false
-				
+
 				return true
 			})
 		}
-		
+
 		// Apply sorting
 		switch (settings.sortBy) {
 			case "bondingCurve":
@@ -133,8 +133,8 @@ export const NearGraduation = memo(function NearGraduation({
 	}, [filteredAndSortedPools, isLoading, error])
 
 	return (
-		<TokenListLayout 
-			title="NEAR GRADUATION" 
+		<TokenListLayout
+			title="NEAR GRADUATION"
 			glowColor="pink"
 			headerAction={
 				<TokenListSettingsDialog

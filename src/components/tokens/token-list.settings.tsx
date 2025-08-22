@@ -47,7 +47,7 @@ const DEFAULT_SORT_OPTIONS = [
 	{ value: "holders" as SortOption, label: "Holders" },
 ]
 
-const STORAGE_KEY_PREFIX = "token-list-settings-"
+const STORAGE_KEY_PREFIX = "token-filters-"
 
 export const TokenListSettingsDialog = memo(function TokenListSettingsDialog({
 	columnId,
