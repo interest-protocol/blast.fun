@@ -106,6 +106,9 @@ export async function processPoolData(pool: any): Promise<ProcessedPool> {
 			coin24hTradeCount: restMarketData.coin24hTradeCount,
 			coin24hTradeVolumeUsd: restMarketData.coin24hTradeVolumeUsd,
 			price1DayAgo: restMarketData.price1DayAgo,
+			price5MinsAgo: restMarketData.price5MinsAgo || null,
+			price1HrAgo: restMarketData.price1HrAgo || null,
+			price4HrAgo: restMarketData.price4HrAgo || null,
 			holdersCount: restMarketData.holdersCount,
 			mostLiquidPoolId: processedPool.mostLiquidPoolId
 		}
