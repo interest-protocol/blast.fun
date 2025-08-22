@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { Edit2, Loader2, CheckCircle, Upload, X } from "lucide-react"
+import { Edit2, Loader2, CheckCircle, Upload, X, Link2, Globe, MessageCircle, Twitter } from "lucide-react"
 import {
 	Dialog,
 	DialogContent,
@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { PoolWithMetadata } from "@/types/pool"
 import { useApp } from "@/context/app.context"
 import { useTransaction } from "@/hooks/sui/use-transaction"
@@ -31,11 +32,20 @@ interface UpdateMetadataDialogProps {
 export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadataDialogProps) {
 	const metadata = pool.coinMetadata || pool.metadata
 	
-	// Form state
+	// Form state - token metadata
 	const [name, setName] = useState(metadata?.name || "")
 	const [symbol, setSymbol] = useState(metadata?.symbol || "")
 	const [description, setDescription] = useState(metadata?.description || "")
 	const [iconUrl, setIconUrl] = useState(metadata?.iconUrl || metadata?.icon_url || "")
+	
+	// Form state - pool metadata
+	const [twitter, setTwitter] = useState("")
+	const [telegram, setTelegram] = useState("")
+	const [website, setWebsite] = useState("")
+	
+	// Image input mode
+	const [imageInputMode, setImageInputMode] = useState<"upload" | "url">("upload")
+	const [imageUrlInput, setImageUrlInput] = useState(metadata?.iconUrl || metadata?.icon_url || "")
 	
 	// UI state
 	const [isProcessing, setIsProcessing] = useState(false)
@@ -131,6 +141,7 @@ export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadat
 			
 			// Build transaction chain for all metadata updates
 			let tx = new Transaction();
+			let hasChanges = false;
 			
 			// Update name if changed
 			if (name !== metadata?.name) {
@@ -140,6 +151,7 @@ export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadat
 					tx
 				})
 				tx = result.tx
+				hasChanges = true
 			}
 			
 			// Update symbol if changed
@@ -150,6 +162,7 @@ export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadat
 					tx
 				})
 				tx = result.tx
+				hasChanges = true
 			}
 			
 			// Update description if changed
@@ -160,19 +173,52 @@ export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadat
 					tx
 				})
 				tx = result.tx
+				hasChanges = true
 			}
 			
 			// Update icon URL if changed
-			if (iconUrl !== metadata?.iconUrl && iconUrl !== metadata?.icon_url) {
+			const finalIconUrl = imageInputMode === "url" ? imageUrlInput : iconUrl
+			if (finalIconUrl !== metadata?.iconUrl && finalIconUrl !== metadata?.icon_url) {
 				const result = await pumpSdk.updateIconUrl({
 					metadataCap: cap,
-					value: iconUrl,
+					value: finalIconUrl,
 					tx
 				})
 				tx = result.tx
+				hasChanges = true
 			}
 			
-			if (!tx) {
+			// @dev: Update pool metadata social links
+			const poolMetadataUpdates: { names: string[], values: string[] } = { names: [], values: [] }
+			
+			if (twitter) {
+				poolMetadataUpdates.names.push('X')
+				poolMetadataUpdates.values.push(twitter)
+			}
+			
+			if (telegram) {
+				poolMetadataUpdates.names.push('Telegram')
+				poolMetadataUpdates.values.push(telegram)
+			}
+			
+			if (website) {
+				poolMetadataUpdates.names.push('Website')
+				poolMetadataUpdates.values.push(website)
+			}
+			
+			if (poolMetadataUpdates.names.length > 0) {
+				const result = await pumpSdk.updatePoolMetadata({
+					pool: pool.poolId,
+					newNames: poolMetadataUpdates.names,
+					newValues: poolMetadataUpdates.values,
+					metadataCap: cap.objectId,
+					tx
+				})
+				tx = result.tx
+				hasChanges = true
+			}
+			
+			if (!hasChanges) {
 				setError("No changes detected")
 				setIsProcessing(false)
 				return
@@ -212,6 +258,10 @@ export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadat
 			setSymbol(metadata?.symbol || "")
 			setDescription(metadata?.description || "")
 			setIconUrl(metadata?.iconUrl || metadata?.icon_url || "")
+			setImageUrlInput(metadata?.iconUrl || metadata?.icon_url || "")
+			setTwitter("")
+			setTelegram("")
+			setWebsite("")
 		}
 		onOpenChange(open)
 	}
@@ -276,65 +326,150 @@ export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadat
 						</p>
 					</div>
 					
-					{/* Image Upload */}
+					{/* Image Upload/URL */}
 					<div className="space-y-2">
 						<Label>Token Icon</Label>
-						<div
-							className={cn(
-								"relative w-full h-32 border-2 border-dashed rounded-lg transition-all",
-								isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50",
-								uploadingImage && "opacity-50 pointer-events-none"
-							)}
-							onDrop={handleDrop}
-							onDragOver={handleDragOver}
-							onDragLeave={handleDragLeave}
-						>
-							{iconUrl ? (
-								<div className="relative w-full h-full">
-									{/* eslint-disable-next-line @next/next/no-img-element */}
-									<img
-										src={iconUrl}
-										alt="Token icon"
-										className="w-full h-full object-contain rounded-lg"
-									/>
-									<Button
-										type="button"
-										variant="destructive"
-										size="icon"
-										className="absolute top-2 right-2 h-6 w-6"
-										onClick={() => setIconUrl("")}
-										disabled={isProcessing || uploadingImage}
-									>
-										<X className="h-4 w-4" />
-									</Button>
-								</div>
-							) : (
-								<label className="flex flex-col items-center justify-center w-full h-full cursor-pointer">
-									{uploadingImage ? (
-										<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-									) : (
-										<>
-											<Upload className="w-8 h-8 text-muted-foreground mb-2" />
-											<span className="text-xs font-mono uppercase text-muted-foreground">
-												Drop image or click to upload
-											</span>
-											<span className="text-xs text-muted-foreground mt-1">
-												PNG, JPG (auto-compressed)
-											</span>
-										</>
+						<Tabs value={imageInputMode} onValueChange={(v) => setImageInputMode(v as "upload" | "url")}>
+							<TabsList className="grid w-full grid-cols-2">
+								<TabsTrigger value="upload">Upload Image</TabsTrigger>
+								<TabsTrigger value="url">Image URL</TabsTrigger>
+							</TabsList>
+							<TabsContent value="upload" className="mt-2">
+								<div
+									className={cn(
+										"relative w-full h-32 border-2 border-dashed rounded-lg transition-all",
+										isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50",
+										uploadingImage && "opacity-50 pointer-events-none"
 									)}
-									<input
-										type="file"
-										accept="image/*"
-										className="hidden"
-										onChange={(e) => {
-											const file = e.target.files?.[0]
-											if (file) handleImageUpload(file)
-										}}
-										disabled={isProcessing || uploadingImage}
+									onDrop={handleDrop}
+									onDragOver={handleDragOver}
+									onDragLeave={handleDragLeave}
+								>
+									{iconUrl ? (
+										<div className="relative w-full h-full">
+											{/* eslint-disable-next-line @next/next/no-img-element */}
+											<img
+												src={iconUrl}
+												alt="Token icon"
+												className="w-full h-full object-contain rounded-lg"
+											/>
+											<Button
+												type="button"
+												variant="destructive"
+												size="icon"
+												className="absolute top-2 right-2 h-6 w-6"
+												onClick={() => setIconUrl("")}
+												disabled={isProcessing || uploadingImage}
+											>
+												<X className="h-4 w-4" />
+											</Button>
+										</div>
+									) : (
+										<label className="flex flex-col items-center justify-center w-full h-full cursor-pointer">
+											{uploadingImage ? (
+												<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+											) : (
+												<>
+													<Upload className="w-8 h-8 text-muted-foreground mb-2" />
+													<span className="text-xs font-mono uppercase text-muted-foreground">
+														Drop image or click to upload
+													</span>
+													<span className="text-xs text-muted-foreground mt-1">
+														PNG, JPG (auto-compressed)
+													</span>
+												</>
+											)}
+											<input
+												type="file"
+												accept="image/*"
+												className="hidden"
+												onChange={(e) => {
+													const file = e.target.files?.[0]
+													if (file) handleImageUpload(file)
+												}}
+												disabled={isProcessing || uploadingImage}
+											/>
+										</label>
+									)}
+								</div>
+							</TabsContent>
+							<TabsContent value="url" className="mt-2">
+								<div className="space-y-2">
+									<Input
+										type="url"
+										placeholder="https://example.com/image.png"
+										value={imageUrlInput}
+										onChange={(e) => setImageUrlInput(e.target.value)}
+										disabled={isProcessing}
 									/>
-								</label>
-							)}
+									{imageUrlInput && (
+										<div className="w-full h-24 border rounded-lg overflow-hidden">
+											{/* eslint-disable-next-line @next/next/no-img-element */}
+											<img
+												src={imageUrlInput}
+												alt="Token icon preview"
+												className="w-full h-full object-contain"
+												onError={(e) => {
+													e.currentTarget.style.display = 'none'
+												}}
+											/>
+										</div>
+									)}
+								</div>
+							</TabsContent>
+						</Tabs>
+					</div>
+					
+					{/* Pool Metadata Section */}
+					<div className="space-y-2 border-t pt-4">
+						<Label className="text-sm font-semibold">Social Links (Pool Metadata)</Label>
+						
+						{/* Twitter/X */}
+						<div className="space-y-2">
+							<Label htmlFor="twitter" className="flex items-center gap-2">
+								<span className="h-4 w-4 text-center font-bold">𝕏</span>
+								X (Twitter)
+							</Label>
+							<Input
+								id="twitter"
+								type="url"
+								placeholder="https://x.com/youraccount"
+								value={twitter}
+								onChange={(e) => setTwitter(e.target.value)}
+								disabled={isProcessing}
+							/>
+						</div>
+						
+						{/* Telegram */}
+						<div className="space-y-2">
+							<Label htmlFor="telegram" className="flex items-center gap-2">
+								<MessageCircle className="h-4 w-4" />
+								Telegram
+							</Label>
+							<Input
+								id="telegram"
+								type="url"
+								placeholder="https://t.me/yourchannel"
+								value={telegram}
+								onChange={(e) => setTelegram(e.target.value)}
+								disabled={isProcessing}
+							/>
+						</div>
+						
+						{/* Website */}
+						<div className="space-y-2">
+							<Label htmlFor="website" className="flex items-center gap-2">
+								<Globe className="h-4 w-4" />
+								Website
+							</Label>
+							<Input
+								id="website"
+								type="url"
+								placeholder="https://yourwebsite.com"
+								value={website}
+								onChange={(e) => setWebsite(e.target.value)}
+								disabled={isProcessing}
+							/>
 						</div>
 					</div>
 					
