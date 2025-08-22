@@ -3,10 +3,10 @@
 import { memo, useCallback, useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { TokenCard } from "./token-card"
-import { TokenListLayout } from "./token-list-layout"
+import { TokenListLayout } from "./token-list.layout"
 import { TokenCardSkeleton } from "./token-card.skeleton"
 import { Logo } from "@/components/ui/logo"
-import { TokenListSettingsDialog, type TokenListSettings, type SortOption } from "./token-list-settings"
+import { TokenListSettingsDialog, type TokenListSettings, type SortOption } from "./token-list.settings"
 import type { PoolWithMetadata } from "@/types/pool"
 
 interface GraduatedCompleteProps {
@@ -28,42 +28,39 @@ export const GraduatedComplete = memo(function GraduatedComplete({
 			requireWebsite: false,
 			requireTwitter: false,
 			requireTelegram: false,
-			requireDiscord: false,
 		}
 	})
-	
+
 	const { data, isLoading, error } = useQuery({
 		queryKey: ["tokens", "graduated"],
 		queryFn: fetchGraduatedTokens,
 		refetchInterval: pollInterval,
 		staleTime: 15000
 	})
-	
+
 	const filteredAndSortedPools = useMemo(() => {
 		if (!data?.pools || data.pools.length === 0) return []
-		
+
 		let pools = [...data.pools]
-		
+
 		// Apply social filters
 		if (settings.socialFilters.requireWebsite ||
-		    settings.socialFilters.requireTwitter ||
-		    settings.socialFilters.requireTelegram ||
-		    settings.socialFilters.requireDiscord) {
-			
+			settings.socialFilters.requireTwitter ||
+			settings.socialFilters.requireTelegram) {
+
 			pools = pools.filter((pool: PoolWithMetadata) => {
 				const metadata = pool.metadata
 				if (!metadata) return false
-				
+
 				// Check for social links with proper field names (capital letters)
 				if (settings.socialFilters.requireWebsite && (!metadata.Website || metadata.Website === '')) return false
 				if (settings.socialFilters.requireTwitter && (!metadata.X || metadata.X === '')) return false
 				if (settings.socialFilters.requireTelegram && (!metadata.Telegram || metadata.Telegram === '')) return false
-				if (settings.socialFilters.requireDiscord && (!metadata.Discord || metadata.Discord === '')) return false
-				
+
 				return true
 			})
 		}
-		
+
 		// Apply sorting
 		switch (settings.sortBy) {
 			case "marketCap":
@@ -130,8 +127,8 @@ export const GraduatedComplete = memo(function GraduatedComplete({
 	}, [filteredAndSortedPools, isLoading, error])
 
 	return (
-		<TokenListLayout 
-			title="GRADUATED" 
+		<TokenListLayout
+			title="GRADUATED"
 			glowColor="gold"
 			headerAction={
 				<TokenListSettingsDialog

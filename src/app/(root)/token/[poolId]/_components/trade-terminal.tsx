@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useMemo } from "react"
-import { Loader2, Settings2, Wallet, Activity, Pencil, Check, X, Rocket } from "lucide-react"
+import { Loader2, Settings2, Wallet, Activity, Pencil, Check, X, Rocket, Flame, Edit2 } from "lucide-react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { TokenAvatar } from "@/components/tokens/token-avatar"
@@ -22,6 +22,9 @@ import { pumpSdk } from "@/lib/pump"
 import { getBuyQuote, getSellQuote } from "@/lib/aftermath"
 import BigNumber from "bignumber.js"
 import { BsTwitterX } from "react-icons/bs"
+import { BurnDialog } from "./burn-dialog"
+import { UpdateMetadataDialog } from "./update-metadata-dialog"
+import { Separator } from "@/components/ui/separator"
 
 interface TradeTerminalProps {
 	pool: PoolWithMetadata
@@ -29,12 +32,14 @@ interface TradeTerminalProps {
 }
 
 export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
-	const { isConnected } = useApp()
+	const { isConnected, address } = useApp()
 	const { isLoggedIn: isTwitterLoggedIn, login: twitterLogin } = useTwitter()
 	const { settings: protectionSettings } = useTokenProtection(pool.poolId, pool.isProtected)
 	const [tradeType, setTradeType] = useState<"buy" | "sell">("buy")
 	const [amount, setAmount] = useState("")
 	const [settingsOpen, setSettingsOpen] = useState(false)
+	const [burnDialogOpen, setBurnDialogOpen] = useState(false)
+	const [updateMetadataDialogOpen, setUpdateMetadataDialogOpen] = useState(false)
 	const [referrerWallet, setReferrerWallet] = useState<string | null>(null)
 	const [editingQuickBuy, setEditingQuickBuy] = useState(false)
 	const [editingQuickSell, setEditingQuickSell] = useState(false)
@@ -61,6 +66,9 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	const balanceInDisplayUnit = effectiveBalance ? Number(effectiveBalance) / Math.pow(10, decimals) : 0
 	const hasBalance = balanceInDisplayUnit > 0
 	const suiBalanceInDisplayUnit = suiBalance ? Number(suiBalance) / Number(MIST_PER_SUI) : 0
+	
+	// Check if user is the token creator
+	const isCreator = address && pool.creatorAddress && address === pool.creatorAddress
 
 	// Precise balance calculation for MAX button using BigNumber
 	const balanceInDisplayUnitPrecise = useMemo(() => {
@@ -700,12 +708,64 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 						)}
 					</Button>
 				)}
+				
+				{/* Update Metadata Button - Only on mobile for creator */}
+				{isConnected && isCreator && (
+					<>
+						<div className="lg:hidden">
+							<Separator className="bg-border/30" />
+						</div>
+						
+						<Button
+							variant="outline"
+							className="w-full h-10 font-mono text-xs uppercase lg:hidden border-primary/50 hover:bg-primary/10 hover:border-primary"
+							onClick={() => setUpdateMetadataDialogOpen(true)}
+						>
+							<Edit2 className="h-4 w-4 text-primary mr-2" />
+							Update Metadata
+						</Button>
+					</>
+				)}
+				
+				{/* Burn Button - Only on mobile */}
+				{isConnected && hasBalance && (
+					<>
+						{!isCreator && (
+							<div className="lg:hidden">
+								<Separator className="bg-border/30" />
+							</div>
+						)}
+						
+						<Button
+							variant="outline"
+							className="w-full h-10 font-mono text-xs uppercase lg:hidden border-orange-500/50 hover:bg-orange-500/10 hover:border-orange-500"
+							onClick={() => setBurnDialogOpen(true)}
+						>
+							<Flame className="h-4 w-4 text-orange-500 mr-2" />
+							Burn {metadata?.symbol}
+						</Button>
+					</>
+				)}
 			</div>
 
 			{/* Trade Settings Dialog */}
 			<TradeSettings
 				open={settingsOpen}
 				onOpenChange={setSettingsOpen}
+			/>
+			
+			{/* Update Metadata Dialog */}
+			<UpdateMetadataDialog
+				open={updateMetadataDialogOpen}
+				onOpenChange={setUpdateMetadataDialogOpen}
+				pool={pool}
+			/>
+			
+			{/* Burn Dialog */}
+			<BurnDialog
+				open={burnDialogOpen}
+				onOpenChange={setBurnDialogOpen}
+				pool={pool}
 			/>
 		</div>
 	)
