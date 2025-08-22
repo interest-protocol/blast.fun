@@ -28,7 +28,6 @@ export const NearGraduation = memo(function NearGraduation({
 			requireWebsite: false,
 			requireTwitter: false,
 			requireTelegram: false,
-			requireDiscord: false,
 		}
 	})
 	
@@ -47,8 +46,7 @@ export const NearGraduation = memo(function NearGraduation({
 		// Apply social filters
 		if (settings.socialFilters.requireWebsite ||
 		    settings.socialFilters.requireTwitter ||
-		    settings.socialFilters.requireTelegram ||
-		    settings.socialFilters.requireDiscord) {
+		    settings.socialFilters.requireTelegram) {
 			
 			pools = pools.filter((pool: PoolWithMetadata) => {
 				const metadata = pool.metadata
@@ -58,7 +56,6 @@ export const NearGraduation = memo(function NearGraduation({
 				if (settings.socialFilters.requireWebsite && (!metadata.Website || metadata.Website === '')) return false
 				if (settings.socialFilters.requireTwitter && (!metadata.X || metadata.X === '')) return false
 				if (settings.socialFilters.requireTelegram && (!metadata.Telegram || metadata.Telegram === '')) return false
-				if (settings.socialFilters.requireDiscord && (!metadata.Discord || metadata.Discord === '')) return false
 				
 				return true
 			})
