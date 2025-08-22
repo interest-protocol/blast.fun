@@ -1,6 +1,7 @@
 "use client"
 
-import { useConnectWallet, useCurrentAccount, useDisconnectWallet, useResolveSuiNSName } from "@mysten/dapp-kit"
+import { useConnectWallet, useCurrentAccount, useDisconnectWallet, useResolveSuiNSName, useAccounts, useSwitchAccount, useCurrentWallet } from "@mysten/dapp-kit"
+import { formatAddress } from "@mysten/sui/utils"
 import type { WalletAccount, WalletWithRequiredFeatures } from "@mysten/wallet-standard"
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react"
 import toast from "react-hot-toast"
@@ -9,6 +10,12 @@ interface AppContextValue {
 	wallet: WalletAccount | null
 	address: string | null
 	domain: string | null
+	
+	// Multi-wallet support
+	accounts: readonly WalletAccount[]
+	currentAccount: WalletAccount | null
+	currentWalletName: string | null
+	switchAccount: (account: WalletAccount) => Promise<void>
 
 	isConnected: boolean
 	isConnecting: boolean
@@ -38,11 +45,15 @@ export function AppContextProvider({ children }: { children: ReactNode }) {
 	const { mutateAsync: connectMutation, isPending: isConnecting } = useConnectWallet()
 	const { mutateAsync: disconnectMutation } = useDisconnectWallet()
 	const currentAccount = useCurrentAccount()
+	const accounts = useAccounts()
+	const { mutate: switchAccountMutation } = useSwitchAccount()
+	const { currentWallet } = useCurrentWallet()
 
 	const address = currentAccount?.address || null
 	const isConnected = !!currentAccount
 	const { data: walletDomain } = useResolveSuiNSName(currentAccount?.label ? null : address)
-	const domain = walletDomain ? `@${walletDomain.replace(/\.sui$/i, "")}` : null
+	const domain = walletDomain || null
+	const currentWalletName = currentWallet?.name || null
 
 	const connect = useCallback(
 		async (wallet: WalletWithRequiredFeatures) => {
@@ -66,6 +77,17 @@ export function AppContextProvider({ children }: { children: ReactNode }) {
 		}
 	}, [disconnectMutation])
 
+	const switchAccount = useCallback(async (account: WalletAccount) => {
+		try {
+			switchAccountMutation({ account })
+			toast.success(`Switched to ${account.label || formatAddress(account.address)}...`)
+		} catch (error) {
+			console.error("Failed to switch account:", error)
+			toast.error("Failed to switch account")
+			throw error
+		}
+	}, [switchAccountMutation])
+
 	// auto close dialog after connection
 	useEffect(() => {
 		if (isConnected && isConnectDialogOpen) {
@@ -78,6 +100,12 @@ export function AppContextProvider({ children }: { children: ReactNode }) {
 			wallet: currentAccount,
 			address,
 			domain,
+			
+			// Multi-wallet support
+			accounts,
+			currentAccount,
+			currentWalletName,
+			switchAccount,
 
 			isConnected,
 			isConnecting,
@@ -88,7 +116,7 @@ export function AppContextProvider({ children }: { children: ReactNode }) {
 			connect,
 			disconnect,
 		}),
-		[currentAccount, address, domain, isConnected, isConnecting, isConnectDialogOpen, connect, disconnect]
+		[currentAccount, address, domain, accounts, currentWalletName, switchAccount, isConnected, isConnecting, isConnectDialogOpen, connect, disconnect]
 	)
 
 	return <AppContext.Provider value={value}>{children}</AppContext.Provider>

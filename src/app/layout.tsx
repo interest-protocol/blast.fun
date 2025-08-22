@@ -15,6 +15,7 @@ import { ThemeProvider } from "@/providers/theme-provider"
 import { cn } from "@/utils"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { siteConfig } from "@/constants"
+import { TermsPrivacyDialog } from "@/components/dialogs/terms-privacy-dialog"
 
 export const metadata: Metadata = {
 	title: {
@@ -40,6 +41,7 @@ export default function RootLayout({
 								<ApolloProvider>
 									<SuiProvider>
 										{children}
+										<TermsPrivacyDialog />
 
 										<TailwindIndicator />
 										<Toaster

@@ -1,14 +1,16 @@
 "use client"
 
 import React, { useState, useEffect, useMemo } from "react"
-import { Loader2, Settings2, Wallet, Activity, Pencil, Check, X, Rocket } from "lucide-react"
+import { Loader2, Settings2, Wallet, Activity, Pencil, Check, X, Rocket, Flame, Edit2 } from "lucide-react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { TokenAvatar } from "@/components/tokens/token-avatar"
 import { useApp } from "@/context/app.context"
+import { useTwitter } from "@/context/twitter.context"
 import { useTrading } from "@/hooks/pump/use-trading"
 import { useTokenBalance } from "@/hooks/sui/use-token-balance"
 import { usePortfolio } from "@/hooks/nexa/use-portfolio"
+import { useTokenProtection } from "@/hooks/use-token-protection"
 import { usePresetStore } from "@/stores/preset-store"
 import type { PoolWithMetadata } from "@/types/pool"
 import { cn } from "@/utils"
@@ -19,6 +21,10 @@ import { MIST_PER_SUI } from "@mysten/sui/utils"
 import { pumpSdk } from "@/lib/pump"
 import { getBuyQuote, getSellQuote } from "@/lib/aftermath"
 import BigNumber from "bignumber.js"
+import { BsTwitterX } from "react-icons/bs"
+import { BurnDialog } from "./burn-dialog"
+import { UpdateMetadataDialog } from "./update-metadata-dialog"
+import { Separator } from "@/components/ui/separator"
 
 interface TradeTerminalProps {
 	pool: PoolWithMetadata
@@ -26,10 +32,14 @@ interface TradeTerminalProps {
 }
 
 export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
-	const { isConnected } = useApp()
+	const { isConnected, address } = useApp()
+	const { isLoggedIn: isTwitterLoggedIn, login: twitterLogin } = useTwitter()
+	const { settings: protectionSettings } = useTokenProtection(pool.poolId, pool.isProtected)
 	const [tradeType, setTradeType] = useState<"buy" | "sell">("buy")
 	const [amount, setAmount] = useState("")
 	const [settingsOpen, setSettingsOpen] = useState(false)
+	const [burnDialogOpen, setBurnDialogOpen] = useState(false)
+	const [updateMetadataDialogOpen, setUpdateMetadataDialogOpen] = useState(false)
 	const [referrerWallet, setReferrerWallet] = useState<string | null>(null)
 	const [editingQuickBuy, setEditingQuickBuy] = useState(false)
 	const [editingQuickSell, setEditingQuickSell] = useState(false)
@@ -56,6 +66,31 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	const balanceInDisplayUnit = effectiveBalance ? Number(effectiveBalance) / Math.pow(10, decimals) : 0
 	const hasBalance = balanceInDisplayUnit > 0
 	const suiBalanceInDisplayUnit = suiBalance ? Number(suiBalance) / Number(MIST_PER_SUI) : 0
+	
+	// Check if user is the token creator
+	const isCreator = address && pool.creatorAddress && address === pool.creatorAddress
+
+	// Precise balance calculation for MAX button using BigNumber
+	const balanceInDisplayUnitPrecise = useMemo(() => {
+		// Guard against undefined or null effectiveBalance
+		if (!effectiveBalance || effectiveBalance === undefined || effectiveBalance === null) {
+			return "0"
+		}
+		
+		// Additional safety check to ensure effectiveBalance is a valid value
+		try {
+			const balanceBN = new BigNumber(effectiveBalance)
+			// Check if BigNumber is valid
+			if (balanceBN.isNaN()) {
+				return "0"
+			}
+			const divisor = new BigNumber(10).pow(decimals)
+			return balanceBN.dividedBy(divisor).toFixed()
+		} catch (error) {
+			console.error("Error calculating precise balance:", error)
+			return "0"
+		}
+	}, [effectiveBalance, decimals])
 
 	// prices for USD calculations from server data
 	const suiPrice = marketData?.suiPrice || 4
@@ -181,9 +216,9 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 		if (tradeType === "buy") {
 			return (parseFloat(amount) * suiPrice).toFixed(2)
 		} else {
-			return (parseFloat(amount) * tokenPrice).toFixed(2)
+			return (calculateOutputAmount * suiPrice).toFixed(2)
 		}
-	}, [amount, tradeType, suiPrice, tokenPrice])
+	}, [amount, tradeType, suiPrice, calculateOutputAmount])
 
 	// fetch referrer wallet if referral code exists
 	useEffect(() => {
@@ -212,14 +247,28 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 		} else {
 			// for sell, calculate percentage
 			const percentage = value
-			let tokenAmountToSell: number
+
+			// Safety check: ensure we have a valid balance before calculating
+			if (!balanceInDisplayUnitPrecise || balanceInDisplayUnitPrecise === "0") {
+				setAmount("0")
+				return
+			}
 
 			if (percentage === 100) {
-				tokenAmountToSell = balanceInDisplayUnit
+				// Use precise balance for 100%
+				setAmount(balanceInDisplayUnitPrecise)
 			} else {
-				tokenAmountToSell = Math.floor(balanceInDisplayUnit * (percentage / 100) * 1e9) / 1e9
+				// For other percentages, use BigNumber for precise calculation
+				try {
+					const balanceBN = new BigNumber(balanceInDisplayUnitPrecise)
+					const percentageBN = new BigNumber(percentage).dividedBy(100)
+					const tokenAmountToSell = balanceBN.multipliedBy(percentageBN).toFixed(9, BigNumber.ROUND_DOWN)
+					setAmount(tokenAmountToSell)
+				} catch (error) {
+					console.error("Error calculating quick sell amount:", error)
+					setAmount("0")
+				}
 			}
-			setAmount(tokenAmountToSell.toString())
 		}
 	}
 
@@ -256,7 +305,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 		setAmount("")
 	}
 
-	const isMigrating = pool.canMigrate === true
+	const isMigrating = pool.canMigrate === true && !pool.migrated
 
 	if (!isConnected) {
 		return (
@@ -355,7 +404,12 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 										const maxSui = Math.max(0, suiBalanceInDisplayUnit - 0.02)
 										setAmount(maxSui.toString())
 									} else {
-										setAmount(balanceInDisplayUnit.toString())
+										// Safety check for sell - ensure we have a valid balance
+										if (!balanceInDisplayUnitPrecise || balanceInDisplayUnitPrecise === "0") {
+											setAmount("0")
+										} else {
+											setAmount(balanceInDisplayUnitPrecise)
+										}
 									}
 								}}
 								className="text-blue-400 hover:text-blue-300 font-medium text-xs transition-colors"
@@ -596,8 +650,8 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 					</button>
 				</div>
 
-				{/* Error */}
-				{error && (
+				{/* Error - Only show if not related to Twitter auth */}
+				{error && !error.includes("AUTHENTICATED WITH X") && (
 					<Alert className="py-1.5 border-destructive/50 bg-destructive/10">
 						<AlertDescription className="font-mono text-[10px] uppercase text-destructive">
 							{error}
@@ -605,50 +659,113 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 					</Alert>
 				)}
 
-				{/* Trade Button */}
-				<Button
-					className={cn(
-						"w-full h-10 font-mono text-xs uppercase",
-						tradeType === "buy"
-							? "bg-green-400/50 hover:bg-green-500/90 text-foreground"
-							: "bg-destructive/80 hover:bg-destructive text-foreground",
-						(isMigrating || !amount || isProcessing) && "opacity-50"
-					)}
-					onClick={handleTrade}
-					disabled={
-						!amount ||
-						isProcessing ||
-						isMigrating ||
-						(tradeType === "sell" && !hasBalance) ||
-						(tradeType === "buy" && parseFloat(amount) > suiBalanceInDisplayUnit) ||
-						(tradeType === "sell" && parseFloat(amount) > balanceInDisplayUnit)
-					}
-				>
-					{isProcessing ? (
-						<>
-							<Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
-							Processing...
-						</>
-					) : isRefreshingQuote ? (
-						<>
-							<Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
-							Getting quotes...
-						</>
-					) : (
-						<>
-							{tradeType === "buy"
-								? isLoadingQuote ? `Calculating...` : `Buy ${formatNumberWithSuffix(calculateOutputAmount)} ${metadata?.symbol}`
-								: isLoadingQuote ? `Calculating...` : `Sell ${formatNumberWithSuffix(parseFloat(amount) || 0)} ${metadata?.symbol} for ${formatNumberWithSuffix(calculateOutputAmount)} SUI`
-							}
-						</>
-					)}
-				</Button>
+				{/* Trade Button or X Connect Button */}
+				{protectionSettings?.requireTwitter && !isTwitterLoggedIn ? (
+					<Button
+						variant="outline"
+						className="w-full h-10 font-mono text-xs uppercase"
+						onClick={twitterLogin}
+					>
+						<BsTwitterX className="h-4 w-4 mr-2" />
+						Connect X to Trade
+					</Button>
+				) : (
+					<Button
+						className={cn(
+							"w-full h-10 font-mono text-xs uppercase",
+							tradeType === "buy"
+								? "bg-green-400/50 hover:bg-green-500/90 text-foreground"
+								: "bg-destructive/80 hover:bg-destructive text-foreground",
+							(isMigrating || !amount || isProcessing) && "opacity-50"
+						)}
+						onClick={handleTrade}
+						disabled={
+							!amount ||
+							isProcessing ||
+							isMigrating ||
+							(tradeType === "sell" && !hasBalance) ||
+							(tradeType === "buy" && parseFloat(amount) > suiBalanceInDisplayUnit) ||
+							(tradeType === "sell" && parseFloat(amount) > balanceInDisplayUnit)
+						}
+					>
+						{isProcessing ? (
+							<>
+								<Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
+								Processing...
+							</>
+						) : isRefreshingQuote ? (
+							<>
+								<Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
+								Getting quotes...
+							</>
+						) : (
+							<>
+								{tradeType === "buy"
+									? isLoadingQuote ? `Calculating...` : `Buy ${formatNumberWithSuffix(calculateOutputAmount)} ${metadata?.symbol}`
+									: isLoadingQuote ? `Calculating...` : `Sell ${formatNumberWithSuffix(parseFloat(amount) || 0)} ${metadata?.symbol} for ${formatNumberWithSuffix(calculateOutputAmount)} SUI`
+								}
+							</>
+						)}
+					</Button>
+				)}
+				
+				{/* Update Metadata Button - Only on mobile for creator */}
+				{isConnected && isCreator && (
+					<>
+						<div className="lg:hidden">
+							<Separator className="bg-border/30" />
+						</div>
+						
+						<Button
+							variant="outline"
+							className="w-full h-10 font-mono text-xs uppercase lg:hidden border-primary/50 hover:bg-primary/10 hover:border-primary"
+							onClick={() => setUpdateMetadataDialogOpen(true)}
+						>
+							<Edit2 className="h-4 w-4 text-primary mr-2" />
+							Update Metadata
+						</Button>
+					</>
+				)}
+				
+				{/* Burn Button - Only on mobile */}
+				{isConnected && hasBalance && (
+					<>
+						{!isCreator && (
+							<div className="lg:hidden">
+								<Separator className="bg-border/30" />
+							</div>
+						)}
+						
+						<Button
+							variant="outline"
+							className="w-full h-10 font-mono text-xs uppercase lg:hidden border-orange-500/50 hover:bg-orange-500/10 hover:border-orange-500"
+							onClick={() => setBurnDialogOpen(true)}
+						>
+							<Flame className="h-4 w-4 text-orange-500 mr-2" />
+							Burn {metadata?.symbol}
+						</Button>
+					</>
+				)}
 			</div>
 
 			{/* Trade Settings Dialog */}
 			<TradeSettings
 				open={settingsOpen}
 				onOpenChange={setSettingsOpen}
+			/>
+			
+			{/* Update Metadata Dialog */}
+			<UpdateMetadataDialog
+				open={updateMetadataDialogOpen}
+				onOpenChange={setUpdateMetadataDialogOpen}
+				pool={pool}
+			/>
+			
+			{/* Burn Dialog */}
+			<BurnDialog
+				open={burnDialogOpen}
+				onOpenChange={setBurnDialogOpen}
+				pool={pool}
 			/>
 		</div>
 	)

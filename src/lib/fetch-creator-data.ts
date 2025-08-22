@@ -1,33 +1,34 @@
 import { prisma } from "@/lib/prisma"
-import { env } from "@/env"
 import { formatAmountWithSuffix } from "@/utils/format"
 import { redisGet, redisSetEx, CACHE_TTL, CACHE_PREFIX } from "@/lib/redis/client"
 import type { CreatorData } from "@/types/pool"
 
 export async function fetchCreatorData(
-	creatorAddress: string,
+	creatorAddressOrHandle: string,
 	twitterHandle?: string | null,
 	hideIdentity?: boolean
 ): Promise<CreatorData> {
 	try {
-		const cacheKey = `${CACHE_PREFIX.CREATOR_DATA}${creatorAddress}`
-		const cachedData = await redisGet(cacheKey)
+		// determine if we need to find the creator address from twitter handle
+		let creatorAddress = creatorAddressOrHandle
+		let finalTwitterHandle = twitterHandle
 
-		if (cachedData) {
-			try {
-				const parsed = JSON.parse(cachedData)
-				
-				// If cached followers is 0, we might want to try fetching updated data
-				if (parsed.followers === "0" && parsed.twitterHandle) {
-					// Don't return here, continue to fetch fresh data
-				} else {
-					return parsed
-				}
-			} catch (error) {
-				console.error("Failed to parse cached creator data:", error)
+		// @dev: if twitterHandle is provided and matches creatorAddressOrHandle, 
+		// we need to find the actual creator address
+		if (twitterHandle && creatorAddressOrHandle === twitterHandle) {
+			const tokenLaunch = await prisma.tokenLaunches.findFirst({
+				where: { twitterUsername: twitterHandle },
+				select: { creatorAddress: true }
+			})
+
+			if (tokenLaunch) {
+				creatorAddress = tokenLaunch.creatorAddress
 			}
 		}
 
+		const cacheKey = `${CACHE_PREFIX.CREATOR_DATA}${creatorAddress}`
+
+		// First, get basic data we always need
 		const tokenLaunches = await prisma.tokenLaunches.findMany({
 			where: { creatorAddress },
 			select: {
@@ -40,11 +41,28 @@ export async function fetchCreatorData(
 		const launchCount = tokenLaunches.length
 
 		// get twitter handle if not provided and not hiding identity
-		let finalTwitterHandle = hideIdentity ? null : twitterHandle
+		finalTwitterHandle = hideIdentity ? null : finalTwitterHandle
 		if (!hideIdentity && !finalTwitterHandle && tokenLaunches.length > 0) {
 			const launchWithTwitter = tokenLaunches.find(l => l.twitterUsername)
 			if (launchWithTwitter) {
 				finalTwitterHandle = launchWithTwitter.twitterUsername
+			}
+		}
+
+		// Check cache only if we have a twitter handle (otherwise we can't fetch followers anyway)
+		if (finalTwitterHandle) {
+			const cachedData = await redisGet(cacheKey)
+			if (cachedData) {
+				try {
+					const parsed = JSON.parse(cachedData)
+					// Only use cache if followers is not "0"
+					if (parsed.followers !== "0") {
+						return parsed
+					}
+					// If followers is "0", continue to fetch fresh data
+				} catch (error) {
+					console.error("Failed to parse cached creator data:", error)
+				}
 			}
 		}
 
@@ -53,6 +71,7 @@ export async function fetchCreatorData(
 
 		// fetch Twitter followers data if we have a handle
 		if (finalTwitterHandle) {
+			// Fetch trusted followers from GiveRep
 			try {
 				const res = await fetch(
 					`https://giverep.com/api/trust-count/user-count/${finalTwitterHandle}`
@@ -68,42 +87,22 @@ export async function fetchCreatorData(
 				console.error("Error fetching GiveRep data:", error)
 			}
 
+			// Use fxtwitter as the primary and only source for follower count
 			try {
-				const twitterResponse = await fetch(
-					`https://api.twitterapi.io/twitter/user/info?userName=${finalTwitterHandle}`,
-					{
-						headers: {
-							"X-API-Key": env.TWITTER_API_IO_KEY,
-						},
-					}
+				const fxTwitterResponse = await fetch(
+					`https://api.fxtwitter.com/${finalTwitterHandle}`
 				)
 
-				if (twitterResponse.ok) {
-					const twitterData = await twitterResponse.json()
-					if (twitterData.status === "success" && twitterData.data) {
-						followerCount = twitterData.data.followers || 0
+				if (fxTwitterResponse.ok) {
+					const fxTwitterData = await fxTwitterResponse.json()
+					if (fxTwitterData && fxTwitterData.user) {
+						followerCount = fxTwitterData.user.followers || 0
 					}
+				} else {
+					console.error(`fxTwitter returned status ${fxTwitterResponse.status} for @${finalTwitterHandle}`)
 				}
 			} catch (error) {
-				console.error("Error fetching Twitter data:", error)
-			}
-
-			// Use fxtwitter as fallback when follower count is 0
-			if (followerCount === 0) {
-				try {
-					const fxTwitterResponse = await fetch(
-						`https://api.fxtwitter.com/${finalTwitterHandle}`
-					)
-
-					if (fxTwitterResponse.ok) {
-						const fxTwitterData = await fxTwitterResponse.json()
-						if (fxTwitterData && fxTwitterData.user && fxTwitterData.user.followers) {
-							followerCount = fxTwitterData.user.followers || 0
-						}
-					}
-				} catch (error) {
-					console.error("Error fetching fxTwitter data:", error)
-				}
+				console.error(`Error fetching fxTwitter data for @${finalTwitterHandle}:`, error)
 			}
 		}
 
@@ -145,12 +144,15 @@ export async function fetchCreatorData(
 			twitterHandle: finalTwitterHandle
 		}
 
-		// cache the complete creator data
-		await redisSetEx(
-			cacheKey,
-			CACHE_TTL.CREATOR_DATA,
-			JSON.stringify(creatorData)
-		)
+		// Only cache if we have non-zero follower count
+		// This ensures we don't cache failed API calls or users with genuinely 0 followers
+		if (creatorData.followers !== "0") {
+			await redisSetEx(
+				cacheKey,
+				CACHE_TTL.CREATOR_DATA,
+				JSON.stringify(creatorData)
+			)
+		}
 
 		return creatorData
 	} catch (error) {

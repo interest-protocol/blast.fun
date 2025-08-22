@@ -41,7 +41,7 @@ export const CreatorDisplay = forwardRef<
 
 		if (resolvedDomain) {
 			return {
-				display: `@${resolvedDomain.replace(/\.sui$/i, "")}`,
+				display: resolvedDomain,
 				href: null,
 				type: 'domain' as const
 			}

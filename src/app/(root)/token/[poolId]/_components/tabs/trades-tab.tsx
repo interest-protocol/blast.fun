@@ -2,9 +2,9 @@
 
 import { useState, useRef, useMemo, useCallback, useEffect } from "react"
 import { PoolWithMetadata } from "@/types/pool"
-import { Activity, ExternalLink } from "lucide-react"
+import { Activity, ExternalLink, User } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { useInfiniteQuery } from "@tanstack/react-query"
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
 import { formatAddress } from "@mysten/sui/utils"
 import { getTxExplorerUrl } from "@/utils/transaction"
 import { Logo } from "@/components/ui/logo"
@@ -21,6 +21,16 @@ import { RelativeAge } from "@/components/shared/relative-age"
 interface TradesTabProps {
 	pool: PoolWithMetadata
 	className?: string
+}
+
+interface TwitterRelation {
+	id: string
+	twitterUserId: string
+	twitterUsername: string
+	address: string
+	purchases: any
+	createdAt: string
+	updatedAt: string
 }
 
 function useRealtimeTrades(pool: PoolWithMetadata, poolSymbol?: string) {
@@ -73,6 +83,31 @@ function useRealtimeTrades(pool: PoolWithMetadata, poolSymbol?: string) {
 export function TradesTab({ pool, className }: TradesTabProps) {
 	const TRADES_PER_PAGE = 20
 	const metadata = pool.coinMetadata || pool.metadata
+
+	// Fetch Twitter relations for this pool
+	const { data: twitterRelations } = useQuery({
+		queryKey: ["twitter-relations", pool.poolId],
+		queryFn: async () => {
+			const response = await fetch(`/api/pool/${pool.poolId}/twitter-relations`)
+			if (!response.ok) return null
+			const data = await response.json()
+			return data.relations as TwitterRelation[]
+		},
+		enabled: !!pool.poolId && pool.isProtected,
+		staleTime: 30000, // 30 seconds
+		refetchOnWindowFocus: false
+	})
+
+	// Create a map of addresses to Twitter usernames
+	const addressToTwitter = useMemo(() => {
+		const map = new Map<string, string>()
+		if (twitterRelations) {
+			twitterRelations.forEach(relation => {
+				map.set(relation.address, relation.twitterUsername)
+			})
+		}
+		return map
+	}, [twitterRelations])
 
 	const {
 		data,
@@ -297,18 +332,33 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 										</div>
 
 										<div className="col-span-3 text-right flex items-center justify-end gap-0.5 sm:gap-1">
-											<a
-												href={`https://suivision.xyz/account/${trade.trader}`}
-												target="_blank"
-												rel="noopener noreferrer"
-												className="font-mono text-[10px] sm:text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
-											>
-												<span className="sm:hidden">{formatAddress(trade.trader).slice(0, 4) + '...'}</span>
-												<span className="hidden sm:inline">{formatAddress(trade.trader)}</span>
-												{isCreator && (
-													<span className="text-destructive font-bold">(DEV)</span>
-												)}
-											</a>
+											{addressToTwitter.has(trade.trader) ? (
+												<a
+													href={`https://x.com/${addressToTwitter.get(trade.trader)}`}
+													target="_blank"
+													rel="noopener noreferrer"
+													className="font-mono text-[10px] sm:text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+												>
+													<User className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+													<span className="text-primary">@{addressToTwitter.get(trade.trader)}</span>
+													{isCreator && (
+														<span className="text-destructive font-bold">(DEV)</span>
+													)}
+												</a>
+											) : (
+												<a
+													href={`https://suivision.xyz/account/${trade.trader}`}
+													target="_blank"
+													rel="noopener noreferrer"
+													className="font-mono text-[10px] sm:text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+												>
+													<span className="sm:hidden">{formatAddress(trade.trader).slice(0, 4) + '...'}</span>
+													<span className="hidden sm:inline">{formatAddress(trade.trader)}</span>
+													{isCreator && (
+														<span className="text-destructive font-bold">(DEV)</span>
+													)}
+												</a>
+											)}
 											<a
 												href={getTxExplorerUrl(trade.digest)}
 												target="_blank"

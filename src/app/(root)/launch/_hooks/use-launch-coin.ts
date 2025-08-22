@@ -168,7 +168,7 @@ export function useLaunchCoin() {
 					})
 				: pumpSdk.zeroSuiCoin(tx)
 
-		const { metadataCap, firstPurchase: purchasedCoin } = await pumpSdk.newPoolWithFirstBuy({
+		const { metadataCap, firstBuy } = await pumpSdk.newPoolWithFirstBuy({
 			tx,
 			configurationKey: configKey,
 			metadata,
@@ -185,7 +185,7 @@ export function useLaunchCoin() {
 			firstPurchase,
 		})
 
-		tx.transferObjects([purchasedCoin], tx.pure.address(address))
+		tx.transferObjects([firstBuy], tx.pure.address(address))
 		
 		if (metadataCap) {
 			tx.transferObjects([metadataCap], tx.pure.address(address))
@@ -217,6 +217,8 @@ export function useLaunchCoin() {
 		hideIdentity: boolean
 		protectionSettings?: {
 			requireTwitter: boolean
+			revealTraderIdentity: boolean
+			minFollowerCount?: string
 			maxHoldingPercent?: string
 		}
 	}): Promise<void> => {
@@ -275,6 +277,8 @@ export function useLaunchCoin() {
 				? {
 						sniperProtection: true,
 						requireTwitter: formValues.requireTwitter,
+						revealTraderIdentity: formValues.revealTraderIdentity,
+						minFollowerCount: formValues.minFollowerCount,
 						maxHoldingPercent: formValues.maxHoldingPercent,
 					}
 				: undefined
@@ -342,6 +346,8 @@ export function useLaunchCoin() {
 				? {
 						sniperProtection: true,
 						requireTwitter: pendingToken.formValues.requireTwitter,
+						revealTraderIdentity: pendingToken.formValues.revealTraderIdentity,
+						minFollowerCount: pendingToken.formValues.minFollowerCount,
 						maxHoldingPercent: pendingToken.formValues.maxHoldingPercent,
 					}
 				: undefined

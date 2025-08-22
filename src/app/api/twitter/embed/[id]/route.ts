@@ -10,15 +10,15 @@ export async function GET(
     const searchParams = request.nextUrl.searchParams
     const refCode = searchParams.get("ref")
     const appUrl = new URL(BASE_DOMAIN)
-    
+
     // Get user agent to detect Twitter/social media bots
     const userAgent = request.headers.get("user-agent") || ""
     const isBot = /bot|crawler|spider|twitter|facebook|whatsapp|telegram|discord|slack/i.test(userAgent)
 
     // build URLs
     const xCardUrl = refCode ? `${appUrl}/x-card/${id}?ref=${refCode}` : `${appUrl}/x-card/${id}`
-    const tokenUrl = refCode ? `${appUrl}/meme/${id}?ref=${refCode}` : `${appUrl}/meme/${id}`
-    
+    const tokenUrl = refCode ? `${appUrl}/token/${id}?ref=${refCode}` : `${appUrl}/token/${id}`
+
     // If not a bot, redirect to the actual token page
     if (!isBot) {
         return NextResponse.redirect(tokenUrl, { status: 302 })

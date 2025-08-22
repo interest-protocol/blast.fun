@@ -17,28 +17,30 @@ export function DesktopNav() {
 					<Link
 						key={item.href}
 						href={item.href}
-						className={cn(
-							"group relative px-5 py-2.5 rounded-xl transition-all duration-300",
-							"hover:bg-destructive/10",
-							isActive && "bg-destructive/15"
-						)}
+						className="group relative px-4 py-2 transition-all duration-300"
 					>
+						{/* Cyberpunk active border effect */}
+						{isActive && (
+							<>
+								<div className="absolute bottom-0 left-0 right-0 h-[2px] bg-destructive" />
+								<div className="absolute bottom-0 left-0 right-0 h-[2px] bg-destructive/50 blur-sm" />
+							</>
+						)}
+
 						<span className={cn(
-							"relative z-10 flex items-center gap-2.5 font-mono text-xs uppercase tracking-wider transition-all duration-300",
-							isActive ? "text-destructive font-bold" : "text-muted-foreground hover:text-foreground"
+							"relative z-10 flex items-center gap-2 font-mono text-xs uppercase tracking-wider transition-all duration-200",
+							isActive
+								? "text-primary"
+								: "text-muted-foreground/70 group-hover:text-foreground/90"
 						)}>
 							<item.icon className={cn(
 								"h-4 w-4 transition-all duration-300",
-								isActive && "text-destructive",
-								"group-hover:scale-110"
+								isActive
+									? "text-primary"
+									: "text-muted-foreground/70 group-hover:text-foreground/90"
 							)} />
 							{item.label}
 						</span>
-
-						{/* Active indicator */}
-						{isActive && (
-							<div className="absolute inset-0 bg-gradient-to-r from-destructive/0 via-destructive/10 to-destructive/0 rounded-xl" />
-						)}
 					</Link>
 				)
 			})}

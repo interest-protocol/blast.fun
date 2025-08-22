@@ -60,3 +60,13 @@ export const GET_POOL = gql`
 		}
 	}
 `
+
+export const GET_POOL_BONDING_PROGRESS = gql`
+	query GetPoolBondingProgress($coinType: String!) {
+		coinPool(type: $coinType) {
+			bondingCurve
+			migrated
+			canMigrate
+		}
+	}
+`

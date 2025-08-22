@@ -188,19 +188,19 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 									<div className="flex flex-row gap-8 text-xs">
 										<div>
 											<div className="text-muted-foreground uppercase text-[10px] tracking-wider">entry</div>
-											<div className="font-bold text-sm">
+											<div className="font-bold text-sm text-white">
 												${pnlData?.entryPrice ? formatSmallPrice(pnlData.entryPrice) : '0.00'}
 											</div>
 										</div>
 										<div>
 											<div className="text-muted-foreground uppercase text-[10px] tracking-wider">sold</div>
-											<div className="font-bold text-sm">
+											<div className="font-bold text-sm text-white">
 												${pnlData?.sold ? formatNumberWithSuffix(pnlData.sold) : '0'}
 											</div>
 										</div>
 										<div>
 											<div className="text-muted-foreground uppercase text-[10px] tracking-wider">holding</div>
-											<div className="font-bold text-sm">
+											<div className="font-bold text-sm text-white">
 												${pnlData?.holding ? formatNumberWithSuffix(pnlData.holding) : '0'}
 											</div>
 										</div>
