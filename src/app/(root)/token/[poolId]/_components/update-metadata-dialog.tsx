@@ -38,10 +38,15 @@ export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadat
 	const [description, setDescription] = useState(metadata?.description || "")
 	const [iconUrl, setIconUrl] = useState(metadata?.iconUrl || metadata?.icon_url || "")
 	
-	// Form state - pool metadata
-	const [twitter, setTwitter] = useState("")
-	const [telegram, setTelegram] = useState("")
-	const [website, setWebsite] = useState("")
+	// Form state - pool metadata (initialize with existing values)
+	const [twitter, setTwitter] = useState(pool.metadata?.X || "")
+	const [telegram, setTelegram] = useState(pool.metadata?.Telegram || "")
+	const [website, setWebsite] = useState(pool.metadata?.Website || "")
+	
+	// Store original values to check for changes
+	const originalTwitter = pool.metadata?.X || ""
+	const originalTelegram = pool.metadata?.Telegram || ""
+	const originalWebsite = pool.metadata?.Website || ""
 	
 	// Image input mode
 	const [imageInputMode, setImageInputMode] = useState<"upload" | "url">("upload")
@@ -188,20 +193,23 @@ export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadat
 				hasChanges = true
 			}
 			
-			// @dev: Update pool metadata social links
+			// @dev: Update pool metadata social links only if changed
 			const poolMetadataUpdates: { names: string[], values: string[] } = { names: [], values: [] }
 			
-			if (twitter) {
+			// Only update X/Twitter if it changed
+			if (twitter !== originalTwitter) {
 				poolMetadataUpdates.names.push('X')
 				poolMetadataUpdates.values.push(twitter)
 			}
 			
-			if (telegram) {
+			// Only update Telegram if it changed
+			if (telegram !== originalTelegram) {
 				poolMetadataUpdates.names.push('Telegram')
 				poolMetadataUpdates.values.push(telegram)
 			}
 			
-			if (website) {
+			// Only update Website if it changed
+			if (website !== originalWebsite) {
 				poolMetadataUpdates.names.push('Website')
 				poolMetadataUpdates.values.push(website)
 			}
@@ -259,23 +267,23 @@ export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadat
 			setDescription(metadata?.description || "")
 			setIconUrl(metadata?.iconUrl || metadata?.icon_url || "")
 			setImageUrlInput(metadata?.iconUrl || metadata?.icon_url || "")
-			setTwitter("")
-			setTelegram("")
-			setWebsite("")
+			setTwitter(pool.metadata?.X || "")
+			setTelegram(pool.metadata?.Telegram || "")
+			setWebsite(pool.metadata?.Website || "")
 		}
 		onOpenChange(open)
 	}
 	
 	return (
 		<Dialog open={open} onOpenChange={handleOpenChange}>
-			<DialogContent className="sm:max-w-md">
+			<DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
 						<Edit2 className="h-5 w-5 text-primary" />
-						Update Token Metadata
+						Update Token & Pool Metadata
 					</DialogTitle>
 					<DialogDescription>
-						Update your token&apos;s name, symbol, description, and icon. Only the token creator can make these changes.
+						Update your token&apos;s name, symbol, description, icon, and social links. Only the token creator can make these changes.
 					</DialogDescription>
 				</DialogHeader>
 				
@@ -422,13 +430,19 @@ export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadat
 					
 					{/* Pool Metadata Section */}
 					<div className="space-y-2 border-t pt-4">
-						<Label className="text-sm font-semibold">Social Links (Pool Metadata)</Label>
+						<div className="flex items-center justify-between">
+							<Label className="text-sm font-semibold">Social Links (Pool Metadata)</Label>
+							{(originalTwitter || originalTelegram || originalWebsite) && (
+								<span className="text-xs text-muted-foreground">Existing values shown</span>
+							)}
+						</div>
 						
 						{/* Twitter/X */}
 						<div className="space-y-2">
 							<Label htmlFor="twitter" className="flex items-center gap-2">
 								<span className="h-4 w-4 text-center font-bold">𝕏</span>
 								X (Twitter)
+								{originalTwitter && <span className="text-xs text-muted-foreground ml-auto">(Current)</span>}
 							</Label>
 							<Input
 								id="twitter"
@@ -445,6 +459,7 @@ export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadat
 							<Label htmlFor="telegram" className="flex items-center gap-2">
 								<MessageCircle className="h-4 w-4" />
 								Telegram
+								{originalTelegram && <span className="text-xs text-muted-foreground ml-auto">(Current)</span>}
 							</Label>
 							<Input
 								id="telegram"
@@ -461,6 +476,7 @@ export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadat
 							<Label htmlFor="website" className="flex items-center gap-2">
 								<Globe className="h-4 w-4" />
 								Website
+								{originalWebsite && <span className="text-xs text-muted-foreground ml-auto">(Current)</span>}
 							</Label>
 							<Input
 								id="website"
