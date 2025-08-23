@@ -105,7 +105,7 @@ export function PortfolioContent() {
 							className="font-mono uppercase flex items-center gap-2"
 						>
 							<Gift className="h-4 w-4" />
-							Claim Rewards
+							Claim Referral Rewards
 						</Button>
 					</div>
 				</div>
