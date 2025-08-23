@@ -6,8 +6,9 @@ import { PortfolioTable } from "./portfolio-table"
 import { PortfolioStats } from "./portfolio-stats"
 import { fetchPortfolio } from "@/lib/fetch-portfolio"
 import type { PortfolioResponse } from "@/types/portfolio"
-import { Loader2 } from "lucide-react"
+import { Loader2, Gift } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { RewardsDialog } from "@/components/dialogs/rewards.dialog"
 
 export function PortfolioContent() {
 	const { address, isConnected, setIsConnectDialogOpen } = useApp()
@@ -15,6 +16,7 @@ export function PortfolioContent() {
 	const [isLoading, setIsLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 	const [hideSmallBalance, setHideSmallBalance] = useState(true)
+	const [isRewardsOpen, setIsRewardsOpen] = useState(false)
 
 	useEffect(() => {
 		if (!address) {
@@ -88,12 +90,24 @@ export function PortfolioContent() {
 		<div className="container max-w-6xl mx-auto px-4 py-8">
 			<div className="space-y-6">
 				<div className="flex flex-col gap-4">
-					<h1 className="font-mono text-2xl font-bold uppercase tracking-wider text-foreground">
-						Your Portfolio
-					</h1>
-					<p className="font-mono text-sm text-muted-foreground">
-						Track your holdings and PNL across all tokens
-					</p>
+					<div className="flex items-center justify-between">
+						<div>
+							<h1 className="font-mono text-2xl font-bold uppercase tracking-wider text-foreground">
+								Your Portfolio
+							</h1>
+							<p className="font-mono text-sm text-muted-foreground">
+								Track your holdings and PNL across all tokens
+							</p>
+						</div>
+						<Button
+							onClick={() => setIsRewardsOpen(true)}
+							variant="outline"
+							className="font-mono uppercase flex items-center gap-2"
+						>
+							<Gift className="h-4 w-4" />
+							Claim Referral Rewards
+						</Button>
+					</div>
 				</div>
 
 				{portfolio && (
@@ -115,6 +129,11 @@ export function PortfolioContent() {
 					</div>
 				)}
 			</div>
+			
+			<RewardsDialog 
+				open={isRewardsOpen} 
+				onOpenChange={setIsRewardsOpen} 
+			/>
 		</div>
 	)
 }
