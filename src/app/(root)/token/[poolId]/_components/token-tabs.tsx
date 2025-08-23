@@ -4,10 +4,12 @@ import { useState } from "react"
 import { useTheme } from "next-themes"
 import Image from "next/image"
 import Link from "next/link"
-import { Activity } from "lucide-react"
+import { Activity, Users, Droplets } from "lucide-react"
 import { cn } from "@/utils"
 import { PoolWithMetadata } from "@/types/pool"
 import { TradesTab } from "./tabs/trades-tab"
+import { HoldersTab } from "./tabs/holders-tab"
+import { PoolsTab } from "./tabs/pools-tab"
 
 interface TokenTabsProps {
 	pool: PoolWithMetadata
@@ -27,6 +29,18 @@ const tabs: Tab[] = [
 		label: "Trades",
 		icon: Activity,
 		component: TradesTab
+	},
+	{
+		id: "holders",
+		label: "Holders",
+		icon: Users,
+		component: HoldersTab
+	},
+	{
+		id: "pools",
+		label: "Pools",
+		icon: Droplets,
+		component: PoolsTab
 	},
 ]
 

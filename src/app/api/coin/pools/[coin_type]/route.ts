@@ -1,0 +1,62 @@
+import { NextResponse } from "next/server"
+import { blockVisionService } from "@/services/blockvision.service"
+import { redisGet, redisSetEx } from "@/lib/redis/client"
+import type { DexPool } from "@/types/blockvision"
+
+export const dynamic = "force-dynamic"
+
+export async function GET(
+	request: Request,
+	{ params }: { params: { coin_type: string } }
+) {
+	try {
+		const coinType = decodeURIComponent(params.coin_type)
+		console.log(`🏊 Fetching pools for coin: ${coinType}`)
+
+		// @dev: Check Redis cache first
+		const cacheKey = `coin:pools:${coinType}`
+		const cached = await redisGet(cacheKey)
+		
+		if (cached) {
+			console.log(`✅ Returning cached pools data for ${coinType}`)
+			return NextResponse.json(JSON.parse(cached))
+		}
+
+		// @dev: Fetch from BlockVision API
+		const poolsResponse = await blockVisionService.getDexPools(coinType)
+		
+		if (!poolsResponse.success || !poolsResponse.data) {
+			console.error(`❌ Failed to fetch DEX pools: ${poolsResponse.error}`)
+			return NextResponse.json(
+				{ error: poolsResponse.error || "Failed to fetch DEX pools" },
+				{ status: 500 }
+			)
+		}
+
+		// @dev: Sort pools by TVL (descending)
+		const sortedPools = [...poolsResponse.data].sort((a, b) => {
+			const tvlA = parseFloat(a.tvl.replace(/,/g, ""))
+			const tvlB = parseFloat(b.tvl.replace(/,/g, ""))
+			return tvlB - tvlA
+		})
+
+		const response = {
+			pools: sortedPools,
+			total: sortedPools.length,
+			timestamp: Date.now(),
+		}
+
+		// @dev: Cache for 30 seconds
+		await redisSetEx(cacheKey, 30, JSON.stringify(response))
+
+		console.log(`✅ Fetched and cached ${sortedPools.length} pools for ${coinType}`)
+		return NextResponse.json(response)
+
+	} catch (error) {
+		console.error("Error fetching coin pools:", error)
+		return NextResponse.json(
+			{ error: "Failed to fetch coin pools" },
+			{ status: 500 }
+		)
+	}
+}
