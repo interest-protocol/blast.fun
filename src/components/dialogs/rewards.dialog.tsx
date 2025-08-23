@@ -514,7 +514,7 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 							<Button
 								onClick={handleClaimAll}
 								disabled={claimingCoinType === "all"}
-								className="font-mono uppercase"
+								className="font-mono uppercase hidden"
 							>
 								{claimingCoinType === "all" ? (
 									<>
