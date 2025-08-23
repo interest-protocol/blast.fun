@@ -31,6 +31,210 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 	// Initialize MemezWalletSDK
 	const walletSdk = new MemezWalletSDK()
 
+	// Shared function to merge coins and prepare receive operation
+	const mergeAndPrepareReceive = async (
+		coin: WalletCoin,
+		tx: Transaction,
+		suiClient: SuiClient
+	): Promise<{ success: boolean; error?: string }> => {
+		try {
+			console.log(`\n📊 Processing ${coin.symbol} (${coin.coinType})`)
+			
+			// Get all coins of this type with retry logic for rate limiting
+			const allCoins: CoinStruct[] = []
+			let cursor: string | null | undefined = undefined
+			let hasNextPage = true
+			
+			while (hasNextPage) {
+				let retries = 0
+				const maxRetries = 3
+				let response = null
+				
+				while (retries < maxRetries) {
+					try {
+						response = await suiClient.getCoins({
+							owner: memezWalletAddress!,
+							coinType: coin.coinType,
+							cursor,
+						})
+						break // Success, exit retry loop
+					} catch (error: any) {
+						if (error?.status === 429 || error?.message?.includes('429')) {
+							retries++
+							if (retries >= maxRetries) {
+								throw new Error(`Rate limited after ${maxRetries} retries`)
+							}
+							// Exponential backoff: 1s, 2s, 4s
+							const waitTime = Math.pow(2, retries - 1) * 1000
+							console.log(`    ⏳ Rate limited, waiting ${waitTime}ms before retry ${retries}/${maxRetries}`)
+							await new Promise(resolve => setTimeout(resolve, waitTime))
+						} else {
+							throw error // Re-throw non-rate-limit errors
+						}
+					}
+				}
+				
+				if (!response) {
+					throw new Error("Failed to fetch coins after retries")
+				}
+				
+				allCoins.push(...response.data)
+				hasNextPage = response.hasNextPage
+				cursor = response.nextCursor
+			}
+			
+			console.log(`  → Found ${allCoins.length} coins`)
+			
+			if (allCoins.length === 0) {
+				console.log(`  → No coins to claim`)
+				return { success: false, error: "No coins found" }
+			}
+			
+			let finalCoinId: string = ""
+			
+			// Merge if needed
+			if (allCoins.length > 1) {
+				console.log(`  → Merging ${allCoins.length} coins...`)
+				
+				const BATCH_SIZE = 500
+				let remainingCoins = [...allCoins]
+				
+				// Keep merging until we have 1 coin
+				while (remainingCoins.length > 1) {
+					// Split into batches of 500
+					const batches: typeof allCoins[] = []
+					for (let i = 0; i < remainingCoins.length; i += BATCH_SIZE) {
+						batches.push(remainingCoins.slice(i, Math.min(i + BATCH_SIZE, remainingCoins.length)))
+					}
+					
+					console.log(`    Creating ${batches.length} batch(es) from ${remainingCoins.length} coins`)
+					
+					// Merge all batches in parallel
+					const mergePromises = batches.map(async (batch, index) => {
+						console.log(`    Batch ${index + 1}: Merging ${batch.length} coins`)
+						
+						const mergeResponse = await fetch("/api/wallet/merge-coins", {
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+							},
+							body: JSON.stringify({
+								coins: batch.map((c) => ({
+									objectId: c.coinObjectId,
+									version: c.version,
+									digest: c.digest,
+								})),
+								coinType: coin.coinType,
+								walletAddress: memezWalletAddress,
+							}),
+						})
+						
+						if (!mergeResponse.ok) {
+							const errorData = await mergeResponse.json()
+							throw new Error(errorData.error || `Failed to merge batch ${index + 1}`)
+						}
+						
+						const mergeData = await mergeResponse.json()
+						
+						if (!mergeData.success) {
+							throw new Error(mergeData.error || `Merge failed for batch ${index + 1}`)
+						}
+						
+						console.log(`    ✅ Batch ${index + 1} merged! TX: ${mergeData.transactionDigest}`)
+						return mergeData
+					})
+					
+					// Wait for all parallel merges to complete
+					await Promise.all(mergePromises)
+					
+					// Wait for chain to update
+					console.log(`    ⏳ Waiting for chain update...`)
+					await new Promise(resolve => setTimeout(resolve, 3000))
+					
+					// Fetch all updated coins (with pagination to get all)
+					const updatedCoins: CoinStruct[] = []
+					let cursor: string | null | undefined = undefined
+					let hasNextPage = true
+					
+					while (hasNextPage) {
+						let retries = 0
+						const maxRetries = 3
+						let response = null
+						
+						while (retries < maxRetries) {
+							try {
+								response = await suiClient.getCoins({
+									owner: memezWalletAddress!,
+									coinType: coin.coinType,
+									cursor,
+								})
+								break
+							} catch (error: any) {
+								if (error?.status === 429 || error?.message?.includes('429')) {
+									retries++
+									if (retries >= maxRetries) {
+										throw new Error(`Rate limited after ${maxRetries} retries while fetching updated coins`)
+									}
+									const waitTime = Math.pow(2, retries - 1) * 1000
+									console.log(`    ⏳ Rate limited on update check, waiting ${waitTime}ms before retry ${retries}/${maxRetries}`)
+									await new Promise(resolve => setTimeout(resolve, waitTime))
+								} else {
+									throw error
+								}
+							}
+						}
+						
+						if (!response) {
+							throw new Error("Failed to fetch updated coins after retries")
+						}
+						
+						updatedCoins.push(...response.data)
+						hasNextPage = response.hasNextPage
+						cursor = response.nextCursor
+					}
+					
+					console.log(`    → After merging: ${updatedCoins.length} coin(s) remaining`)
+					remainingCoins = updatedCoins
+					
+					if (remainingCoins.length === 1) {
+						finalCoinId = remainingCoins[0].coinObjectId
+						break
+					}
+				}
+			} else {
+				finalCoinId = allCoins[0].coinObjectId
+			}
+			
+			if (!finalCoinId) {
+				throw new Error("No final coin ID after merge")
+			}
+			
+			console.log(`  → Final coin: ${finalCoinId}`)
+			
+			// Add receive operation to the transaction
+			const { object } = await walletSdk.receive({
+				tx,
+				type: `0x2::coin::Coin<${coin.coinType}>`,
+				objectId: finalCoinId,
+				wallet: memezWalletAddress!,
+			})
+			
+			// Transfer to user's wallet
+			tx.transferObjects([object], address!)
+			
+			console.log(`  ✅ ${coin.symbol} prepared for claiming`)
+			
+			return { success: true }
+			
+		} catch (error) {
+			console.error(`  ❌ Failed to process ${coin.symbol}:`, error)
+			return { 
+				success: false, 
+				error: error instanceof Error ? error.message : "Unknown error" 
+			}
+		}
+	}
+
 	// Fetch wallet coins from BlockVision via proxy
 	const fetchWalletCoins = useCallback(async () => {
 		if (!memezWalletAddress) return
@@ -65,171 +269,44 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 		}
 	}, [memezWalletAddress])
 
-	// Handle claim button click - merge all coins first, then create receive tx for user
+	// Handle claim button click - simplified using shared function
 	const handleClaim = useCallback(async (coin: WalletCoin) => {
 		console.log("╔════════════════════════════════════════════════════════╗")
 		console.log("║                   CLAIM PROCESS START                    ║")
 		console.log("╠════════════════════════════════════════════════════════╣")
 		console.log("║ Coin Symbol:", coin.symbol)
-		console.log("║ Coin Type:", coin.coinType)
-		console.log("║ Balance:", coin.balance)
-		console.log("║ Value:", coin.value)
-		console.log("║ Memez Wallet:", memezWalletAddress)
 		console.log("║ User Wallet:", address)
 		console.log("╚════════════════════════════════════════════════════════╝")
 		
 		setClaimingCoinType(coin.coinType)
-		
-		// Show loading toast
-		const loadingToastId = toast.loading("Preparing your rewards...")
+		const loadingToastId = toast.loading("Preparing your reward...")
 		
 		try {
-			// Initialize SUI client
 			const suiClient = new SuiClient({ url: getFullnodeUrl("mainnet") })
+			const tx = new Transaction()
 			
-			// STEP 1: Get all coins of this type
-			console.log("\n📊 Step 1: Fetching all coins of type", coin.symbol)
-			const allCoins: CoinStruct[] = []
-			let cursor: string | null | undefined = undefined
-			let hasNextPage = true
+			// Merge and prepare receive for this coin
+			const result = await mergeAndPrepareReceive(coin, tx, suiClient)
 			
-			while (hasNextPage) {
-				const response = await suiClient.getCoins({
-					owner: memezWalletAddress!,
-					coinType: coin.coinType,
-					cursor,
-				})
-				
-				allCoins.push(...response.data)
-				hasNextPage = response.hasNextPage
-				cursor = response.nextCursor
-				
-				console.log(`  → Fetched batch: ${response.data.length} coins, Total: ${allCoins.length}`)
+			if (!result.success) {
+				throw new Error(result.error || "Failed to prepare coin")
 			}
-			
-			console.log(`✅ Total coins found: ${allCoins.length}`)
 			
 			// Dismiss loading toast
 			toast.dismiss(loadingToastId)
 			
-			// STEP 2: Merge coins if needed
-			let finalCoinId: string = ""
-			
-			if (allCoins.length > 1) {
-				console.log(`\n🔄 Step 2: Merging ${allCoins.length} coins...`)
-				
-				// Batch coins in groups of 500 to avoid transaction size limits
-				const BATCH_SIZE = 500
-				let remainingCoins = [...allCoins]
-				
-				while (remainingCoins.length > 1) {
-					const batchSize = Math.min(BATCH_SIZE, remainingCoins.length)
-					const batch = remainingCoins.slice(0, batchSize)
-					
-					console.log(`\n  📦 Processing batch: ${batch.length} coins (${remainingCoins.length} total remaining)`)
-					
-					// Call backend to merge coins
-					const mergeResponse = await fetch("/api/wallet/merge-coins", {
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
-						},
-						body: JSON.stringify({
-							coins: batch.map((c) => ({
-								objectId: c.coinObjectId,
-								version: c.version,
-								digest: c.digest,
-							})),
-							coinType: coin.coinType,
-							walletAddress: memezWalletAddress,
-						}),
-					})
-					
-					if (!mergeResponse.ok) {
-						const errorData = await mergeResponse.json()
-						throw new Error(errorData.error || "Failed to merge coins")
-					}
-					
-					const mergeData = await mergeResponse.json()
-					
-					if (!mergeData.success) {
-						throw new Error(mergeData.error || "Merge failed")
-					}
-					
-					console.log(`  ✅ Batch merge successful! TX: ${mergeData.transactionDigest}`)
-					console.log(`  → Gas rebate amount: ${mergeData.gasInfo?.rebateAmount}`)
-					
-					// Wait a bit for the chain to update
-					await new Promise(resolve => setTimeout(resolve, 2000))
-					
-					// Get the updated coins after this merge
-					const updatedCoins = await suiClient.getCoins({
-						owner: memezWalletAddress!,
-						coinType: coin.coinType,
-					})
-					
-					remainingCoins = updatedCoins.data
-					console.log(`  → Coins after merge: ${remainingCoins.length}`)
-					
-					// If we're down to 1 coin, we're done
-					if (remainingCoins.length === 1) {
-						finalCoinId = remainingCoins[0].coinObjectId
-						console.log(`\n✅ All merges complete! Final coin ID: ${finalCoinId}`)
-						break
-					}
-				}
-				
-				// Double-check we have the final coin
-				if (!finalCoinId) {
-					const finalCoins = await suiClient.getCoins({
-						owner: memezWalletAddress!,
-						coinType: coin.coinType,
-					})
-					
-					if (finalCoins.data.length === 0) {
-						throw new Error("No coins found after merge")
-					}
-					
-					finalCoinId = finalCoins.data[0].coinObjectId
-					console.log(`  → Final merged coin ID: ${finalCoinId}`)
-				}
-				
-			} else if (allCoins.length === 1) {
-				console.log("\n✅ Step 2: Only one coin found, no merge needed")
-				finalCoinId = allCoins[0].coinObjectId
-			} else {
-				throw new Error("No coins found to claim")
-			}
-			
-			// STEP 3: Create receive transaction for user to sign
-			console.log("\n💰 Step 3: Creating claim transaction for user to sign...")
-			console.log(`  → Coin to claim: ${finalCoinId}`)
-			console.log(`  → From: ${memezWalletAddress}`)
-			console.log(`  → To: ${address}`)
-			
-			// Create receive transaction
-			const { tx, object } = await walletSdk.receive({
-				type: `0x2::coin::Coin<${coin.coinType}>`,
-				objectId: finalCoinId,
-				wallet: memezWalletAddress!,
-			})
-			
-			// Transfer to user's wallet
-			tx.transferObjects([object], address!)
-			
 			// Set gas budget
 			tx.setGasBudget(10000000)
 			
-			console.log("  → Transaction created, requesting user signature...")
+			console.log("\n💰 Requesting user signature...")
 			
 			// Have the user sign and execute the transaction
-			const result = await signAndExecuteTransaction({
+			const txResult = await signAndExecuteTransaction({
 				transaction: tx,
 			})
 			
 			console.log("\n✅ CLAIM SUCCESSFUL!")
-			console.log(`  → Transaction: ${result.digest}`)
-			console.log(`  → ${coin.symbol} transferred to your wallet`)
+			console.log(`  → Transaction: ${txResult.digest}`)
 			
 			toast.success(`${coin.symbol} claimed successfully!`)
 			
@@ -246,207 +323,91 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 			setClaimingCoinType(null)
 			console.log("\n════════════════════════════════════════════════════════")
 		}
-	}, [memezWalletAddress, address, walletSdk, signAndExecuteTransaction, fetchWalletCoins])
+	}, [address, mergeAndPrepareReceive, signAndExecuteTransaction, fetchWalletCoins])
 
-	// Handle claim all button - merge all coins at once
+	// Handle claim all button - sequential processing with progress updates
 	const handleClaimAll = useCallback(async () => {
 		if (walletCoins.length === 0) return
 
+		// Limit to 200 coins maximum
+		const MAX_COINS = 10
+		const coinsToProcess = walletCoins.slice(0, MAX_COINS)
+		
 		console.log("╔════════════════════════════════════════════════════════╗")
 		console.log("║                CLAIM ALL PROCESS START                   ║")
 		console.log("╠════════════════════════════════════════════════════════╣")
-		console.log("║ Total Coin Types:", walletCoins.length)
-		console.log("║ Memez Wallet:", memezWalletAddress)
+		console.log("║ Total Coin Types:", coinsToProcess.length)
+		if (walletCoins.length > MAX_COINS) {
+			console.log("║ Note: Limited to first 200 coins")
+		}
 		console.log("║ User Wallet:", address)
 		console.log("╚════════════════════════════════════════════════════════╝")
 		
 		setClaimingCoinType("all")
-		
-		// Show loading toast
-		const loadingToastId = toast.loading("Preparing all rewards...")
+		let progressToastId: string | undefined
 		
 		try {
-			// Initialize SUI client
 			const suiClient = new SuiClient({ url: getFullnodeUrl("mainnet") })
-			
-			// STEP 1: Fetch all coins for each type in parallel
-			console.log("\n📊 Step 1: Fetching all coins for each type...")
-			
-			const fetchPromises = walletCoins.map(async (coin) => {
-				const allCoins: CoinStruct[] = []
-				let cursor: string | null | undefined = undefined
-				let hasNextPage = true
-				
-				while (hasNextPage) {
-					const response = await suiClient.getCoins({
-						owner: memezWalletAddress!,
-						coinType: coin.coinType,
-						cursor,
-					})
-					
-					allCoins.push(...response.data)
-					hasNextPage = response.hasNextPage
-					cursor = response.nextCursor
-				}
-				
-				return {
-					coinType: coin.coinType,
-					symbol: coin.symbol,
-					coins: allCoins
-				}
-			})
-			
-			const coinsByType = await Promise.all(fetchPromises)
-			console.log(`✅ Fetched coins for ${coinsByType.length} types`)
-			
-			// Dismiss loading toast after fetching
-			toast.dismiss(loadingToastId)
-			
-			// STEP 2: Merge coins for each type (in parallel where possible)
-			console.log("\n🔄 Step 2: Merging coins for each type...")
-			
-			const mergePromises = coinsByType.map(async ({ coinType, symbol, coins }) => {
-				if (coins.length <= 1) {
-					console.log(`  → ${symbol}: Only ${coins.length} coin(s), no merge needed`)
-					return {
-						coinType,
-						symbol,
-						finalCoinId: coins.length === 1 ? coins[0].coinObjectId : null,
-						success: true,
-						needsMerge: false
-					}
-				}
-				
-				console.log(`  → ${symbol}: Merging ${coins.length} coins...`)
-				
-				// Batch coins in groups of 500
-				const BATCH_SIZE = 500
-				let remainingCoins = [...coins]
-				
-				try {
-					while (remainingCoins.length > 1) {
-						const batchSize = Math.min(BATCH_SIZE, remainingCoins.length)
-						const batch = remainingCoins.slice(0, batchSize)
-						
-						console.log(`    Processing batch: ${batch.length} coins for ${symbol}`)
-						
-						// Call backend to merge coins
-						const mergeResponse = await fetch("/api/wallet/merge-coins", {
-							method: "POST",
-							headers: {
-								"Content-Type": "application/json",
-							},
-							body: JSON.stringify({
-								coins: batch.map((c) => ({
-									objectId: c.coinObjectId,
-									version: c.version,
-									digest: c.digest,
-								})),
-								coinType: coinType,
-								walletAddress: memezWalletAddress,
-							}),
-						})
-						
-						if (!mergeResponse.ok) {
-							const errorData = await mergeResponse.json()
-							throw new Error(errorData.error || "Failed to merge coins")
-						}
-						
-						const mergeData = await mergeResponse.json()
-						
-						if (!mergeData.success) {
-							throw new Error(mergeData.error || "Merge failed")
-						}
-						
-						console.log(`    ✅ Batch merged! TX: ${mergeData.transactionDigest}`)
-						
-						// Wait for chain update
-						await new Promise(resolve => setTimeout(resolve, 2000))
-						
-						// Get updated coins
-						const updatedCoins = await suiClient.getCoins({
-							owner: memezWalletAddress!,
-							coinType: coinType,
-						})
-						
-						remainingCoins = updatedCoins.data
-						
-						if (remainingCoins.length === 1) {
-							return {
-								coinType,
-								symbol,
-								finalCoinId: remainingCoins[0].coinObjectId,
-								success: true,
-								needsMerge: true
-							}
-						}
-					}
-				} catch (error) {
-					console.error(`  ❌ Failed to merge ${symbol}:`, error)
-					return {
-						coinType,
-						symbol,
-						finalCoinId: null,
-						success: false,
-						error: error instanceof Error ? error.message : "Unknown error"
-					}
-				}
-			})
-			
-			const mergeResults = await Promise.all(mergePromises)
-			
-			// Filter successful merges with final coins
-			const successfulMerges = mergeResults.filter(r => r && r.success && r.finalCoinId)
-			
-			if (successfulMerges.length === 0) {
-				toast.error("No coins available to claim")
-				return
-			}
-			
-			console.log(`\n✅ Successfully prepared ${successfulMerges.length} coin(s) for claiming`)
-			
-			// STEP 3: Create a single transaction with all receive operations
-			console.log("\n💰 Step 3: Creating claim transaction for user to sign...")
-			
 			const tx = new Transaction()
-			const receiveObjects = []
 			
-			for (const merge of successfulMerges) {
-				if (!merge) continue
-				console.log(`  → Adding ${merge.symbol} to transaction`)
+			// Process each coin sequentially with progress updates
+			console.log("\n📊 Processing coins sequentially...")
+			let successCount = 0
+			const failedCoins: string[] = []
+			
+			for (let i = 0; i < coinsToProcess.length; i++) {
+				const coin = coinsToProcess[i]
 				
-				// Create receive for this coin
-				const { tx: receiveTx, object } = await walletSdk.receive({
-					type: `0x2::coin::Coin<${merge.coinType}>`,
-					objectId: merge.finalCoinId!,
-					wallet: memezWalletAddress!,
-				})
+				// Update progress toast
+				if (progressToastId) {
+					toast.dismiss(progressToastId)
+				}
+				progressToastId = toast.loading(`Preparing ${coin.symbol} (${i + 1}/${coinsToProcess.length})...`)
 				
-				// Merge the receive transaction into our main transaction
-				// Note: We need to extract the commands from receiveTx and add them to tx
-				// This is a simplified approach - you may need to adjust based on SDK capabilities
-				receiveObjects.push(object)
+				const result = await mergeAndPrepareReceive(coin, tx, suiClient)
+				
+				if (result.success) {
+					successCount++
+				} else {
+					failedCoins.push(coin.symbol)
+					console.log(`  ⚠️ Skipping ${coin.symbol}: ${result.error}`)
+				}
 			}
 			
-			// Transfer all received objects to user's wallet
-			tx.transferObjects(receiveObjects, address!)
+			// Dismiss progress toast
+			if (progressToastId) {
+				toast.dismiss(progressToastId)
+			}
+			
+			if (successCount === 0) {
+				throw new Error("No coins could be prepared for claiming")
+			}
+			
+			// Show warning if some coins failed
+			if (failedCoins.length > 0) {
+				toast.error(`Could not claim: ${failedCoins.join(", ")}`)
+			}
+			
+			// Show warning if we hit the limit
+			if (walletCoins.length > MAX_COINS) {
+				toast(`Processing first ${MAX_COINS} coins. Run claim all again for remaining coins.`)
+			}
 			
 			// Set gas budget
 			tx.setGasBudget(10000000)
 			
-			console.log("  → Transaction created with", successfulMerges.length, "coins")
-			console.log("  → Requesting user signature...")
+			console.log(`\n💰 Requesting user signature for ${successCount} coin(s)...`)
 			
 			// Have the user sign and execute the transaction
-			const result = await signAndExecuteTransaction({
+			const txResult = await signAndExecuteTransaction({
 				transaction: tx,
 			})
 			
 			console.log("\n✅ CLAIM ALL SUCCESSFUL!")
-			console.log(`  → Transaction: ${result.digest}`)
-			console.log(`  → ${successfulMerges.length} coin(s) transferred to your wallet`)
+			console.log(`  → Transaction: ${txResult.digest}`)
+			console.log(`  → ${successCount} coin(s) transferred to your wallet`)
 			
-			toast.success(`Successfully claimed ${successfulMerges.length} reward(s)!`)
+			toast.success(`Successfully claimed ${successCount} reward(s)!`)
 			
 			// Refresh wallet coins after claim
 			setTimeout(() => {
@@ -455,13 +416,15 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 			
 		} catch (error) {
 			console.error("\n❌ CLAIM ALL FAILED:", error)
-			toast.dismiss(loadingToastId)
+			if (progressToastId) {
+				toast.dismiss(progressToastId)
+			}
 			toast.error(`Failed to claim rewards: ${error instanceof Error ? error.message : "Unknown error"}`)
 		} finally {
 			setClaimingCoinType(null)
 			console.log("\n════════════════════════════════════════════════════════")
 		}
-	}, [memezWalletAddress, address, walletCoins, walletSdk, signAndExecuteTransaction, fetchWalletCoins])
+	}, [address, walletCoins, mergeAndPrepareReceive, signAndExecuteTransaction, fetchWalletCoins])
 
 	// Get Memez wallet address when user connects
 	useEffect(() => {
@@ -514,7 +477,7 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 							<Button
 								onClick={handleClaimAll}
 								disabled={claimingCoinType === "all"}
-								className="font-mono uppercase hidden"
+								className="font-mono uppercase"
 							>
 								{claimingCoinType === "all" ? (
 									<>
@@ -522,7 +485,7 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 										Claiming...
 									</>
 								) : (
-									"Claim All"
+									"Claim Many (max 10 at a time)"
 								)}
 							</Button>
 						</div>
