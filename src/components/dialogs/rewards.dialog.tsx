@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
-import { Loader2, Wallet } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Loader2, X } from "lucide-react"
 import toast from "react-hot-toast"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { useApp } from "@/context/app.context"
@@ -13,8 +14,13 @@ import { useCurrentAccount, useSignAndExecuteTransaction } from "@mysten/dapp-ki
 import type { CoinStruct } from "@mysten/sui/client"
 import type { WalletCoin } from "@/types/blockvision"
 
-export function RewardsContent() {
-	const { address, isConnected, setIsConnectDialogOpen } = useApp()
+interface RewardsDialogProps {
+	open: boolean
+	onOpenChange: (open: boolean) => void
+}
+
+export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
+	const { address, isConnected } = useApp()
 	const currentAccount = useCurrentAccount()
 	const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction()
 	const [walletCoins, setWalletCoins] = useState<WalletCoin[]>([])
@@ -103,6 +109,8 @@ export function RewardsContent() {
 			
 			console.log(`✅ Total coins found: ${allCoins.length}`)
 			
+			// Dismiss loading toast
+			toast.dismiss(loadingToastId)
 			
 			// STEP 2: Merge coins if needed
 			let finalCoinId: string = ""
@@ -198,8 +206,6 @@ export function RewardsContent() {
 			console.log(`  → Coin to claim: ${finalCoinId}`)
 			console.log(`  → From: ${memezWalletAddress}`)
 			console.log(`  → To: ${address}`)
-
-			
 			
 			// Create receive transaction
 			const { tx, object } = await walletSdk.receive({
@@ -220,10 +226,6 @@ export function RewardsContent() {
 			const result = await signAndExecuteTransaction({
 				transaction: tx,
 			})
-
-
-			// Dismiss loading toast
-			toast.dismiss(loadingToastId)
 			
 			console.log("\n✅ CLAIM SUCCESSFUL!")
 			console.log(`  → Transaction: ${result.digest}`)
@@ -296,6 +298,9 @@ export function RewardsContent() {
 			
 			const coinsByType = await Promise.all(fetchPromises)
 			console.log(`✅ Fetched coins for ${coinsByType.length} types`)
+			
+			// Dismiss loading toast after fetching
+			toast.dismiss(loadingToastId)
 			
 			// STEP 2: Merge coins for each type (in parallel where possible)
 			console.log("\n🔄 Step 2: Merging coins for each type...")
@@ -411,8 +416,7 @@ export function RewardsContent() {
 				console.log(`  → Adding ${merge.symbol} to transaction`)
 				
 				// Create receive for this coin
-				const { object } = await walletSdk.receive({
-					tx,
+				const { tx: receiveTx, object } = await walletSdk.receive({
 					type: `0x2::coin::Coin<${merge.coinType}>`,
 					objectId: merge.finalCoinId!,
 					wallet: memezWalletAddress!,
@@ -437,10 +441,6 @@ export function RewardsContent() {
 			const result = await signAndExecuteTransaction({
 				transaction: tx,
 			})
-
-			// Dismiss loading toast after fetching
-			toast.dismiss(loadingToastId)
-			
 			
 			console.log("\n✅ CLAIM ALL SUCCESSFUL!")
 			console.log(`  → Transaction: ${result.digest}`)
@@ -465,7 +465,7 @@ export function RewardsContent() {
 
 	// Get Memez wallet address when user connects
 	useEffect(() => {
-		if (isConnected && address) {
+		if (isConnected && address && open) {
 			// Get the Memez wallet address using the SDK
 			const getMemezWallet = async () => {
 				try {
@@ -482,168 +482,156 @@ export function RewardsContent() {
 			}
 			getMemezWallet()
 		}
-	}, [isConnected, address, walletSdk])
+	}, [isConnected, address, walletSdk, open])
 
 	// Fetch coins when memez wallet address is available
 	useEffect(() => {
-		if (memezWalletAddress) {
+		if (memezWalletAddress && open) {
 			fetchWalletCoins()
 		}
-	}, [memezWalletAddress, fetchWalletCoins])
-
-	if (!isConnected) {
-		return (
-			<div className="container max-w-6xl mx-auto px-4 py-8">
-				<div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
-					<Wallet className="h-16 w-16 text-muted-foreground/50" />
-					<h1 className="font-mono text-2xl font-bold uppercase tracking-wider text-foreground/80">
-						Connect Wallet to View Rewards
-					</h1>
-					<Button
-						onClick={() => setIsConnectDialogOpen(true)}
-						className="font-mono uppercase"
-					>
-						Connect Wallet
-					</Button>
-				</div>
-			</div>
-		)
-	}
+	}, [memezWalletAddress, fetchWalletCoins, open])
 
 	return (
-		<div className="container max-w-6xl mx-auto px-4 py-8">
-			<div className="space-y-6">
-				{/* Header */}
-				<div className="flex items-center justify-between">
-					<div>
-						<h1 className="font-mono text-2xl font-bold uppercase tracking-wider text-foreground">
-							Referral Rewards
-						</h1>
-						<p className="font-mono text-sm text-muted-foreground mt-1">
-							Claim your referral rewards
-						</p>
-					</div>
-					{walletCoins.length > 0 && (
-						<Button
-							onClick={handleClaimAll}
-							disabled={claimingCoinType === "all"}
-							className="font-mono uppercase"
-						>
-							{claimingCoinType === "all" ? (
-								<>
-									<Loader2 className="h-4 w-4 animate-spin mr-2" />
-									Claiming...
-								</>
-							) : (
-								"Claim All"
-							)}
-						</Button>
-					)}
-				</div>
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
+				<DialogHeader>
+					<DialogTitle className="font-mono text-xl font-bold uppercase tracking-wider">
+						Referral Rewards
+					</DialogTitle>
+					<Button
+						variant="ghost"
+						size="icon"
+						className="absolute right-4 top-4"
+						onClick={() => onOpenChange(false)}
+					>
+						<X className="h-4 w-4" />
+					</Button>
+				</DialogHeader>
 
-				{/* Coins Table */}
-				<div className="rounded-lg border border-border bg-card overflow-hidden">
-					{isLoading ? (
-						<div className="flex flex-col items-center justify-center py-16">
-							<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-							<p className="mt-3 text-sm font-mono text-muted-foreground">
-								Loading wallet rewards...
-							</p>
+				<div className="mt-4">
+					{walletCoins.length > 0 && (
+						<div className="flex justify-end mb-4">
+							<Button
+								onClick={handleClaimAll}
+								disabled={claimingCoinType === "all"}
+								className="font-mono uppercase"
+							>
+								{claimingCoinType === "all" ? (
+									<>
+										<Loader2 className="h-4 w-4 animate-spin mr-2" />
+										Claiming...
+									</>
+								) : (
+									"Claim All"
+								)}
+							</Button>
 						</div>
-					) : walletCoins.length > 0 ? (
-						<div className="overflow-x-auto">
-							<table className="w-full">
-								<thead>
-									<tr className="border-b border-border bg-muted/50">
-										<th className="text-left p-4 font-mono text-sm font-medium uppercase text-muted-foreground">
-											Token
-										</th>
-										<th className="text-right p-4 font-mono text-sm font-medium uppercase text-muted-foreground">
-											Balance
-										</th>
-										<th className="text-right p-4 font-mono text-sm font-medium uppercase text-muted-foreground">
-											Value
-										</th>
-										<th className="text-center p-4 font-mono text-sm font-medium uppercase text-muted-foreground">
-											Action
-										</th>
-									</tr>
-								</thead>
-								<tbody>
-									{walletCoins.map((coin) => (
-										<tr
-											key={coin.coinType}
-											className="border-b border-border hover:bg-muted/30 transition-colors"
-										>
-											<td className="p-4">
-												<div className="flex items-center gap-3">
-													{coin.iconUrl ? (
-														<img
-															src={coin.iconUrl}
-															alt={coin.symbol}
-															className="h-8 w-8 rounded-full"
-															onError={(e) => {
-																const target = e.target as HTMLImageElement
-																target.style.display = "none"
-															}}
-														/>
-													) : (
-														<div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-															<span className="text-xs font-mono uppercase">
-																{coin.symbol?.slice(0, 2)}
-															</span>
-														</div>
-													)}
-													<div>
-														<div className="font-mono text-sm font-medium">
-															{coin.symbol}
-														</div>
-														<div className="text-xs text-muted-foreground">
-															{coin.name}
+					)}
+
+					{/* Coins Table */}
+					<div className="rounded-lg border border-border bg-card overflow-hidden">
+						{isLoading ? (
+							<div className="flex flex-col items-center justify-center py-16">
+								<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+								<p className="mt-3 text-sm font-mono text-muted-foreground">
+									Loading wallet rewards...
+								</p>
+							</div>
+						) : walletCoins.length > 0 ? (
+							<div className="overflow-x-auto">
+								<table className="w-full">
+									<thead>
+										<tr className="border-b border-border bg-muted/50">
+											<th className="text-left p-4 font-mono text-sm font-medium uppercase text-muted-foreground">
+												Token
+											</th>
+											<th className="text-right p-4 font-mono text-sm font-medium uppercase text-muted-foreground">
+												Balance
+											</th>
+											<th className="text-right p-4 font-mono text-sm font-medium uppercase text-muted-foreground">
+												Value
+											</th>
+											<th className="text-center p-4 font-mono text-sm font-medium uppercase text-muted-foreground">
+												Action
+											</th>
+										</tr>
+									</thead>
+									<tbody>
+										{walletCoins.map((coin) => (
+											<tr
+												key={coin.coinType}
+												className="border-b border-border hover:bg-muted/30 transition-colors"
+											>
+												<td className="p-4">
+													<div className="flex items-center gap-3">
+														{coin.iconUrl ? (
+															<img
+																src={coin.iconUrl}
+																alt={coin.symbol}
+																className="h-8 w-8 rounded-full"
+																onError={(e) => {
+																	const target = e.target as HTMLImageElement
+																	target.style.display = "none"
+																}}
+															/>
+														) : (
+															<div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+																<span className="text-xs font-mono uppercase">
+																	{coin.symbol?.slice(0, 2)}
+																</span>
+															</div>
+														)}
+														<div>
+															<div className="font-mono text-sm font-medium">
+																{coin.symbol}
+															</div>
+															<div className="text-xs text-muted-foreground">
+																{coin.name}
+															</div>
 														</div>
 													</div>
-												</div>
-											</td>
-											<td className="p-4 text-right">
-												<span className="font-mono text-sm">
-													{formatNumberWithSuffix(
-														parseFloat(coin.balance) / Math.pow(10, coin.decimals)
-													)}
-												</span>
-											</td>
-											<td className="p-4 text-right">
-												<span className="font-mono text-sm">
-													{coin.value && coin.value > 0 ? `$${formatNumberWithSuffix(coin.value)}` : '-'}
-												</span>
-											</td>
-											<td className="p-4 text-center">
-												<Button
-													size="sm"
-													onClick={() => handleClaim(coin)}
-													disabled={claimingCoinType === coin.coinType}
-													className="font-mono uppercase"
-												>
-													{claimingCoinType === coin.coinType ? (
-														<Loader2 className="h-4 w-4 animate-spin" />
-													) : (
-														"Claim"
-													)}
-												</Button>
-											</td>
-										</tr>
-									))}
-								</tbody>
-							</table>
-						</div>
-					) : (
-						<div className="flex flex-col items-center justify-center py-16">
-							<p className="text-sm font-mono text-muted-foreground uppercase">
-								No rewards available
-							</p>
-						</div>
-					)}
+												</td>
+												<td className="p-4 text-right">
+													<span className="font-mono text-sm">
+														{formatNumberWithSuffix(
+															parseFloat(coin.balance) / Math.pow(10, coin.decimals)
+														)}
+													</span>
+												</td>
+												<td className="p-4 text-right">
+													<span className="font-mono text-sm">
+														{coin.value && coin.value > 0 ? `$${formatNumberWithSuffix(coin.value)}` : '-'}
+													</span>
+												</td>
+												<td className="p-4 text-center">
+													<Button
+														size="sm"
+														onClick={() => handleClaim(coin)}
+														disabled={claimingCoinType === coin.coinType}
+														className="font-mono uppercase"
+													>
+														{claimingCoinType === coin.coinType ? (
+															<Loader2 className="h-4 w-4 animate-spin" />
+														) : (
+															"Claim"
+														)}
+													</Button>
+												</td>
+											</tr>
+										))}
+									</tbody>
+								</table>
+							</div>
+						) : (
+							<div className="flex flex-col items-center justify-center py-16">
+								<p className="text-sm font-mono text-muted-foreground uppercase">
+									No rewards available
+								</p>
+							</div>
+						)}
+					</div>
 				</div>
-			</div>
-		</div>
+			</DialogContent>
+		</Dialog>
 	)
 }
