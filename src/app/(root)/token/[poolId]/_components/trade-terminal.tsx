@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useMemo } from "react"
-import { Loader2, Settings2, Wallet, Activity, Pencil, Check, X, Rocket, Flame, Edit2 } from "lucide-react"
+import { Loader2, Settings2, Wallet, Activity, Pencil, Check, X, Rocket, AlertTriangle, Flame } from "lucide-react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { TokenAvatar } from "@/components/tokens/token-avatar"
@@ -22,9 +22,7 @@ import { pumpSdk } from "@/lib/pump"
 import { getBuyQuote, getSellQuote } from "@/lib/aftermath"
 import BigNumber from "bignumber.js"
 import { BsTwitterX } from "react-icons/bs"
-import { BurnDialog } from "./burn-dialog"
-import { UpdateMetadataDialog } from "./update-metadata-dialog"
-import { Separator } from "@/components/ui/separator"
+import { useBurn } from "../_hooks/use-burn"
 
 interface TradeTerminalProps {
 	pool: PoolWithMetadata
@@ -32,14 +30,12 @@ interface TradeTerminalProps {
 }
 
 export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
-	const { isConnected, address } = useApp()
+	const { isConnected } = useApp()
 	const { isLoggedIn: isTwitterLoggedIn, login: twitterLogin } = useTwitter()
 	const { settings: protectionSettings } = useTokenProtection(pool.poolId, pool.isProtected)
-	const [tradeType, setTradeType] = useState<"buy" | "sell">("buy")
+	const [tradeType, setTradeType] = useState<"buy" | "sell" | "burn">("buy")
 	const [amount, setAmount] = useState("")
 	const [settingsOpen, setSettingsOpen] = useState(false)
-	const [burnDialogOpen, setBurnDialogOpen] = useState(false)
-	const [updateMetadataDialogOpen, setUpdateMetadataDialogOpen] = useState(false)
 	const [referrerWallet, setReferrerWallet] = useState<string | null>(null)
 	const [editingQuickBuy, setEditingQuickBuy] = useState(false)
 	const [editingQuickSell, setEditingQuickSell] = useState(false)
@@ -66,9 +62,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	const balanceInDisplayUnit = effectiveBalance ? Number(effectiveBalance) / Math.pow(10, decimals) : 0
 	const hasBalance = balanceInDisplayUnit > 0
 	const suiBalanceInDisplayUnit = suiBalance ? Number(suiBalance) / Number(MIST_PER_SUI) : 0
-	
-	// Check if user is the token creator
-	const isCreator = address && pool.creatorAddress && address === pool.creatorAddress
+
 
 	// Precise balance calculation for MAX button using BigNumber
 	const balanceInDisplayUnitPrecise = useMemo(() => {
@@ -76,7 +70,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 		if (!effectiveBalance || effectiveBalance === undefined || effectiveBalance === null) {
 			return "0"
 		}
-		
+
 		// Additional safety check to ensure effectiveBalance is a valid value
 		try {
 			const balanceBN = new BigNumber(effectiveBalance)
@@ -94,7 +88,6 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 
 	// prices for USD calculations from server data
 	const suiPrice = marketData?.suiPrice || 4
-	const tokenPrice = marketData?.coinPrice || 0
 
 	// initialize temp amounts with store values
 	useEffect(() => {
@@ -108,7 +101,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	const [isRefreshingQuote, setIsRefreshingQuote] = useState(false)
 
 	const fetchQuote = async (isRefresh = false) => {
-		if (!amount || parseFloat(amount) === 0 || !pool.poolId) {
+		if (!amount || parseFloat(amount) === 0 || !pool.poolId || tradeType === "burn") {
 			setQuote(null)
 			return
 		}
@@ -182,9 +175,9 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 		return () => clearTimeout(timer)
 	}, [amount, tradeType, pool.poolId, pool.coinType, pool.migrated, decimals, slippage])
 
-	// refresh quote every 15 seconds
+	// refresh quote every 15 seconds (except for burn)
 	useEffect(() => {
-		if (!amount || parseFloat(amount) === 0) return
+		if (!amount || parseFloat(amount) === 0 || tradeType === "burn") return
 
 		const interval = setInterval(() => {
 			fetchQuote(true)
@@ -241,11 +234,25 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 		referrerWallet,
 	})
 
+	const {
+		burn,
+		isProcessing: isBurning,
+		error: burnError
+	} = useBurn({
+		pool,
+		decimals,
+		actualBalance: effectiveBalance,
+		onSuccess: async () => {
+			await refetchPortfolio()
+			setAmount("")
+		}
+	})
+
 	const handleQuickAmount = (value: number) => {
 		if (tradeType === "buy") {
 			setAmount(value.toString())
-		} else {
-			// for sell, calculate percentage
+		} else if (tradeType === "sell" || tradeType === "burn") {
+			// @dev: For sell and burn, calculate percentage
 			const percentage = value
 
 			// Safety check: ensure we have a valid balance before calculating
@@ -262,10 +269,10 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 				try {
 					const balanceBN = new BigNumber(balanceInDisplayUnitPrecise)
 					const percentageBN = new BigNumber(percentage).dividedBy(100)
-					const tokenAmountToSell = balanceBN.multipliedBy(percentageBN).toFixed(9, BigNumber.ROUND_DOWN)
-					setAmount(tokenAmountToSell)
+					const tokenAmount = balanceBN.multipliedBy(percentageBN).toFixed(9, BigNumber.ROUND_DOWN)
+					setAmount(tokenAmount)
 				} catch (error) {
-					console.error("Error calculating quick sell amount:", error)
+					console.error("Error calculating quick amount:", error)
 					setAmount("0")
 				}
 			}
@@ -292,17 +299,25 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 			}
 
 			await buy(amount, slippage)
-		} else {
+			await refetchPortfolio()
+			setAmount("")
+		} else if (tradeType === "sell") {
 			const requiredTokens = parseFloat(amount)
 			if (requiredTokens > balanceInDisplayUnit) {
 				return
 			}
 
 			await sell(amount, slippage)
-		}
+			await refetchPortfolio()
+			setAmount("")
+		} else if (tradeType === "burn") {
+			const requiredTokens = parseFloat(amount)
+			if (requiredTokens > balanceInDisplayUnit) {
+				return
+			}
 
-		await refetchPortfolio()
-		setAmount("")
+			await burn(amount)
+		}
 	}
 
 	const isMigrating = pool.canMigrate === true && !pool.migrated
@@ -351,8 +366,11 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 			)}
 
 			<div className="p-3 space-y-3">
-				{/* Buy/Sell Tabs */}
-				<div className="grid grid-cols-2 gap-1 p-1 bg-muted/30 rounded-lg">
+				{/* Buy/Sell/Burn Tabs */}
+				<div className={cn(
+					"grid gap-1 p-1 bg-muted/30 rounded-lg",
+					hasBalance ? "grid-cols-3" : "grid-cols-2"
+				)}>
 					<button
 						onClick={() => setTradeType("buy")}
 						className={cn(
@@ -377,6 +395,19 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 					>
 						Sell
 					</button>
+					{hasBalance && (
+						<button
+							onClick={() => setTradeType("burn")}
+							className={cn(
+								"py-2 rounded-md font-mono text-xs uppercase transition-all",
+								tradeType === "burn"
+									? "bg-orange-500/20 text-orange-500 border border-orange-500/50"
+									: "hover:bg-muted/50 text-muted-foreground"
+							)}
+						>
+							Burn
+						</button>
+					)}
 				</div>
 
 				{/* Input Section with Balance */}
@@ -650,17 +681,27 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 					</button>
 				</div>
 
-				{/* Error - Only show if not related to Twitter auth */}
-				{error && !error.includes("AUTHENTICATED WITH X") && (
+				{/* X Identity Reveal Warning - Only for bonding curve tokens */}
+				{tradeType === "buy" && protectionSettings?.revealTraderIdentity && !pool.migrated && (
+					<div className="flex items-center gap-2 p-3 rounded-lg border border-yellow-500/30 bg-yellow-500/5">
+						<AlertTriangle className="h-4 w-4 text-yellow-500 shrink-0" />
+						<span className="text-xs text-yellow-500 font-medium">
+							This buy will reveal your X (Twitter) username in trade history table.
+						</span>
+					</div>
+				)}
+
+				{/* Error */}
+				{((tradeType !== "burn" && error && !error.includes("AUTHENTICATED WITH X")) || (tradeType === "burn" && burnError)) && (
 					<Alert className="py-1.5 border-destructive/50 bg-destructive/10">
 						<AlertDescription className="font-mono text-[10px] uppercase text-destructive">
-							{error}
+							{tradeType === "burn" ? burnError : error}
 						</AlertDescription>
 					</Alert>
 				)}
 
-				{/* Trade Button or X Connect Button */}
-				{protectionSettings?.requireTwitter && !isTwitterLoggedIn ? (
+				{/* Trade/Burn Button or X Connect Button */}
+				{protectionSettings?.requireTwitter && !isTwitterLoggedIn && tradeType !== "burn" ? (
 					<Button
 						variant="outline"
 						className="w-full h-10 font-mono text-xs uppercase"
@@ -675,25 +716,28 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 							"w-full h-10 font-mono text-xs uppercase",
 							tradeType === "buy"
 								? "bg-green-400/50 hover:bg-green-500/90 text-foreground"
-								: "bg-destructive/80 hover:bg-destructive text-foreground",
-							(isMigrating || !amount || isProcessing) && "opacity-50"
+								: tradeType === "sell"
+									? "bg-destructive/80 hover:bg-destructive text-foreground"
+									: "bg-orange-500/80 hover:bg-orange-600 text-foreground",
+							(isMigrating || !amount || isProcessing || isBurning) && "opacity-50"
 						)}
 						onClick={handleTrade}
 						disabled={
 							!amount ||
 							isProcessing ||
+							isBurning ||
 							isMigrating ||
-							(tradeType === "sell" && !hasBalance) ||
+							((tradeType === "sell" || tradeType === "burn") && !hasBalance) ||
 							(tradeType === "buy" && parseFloat(amount) > suiBalanceInDisplayUnit) ||
-							(tradeType === "sell" && parseFloat(amount) > balanceInDisplayUnit)
+							((tradeType === "sell" || tradeType === "burn") && parseFloat(amount) > balanceInDisplayUnit)
 						}
 					>
-						{isProcessing ? (
+						{(isProcessing || isBurning) ? (
 							<>
 								<Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
-								Processing...
+								{tradeType === "burn" ? "Burning..." : "Processing..."}
 							</>
-						) : isRefreshingQuote ? (
+						) : isRefreshingQuote && tradeType !== "burn" ? (
 							<>
 								<Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
 								Getting quotes...
@@ -702,49 +746,13 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 							<>
 								{tradeType === "buy"
 									? isLoadingQuote ? `Calculating...` : `Buy ${formatNumberWithSuffix(calculateOutputAmount)} ${metadata?.symbol}`
-									: isLoadingQuote ? `Calculating...` : `Sell ${formatNumberWithSuffix(parseFloat(amount) || 0)} ${metadata?.symbol} for ${formatNumberWithSuffix(calculateOutputAmount)} SUI`
+									: tradeType === "sell"
+										? isLoadingQuote ? `Calculating...` : `Sell ${formatNumberWithSuffix(parseFloat(amount) || 0)} ${metadata?.symbol} for ${formatNumberWithSuffix(calculateOutputAmount)} SUI`
+										: (<><Flame className="h-3.5 w-3.5 mr-1 inline" />Burn {formatNumberWithSuffix(parseFloat(amount) || 0)} {metadata?.symbol}</>)
 								}
 							</>
 						)}
 					</Button>
-				)}
-				
-				{/* Update Metadata Button - Only on mobile for creator */}
-				{isConnected && isCreator && (
-					<>
-						<div className="lg:hidden">
-							<Separator className="bg-border/30" />
-						</div>
-						
-						<Button
-							variant="outline"
-							className="w-full h-10 font-mono text-xs uppercase lg:hidden border-primary/50 hover:bg-primary/10 hover:border-primary"
-							onClick={() => setUpdateMetadataDialogOpen(true)}
-						>
-							<Edit2 className="h-4 w-4 text-primary mr-2" />
-							Update Metadata
-						</Button>
-					</>
-				)}
-				
-				{/* Burn Button - Only on mobile */}
-				{isConnected && hasBalance && (
-					<>
-						{!isCreator && (
-							<div className="lg:hidden">
-								<Separator className="bg-border/30" />
-							</div>
-						)}
-						
-						<Button
-							variant="outline"
-							className="w-full h-10 font-mono text-xs uppercase lg:hidden border-orange-500/50 hover:bg-orange-500/10 hover:border-orange-500"
-							onClick={() => setBurnDialogOpen(true)}
-						>
-							<Flame className="h-4 w-4 text-orange-500 mr-2" />
-							Burn {metadata?.symbol}
-						</Button>
-					</>
 				)}
 			</div>
 
@@ -752,20 +760,6 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 			<TradeSettings
 				open={settingsOpen}
 				onOpenChange={setSettingsOpen}
-			/>
-			
-			{/* Update Metadata Dialog */}
-			<UpdateMetadataDialog
-				open={updateMetadataDialogOpen}
-				onOpenChange={setUpdateMetadataDialogOpen}
-				pool={pool}
-			/>
-			
-			{/* Burn Dialog */}
-			<BurnDialog
-				open={burnDialogOpen}
-				onOpenChange={setBurnDialogOpen}
-				pool={pool}
 			/>
 		</div>
 	)

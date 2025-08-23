@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react"
 
-interface TokenProtectionSettings {
+export interface TokenProtectionSettings {
 	sniperProtection?: boolean
 	requireTwitter?: boolean
+	revealTraderIdentity?: boolean
 	maxHoldingPercent?: string | null
+	minFollowerCount?: string | null
 }
 
 export function useTokenProtection(poolId: string, isProtected?: boolean) {
@@ -20,7 +22,7 @@ export function useTokenProtection(poolId: string, isProtected?: boolean) {
 		const fetchSettings = async () => {
 			setIsLoading(true)
 			setError(null)
-			
+
 			try {
 				const response = await fetch(`/api/token-protection/settings/${poolId}`)
 				if (response.ok) {
