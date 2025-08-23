@@ -22,7 +22,6 @@ import { pumpSdk } from "@/lib/pump"
 import { getBuyQuote, getSellQuote } from "@/lib/aftermath"
 import BigNumber from "bignumber.js"
 import { BsTwitterX } from "react-icons/bs"
-import { UpdateMetadataDialog } from "./update-metadata-dialog"
 import { useBurn } from "../_hooks/use-burn"
 
 interface TradeTerminalProps {
@@ -37,7 +36,6 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	const [tradeType, setTradeType] = useState<"buy" | "sell" | "burn">("buy")
 	const [amount, setAmount] = useState("")
 	const [settingsOpen, setSettingsOpen] = useState(false)
-	const [updateMetadataDialogOpen, setUpdateMetadataDialogOpen] = useState(false)
 	const [referrerWallet, setReferrerWallet] = useState<string | null>(null)
 	const [editingQuickBuy, setEditingQuickBuy] = useState(false)
 	const [editingQuickSell, setEditingQuickSell] = useState(false)
@@ -64,7 +62,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	const balanceInDisplayUnit = effectiveBalance ? Number(effectiveBalance) / Math.pow(10, decimals) : 0
 	const hasBalance = balanceInDisplayUnit > 0
 	const suiBalanceInDisplayUnit = suiBalance ? Number(suiBalance) / Number(MIST_PER_SUI) : 0
-	
+
 
 	// Precise balance calculation for MAX button using BigNumber
 	const balanceInDisplayUnitPrecise = useMemo(() => {
@@ -72,7 +70,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 		if (!effectiveBalance || effectiveBalance === undefined || effectiveBalance === null) {
 			return "0"
 		}
-		
+
 		// Additional safety check to ensure effectiveBalance is a valid value
 		try {
 			const balanceBN = new BigNumber(effectiveBalance)
@@ -236,9 +234,9 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 		referrerWallet,
 	})
 
-	const { 
-		burn, 
-		isProcessing: isBurning, 
+	const {
+		burn,
+		isProcessing: isBurning,
 		error: burnError
 	} = useBurn({
 		pool,
@@ -693,11 +691,11 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 					</div>
 				)}
 
-				{/* Error - Only show if not related to Twitter auth */}
-				{error && !error.includes("AUTHENTICATED WITH X") && (
+				{/* Error */}
+				{((tradeType !== "burn" && error && !error.includes("AUTHENTICATED WITH X")) || (tradeType === "burn" && burnError)) && (
 					<Alert className="py-1.5 border-destructive/50 bg-destructive/10">
 						<AlertDescription className="font-mono text-[10px] uppercase text-destructive">
-							{error}
+							{tradeType === "burn" ? burnError : error}
 						</AlertDescription>
 					</Alert>
 				)}
@@ -719,8 +717,8 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 							tradeType === "buy"
 								? "bg-green-400/50 hover:bg-green-500/90 text-foreground"
 								: tradeType === "sell"
-								? "bg-destructive/80 hover:bg-destructive text-foreground"
-								: "bg-orange-500/80 hover:bg-orange-600 text-foreground",
+									? "bg-destructive/80 hover:bg-destructive text-foreground"
+									: "bg-orange-500/80 hover:bg-orange-600 text-foreground",
 							(isMigrating || !amount || isProcessing || isBurning) && "opacity-50"
 						)}
 						onClick={handleTrade}
@@ -749,8 +747,8 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 								{tradeType === "buy"
 									? isLoadingQuote ? `Calculating...` : `Buy ${formatNumberWithSuffix(calculateOutputAmount)} ${metadata?.symbol}`
 									: tradeType === "sell"
-									? isLoadingQuote ? `Calculating...` : `Sell ${formatNumberWithSuffix(parseFloat(amount) || 0)} ${metadata?.symbol} for ${formatNumberWithSuffix(calculateOutputAmount)} SUI`
-									: (<><Flame className="h-3.5 w-3.5 mr-1 inline" />Burn {formatNumberWithSuffix(parseFloat(amount) || 0)} {metadata?.symbol}</>)
+										? isLoadingQuote ? `Calculating...` : `Sell ${formatNumberWithSuffix(parseFloat(amount) || 0)} ${metadata?.symbol} for ${formatNumberWithSuffix(calculateOutputAmount)} SUI`
+										: (<><Flame className="h-3.5 w-3.5 mr-1 inline" />Burn {formatNumberWithSuffix(parseFloat(amount) || 0)} {metadata?.symbol}</>)
 								}
 							</>
 						)}
@@ -762,13 +760,6 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 			<TradeSettings
 				open={settingsOpen}
 				onOpenChange={setSettingsOpen}
-			/>
-			
-			{/* Update Metadata Dialog */}
-			<UpdateMetadataDialog
-				open={updateMetadataDialogOpen}
-				onOpenChange={setUpdateMetadataDialogOpen}
-				pool={pool}
 			/>
 		</div>
 	)
