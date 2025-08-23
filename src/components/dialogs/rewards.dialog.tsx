@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Loader2, X } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import toast from "react-hot-toast"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { useApp } from "@/context/app.context"
@@ -461,14 +461,6 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 					<DialogTitle className="font-mono text-xl font-bold uppercase tracking-wider">
 						Referral Rewards
 					</DialogTitle>
-					<Button
-						variant="ghost"
-						size="icon"
-						className="absolute right-4 top-4"
-						onClick={() => onOpenChange(false)}
-					>
-						<X className="h-4 w-4" />
-					</Button>
 				</DialogHeader>
 
 				<div className="mt-4">
