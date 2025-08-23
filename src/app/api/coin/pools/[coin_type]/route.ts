@@ -19,7 +19,11 @@ export async function GET(
 		
 		if (cached) {
 			console.log(`✅ Returning cached pools data for ${coinType}`)
-			return NextResponse.json(JSON.parse(cached))
+			return NextResponse.json(JSON.parse(cached), {
+				headers: {
+					"Cache-Control": "public, s-maxage=15, stale-while-revalidate=30",
+				},
+			})
 		}
 
 		// @dev: Fetch from BlockVision API
@@ -46,11 +50,17 @@ export async function GET(
 			timestamp: Date.now(),
 		}
 
-		// @dev: Cache for 30 seconds
-		await redisSetEx(cacheKey, 30, JSON.stringify(response))
+		// @dev: Cache for 5 seconds in Redis
+		await redisSetEx(cacheKey, 5, JSON.stringify(response))
 
 		console.log(`✅ Fetched and cached ${sortedPools.length} pools for ${coinType}`)
-		return NextResponse.json(response)
+		
+		// @dev: Return with edge cache headers (15 seconds)
+		return NextResponse.json(response, {
+			headers: {
+				"Cache-Control": "public, s-maxage=15, stale-while-revalidate=30",
+			},
+		})
 
 	} catch (error) {
 		console.error("Error fetching coin pools:", error)

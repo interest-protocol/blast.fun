@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useTheme } from "next-themes"
 import Image from "next/image"
 import Link from "next/link"
@@ -46,9 +46,109 @@ const tabs: Tab[] = [
 
 export function TokenTabs({ pool, className }: TokenTabsProps) {
 	const [activeTab, setActiveTab] = useState("trades")
+	const [rightTab, setRightTab] = useState("holders") // @dev: For split view right side
 	const { resolvedTheme } = useTheme()
-	const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || TradesTab
+	const [isSplitView, setIsSplitView] = useState(false)
 
+	// @dev: Check screen size for split view
+	useEffect(() => {
+		const checkScreenSize = () => {
+			// @dev: Enable split view for xl (1280px) and above
+			setIsSplitView(window.innerWidth >= 1280)
+		}
+
+		checkScreenSize()
+		window.addEventListener("resize", checkScreenSize)
+		return () => window.removeEventListener("resize", checkScreenSize)
+	}, [])
+
+	const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || TradesTab
+	const RightComponent = tabs.find(tab => tab.id === rightTab)?.component || HoldersTab
+
+	// @dev: Split view for xl and 2xl screens
+	if (isSplitView) {
+		return (
+			<div className={cn("flex h-full gap-2", className)}>
+				{/* Left side - Always Trades */}
+				<div className="flex-1 flex flex-col border-r">
+					<div className="border-b">
+						<div className="flex items-center justify-between p-2">
+							<div className="flex items-center gap-1">
+								<div className="flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
+									<Activity className="h-3.5 w-3.5" />
+									<span>Trades</span>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div className="flex-1 overflow-hidden">
+						<TradesTab pool={pool} className="h-full" />
+					</div>
+				</div>
+
+				{/* Right side - Holders/Pools toggle */}
+				<div className="flex-1 flex flex-col">
+					<div className="border-b">
+						<div className="flex items-center justify-between p-2">
+							<div className="flex items-center gap-1">
+								<button
+									onClick={() => setRightTab("holders")}
+									className={cn(
+										"flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
+										rightTab === "holders"
+											? "bg-primary/10 text-primary border border-primary/20"
+											: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+									)}
+								>
+									<Users className="h-3.5 w-3.5" />
+									<span>Holders</span>
+								</button>
+								<button
+									onClick={() => setRightTab("pools")}
+									className={cn(
+										"flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
+										rightTab === "pools"
+											? "bg-primary/10 text-primary border border-primary/20"
+											: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+									)}
+								>
+									<Droplets className="h-3.5 w-3.5" />
+									<span>Pools</span>
+								</button>
+							</div>
+
+							<Link
+								href="https://nexa.xyz"
+								target="_blank"
+								rel="noopener noreferrer"
+								className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors group pr-2"
+							>
+								<span className="font-mono text-[10px] font-semibold uppercase tracking-wider">
+									DATA BY
+								</span>
+								<Image
+									src="/logo/nexa.svg"
+									alt="Nexa"
+									width={40}
+									height={10}
+									className={cn(
+										"h-2.5 w-auto opacity-70 group-hover:opacity-100 transition-opacity",
+										resolvedTheme === "light" && "invert"
+									)}
+									priority
+								/>
+							</Link>
+						</div>
+					</div>
+					<div className="flex-1 overflow-hidden">
+						<RightComponent pool={pool} className="h-full" />
+					</div>
+				</div>
+			</div>
+		)
+	}
+
+	// @dev: Standard tab view for smaller screens
 	return (
 		<div className={cn("flex flex-col h-full", className)}>
 			{/* Tabs Selector */}

@@ -44,8 +44,8 @@ export function PoolsTab({ pool, className }: PoolsTabProps) {
 			return response.json()
 		},
 		enabled: !!pool.coinType,
-		refetchInterval: 30000, // @dev: Refetch every 30 seconds
-		staleTime: 25000, // @dev: Consider data stale after 25 seconds
+		refetchInterval: 15000, // @dev: Refetch every 15 seconds (matches edge cache)
+		staleTime: 10000, // @dev: Consider data stale after 10 seconds
 	})
 
 	const formatTVL = (tvl: string) => {
