@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@3mate/gas-station-sdk':
+        specifier: ^0.3.2
+        version: 0.3.2
       '@apollo/client':
         specifier: ^3.13.8
         version: 3.13.8(@types/react@19.1.8)(graphql@16.11.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -244,6 +247,9 @@ packages:
     peerDependencies:
       graphql: ^15.5.0 || ^16.0.0 || ^17.0.0
       typescript: ^5.0.0
+
+  '@3mate/gas-station-sdk@0.3.2':
+    resolution: {integrity: sha512-aME5SgBvrrHobEslxwYiEHEUX7897Ay53U3FmpCnrm9NKxsgTSHqTDDNTG0qT2vjA/18dvJ2GRxygmLvEyta7w==}
 
   '@alloc/quick-lru@5.2.0':
     resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
@@ -3936,6 +3942,8 @@ snapshots:
       '@gql.tada/internal': 1.0.8(graphql@16.11.0)(typescript@5.8.3)
       graphql: 16.11.0
       typescript: 5.8.3
+
+  '@3mate/gas-station-sdk@0.3.2': {}
 
   '@alloc/quick-lru@5.2.0': {}
 
