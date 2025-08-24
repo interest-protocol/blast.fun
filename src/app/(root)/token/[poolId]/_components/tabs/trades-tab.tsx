@@ -17,6 +17,7 @@ import { DEFAULT_TOKEN_DECIMALS } from "@/constants"
 import type { TradeData, CoinTrade, UnifiedTrade } from "@/types/trade"
 import { playSound } from "@/lib/audio"
 import { RelativeAge } from "@/components/shared/relative-age"
+import { useSuiNSNames } from "@/hooks/use-suins"
 
 interface TradesTabProps {
 	pool: PoolWithMetadata
@@ -180,6 +181,20 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 		return Math.max(...unifiedTrades.slice(0, 50).map(t => t.value), 1)
 	}, [unifiedTrades])
 
+	// @dev: Get unique trader addresses for SuiNS resolution
+	const traderAddresses = useMemo(() => {
+		const addresses = new Set<string>()
+		unifiedTrades.forEach(trade => {
+			if (trade.trader && !addressToTwitter.has(trade.trader)) {
+				addresses.add(trade.trader)
+			}
+		})
+		return Array.from(addresses)
+	}, [unifiedTrades, addressToTwitter])
+
+	// @dev: Fetch SuiNS names for all traders
+	const { data: suinsNames } = useSuiNSNames(traderAddresses)
+
 	const scrollRef = useRef<HTMLDivElement>(null)
 	const loadMoreRef = useRef<HTMLDivElement>(null)
 
@@ -341,6 +356,18 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 												>
 													<User className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
 													<span className="text-primary">@{addressToTwitter.get(trade.trader)}</span>
+													{isCreator && (
+														<span className="text-destructive font-bold">(DEV)</span>
+													)}
+												</a>
+											) : suinsNames?.[trade.trader] ? (
+												<a
+													href={`https://suivision.xyz/account/${trade.trader}`}
+													target="_blank"
+													rel="noopener noreferrer"
+													className="font-mono text-[10px] sm:text-xs text-primary hover:underline transition-colors flex items-center gap-1"
+												>
+													<span>{suinsNames[trade.trader]}</span>
 													{isCreator && (
 														<span className="text-destructive font-bold">(DEV)</span>
 													)}
