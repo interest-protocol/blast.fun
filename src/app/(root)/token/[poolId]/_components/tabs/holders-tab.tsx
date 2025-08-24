@@ -10,6 +10,7 @@ import { cn } from "@/utils"
 import { Logo } from "@/components/ui/logo"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useSuiNSNames } from "@/hooks/use-suins"
+import { formatNumberWithSuffix } from "@/utils/format"
 
 interface HoldersTabProps {
 	pool: PoolWithMetadata
@@ -106,9 +107,9 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 					{/* Header */}
 					<div className="grid grid-cols-12 gap-2 px-2 sm:px-4 py-2 border-b border-border/50 text-[10px] sm:text-xs font-mono uppercase text-muted-foreground sticky top-0 bg-background/95 backdrop-blur-sm z-10 select-none">
 						<div className="col-span-1">Rank</div>
-						<div className="col-span-6">Address</div>
-						<div className="col-span-3 text-right">Balance</div>
-						<div className="col-span-2 text-right">Share</div>
+						<div className="col-span-5">Address</div>
+						<div className="col-span-3 text-right">Holdings</div>
+						<div className="col-span-3 text-right">Share</div>
 					</div>
 
 					{/* Holders List */}
@@ -117,6 +118,9 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 						const isTop3 = rank <= 3
 						const percentage = parseFloat(holder.percentage) * 100 // @dev: Convert decimal to percentage
 						const suinsName = suinsNames?.[holder.account]
+						// @dev: Format balance with K/M suffix
+						const balanceNum = parseFloat(holder.balance.replace(/,/g, ""))
+						const formattedBalance = formatNumberWithSuffix(balanceNum)
 
 						return (
 							<div
@@ -148,7 +152,7 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 									</div>
 
 									{/* Address */}
-									<div className="col-span-6 flex items-center gap-2">
+									<div className="col-span-5 flex items-center gap-2">
 										{holder.image && (
 											<img 
 												src={holder.image} 
@@ -158,47 +162,38 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 										)}
 										<div className="flex-1">
 											{holder.name ? (
-												<div className="flex flex-col">
+												<a
+													href={`https://suivision.xyz/account/${holder.account}`}
+													target="_blank"
+													rel="noopener noreferrer"
+													className="flex flex-col hover:opacity-80 transition-opacity"
+												>
 													<div className="flex items-center gap-1">
-														{holder.website ? (
-															<a
-																href={holder.website}
-																target="_blank"
-																rel="noopener noreferrer"
-																className="font-mono text-[10px] sm:text-xs text-primary hover:underline flex items-center gap-1"
-															>
-																{holder.name}
-																<ExternalLink className="h-2.5 w-2.5 opacity-50" />
-															</a>
-														) : (
-															<span className="font-mono text-[10px] sm:text-xs text-primary">
-																{holder.name}
-															</span>
+														<span className="font-mono text-[10px] sm:text-xs text-primary">
+															{holder.name}
+														</span>
+														{holder.website && (
+															<ExternalLink className="h-2.5 w-2.5 opacity-50" />
 														)}
 													</div>
-													<a
-														href={`https://suivision.xyz/account/${holder.account}`}
-														target="_blank"
-														rel="noopener noreferrer"
-														className="font-mono text-[9px] sm:text-[10px] text-muted-foreground hover:text-primary transition-colors"
-													>
+													<span className="font-mono text-[9px] sm:text-[10px] text-muted-foreground">
 														{formatAddress(holder.account)}
-													</a>
-												</div>
+													</span>
+												</a>
 											) : suinsName ? (
-												<div className="flex flex-col">
+												<a
+													href={`https://suivision.xyz/account/${holder.account}`}
+													target="_blank"
+													rel="noopener noreferrer"
+													className="flex flex-col hover:opacity-80 transition-opacity"
+												>
 													<span className="font-mono text-[10px] sm:text-xs text-foreground">
 														{suinsName}
 													</span>
-													<a
-														href={`https://suivision.xyz/account/${holder.account}`}
-														target="_blank"
-														rel="noopener noreferrer"
-														className="font-mono text-[9px] sm:text-[10px] text-muted-foreground hover:text-primary transition-colors"
-													>
+													<span className="font-mono text-[9px] sm:text-[10px] text-muted-foreground">
 														{formatAddress(holder.account)}
-													</a>
-												</div>
+													</span>
+												</a>
 											) : (
 												<a
 													href={`https://suivision.xyz/account/${holder.account}`}
@@ -206,20 +201,20 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 													rel="noopener noreferrer"
 													className="font-mono text-[10px] sm:text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
 												>
-													<span className="sm:hidden">{formatAddress(holder.account).slice(0, 8) + '...'}</span>
+													<span className="sm:hidden">{formatAddress(holder.account).slice(0, 6) + '...'}</span>
 													<span className="hidden sm:inline">{formatAddress(holder.account)}</span>
 												</a>
 											)}
 										</div>
 									</div>
 
-									{/* Balance */}
+									{/* Holdings */}
 									<div className="col-span-3 text-right font-mono text-[10px] sm:text-xs text-foreground/80">
-										{holder.balance}
+										{formattedBalance}
 									</div>
 
 									{/* Percentage */}
-									<div className="col-span-2 text-right">
+									<div className="col-span-3 text-right">
 										<span className={cn(
 											"font-mono text-[10px] sm:text-xs font-bold",
 											percentage >= 10 ? "text-destructive" : 

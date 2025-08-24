@@ -53,8 +53,8 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 	// @dev: Check screen size for split view
 	useEffect(() => {
 		const checkScreenSize = () => {
-			// @dev: Enable split view for xl (1280px) and above
-			setIsSplitView(window.innerWidth >= 1280)
+			// @dev: Enable split view for 2xl (1536px) and above
+			setIsSplitView(window.innerWidth >= 1536)
 		}
 
 		checkScreenSize()

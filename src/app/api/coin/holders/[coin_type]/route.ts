@@ -7,10 +7,11 @@ export const dynamic = "force-dynamic"
 
 export async function GET(
 	request: Request,
-	{ params }: { params: { coin_type: string } }
+	{ params }: { params: Promise<{ coin_type: string }> }
 ) {
 	try {
-		const coinType = decodeURIComponent(params.coin_type)
+		const { coin_type } = await params
+		const coinType = decodeURIComponent(coin_type)
 		console.log(`📊 Fetching holders for coin: ${coinType}`)
 
 		// @dev: Check Redis cache first
