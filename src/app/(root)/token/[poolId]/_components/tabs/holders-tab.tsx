@@ -121,6 +121,8 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 						// @dev: Format balance with K/M suffix
 						const balanceNum = parseFloat(holder.balance.replace(/,/g, ""))
 						const formattedBalance = formatNumberWithSuffix(balanceNum)
+						// @dev: Check if this holder is the developer
+						const isDev = holder.account === pool.creatorAddress || holder.account === pool.coinMetadata?.dev
 
 						return (
 							<div
@@ -171,6 +173,7 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 													<div className="flex items-center gap-1">
 														<span className="font-mono text-[10px] sm:text-xs text-primary">
 															{holder.name}
+															{isDev && <span className="text-destructive"> (dev)</span>}
 														</span>
 														{holder.website && (
 															<ExternalLink className="h-2.5 w-2.5 opacity-50" />
@@ -189,6 +192,7 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 												>
 													<span className="font-mono text-[10px] sm:text-xs text-foreground">
 														{suinsName}
+														{isDev && <span className="text-destructive"> (dev)</span>}
 													</span>
 													<span className="font-mono text-[9px] sm:text-[10px] text-muted-foreground">
 														{formatAddress(holder.account)}
@@ -201,8 +205,14 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 													rel="noopener noreferrer"
 													className="font-mono text-[10px] sm:text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
 												>
-													<span className="sm:hidden">{formatAddress(holder.account).slice(0, 6) + '...'}</span>
-													<span className="hidden sm:inline">{formatAddress(holder.account)}</span>
+													<span className="sm:hidden">
+														{formatAddress(holder.account).slice(0, 6) + '...'}
+														{isDev && <span className="text-destructive"> (dev)</span>}
+													</span>
+													<span className="hidden sm:inline">
+														{formatAddress(holder.account)}
+														{isDev && <span className="text-destructive"> (dev)</span>}
+													</span>
 												</a>
 											)}
 										</div>
