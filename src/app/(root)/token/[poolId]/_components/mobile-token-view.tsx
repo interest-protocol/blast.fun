@@ -87,7 +87,7 @@ export default function MobileTokenView({ pool, referral }: { pool: PoolWithMeta
 									)}
 								>
 									<Users className="h-3 w-3" />
-									<span>Holders</span>
+									<span>Top Holders</span>
 								</button>
 								<button
 									onClick={() => setActivitySubTab("pools")}

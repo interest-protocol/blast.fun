@@ -101,7 +101,7 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 									)}
 								>
 									<Users className="h-3.5 w-3.5" />
-									<span>Holders</span>
+									<span>Top Holders</span>
 								</button>
 								<button
 									onClick={() => setRightTab("pools")}
