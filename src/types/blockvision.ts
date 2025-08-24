@@ -73,3 +73,37 @@ export interface WalletCoin {
 	verified?: boolean
 	scam?: boolean
 }
+
+// DEX Pool types
+export interface DexPool {
+	dex: string
+	link: string
+	poolId: string
+	balance: string
+	price: string
+	coinList: string[]
+	tvl: string
+	volume24H: string
+	volume24HChange: string
+	apr: string
+}
+
+export type DexPoolsResponse = BlockVisionResponse<DexPool[]>
+
+// Coin Holder types
+export interface CoinHolder {
+	account: string
+	balance: string
+	percentage: string
+	name: string
+	image: string
+	website: string
+}
+
+export interface HoldersResult {
+	data: CoinHolder[]
+	nextPageCursor?: string
+	total: number
+}
+
+export type HoldersResponse = BlockVisionResponse<HoldersResult>
