@@ -215,6 +215,30 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 		return () => observer.disconnect()
 	}, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
+	const formatPrice = (price: number) => {
+		// @dev: Format price to show only 2 significant digits after leading zeros
+		if (price >= 1) {
+			return `$${price.toFixed(2)}`
+		}
+		
+		const priceStr = price.toString()
+		const match = priceStr.match(/^0\.0*(\d{2})/)
+		
+		if (match) {
+			const zeros = priceStr.match(/^0\.(0*)/)?.[1] || ''
+			const significantDigits = match[1]
+			const subZeroCount = zeros.length
+			
+			if (subZeroCount > 0) {
+				return `$0.0${subZeroCount}${significantDigits}`
+			} else {
+				return `$0.${significantDigits}`
+			}
+		}
+		
+		return `$${price.toFixed(2)}`
+	}
+
 	const formatValue = (value: number) => {
 		if (value < 1) return `$${value.toFixed(4)}`
 		if (value < 1000) return `$${value.toFixed(2)}`
@@ -259,13 +283,13 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 					</div>
 				) : (
 					<div className="relative">
-						<div className="grid grid-cols-12 gap-2 px-2 sm:px-4 py-2 border-b border-border/50 text-[10px] sm:text-xs font-mono uppercase text-muted-foreground sticky top-0 bg-background/95 backdrop-blur-sm z-10 select-none">
+						<div className="grid grid-cols-12 gap-1 sm:gap-2 px-2 sm:px-4 py-2 border-b border-border/50 text-[10px] sm:text-xs font-mono uppercase text-muted-foreground sticky top-0 bg-background/95 backdrop-blur-sm z-10 select-none">
 							<div className="col-span-1">Age</div>
 							<div className="col-span-1">Type</div>
-							<div className="col-span-4 sm:col-span-3">Trade</div>
-							<div className="col-span-2 text-right hidden sm:block">Price</div>
-							<div className="col-span-3 sm:col-span-2 text-right">Value</div>
-							<div className="col-span-3 text-right">Trader</div>
+							<div className="col-span-5 sm:col-span-5 md:col-span-5 lg:col-span-5 xl:col-span-4">Trade</div>
+							<div className="col-span-1 text-right hidden xl:block">Price</div>
+							<div className="col-span-2 text-right">Value</div>
+							<div className="col-span-3 sm:col-span-3 md:col-span-3 lg:col-span-3 xl:col-span-3 text-right">Trader</div>
 						</div>
 
 						{unifiedTrades.map((trade) => {
@@ -291,7 +315,7 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 										style={{ width: `${volumePercentage}%` }}
 									/>
 
-									<div className="relative grid grid-cols-12 gap-2 px-2 sm:px-4 py-2 sm:py-3 items-center border-b border-border/30">
+									<div className="relative grid grid-cols-12 gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 items-center border-b border-border/30">
 										<div className="col-span-1 font-mono text-[10px] sm:text-xs text-muted-foreground">
 											<RelativeAge timestamp={trade.timestamp} />
 										</div>
@@ -306,7 +330,7 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 											</span>
 										</div>
 
-										<div className="col-span-4 sm:col-span-3 flex items-center gap-1 font-mono text-[10px] sm:text-xs">
+										<div className="col-span-5 sm:col-span-5 md:col-span-5 lg:col-span-5 xl:col-span-4 flex items-center gap-0.5 sm:gap-1 font-mono text-[10px] sm:text-xs overflow-hidden">
 											<span className="text-foreground">
 												{formatNumberWithSuffix(trade.amountIn)}
 											</span>
@@ -338,15 +362,15 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 											</span>
 										</div>
 
-										<div className="col-span-2 text-right font-mono text-[10px] sm:text-xs text-foreground/80 hidden sm:block">
-											${trade.price > 0.01 ? trade.price.toFixed(4) : trade.price.toFixed(8)}
+										<div className="col-span-1 text-right font-mono text-[10px] sm:text-xs text-foreground/80 hidden xl:block">
+											{formatPrice(trade.price)}
 										</div>
 
-										<div className="col-span-3 sm:col-span-2 text-right font-mono text-[10px] sm:text-xs text-foreground/60">
+										<div className="col-span-2 text-right font-mono text-[10px] sm:text-xs text-foreground/60">
 											{formatValue(trade.value)}
 										</div>
 
-										<div className="col-span-3 text-right flex items-center justify-end gap-0.5 sm:gap-1">
+										<div className="col-span-3 sm:col-span-3 md:col-span-3 lg:col-span-3 xl:col-span-3 text-right flex items-center justify-end gap-0.5 sm:gap-1 overflow-hidden">
 											{addressToTwitter.has(trade.trader) ? (
 												<a
 													href={`https://x.com/${addressToTwitter.get(trade.trader)}`}
@@ -354,10 +378,10 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 													rel="noopener noreferrer"
 													className="font-mono text-[10px] sm:text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
 												>
-													<User className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-													<span className="text-primary">@{addressToTwitter.get(trade.trader)}</span>
+													<User className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />
+													<span className="text-primary truncate max-w-[80px] sm:max-w-[120px] md:max-w-[150px]">@{addressToTwitter.get(trade.trader)}</span>
 													{isCreator && (
-														<span className="text-destructive font-bold">(DEV)</span>
+														<span className="text-destructive font-bold flex-shrink-0">(DEV)</span>
 													)}
 												</a>
 											) : suinsNames?.[trade.trader] ? (
@@ -365,11 +389,11 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 													href={`https://suivision.xyz/account/${trade.trader}`}
 													target="_blank"
 													rel="noopener noreferrer"
-													className="font-mono text-[10px] sm:text-xs text-primary hover:underline transition-colors flex items-center gap-1"
+													className="font-mono text-[10px] sm:text-xs text-primary hover:underline transition-colors flex items-center gap-1 min-w-0"
 												>
-													<span>{suinsNames[trade.trader]}</span>
+													<span className="truncate max-w-[80px] sm:max-w-[120px] md:max-w-[150px]">{suinsNames[trade.trader]}</span>
 													{isCreator && (
-														<span className="text-destructive font-bold">(DEV)</span>
+														<span className="text-destructive font-bold flex-shrink-0">(DEV)</span>
 													)}
 												</a>
 											) : (
@@ -382,7 +406,7 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 													<span className="sm:hidden">{formatAddress(trade.trader).slice(0, 4) + '...'}</span>
 													<span className="hidden sm:inline">{formatAddress(trade.trader)}</span>
 													{isCreator && (
-														<span className="text-destructive font-bold">(DEV)</span>
+														<span className="text-destructive font-bold flex-shrink-0">(DEV)</span>
 													)}
 												</a>
 											)}
