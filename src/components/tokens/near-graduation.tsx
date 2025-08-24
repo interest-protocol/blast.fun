@@ -8,6 +8,7 @@ import { TokenCardSkeleton } from "./token-card.skeleton"
 import { Logo } from "@/components/ui/logo"
 import { TokenListSettingsDialog, type TokenListSettings } from "./token-list.settings"
 import type { PoolWithMetadata } from "@/types/pool"
+import { useTokenProtectionBatch } from "@/hooks/use-token-protection-batch"
 
 interface NearGraduationProps {
 	pollInterval?: number
@@ -37,6 +38,15 @@ export const NearGraduation = memo(function NearGraduation({
 		refetchInterval: pollInterval,
 		staleTime: 5000
 	})
+
+	// @dev: Fetch protection settings for all pools with 30-minute TTL cache
+	const poolsForProtection = useMemo(() => {
+		return data?.pools?.map((pool: PoolWithMetadata) => ({
+			poolId: pool.poolId
+		})) || []
+	}, [data?.pools])
+
+	const { protectionSettings } = useTokenProtectionBatch(poolsForProtection)
 
 	const filteredAndSortedPools = useMemo(() => {
 		if (!data?.pools || data.pools.length === 0) return []
@@ -128,9 +138,13 @@ export const NearGraduation = memo(function NearGraduation({
 		}
 
 		return filteredAndSortedPools.map((pool: PoolWithMetadata) => (
-			<TokenCard key={pool.poolId} pool={pool} />
+			<TokenCard 
+				key={pool.poolId} 
+				pool={pool} 
+				protectionSettings={protectionSettings.get(pool.poolId)}
+			/>
 		))
-	}, [filteredAndSortedPools, isLoading, error])
+	}, [filteredAndSortedPools, isLoading, error, protectionSettings])
 
 	return (
 		<TokenListLayout

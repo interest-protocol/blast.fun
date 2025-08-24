@@ -12,13 +12,17 @@ import { CreatorHoverCard } from "@/components/creator/creator-hover-card"
 import { CreatorDisplay } from "@/components/creator/creator-display"
 import { RelativeAge } from "@/components/shared/relative-age"
 import { BsTwitterX } from "react-icons/bs"
+import type { TokenProtectionSettings } from "@/hooks/use-token-protection"
+import { ProtectionBadges } from "@/components/shared/protection-badges"
 
 interface TokenCardProps {
 	pool: PoolWithMetadata
+	protectionSettings?: TokenProtectionSettings | null
 }
 
 export const TokenCard = memo(function TokenCard({
-	pool
+	pool,
+	protectionSettings
 }: TokenCardProps) {
 	const coinMetadata = pool.coinMetadata || pool.metadata
 	const bondingProgress = parseFloat(pool.bondingCurve)
@@ -137,6 +141,13 @@ export const TokenCard = memo(function TokenCard({
 								<h3 className="font-mono font-bold text-xs sm:text-sm uppercase tracking-wider text-foreground/90 truncate">
 									{coinMetadata?.name || "[UNNAMED]"}
 								</h3>
+								
+								<ProtectionBadges 
+									protectionSettings={protectionSettings}
+									isProtected={pool.isProtected}
+									size="sm"
+								/>
+								
 								<CopyableToken symbol={coinMetadata?.symbol || "[???]"} coinType={pool.coinType} className="ml-auto text-xs" />
 							</div>
 
