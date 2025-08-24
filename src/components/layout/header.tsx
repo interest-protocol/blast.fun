@@ -9,6 +9,7 @@ import { DesktopNav } from "./desktop-nav"
 import { SearchToken } from "../shared/search-token"
 import { Logo } from "../ui/logo"
 import { AudioToggle } from "../audio/audio-toggle"
+import { Wrench } from "lucide-react"
 
 export default function Header() {
 	const { isConnected } = useApp()
@@ -32,6 +33,13 @@ export default function Header() {
 				<div className="flex items-center gap-2">
 					<SearchToken />
 					<UserDropdown />
+					{/* Utility Icon (below xl screens) */}
+					<Link 
+						href="/utility" 
+						className="flex xl:hidden items-center justify-center w-9 h-9 rounded-full border border-border hover:bg-accent transition-colors"
+					>
+						<Wrench className="h-4 w-4 text-muted-foreground" />
+					</Link>
 					<AudioToggle />
 					<ThemeSwitcher />
 				</div>
