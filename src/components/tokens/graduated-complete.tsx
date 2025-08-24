@@ -15,7 +15,7 @@ interface GraduatedCompleteProps {
 }
 
 async function fetchGraduatedTokens() {
-	const response = await fetch("/api/tokens?category=graduated&sortField=lastTradeAt&sortDirection=DESC&pageSize=30")
+	const response = await fetch("/api/tokens?category=graduated&sortField=lastTradeAt&sortDirection=DESC&pageSize=50")
 	if (!response.ok) throw new Error("Failed to fetch tokens")
 	return response.json()
 }
