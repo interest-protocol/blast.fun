@@ -1,11 +1,11 @@
 "use client"
 
-import { Terminal } from "lucide-react"
+import { Terminal, ArrowRight } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { cn } from "@/utils"
 import { LogEntry } from "../_hooks/use-launch-coin"
-import { QuickBuy } from "./quick-buy"
+import { useRouter } from "next/navigation"
 
 interface TerminalDialogProps {
 	open: boolean
@@ -26,6 +26,7 @@ interface TerminalDialogProps {
 export function TerminalDialog({ open, onOpenChange, logs, isLaunching, result, pendingToken, onResume }: TerminalDialogProps) {
 	const logsEndRef = useRef<HTMLDivElement>(null)
 	const [cursorBlink, setCursorBlink] = useState(true)
+	const router = useRouter()
 
 	useEffect(() => {
 		if (logs.length > 0) {
@@ -120,8 +121,16 @@ export function TerminalDialog({ open, onOpenChange, logs, isLaunching, result, 
 										<div className="mt-2 space-y-1">
 											<div className="text-green-500">DEPLOYMENT::COMPLETE</div>
 										</div>
-										<div className="mt-4">
-											<QuickBuy poolObjectId={result.poolObjectId} />
+										<div className="mt-4 flex justify-center">
+											<button
+												onClick={() => router.push(`/token/${result.poolObjectId}`)}
+												className="px-6 py-2 bg-primary/20 hover:bg-primary/30 
+														border border-primary/50 rounded transition-all
+														text-primary font-mono text-xs uppercase flex items-center gap-2
+														hover:shadow-[0_0_20px_rgba(0,255,0,0.3)]"
+											>
+												GO TO TOKEN PAGE <ArrowRight className="h-3 w-3" />
+											</button>
 										</div>
 									</>
 								)}

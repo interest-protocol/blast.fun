@@ -6,21 +6,18 @@ import { formatAddress } from "@mysten/sui/utils"
 import {
 	Globe,
 	Send,
-	ShieldCheck,
-	Eye,
-	UserCheck,
-	Percent,
 } from "lucide-react"
 import { BsTwitterX } from "react-icons/bs"
 import { TokenAvatar } from "@/components/tokens/token-avatar"
 import { CopyableAddress } from "@/components/shared/copyable-address"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/utils"
 import { formatNumberWithSuffix, formatSmallPrice } from "@/utils/format"
 import type { PoolWithMetadata } from "@/types/pool"
 import { RelativeAge } from "@/components/shared/relative-age"
 import { UpdateMetadataDialog } from "./update-metadata-dialog"
 import { useApp } from "@/context/app.context"
+import { useTokenProtection } from "@/hooks/use-token-protection"
+import { ProtectionBadges } from "@/components/shared/protection-badges"
 
 interface TokenInfoProps {
 	pool: PoolWithMetadata
@@ -31,6 +28,7 @@ interface TokenInfoProps {
 export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoProps) {
 	const [updateMetadataDialogOpen, setUpdateMetadataDialogOpen] = useState(false)
 	const { isConnected, address } = useApp()
+	const { settings: protectionSettings } = useTokenProtection(pool.poolId, pool.isProtected)
 
 	const metadata = pool.coinMetadata || pool.metadata
 	const marketData = pool.marketData
@@ -42,13 +40,6 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 	const showTwitterCreator = creatorTwitterId && creatorTwitterName
 
 	const { data: resolvedDomain } = useResolveSuiNSName(!showTwitterCreator && creatorWallet ? creatorWallet : null)
-
-	const hasProtections = pool.metadata?.SniperProtection ||
-		pool.metadata?.RequireTwitter ||
-		pool.metadata?.MinFollowerCount ||
-		pool.metadata?.MaxHoldingPercent ||
-		pool.metadata?.RevealTraderIdentity ||
-		pool.metadata?.isProtected
 
 	const priceData = marketData as any
 	const priceChange5m = priceData?.price5MinsAgo && priceData?.coinPrice
@@ -135,15 +126,25 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 								)}
 							</div>
 
-							<div className="flex items-center gap-2 select-none">
-								<h1 className="text-base font-bold text-foreground">
-									{metadata?.name || "[UNNAMED]"}
-								</h1>
-								<span className="text-sm font-bold text-muted-foreground">
-									{metadata?.symbol || "???"}
-								</span>
+							<div className="flex items-center justify-between select-none">
+								<div className="flex items-center gap-2">
+									<h1 className="text-base font-bold text-foreground">
+										{metadata?.name || "[UNNAMED]"}
+									</h1>
+									<span className="text-sm font-bold text-muted-foreground">
+										{metadata?.symbol || "???"}
+									</span>
+								</div>
 
-								<div className="flex items-center ml-auto">
+								<div className="flex items-center gap-1">
+									{/* Protection badges */}
+									<ProtectionBadges 
+										protectionSettings={protectionSettings}
+										isProtected={pool.isProtected}
+										size="md"
+									/>
+
+									{/* Social icons */}
 									{pool.metadata?.X && (
 										<div className="group cursor-pointer rounded-full p-0.5">
 											<a href={pool.metadata.X} target="_blank" rel="noopener noreferrer">
@@ -189,94 +190,6 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 							)}
 						</div>
 					</div>
-
-					{hasProtections && (
-						<div className="flex items-center gap-1 mt-2">
-							{(pool.metadata?.SniperProtection === "true" || pool.metadata?.SniperProtection === true || pool.metadata?.isProtected) && (
-								<Tooltip>
-									<TooltipTrigger asChild>
-										<div className="rounded-md flex items-center justify-center bg-green-500/15 p-1">
-											<ShieldCheck className="w-3.5 h-3.5 text-green-500" />
-										</div>
-									</TooltipTrigger>
-									<TooltipContent>
-										<div className="text-xs font-mono space-y-1">
-											<p className="font-bold uppercase text-green-400">SNIPER::PROTECTED</p>
-											<p className="text-muted-foreground">Anti-bot protections active</p>
-										</div>
-									</TooltipContent>
-								</Tooltip>
-							)}
-
-							{(pool.metadata?.RequireTwitter === "true" || pool.metadata?.RequireTwitter === true) && (
-								<Tooltip>
-									<TooltipTrigger asChild>
-										<div className="rounded-md flex items-center justify-center bg-blue-500/15 p-1">
-											<BsTwitterX className="w-3.5 h-3.5 text-blue-500" />
-										</div>
-									</TooltipTrigger>
-									<TooltipContent>
-										<div className="text-xs font-mono space-y-1">
-											<p className="font-bold uppercase text-blue-400">X::REQUIRED</p>
-											<p className="text-muted-foreground">Must connect X account to trade</p>
-										</div>
-									</TooltipContent>
-								</Tooltip>
-							)}
-
-							{pool.metadata?.MinFollowerCount && Number(pool.metadata.MinFollowerCount) > 0 && (
-								<Tooltip>
-									<TooltipTrigger asChild>
-										<div className="rounded-md flex items-center justify-center bg-purple-500/15 p-1">
-											<UserCheck className="w-3.5 h-3.5 text-purple-500" />
-										</div>
-									</TooltipTrigger>
-									<TooltipContent>
-										<div className="text-xs font-mono space-y-1">
-											<p className="font-bold uppercase text-purple-400">FOLLOWER::MIN</p>
-											<p className="text-muted-foreground">
-												Requires {pool.metadata.MinFollowerCount}+ X followers
-											</p>
-										</div>
-									</TooltipContent>
-								</Tooltip>
-							)}
-
-							{pool.metadata?.MaxHoldingPercent && Number(pool.metadata.MaxHoldingPercent) > 0 && (
-								<Tooltip>
-									<TooltipTrigger asChild>
-										<div className="rounded-md flex items-center justify-center bg-orange-500/15 p-1">
-											<Percent className="w-3.5 h-3.5 text-orange-500" />
-										</div>
-									</TooltipTrigger>
-									<TooltipContent>
-										<div className="text-xs font-mono space-y-1">
-											<p className="font-bold uppercase text-orange-400">MAX::HOLDING</p>
-											<p className="text-muted-foreground">
-												Max {pool.metadata.MaxHoldingPercent}% per wallet
-											</p>
-										</div>
-									</TooltipContent>
-								</Tooltip>
-							)}
-
-							{(pool.metadata?.RevealTraderIdentity === "true" || pool.metadata?.RevealTraderIdentity === true) && (
-								<Tooltip>
-									<TooltipTrigger asChild>
-										<div className="rounded-md flex items-center justify-center bg-cyan-500/15 p-1">
-											<Eye className="w-3.5 h-3.5 text-cyan-500" />
-										</div>
-									</TooltipTrigger>
-									<TooltipContent>
-										<div className="text-xs font-mono space-y-1">
-											<p className="font-bold uppercase text-cyan-400">IDENTITY::VISIBLE</p>
-											<p className="text-muted-foreground">X usernames shown in trades</p>
-										</div>
-									</TooltipContent>
-								</Tooltip>
-							)}
-						</div>
-					)}
 				</div>
 
 				{/* Market Data */}
