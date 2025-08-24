@@ -22,10 +22,10 @@ export const formatMistToSui = (mist: string | number | bigint | undefined): str
 	return suiValue.toFixed(2)
 }
 
-export const formatAmountWithSuffix = (amount: string | number | bigint | undefined): string => {
+export const formatAmountWithSuffix = (amount: string | number | bigint | undefined, shift = 9): string => {
 	if (amount == null) return "0"
 
-	const bn = new BigNumber(amount.toString()).shiftedBy(-9)
+	const bn = new BigNumber(amount.toString()).shiftedBy(-shift)
 	const value = bn.toNumber()
 
 	if (!isFinite(value)) return "0"
