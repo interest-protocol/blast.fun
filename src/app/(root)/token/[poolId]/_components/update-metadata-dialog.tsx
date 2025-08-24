@@ -215,10 +215,15 @@ export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadat
 			}
 			
 			if (poolMetadataUpdates.names.length > 0) {
+				// @dev: Convert names and values arrays into a Record object for the SDK
+				const newMetadata: Record<string, string> = {}
+				poolMetadataUpdates.names.forEach((name, index) => {
+					newMetadata[name] = poolMetadataUpdates.values[index]
+				})
+				
 				const result = await pumpSdk.updatePoolMetadata({
 					pool: pool.poolId,
-					newNames: poolMetadataUpdates.names,
-					newValues: poolMetadataUpdates.values,
+					newMetadata,
 					metadataCap: cap.objectId,
 					tx
 				})
