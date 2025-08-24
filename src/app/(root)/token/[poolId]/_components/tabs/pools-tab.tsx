@@ -136,9 +136,12 @@ export function PoolsTab({ pool, className }: PoolsTabProps) {
 						const tvlPercentage = (tvlValue / maxTVL) * 100
 
 						return (
-							<div
+							<a
 								key={pool.poolId}
-								className="relative group hover:bg-muted/5 transition-all duration-200"
+								href={pool.link}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="relative group hover:bg-muted/5 transition-all duration-200 block cursor-pointer"
 							>
 								{/* Background gradient for TVL */}
 								<div
@@ -149,15 +152,10 @@ export function PoolsTab({ pool, className }: PoolsTabProps) {
 								<div className="relative grid grid-cols-12 gap-2 px-2 sm:px-4 py-2 sm:py-3 items-center border-b border-border/30">
 									{/* DEX */}
 									<div className="col-span-2">
-										<a
-											href={pool.link}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="font-mono text-[10px] sm:text-xs text-primary hover:underline uppercase flex items-center gap-1"
-										>
+										<span className="font-mono text-[10px] sm:text-xs text-primary group-hover:underline uppercase flex items-center gap-1">
 											{pool.dex}
 											<ExternalLink className="h-2.5 w-2.5 opacity-50" />
-										</a>
+										</span>
 									</div>
 
 									{/* TVL */}
@@ -201,7 +199,7 @@ export function PoolsTab({ pool, className }: PoolsTabProps) {
 										</span>
 									</div>
 								</div>
-							</div>
+							</a>
 						)
 					})}
 
