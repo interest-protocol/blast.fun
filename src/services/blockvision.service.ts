@@ -4,6 +4,10 @@ import type {
 	CoinInfo,
 	CoinDetails,
 	CoinDetailsResponse,
+	DexPool,
+	DexPoolsResponse,
+	CoinHolder,
+	HoldersResponse,
 	ServiceResponse,
 	WalletCoin,
 } from "@/types/blockvision"
@@ -208,6 +212,86 @@ class BlockVisionService {
 		}
 
 		throw lastError!
+	}
+
+	/**
+	 * Get holders for a specific coin type
+	 */
+	async getCoinHolders(coinType: string, limit: number = 20): Promise<ServiceResponse<CoinHolder[]>> {
+		try {
+			console.log(`👥 Fetching holders for: ${coinType}`)
+
+			const response = await this.makeRequest<HoldersResponse>(
+				"GET",
+				"/holders/",
+				{ coinType, limit },
+				this.coinBaseUrl
+			)
+
+			if (response.code !== 200) {
+				return {
+					success: false,
+					error: `API error: ${response.message}`,
+				}
+			}
+
+			console.log(
+				`✅ Holders fetched: ${response.result.data.length} holders found out of ${response.result.total} total`
+			)
+
+			return {
+				success: true,
+				data: response.result.data,
+			}
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : "Unknown error"
+			console.error(`❌ Failed to fetch holders for ${coinType}:`, errorMessage)
+
+			return {
+				success: false,
+				error: errorMessage,
+			}
+		}
+	}
+
+	/**
+	 * Get DEX pools for a specific coin type
+	 */
+	async getDexPools(coinType: string): Promise<ServiceResponse<DexPool[]>> {
+		try {
+			console.log(`🏊 Fetching DEX pools for: ${coinType}`)
+
+			const response = await this.makeRequest<DexPoolsResponse>(
+				"GET",
+				"/dex/pools",
+				{ coinType },
+				this.coinBaseUrl
+			)
+
+			if (response.code !== 200) {
+				return {
+					success: false,
+					error: `API error: ${response.message}`,
+				}
+			}
+
+			console.log(
+				`✅ DEX pools fetched: ${response.result.length} pools found`
+			)
+
+			return {
+				success: true,
+				data: response.result,
+			}
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : "Unknown error"
+			console.error(`❌ Failed to fetch DEX pools for ${coinType}:`, errorMessage)
+
+			return {
+				success: false,
+				error: errorMessage,
+			}
+		}
 	}
 
 	/**
