@@ -51,13 +51,13 @@ export function PoolsTab({ pool, className }: PoolsTabProps) {
 	const formatTVL = (tvl: string) => {
 		const value = parseFloat(tvl.replace(/,/g, ""))
 		if (value < 1000) return `$${value.toFixed(2)}`
-		return `$${formatAmountWithSuffix(value)}`
+		return `$${formatAmountWithSuffix(value, 0)}`
 	}
 
 	const formatVolume = (volume: string) => {
 		const value = parseFloat(volume.replace(/,/g, ""))
 		if (value < 1000) return `$${value.toFixed(2)}`
-		return `$${formatAmountWithSuffix(value)}`
+		return `$${formatAmountWithSuffix(value, 0)}`
 	}
 
 	const formatAPR = (apr: string) => {
