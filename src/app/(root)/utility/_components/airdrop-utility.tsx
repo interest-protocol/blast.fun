@@ -203,20 +203,19 @@ export function AirdropUtility() {
 			coinType: selectedCoin,
 		}) as CoinMetadata
 
-		const totalAmountToSend = recipients.reduce((sum, r) => sum + parseFloat(r.amount || "0"), 0)
-		const amountToSend = BigInt(totalAmountToSend * Math.pow(10, coinMetadata.decimals))
+		const totalAmountToSend = BigInt(recipients.reduce((sum, r) => sum + parseFloat(r.amount || "0"), 0)  * Math.pow(10, coinMetadata.decimals))
 
 		const localSuiPrivateKey = localStorage.getItem("localSuiPrivateKey")
-		let keypair: Ed25519Keypair;
+		let delegatorKeypair: Ed25519Keypair;
 		if(!localSuiPrivateKey) {
-			keypair = Ed25519Keypair.generate()
-			localStorage.setItem("localSuiPrivateKey", keypair.getSecretKey())
+			delegatorKeypair = Ed25519Keypair.generate()
+			localStorage.setItem("localSuiPrivateKey", delegatorKeypair.getSecretKey())
 			return
 		} else {
-			keypair = Ed25519Keypair.fromSecretKey(localSuiPrivateKey)
+			delegatorKeypair = Ed25519Keypair.fromSecretKey(localSuiPrivateKey)
 		}
 		
-		const delegatorAddress = keypair.getPublicKey().toSuiAddress()
+		const delegatorAddress = delegatorKeypair.getPublicKey().toSuiAddress()
 
 		// create new tx to send funding and gas to delegator.
 
@@ -225,7 +224,7 @@ export function AirdropUtility() {
 			tx.setSender(address)
 			
 			const coinInput = coinWithBalance({
-				balance: amountToSend,
+				balance: totalAmountToSend,
 				type: selectedCoin,
 			})(tx)
 
@@ -245,12 +244,17 @@ export function AirdropUtility() {
 
 		// let delegator run the airdrop.
 		const batchPerTx = 1;
+		const gasCoinObjectIds: string[] = []
+		const coinObjectsWithBalance: {
+			objectId: string,
+			balance: number,
+			used: boolean | null,
+		}[] = []
 
 		{
-			// first: split the coin
+			// first: split the gas coin to prepare gas for each batch
 			const splitCoinTx = new Transaction()
 			splitCoinTx.setSender(delegatorAddress)
-			
 
 			const totalBatchNeeded = Math.ceil(recipients.length / batchPerTx)
 			const amountEachGasObject = BigInt(recipients.length * 0.02 * 10 ** coinMetadata.decimals / totalBatchNeeded)
@@ -262,6 +266,91 @@ export function AirdropUtility() {
 			`;
 			eval(code);
 
+			const coinInput = coinWithBalance({
+				balance: totalAmountToSend,
+				type: selectedCoin,
+			})(splitCoinTx)
+
+			const splitSelectCoinCode = `
+				const [${variableNames}] = splitCoinTx.splitCoins(coinInput, [${Array(totalBatchNeeded).fill(amountEachGasObject).join(", ")}]);
+				splitCoinTx.transferObjects([${variableNames}], delegatorAddress);
+			`;
+			eval(splitSelectCoinCode);
+
+			const result = await suiClient.signAndExecuteTransaction({
+				transaction: splitCoinTx,
+				signer: delegatorKeypair,
+				options: {
+					showObjectChanges: true,
+				}
+			})
+
+			await suiClient.waitForTransaction({
+				digest: result.digest,
+			})
+
+			const coinObjectIds = []
+			
+			if (result.objectChanges) {
+				for (let i = 0; i < result.objectChanges.length; i++) {
+					const change = result.objectChanges[i];
+					if (change.type === "created" && change.objectType === "0x2::sui::SUI") {
+						gasCoinObjectIds.push(change.objectId);
+					} else if (change.type === "created" && change.objectType === selectedCoin) {
+						coinObjectIds.push(change.objectId);
+					}
+				}
+			}
+
+			const coinObjectsGetResult = await suiClient.multiGetObjects({
+				ids: coinObjectIds,
+				options: {
+					showContent: true,
+				}
+			})
+
+			for(let i = 0; i < coinObjectsGetResult.length; i++) {
+				const coinObject = coinObjectsGetResult[i]
+				if(!coinObject.data) {
+					throw new Error("Coin object not found")
+				}
+				coinObjectsWithBalance.push({
+					objectId: coinObject.data.objectId,
+					balance: (coinObject.data as any).content.fields.balance,
+					used: false,
+				})
+			}
+		}
+
+		{
+			// second: send the coin to the recipients
+			for(let i = 0; i < gasCoinObjectIds.length; i++) {
+				const tx = new Transaction()
+				const gasCoin = await suiClient.getObject({
+					id: gasCoinObjectIds[i],
+				})
+				if(!gasCoin.data) {
+					throw new Error("Gas coin not found")
+				}
+				tx.setSender(delegatorAddress)
+				tx.setGasPayment([{
+					version: gasCoin.data.version,
+					digest: gasCoin.data.digest,
+					objectId: gasCoin.data.objectId,
+				}])
+				for(let j = 0; j < batchPerTx; j++) {
+					const coinObject = coinObjectsWithBalance.find(c => !c.used)
+					if(!coinObject) {
+						throw new Error("No coin object found")
+					}
+					tx.transferObjects([coinObject.objectId], recipients[i * batchPerTx + j].address)
+					coinObject.used = true
+				}
+				const txResult = await executeTransaction(tx)
+				await suiClient.waitForTransaction({
+					digest: txResult.digest,
+				})
+			}
 		}
 
 		// let delegator return the funds to the sender.
