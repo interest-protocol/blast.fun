@@ -72,7 +72,6 @@ export async function processPoolData(pool: any): Promise<ProcessedPool> {
 			console.error(`Failed to parse cached creator data for ${pool.creatorAddress}:`, error)
 		}
 	}
-	console.log("processedPool.marketData", processedPool.marketData)
 
 	if (
 		// process.env.NODE_ENV === "development" && 
@@ -82,7 +81,6 @@ export async function processPoolData(pool: any): Promise<ProcessedPool> {
 
 	try {
 		const marketData = await nexaServerClient.getMarketData(pool.coinType)
-		console.log("marketData", marketData)
 
 		const { coinMetadata, ...restMarketData } = marketData
 		if (pool.migrated && restMarketData.pools && Array.isArray(restMarketData.pools)) {
