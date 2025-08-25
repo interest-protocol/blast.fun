@@ -1,7 +1,7 @@
 import { MarketData } from "@/types/market"
 import { CoinMetadata } from "@/types/pool"
 
-const NEXA_API_BASE = "https://api.nexa.xyz"
+const NEXA_API_BASE = "https://spot.api.sui-prod.bluefin.io/internal-api/insidex"
 
 interface NexaRequestOptions extends RequestInit {
 	cache?: RequestCache
