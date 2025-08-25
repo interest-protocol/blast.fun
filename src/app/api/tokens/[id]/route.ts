@@ -45,9 +45,9 @@ export async function GET(
 		return NextResponse.json(
 			processedPool,
 			{
-				headers: {
-					'Cache-Control': 's-maxage=3, stale-while-revalidate'
-				}
+				// headers: {
+				// 	'Cache-Control': 's-maxage=3, stale-while-revalidate'
+				// }
 			}
 		)
 	} catch (error) {
