@@ -2,7 +2,7 @@ import { env } from "@/env"
 import { MarketData } from "@/types/market"
 import { CoinMetadata } from "@/types/pool"
 
-const NEXA_SERVER_API_BASE = "https://api-ex.insidex.trade"
+const NEXA_SERVER_API_BASE = "https://spot.api.sui-prod.bluefin.io/external-api/insidex"
 
 interface NexaServerRequestOptions extends RequestInit {
 	revalidate?: number | false

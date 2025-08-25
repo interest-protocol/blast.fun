@@ -216,13 +216,13 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 	}, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
 	const formatPrice = (price: number) => {
-		// @dev: Format price to show only 2 significant digits after leading zeros
+		// @dev: Format price to show significant digits with subscript for zeros count
 		if (price >= 1) {
 			return `$${price.toFixed(2)}`
 		}
 		
 		const priceStr = price.toString()
-		const match = priceStr.match(/^0\.0*(\d{2})/)
+		const match = priceStr.match(/^0\.0*(\d{1,4})/)
 		
 		if (match) {
 			const zeros = priceStr.match(/^0\.(0*)/)?.[1] || ''
@@ -230,13 +230,18 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 			const subZeroCount = zeros.length
 			
 			if (subZeroCount > 0) {
-				return `$0.0${subZeroCount}${significantDigits}`
+				// @dev: Return JSX with subscript for zero count
+				return (
+					<span>
+						$0.0<sub className="text-[8px] sm:text-[10px]">{subZeroCount}</sub>{significantDigits}
+					</span>
+				)
 			} else {
 				return `$0.${significantDigits}`
 			}
 		}
 		
-		return `$${price.toFixed(2)}`
+		return `$${price.toFixed(4)}`
 	}
 
 	const formatValue = (value: number) => {

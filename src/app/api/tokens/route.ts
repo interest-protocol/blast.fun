@@ -92,9 +92,9 @@ export async function GET(request: NextRequest) {
 				pageSize
 			},
 			{
-				headers: {
-					'Cache-Control': 's-maxage=3, stale-while-revalidate'
-				}
+				// headers: {
+				// 	'Cache-Control': 's-maxage=3, stale-while-revalidate'
+				// }
 			}
 		)
 	} catch (error: any) {

@@ -49,6 +49,7 @@ export type CoinMetadata = {
 }
 
 import type { MarketData } from "./market"
+import type { TokenProtectionSettings } from "@/hooks/use-token-protection"
 
 export type CreatorData = {
 	launchCount: number
@@ -61,4 +62,5 @@ export type PoolWithMetadata = Pool & {
 	coinMetadata?: CoinMetadata
 	marketData?: MarketData
 	creatorData?: CreatorData
+	protectionSettings?: TokenProtectionSettings
 }
