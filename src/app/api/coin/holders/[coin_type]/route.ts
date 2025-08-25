@@ -27,8 +27,8 @@ export async function GET(
 			})
 		}
 
-		// @dev: Fetch from BlockVision API - get top 10 holders
-		const holdersResponse = await blockVisionService.getCoinHolders(coinType, 10)
+		// @dev: Fetch from BlockVision API - get top 50 holders
+		const holdersResponse = await blockVisionService.getCoinHolders(coinType, 50)
 		
 		if (!holdersResponse.success || !holdersResponse.data) {
 			console.error(`❌ Failed to fetch holders: ${holdersResponse.error}`)

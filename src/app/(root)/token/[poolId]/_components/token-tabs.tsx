@@ -69,8 +69,8 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 	if (isSplitView) {
 		return (
 			<div className={cn("flex h-full gap-2", className)}>
-				{/* Left side - Always Trades */}
-				<div className="flex-1 flex flex-col border-r">
+				{/* Left side - Always Trades (70% width) */}
+				<div className="flex w-[70%] flex-col border-r">
 					<div className="border-b">
 						<div className="flex items-center justify-between p-2">
 							<div className="flex items-center gap-1">
@@ -86,8 +86,8 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 					</div>
 				</div>
 
-				{/* Right side - Holders/Pools toggle */}
-				<div className="flex-1 flex flex-col">
+				{/* Right side - Holders/Pools toggle (30% width) */}
+				<div className="flex w-[30%] flex-col">
 					<div className="border-b">
 						<div className="flex items-center justify-between p-2">
 							<div className="flex items-center gap-1">
