@@ -2,6 +2,7 @@ import { redisGet, redisSetEx, CACHE_PREFIX, CACHE_TTL } from "@/lib/redis/clien
 import { nexaServerClient } from "@/lib/nexa-server"
 import { fetchCreatorData } from "@/lib/fetch-creator-data"
 import { suiClient } from "@/lib/sui-client"
+import { prisma } from "@/lib/prisma"
 
 export interface ProcessedPool {
 	[key: string]: any
@@ -10,6 +11,7 @@ export interface ProcessedPool {
 	coinMetadata?: any
 	creatorData?: any
 	mostLiquidPoolId?: string
+	protectionSettings?: any
 }
 
 /**
@@ -182,5 +184,42 @@ export async function processPoolData(pool: any): Promise<ProcessedPool> {
  * Process multiple pools in parallel
  */
 export async function processMultiplePools(pools: any[]): Promise<ProcessedPool[]> {
-	return Promise.all(pools.map(pool => processPoolData(pool)))
+	// @dev: Fetch all protection settings for protected pools in one query
+	const protectedPoolIds = pools
+		.filter(pool => !!pool.publicKey)
+		.map(pool => pool.poolId)
+	
+	const protectionSettingsMap = new Map<string, any>()
+	
+	if (protectedPoolIds.length > 0) {
+		try {
+			const protectionSettings = await prisma.tokenProtectionSettings.findMany({
+				where: {
+					poolId: { in: protectedPoolIds }
+				},
+				select: {
+					poolId: true,
+					settings: true
+				}
+			})
+			
+			for (const setting of protectionSettings) {
+				protectionSettingsMap.set(setting.poolId, setting.settings)
+			}
+		} catch (error) {
+			console.error("Failed to fetch batch protection settings:", error)
+		}
+	}
+	
+	// @dev: Process pools in parallel with protection settings
+	return Promise.all(pools.map(async (pool) => {
+		const processedPool = await processPoolData(pool)
+		
+		// @dev: Add protection settings from batch fetch if available
+		if (pool.publicKey && protectionSettingsMap.has(pool.poolId)) {
+			processedPool.protectionSettings = protectionSettingsMap.get(pool.poolId)
+		}
+		
+		return processedPool
+	}))
 }
