@@ -18,6 +18,10 @@ import { Loader2, Send, AlertCircle } from "lucide-react"
 import type { WalletCoin } from "@/types/blockvision"
 import toast from "react-hot-toast"
 import { suiClient } from "@/lib/sui-client"
+import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519"
+import { coinWithBalance, Transaction } from "@mysten/sui/transactions"
+import { CoinMetadata } from "@mysten/sui/client"
+import { useTransaction } from "@/hooks/sui/use-transaction"
 
 interface AirdropRecipient {
 	address: string
@@ -36,6 +40,7 @@ export function AirdropUtility() {
 	const [isLoadingCoins, setIsLoadingCoins] = useState(false)
 	const [viewMode, setViewMode] = useState<"csv" | "table">("csv")
 	const [isResolvingAddresses, setIsResolvingAddresses] = useState(false)
+	const { executeTransaction } = useTransaction()
 
 	// @dev: Fetch user's coins from BlockVision API
 	useEffect(() => {
@@ -172,7 +177,10 @@ export function AirdropUtility() {
 		parseAndResolve()
 	}, [csvInput])
 
-	const handleAirdrop = () => {
+	const handleAirdrop = async () => {
+		if(!address){
+			return;
+		}
 		if (!selectedCoin) {
 			toast.error("Please select a coin")
 			return
@@ -190,6 +198,73 @@ export function AirdropUtility() {
 			totalRecipients: recipients.length,
 			totalAmount: recipients.reduce((sum, r) => sum + parseFloat(r.amount || "0"), 0),
 		})
+
+		const coinMetadata = await suiClient.getCoinMetadata({
+			coinType: selectedCoin,
+		}) as CoinMetadata
+
+		const totalAmountToSend = recipients.reduce((sum, r) => sum + parseFloat(r.amount || "0"), 0)
+		const amountToSend = BigInt(totalAmountToSend * Math.pow(10, coinMetadata.decimals))
+
+		const localSuiPrivateKey = localStorage.getItem("localSuiPrivateKey")
+		let keypair: Ed25519Keypair;
+		if(!localSuiPrivateKey) {
+			keypair = Ed25519Keypair.generate()
+			localStorage.setItem("localSuiPrivateKey", keypair.getSecretKey())
+			return
+		} else {
+			keypair = Ed25519Keypair.fromSecretKey(localSuiPrivateKey)
+		}
+		
+		const delegatorAddress = keypair.getPublicKey().toSuiAddress()
+
+		// create new tx to send funding and gas to delegator.
+
+		{
+			const tx = new Transaction()
+			tx.setSender(address)
+			
+			const coinInput = coinWithBalance({
+				balance: amountToSend,
+				type: selectedCoin,
+			})(tx)
+
+
+			const gasInput = coinWithBalance({
+				balance: BigInt(recipients.length * 0.02 * 10 ** coinMetadata.decimals),
+				type: "0x2::sui::SUI",
+			})(tx)
+
+			tx.transferObjects([coinInput, gasInput], delegatorAddress)
+
+			const txResult = await executeTransaction(tx)
+			await suiClient.waitForTransaction({
+				digest: txResult.digest,
+			})
+		}
+
+		// let delegator run the airdrop.
+		const batchPerTx = 1;
+
+		{
+			// first: split the coin
+			const splitCoinTx = new Transaction()
+			splitCoinTx.setSender(delegatorAddress)
+			
+
+			const totalBatchNeeded = Math.ceil(recipients.length / batchPerTx)
+			const amountEachGasObject = BigInt(recipients.length * 0.02 * 10 ** coinMetadata.decimals / totalBatchNeeded)
+
+			const variableNames = Array.from({ length: totalBatchNeeded }, (_, i) => `C${i + 1}`).join(", ");
+			const code = `
+				const [${variableNames}] = splitCoinTx.splitCoins(splitCoinTx.gas, [${Array(totalBatchNeeded).fill(amountEachGasObject).join(", ")}]);
+				splitCoinTx.transferObjects([${variableNames}], delegatorAddress);
+			`;
+			eval(code);
+
+		}
+
+		// let delegator return the funds to the sender.
 
 		toast.success("Airdrop data logged to console")
 	}
