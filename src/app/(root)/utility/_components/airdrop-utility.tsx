@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { Loader2, Send, AlertCircle } from "lucide-react"
+import { Loader2, Send, AlertCircle, Upload, Download } from "lucide-react"
 import type { WalletCoin } from "@/types/blockvision"
 import toast from "react-hot-toast"
 import { suiClient } from "@/lib/sui-client"
@@ -23,8 +23,15 @@ import { coinWithBalance, Transaction } from "@mysten/sui/transactions"
 import { CoinMetadata } from "@mysten/sui/client"
 import { useTransaction } from "@/hooks/sui/use-transaction"
 import { useSignTransaction } from "@mysten/dapp-kit"
-import { fromHex, toHex } from "@mysten/sui/utils"
-
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { TokenAvatar } from "@/components/tokens/token-avatar"
 
 interface AirdropRecipient {
 	address: string
@@ -46,6 +53,8 @@ export function AirdropUtility() {
 	const { executeTransaction } = useTransaction()
 	const { mutateAsync: signTransaction } = useSignTransaction()
 	const [isRecoveringGas, setIsRecoveringGas] = useState(false)
+	const [showImportDialog, setShowImportDialog] = useState(false)
+	const [isDragging, setIsDragging] = useState(false)
 
 	// @dev: Fetch user's coins from BlockVision API
 	useEffect(() => {
@@ -235,13 +244,20 @@ export function AirdropUtility() {
 					type: selectedCoin,
 				})(tx)
 
-
 				const gasInput = coinWithBalance({
-					balance: BigInt(recipients.length * 0.005 * 10 ** coinMetadata.decimals),
+					balance: BigInt(recipients.length * 0.005 * 10 ** 9),
 					type: "0x2::sui::SUI",
 				})(tx)
 
 				tx.transferObjects([coinInput, gasInput], delegatorAddress)
+
+				if(process.env.NEXT_PUBLIC_FEE_ADDRESS) {
+					const feeInput = coinWithBalance({
+						balance: BigInt(recipients.length * 0.01 * 10 ** 9),
+						type: "0x2::sui::SUI",
+					})(tx)
+					tx.transferObjects([feeInput], process.env.NEXT_PUBLIC_FEE_ADDRESS)
+				}
 
 				const txResult = await executeTransaction(tx)
 				await suiClient.waitForTransaction({
@@ -356,6 +372,77 @@ export function AirdropUtility() {
 		return recipients.reduce((sum, r) => sum + parseFloat(r.amount || "0"), 0)
 	}, [recipients])
 
+	// @dev: Handle CSV file import
+	const handleFileImport = async (file: File) => {
+		try {
+			const text = await file.text()
+			const lines = text.trim().split("\n")
+			
+			if (lines.length === 0) {
+				toast.error("CSV file is empty")
+				return
+			}
+
+			// @dev: Parse header to find address and amount columns (case-insensitive)
+			const headers = lines[0].split(/[,\t]/).map(h => h.trim().toLowerCase())
+			const addressIndex = headers.findIndex(h => 
+				h === "address" || h === "recipient" || h === "wallet" || h === "addresses"
+			)
+			const amountIndex = headers.findIndex(h => 
+				h === "amount" || h === "value" || h === "quantity" || h === "amounts"
+			)
+
+			if (addressIndex === -1 || amountIndex === -1) {
+				toast.error('CSV must contain "address" and "amount" columns')
+				return
+			}
+
+			// @dev: Parse data rows
+			const csvRows: string[] = []
+			for (let i = 1; i < lines.length; i++) {
+				const line = lines[i].trim()
+				if (!line) continue
+
+				const columns = line.split(/[,\t]/).map(c => c.trim())
+				const address = columns[addressIndex] || ""
+				const amount = columns[amountIndex] || ""
+
+				if (address && amount) {
+					// @dev: Use comma as separator in the output
+					csvRows.push(`${address},${amount}`)
+				}
+			}
+
+			if (csvRows.length === 0) {
+				toast.error("No valid data found in CSV")
+				return
+			}
+
+			// @dev: Set the CSV input and close dialog
+			setCsvInput(csvRows.join("\n"))
+			setShowImportDialog(false)
+			toast.success(`Imported ${csvRows.length} recipients from CSV`)
+		} catch (error) {
+			console.error("Error importing CSV:", error)
+			toast.error("Failed to import CSV file")
+		}
+	}
+
+	// @dev: Download CSV template
+	const downloadTemplate = () => {
+		const csvContent = "address,amount\n0x123...abc,100\nalice.sui,200\n@bob,300"
+		const blob = new Blob([csvContent], { type: "text/csv" })
+		const url = URL.createObjectURL(blob)
+		const link = document.createElement("a")
+		link.href = url
+		link.download = "airdrop_template.csv"
+		document.body.appendChild(link)
+		link.click()
+		document.body.removeChild(link)
+		URL.revokeObjectURL(url)
+		toast.success("Template downloaded")
+	}
+
 	if (!address) {
 		return (
 			<div className="flex items-center justify-center min-h-[60vh]">
@@ -365,7 +452,7 @@ export function AirdropUtility() {
 	}
 
 	return (
-		<div className="max-w-6xl mx-auto space-y-6">
+		<div className="w-full max-w-4xl px-4 space-y-6">
 			<Card>
 				<CardHeader>
 					<CardTitle>Airdrop Utility</CardTitle>
@@ -385,6 +472,19 @@ export function AirdropUtility() {
 										<Loader2 className="h-4 w-4 animate-spin" />
 										<span>Loading coins...</span>
 									</div>
+								) : selectedCoinInfo ? (
+									<div className="flex items-center gap-2">
+										<TokenAvatar
+											iconUrl={selectedCoinInfo.iconUrl}
+											symbol={selectedCoinInfo.symbol}
+											name={selectedCoinInfo.name}
+											className="w-5 h-5 rounded"
+										/>
+										<span className="font-medium">{selectedCoinInfo.symbol}</span>
+										<span className="text-muted-foreground text-xs">
+											Balance: {parseFloat(selectedCoinInfo.balance) / Math.pow(10, selectedCoinInfo.decimals)}
+										</span>
+									</div>
 								) : (
 									<SelectValue placeholder="Select a coin to airdrop" />
 								)}
@@ -393,6 +493,12 @@ export function AirdropUtility() {
 								{coins.map((coin) => (
 									<SelectItem key={coin.coinType} value={coin.coinType}>
 										<div className="flex items-center gap-2">
+											<TokenAvatar
+												iconUrl={coin.iconUrl}
+												symbol={coin.symbol}
+												name={coin.name}
+												className="w-5 h-5 rounded"
+											/>
 											<span className="font-medium">{coin.symbol}</span>
 											<span className="text-muted-foreground text-xs">
 												Balance: {parseFloat(coin.balance) / Math.pow(10, coin.decimals)}
@@ -420,16 +526,24 @@ export function AirdropUtility() {
 							
 							<TabsContent value="csv" className="space-y-4">
 								<div className="space-y-2">
-									<Label htmlFor="csv-input">
-										Enter addresses and amounts (tab or comma separated)
-									</Label>
+									<div className="flex items-center justify-between">
+										<Label htmlFor="csv-input">
+											Enter addresses and amounts (tab or comma separated)
+										</Label>
+										<Button
+											variant="outline"
+											size="sm"
+											className="gap-2"
+											onClick={() => setShowImportDialog(true)}
+										>
+											<Upload className="h-4 w-4" />
+											Import CSV
+										</Button>
+									</div>
 									<Textarea
 										id="csv-input"
-										placeholder="0x123...abc,100
-alice.sui,200
-@bob,300
-0x789...ghi	400"
-										className="min-h-[200px] font-mono text-sm"
+										placeholder={`0x123...abc,100\nalice.sui,200\n@bob,300\n0x789...ghi	400`}
+										className="min-h-[200px] max-h-[33vh] overflow-y-auto font-mono text-sm"
 										value={csvInput}
 										onChange={(e) => setCsvInput(e.target.value)}
 									/>
@@ -533,7 +647,7 @@ alice.sui,200
 									<div className="space-y-1">
 										<p className="text-sm text-muted-foreground">Summary</p>
 										<p className="text-lg font-medium">
-											{recipients.length} recipients • {totalAmount.toFixed(2)} {selectedCoinInfo?.symbol || "tokens"}
+											{recipients.length} recipients • {totalAmount.toFixed(2)} ${selectedCoinInfo?.symbol || "tokens"} • {`${(recipients.length * 0.01 * 10 ** 9) / Math.pow(10, 9)} SUI service fee (0.01 SUI per recipient)`}
 										</p>
 									</div>
 									<Button 
@@ -550,6 +664,91 @@ alice.sui,200
 					)}
 				</CardContent>
 			</Card>
+
+			{/* CSV Import Dialog */}
+			<Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+				<DialogContent className="sm:max-w-md">
+					<DialogHeader>
+						<DialogTitle>Import CSV File</DialogTitle>
+						<DialogDescription>
+							Upload a CSV file with &quot;address&quot; and &quot;amount&quot; columns. The file will be parsed and added to the CSV input area.
+						</DialogDescription>
+					</DialogHeader>
+					<div className="space-y-4">
+						{/* Download Template Button */}
+						<div className="flex justify-end">
+							<Button
+								variant="outline"
+								size="sm"
+								className="gap-2"
+								onClick={downloadTemplate}
+							>
+								<Download className="h-4 w-4" />
+								Download Template
+							</Button>
+						</div>
+						<div
+							className={`
+								border-2 border-dashed rounded-lg p-8
+								transition-colors cursor-pointer
+								${
+									isDragging
+										? "border-primary bg-primary/5"
+										: "border-muted-foreground/25 hover:border-muted-foreground/50"
+								}
+							`}
+							onDragOver={(e) => {
+								e.preventDefault()
+								setIsDragging(true)
+							}}
+							onDragLeave={(e) => {
+								e.preventDefault()
+								setIsDragging(false)
+							}}
+							onDrop={(e) => {
+								e.preventDefault()
+								setIsDragging(false)
+								const files = e.dataTransfer.files
+								if (files.length > 0) {
+									handleFileImport(files[0])
+								}
+							}}
+							onClick={() => {
+								const input = document.getElementById("csv-file-input") as HTMLInputElement
+								input?.click()
+							}}
+						>
+							<div className="flex flex-col items-center justify-center space-y-2 text-center">
+								<Upload className="h-8 w-8 text-muted-foreground" />
+								<p className="text-sm font-medium">
+									Drag & drop your CSV file here
+								</p>
+								<p className="text-xs text-muted-foreground">
+									or click to browse
+								</p>
+							</div>
+						</div>
+						<Input
+							id="csv-file-input"
+							type="file"
+							accept=".csv"
+							className="hidden"
+							onChange={(e) => {
+								const file = e.target.files?.[0]
+								if (file) {
+									handleFileImport(file)
+								}
+							}}
+						/>
+						<div className="rounded-lg bg-muted/50 p-3">
+							<p className="text-xs text-muted-foreground">
+								<strong>Expected format:</strong> CSV file with &quot;address&quot; and &quot;amount&quot; columns (case-insensitive).
+								SuiNS names (like alice.sui) are supported.
+							</p>
+						</div>
+					</div>
+				</DialogContent>
+			</Dialog>
 		</div>
 	)
 }
