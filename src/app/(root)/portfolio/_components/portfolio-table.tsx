@@ -132,6 +132,7 @@ export function PortfolioTable({ portfolio, hideSmallBalance, onHideSmallBalance
 														onError={(e) => {
 															e.currentTarget.style.display = 'none'
 														}}
+														unoptimized={true}
 													/>
 												</div>
 											)}

@@ -18,16 +18,15 @@ interface CreatorDetailsProps {
 }
 
 export function CreatorDetails({ pool }: CreatorDetailsProps) {
-	const creatorTwitterId = pool.metadata?.CreatorTwitterId;
-	const creatorTwitterName = pool.metadata?.CreatorTwitterName;
+	const creatorTwitterHandle = pool.creatorData?.twitterHandle;
 	const creatorWallet = pool.creatorAddress;
-	const showTwitterCreator = creatorTwitterId && creatorTwitterName;
+	const showTwitterCreator = !!creatorTwitterHandle;
 	const data = pool.creatorData;
 
 	const { data: resolvedDomain } = useResolveSuiNSName(!showTwitterCreator && creatorWallet ? creatorWallet : null);
 
 	const displayName = showTwitterCreator
-		? `@${creatorTwitterName}`
+		? `@${creatorTwitterHandle}`
 		: resolvedDomain
 			? resolvedDomain
 			: formatAddress(creatorWallet || "");
@@ -72,7 +71,7 @@ export function CreatorDetails({ pool }: CreatorDetailsProps) {
 							</span>
 							{showTwitterCreator && (
 								<a
-									href={`https://x.com/i/user/${creatorTwitterId}`}
+									href={`https://x.com/${creatorTwitterHandle}`}
 									target="_blank"
 									rel="noopener noreferrer"
 									className="text-muted-foreground hover:text-foreground transition-colors"

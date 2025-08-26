@@ -34,10 +34,9 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 	const marketData = pool.marketData
 	const creatorData = pool.creatorData
 
-	const creatorTwitterId = pool.metadata?.CreatorTwitterId
-	const creatorTwitterName = pool.metadata?.CreatorTwitterName
+	const creatorTwitterHandle = creatorData?.twitterHandle
 	const creatorWallet = pool.creatorAddress
-	const showTwitterCreator = creatorTwitterId && creatorTwitterName
+	const showTwitterCreator = !!creatorTwitterHandle
 
 	const { data: resolvedDomain } = useResolveSuiNSName(!showTwitterCreator && creatorWallet ? creatorWallet : null)
 
@@ -110,12 +109,12 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 										<span className="text-muted-foreground">by</span>
 										{showTwitterCreator ? (
 											<a
-												href={`https://x.com/i/user/${creatorTwitterId}`}
+												href={`https://x.com/${creatorTwitterHandle}`}
 												target="_blank"
 												rel="noopener noreferrer"
 												className="font-medium text-foreground hover:text-blue-400 transition-colors"
 											>
-												@{creatorTwitterName}
+												@{creatorTwitterHandle}
 											</a>
 										) : (
 											<span className="font-medium text-foreground">

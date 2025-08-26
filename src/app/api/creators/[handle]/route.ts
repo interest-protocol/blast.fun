@@ -12,8 +12,7 @@ export async function GET(
 		
 		const creatorData = await fetchCreatorData(
 			handle,
-			isWalletAddress ? null : handle,
-			isWalletAddress
+			isWalletAddress ? null : handle
 		);
 		
 		return NextResponse.json(creatorData);

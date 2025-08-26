@@ -136,6 +136,7 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 										resolvedTheme === "light" && "invert"
 									)}
 									priority
+									unoptimized={true}
 								/>
 							</Link>
 						</div>
@@ -198,6 +199,7 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 								resolvedTheme === "light" && "invert"
 							)}
 							priority
+							unoptimized={true}
 						/>
 					</Link>
 				</div>

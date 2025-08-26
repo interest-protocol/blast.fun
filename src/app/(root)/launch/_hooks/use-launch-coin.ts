@@ -141,8 +141,6 @@ export function useLaunchCoin() {
 
 		// construct our metadata object which will be applied to the pool.
 		const metadata = Object.entries({
-			CreatorTwitterId: !formValues.hideIdentity && twitterUser?.id,
-			CreatorTwitterName: !formValues.hideIdentity && twitterUser?.username,
 			X: formValues.twitter,
 			Telegram: formValues.telegram,
 			Website: formValues.website,
@@ -157,10 +155,7 @@ export function useLaunchCoin() {
 		// should pool be protected based on sniper protection toggle
 		const isProtected = formValues.sniperProtection
 
-		const { memeCoinType } = await pumpSdk.getCoinMetadataAndType(treasuryCapObjectId)
-
 		const tx = new Transaction();
-
 		const firstPurchase = formValues.devBuyAmount
 				? coinWithBalance({
 						balance: parseFloat(formValues.devBuyAmount || "0") * 10 ** 9,

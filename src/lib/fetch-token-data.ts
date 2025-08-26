@@ -141,13 +141,7 @@ export async function fetchTokenData(poolId: string): Promise<PoolWithMetadata |
 		// fetch creator data if not cached
 		if (!processedPool.creatorData) {
 			try {
-				const twitterHandle = pool.metadata?.CreatorTwitterName || null
-
-				processedPool.creatorData = await fetchCreatorData(
-					pool.creatorAddress,
-					twitterHandle,
-					!!twitterHandle
-				)
+				processedPool.creatorData = await fetchCreatorData(pool.creatorAddress)
 			} catch (error) {
 				console.error(`Failed to fetch creator data for ${pool.creatorAddress}:`, error)
 			}
