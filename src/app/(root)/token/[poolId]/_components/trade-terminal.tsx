@@ -471,6 +471,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 										width={18}
 										height={18}
 										className="rounded-full shrink-0"
+										unoptimized={true}
 									/>
 								) : (
 									<TokenAvatar

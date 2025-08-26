@@ -116,7 +116,14 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 					{data.holders.map((holder, index) => {
 						const rank = index + 1
 						const isTop3 = rank <= 3
-						const percentage = parseFloat(holder.percentage) * 100 // @dev: Convert decimal to percentage
+						// @dev: Calculate percentage - if empty from API, calculate from balance / 1B total supply
+						let percentage: number
+						if (!holder.percentage || holder.percentage === "") {
+							const balanceNum = parseFloat(holder.balance.replace(/,/g, ""))
+							percentage = (balanceNum / 1_000_000_000) * 100
+						} else {
+							percentage = parseFloat(holder.percentage) * 100 // @dev: Convert decimal to percentage
+						}
 						const suinsName = suinsNames?.[holder.account]
 						// @dev: Format balance with K/M suffix
 						const balanceNum = parseFloat(holder.balance.replace(/,/g, ""))

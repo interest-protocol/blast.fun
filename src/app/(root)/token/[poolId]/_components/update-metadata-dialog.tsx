@@ -19,7 +19,7 @@ import type { PoolWithMetadata } from "@/types/pool"
 import { useApp } from "@/context/app.context"
 import { useTransaction } from "@/hooks/sui/use-transaction"
 import { pumpSdk } from "@/lib/pump"
-import { Transaction } from "@mysten/sui/transactions"
+import { coinWithBalance, Transaction } from "@mysten/sui/transactions"
 import { getBase64ForMetadata } from "./metadata-image-utils"
 import { cn } from "@/utils"
 
@@ -236,6 +236,14 @@ export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadat
 				setIsProcessing(false)
 				return
 			}
+
+			if(process.env.NEXT_PUBLIC_FEE_ADDRESS) {
+				const feeInput = coinWithBalance({
+					balance: BigInt(5 * 10 ** 9),
+					type: "0x2::sui::SUI",
+				})(tx)
+				tx.transferObjects([feeInput], process.env.NEXT_PUBLIC_FEE_ADDRESS)
+			}
 			
 			// Execute the transaction
 			const result = await executeTransaction(tx)
@@ -288,7 +296,7 @@ export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadat
 						Update Token & Pool Metadata
 					</DialogTitle>
 					<DialogDescription>
-						Update your token&apos;s name, symbol, description, icon, and social links. Only the token creator can make these changes.
+						Update your token&apos;s name, symbol, description, icon, and social links. Only the token creator can make these changes. Making changes will take 5 Sui service fee.
 					</DialogDescription>
 				</DialogHeader>
 				

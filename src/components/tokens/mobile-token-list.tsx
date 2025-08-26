@@ -43,7 +43,7 @@ const TABS: TabData[] = [
 		label: "GRAD",
 		sortField: "lastTradeAt",
 		sortDirection: "DESC",
-		pageSize: 30,
+		pageSize: 50,
 		pollInterval: 30000
 	}
 ]
