@@ -56,6 +56,7 @@ export function WalletList({ onSelect, isConnecting = false }: WalletListProps) 
 										width={32}
 										height={32}
 										className="rounded-md"
+										unoptimized={true}
 									/>
 								</div>
 							) : (
