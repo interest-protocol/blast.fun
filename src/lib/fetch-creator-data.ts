@@ -5,24 +5,28 @@ import type { CreatorData } from "@/types/pool"
 
 export async function fetchCreatorData(
 	creatorAddressOrHandle: string,
-	twitterHandle?: string | null,
-	hideIdentity?: boolean
+	twitterHandle?: string | null
 ): Promise<CreatorData> {
 	try {
 		// determine if we need to find the creator address from twitter handle
 		let creatorAddress = creatorAddressOrHandle
 		let finalTwitterHandle = twitterHandle
+		let hideIdentity = false
 
 		// @dev: if twitterHandle is provided and matches creatorAddressOrHandle, 
 		// we need to find the actual creator address
 		if (twitterHandle && creatorAddressOrHandle === twitterHandle) {
 			const tokenLaunch = await prisma.tokenLaunches.findFirst({
 				where: { twitterUsername: twitterHandle },
-				select: { creatorAddress: true }
+				select: { 
+					creatorAddress: true,
+					hideIdentity: true 
+				}
 			})
 
 			if (tokenLaunch) {
 				creatorAddress = tokenLaunch.creatorAddress
+				hideIdentity = tokenLaunch.hideIdentity
 			}
 		}
 
@@ -35,12 +39,16 @@ export async function fetchCreatorData(
 				twitterUserId: true,
 				twitterUsername: true,
 				creatorAddress: true,
+				hideIdentity: true,
 			},
 		})
 
 		const launchCount = tokenLaunches.length
 
-		// get twitter handle if not provided and not hiding identity
+		// check if any launch has hideIdentity set to true
+		hideIdentity = tokenLaunches.some(launch => launch.hideIdentity)
+
+		// get twitter handle if not hiding identity
 		finalTwitterHandle = hideIdentity ? null : finalTwitterHandle
 		if (!hideIdentity && !finalTwitterHandle && tokenLaunches.length > 0) {
 			const launchWithTwitter = tokenLaunches.find(l => l.twitterUsername)

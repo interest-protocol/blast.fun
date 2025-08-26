@@ -163,13 +163,7 @@ export async function processPoolData(pool: any): Promise<ProcessedPool> {
 
 	if (!processedPool.creatorData) {
 		try {
-			const twitterHandle = pool.metadata?.CreatorTwitterName || null
-
-			processedPool.creatorData = await fetchCreatorData(
-				pool.creatorAddress,
-				twitterHandle,
-				!twitterHandle
-			)
+			processedPool.creatorData = await fetchCreatorData(pool.creatorAddress)
 		} catch (error) {
 			console.error(`Failed to fetch creator data for ${pool.creatorAddress}:`, error)
 		}
