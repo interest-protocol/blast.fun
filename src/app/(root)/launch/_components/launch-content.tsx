@@ -12,7 +12,6 @@ import CreateTokenForm from "./create-token-form"
 import { ConfettiProvider } from "@/components/shared/confetti"
 import { Logo } from "@/components/ui/logo"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import Image from "next/image"
 
 export default function LaunchContent() {
 	const { isConnected, isConnecting, connect } = useApp()
@@ -150,11 +149,10 @@ export default function LaunchContent() {
 											{tokenData.imageUrl ? (
 												<div className="relative">
 													<div className="absolute inset-0 bg-primary/20 blur-xl rounded-full" />
-													<Image
+													<img
 														src={tokenData.imageUrl}
 														alt={tokenData.name || "Token"}
 														className="relative w-20 h-20 rounded-lg object-cover border-2"
-														unoptimized
 													/>
 												</div>
 											) : (

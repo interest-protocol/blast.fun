@@ -115,11 +115,10 @@ When implementing a dystopian UI, follow these specific design patterns:
 ```tsx
 <div className="relative">
   <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full" />
-  <Image
+  <img
     src={imageUrl}
     alt="Token"
     className="relative w-20 h-20 rounded-lg object-cover border-2"
-    unoptimized
   />
 </div>
 ```

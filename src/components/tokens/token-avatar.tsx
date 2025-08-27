@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { cn } from "@/utils"
-import Image from "next/image"
 
 interface TokenAvatarProps {
 	iconUrl?: string
@@ -39,10 +38,9 @@ export function TokenAvatar({
 	}
 
 	return (
-		<Image
+		<img
 			src={iconUrl}
 			alt={symbol || name || "Token"}
-			unoptimized
 			className={cn(
 				"shadow-md object-cover",
 				className

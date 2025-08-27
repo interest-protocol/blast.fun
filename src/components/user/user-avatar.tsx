@@ -3,7 +3,6 @@
 import { TwitterUser } from "@/context/twitter.context"
 import { getFxtwitterProfileImage } from "@/lib/twitter"
 import { cn } from "@/utils"
-import Image from "next/image"
 import { useEffect, useState } from "react"
 
 interface UserAvatarProps {
@@ -26,5 +25,5 @@ export function TwitterUserAvatar({ user, className }: UserAvatarProps) {
 		fetchUpdatedProfileImage()
 	}, [user.username])
 
-	return <Image unoptimized src={profileImageUrl || user.profile_image_url || ""} alt="user avatar" className={cn("rounded-md", className)} />
+	return <img src={profileImageUrl || user.profile_image_url || ""} className={cn("rounded-md", className)} />
 }

@@ -13,7 +13,6 @@ import { Transaction } from "@mysten/sui/transactions"
 import { useCurrentAccount, useSignAndExecuteTransaction } from "@mysten/dapp-kit"
 import type { CoinStruct } from "@mysten/sui/client"
 import type { WalletCoin } from "@/types/blockvision"
-import Image from "next/image"
 
 interface RewardsDialogProps {
 	open: boolean
@@ -466,11 +465,10 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 												<td className="p-4">
 													<div className="flex items-center gap-3">
 														{coin.iconUrl ? (
-															<Image
+															<img
 																src={coin.iconUrl}
 																alt={coin.symbol}
 																className="h-8 w-8 rounded-full"
-																unoptimized
 																onError={(e) => {
 																	const target = e.target as HTMLImageElement
 																	target.style.display = "none"

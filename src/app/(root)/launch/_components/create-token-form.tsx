@@ -16,7 +16,6 @@ import TokenCreationButton from "./create-token-button"
 import { getBase64 } from "../launch.utils"
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible"
 import useBalance from "@/hooks/sui/use-balance"
-import Image from "next/image"
 
 const tokenSchema = z.object({
 	name: z.string().min(3, "Minimum 3 characters").max(20, "Maximum 20 characters"),
@@ -184,11 +183,10 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 										>
 											{imageUrl ? (
 												<>
-													<Image
+													<img
 														src={imageUrl}
 														alt="Token"
 														className="w-full h-full object-cover rounded-lg"
-														unoptimized
 													/>
 													<Button
 														type="button"
