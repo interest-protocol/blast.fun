@@ -1,6 +1,6 @@
 export type Pool = {
 	poolId: string
-	bondingCurve: string
+	bondingCurve: number
 	coinBalance: string
 	coinType: string
 	createdAt: string

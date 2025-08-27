@@ -110,17 +110,6 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
 			const amountInSmallestUnit = amountBN.multipliedBy(Math.pow(10, decimals)).toFixed(0)
 			const burnAmount = BigInt(amountInSmallestUnit)
 
-			console.log("Burning tokens:", {
-				pool: pool,
-				coinType: pool.coinType,
-				amount: amount,
-				symbol: metadata?.symbol,
-				decimals: decimals,
-				amountInSmallestUnit: burnAmount.toString(),
-
-			})
-
-
 			// Create the coin object with the amount to burn
 			const memeCoin = coinWithBalance({
 				type: pool.coinType,

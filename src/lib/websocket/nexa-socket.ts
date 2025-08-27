@@ -35,10 +35,6 @@ class NexaSocket {
 			this.isConnecting = false
 			this.resubscribeAll()
 		})
-
-		this.socket.on('disconnect', (reason) => {
-			console.log('Socket disconnected:', reason)
-		})
 	}
 
 	private resubscribeAll() {

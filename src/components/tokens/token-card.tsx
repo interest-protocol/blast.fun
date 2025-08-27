@@ -22,7 +22,7 @@ export const TokenCard = memo(function TokenCard({
 	pool
 }: TokenCardProps) {
 	const coinMetadata = pool.coinMetadata || pool.metadata
-	const bondingProgress = parseFloat(pool.bondingCurve)
+	const bondingProgress = parseFloat(String(pool.bondingCurve))
 
 	// extract market data values
 	const marketData = pool.marketData

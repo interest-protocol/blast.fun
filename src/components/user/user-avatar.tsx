@@ -24,7 +24,6 @@ export function TwitterUserAvatar({ user, className }: UserAvatarProps) {
 		}
 		fetchUpdatedProfileImage()
 	}, [user.username])
-	console.log({profileImageUrl});
 
 	return <img src={profileImageUrl || user.profile_image_url || ""} className={cn("rounded-md", className)} />
 }

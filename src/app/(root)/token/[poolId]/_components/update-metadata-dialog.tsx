@@ -124,31 +124,20 @@ export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadat
 		setError(null)
 		
 		try {
-			console.log("Fetching metadata caps for address:", address)
-			
-			// Get metadata caps for the user
 			const caps = await pumpSdk.getMetadataCaps({
 				owner: address
 			})
-			
-			console.log("Available caps:", caps)
-			
-			// Find the cap for this specific coin type
+		
 			const cap = caps.caps.find(c => c.coinType === pool.coinType)
-			
 			if (!cap) {
 				setError("You do not have permission to update this token's metadata. Only the creator can update metadata.")
 				setIsProcessing(false)
 				return
 			}
 			
-			console.log("Using cap:", cap)
-			
-			// Build transaction chain for all metadata updates
 			let tx = new Transaction();
 			let hasChanges = false;
 			
-			// Update name if changed
 			if (name !== metadata?.name) {
 				const result = await pumpSdk.updateName({
 					metadataCap: cap,
@@ -159,7 +148,6 @@ export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadat
 				hasChanges = true
 			}
 			
-			// Update symbol if changed
 			if (symbol !== metadata?.symbol) {
 				const result = await pumpSdk.updateSymbol({
 					metadataCap: cap,
@@ -169,8 +157,7 @@ export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadat
 				tx = result.tx
 				hasChanges = true
 			}
-			
-			// Update description if changed
+
 			if (description !== metadata?.description) {
 				const result = await pumpSdk.updateDescription({
 					metadataCap: cap,
@@ -181,7 +168,6 @@ export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadat
 				hasChanges = true
 			}
 			
-			// Update icon URL if changed
 			const finalIconUrl = imageInputMode === "url" ? imageUrlInput : iconUrl
 			if (finalIconUrl !== metadata?.iconUrl && finalIconUrl !== metadata?.icon_url) {
 				const result = await pumpSdk.updateIconUrl({
@@ -238,22 +224,16 @@ export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadat
 			}
 
 			if(process.env.NEXT_PUBLIC_FEE_ADDRESS) {
-				const feeInput = coinWithBalance({
-					balance: BigInt(5 * 10 ** 9),
-					type: "0x2::sui::SUI",
-				})(tx)
-				tx.transferObjects([feeInput], process.env.NEXT_PUBLIC_FEE_ADDRESS)
+				// const feeInput = coinWithBalance({
+				// 	balance: BigInt(5 * 10 ** 9),
+				// 	type: "0x2::sui::SUI",
+				// })(tx)
+				// tx.transferObjects([feeInput], process.env.NEXT_PUBLIC_FEE_ADDRESS)
 			}
 			
-			// Execute the transaction
 			const result = await executeTransaction(tx)
-			
-			console.log("Transaction result:", result)
-			
-			// Show success message
 			setSuccess(`Successfully updated metadata! Transaction: ${result.digest.slice(0, 8)}...`)
 			
-			// Close dialog after a delay to show success
 			setTimeout(() => {
 				onOpenChange(false)
 				setSuccess(null)

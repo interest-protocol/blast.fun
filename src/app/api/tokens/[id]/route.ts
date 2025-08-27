@@ -4,6 +4,7 @@ import { GET_POOL } from "@/graphql/pools"
 import { CONFIG_KEYS } from "@interest-protocol/memez-fun-sdk"
 import { isValidSuiObjectId } from "@mysten/sui/utils"
 import { processPoolData } from "@/lib/process-pool-data"
+import type { GetPoolResponse, GetPoolVariables } from "@/types/graphql"
 
 export async function GET(
 	_request: NextRequest,
@@ -18,7 +19,7 @@ export async function GET(
 			)
 		}
 
-		const { data } = await apolloClient.query({
+		const { data } = await apolloClient.query<GetPoolResponse, GetPoolVariables>({
 			query: GET_POOL,
 			variables: { poolId },
 			context: {
@@ -44,11 +45,6 @@ export async function GET(
 		// edge cache headers for prod performance
 		return NextResponse.json(
 			processedPool,
-			{
-				// headers: {
-				// 	'Cache-Control': 's-maxage=3, stale-while-revalidate'
-				// }
-			}
 		)
 	} catch (error) {
 		console.error("Error fetching token:", error)

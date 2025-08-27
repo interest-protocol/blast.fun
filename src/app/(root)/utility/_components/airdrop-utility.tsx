@@ -205,20 +205,11 @@ export function AirdropUtility() {
 			return
 		}
 
-		// @dev: Log airdrop data for future implementation
-		console.log("Airdrop Data:", {
-			coin: selectedCoin,
-			recipients,
-			totalRecipients: recipients.length,
-			totalAmount: recipients.reduce((sum, r) => sum + parseFloat(r.amount || "0"), 0),
-		})
-
 		const coinMetadata = await suiClient.getCoinMetadata({
 			coinType: selectedCoin,
 		}) as CoinMetadata
 
 		const totalAmountToSend = BigInt(Math.ceil(recipients.reduce((sum, r) => sum + parseFloat(r.amount || "0"), 0)  * Math.pow(10, coinMetadata.decimals)))
-		console.log({totalAmountToSend});
 
 		const localSuiPrivateKey = localStorage.getItem("localSuiPrivateKey")
 		let delegatorKeypair: Ed25519Keypair;
@@ -290,7 +281,6 @@ export function AirdropUtility() {
 						balance: totalAmountToSend,
 						type: selectedCoin,
 					})(tx)
-					console.log({transferBalances, variableNames, transferAddresses, coinInput});
 
 					// Instead of using eval, directly call splitCoins and store the result
 					const splitCoins = tx.splitCoins(coinInput, transferBalances.map(balance => tx.pure.u64(balance)));
@@ -335,7 +325,6 @@ export function AirdropUtility() {
 			const txBytes = await tx.build({
 				client: suiClient,
 			})
-			console.log(txBytes);
 
 			const {signature: userSignature} = await signTransaction({
 				transaction: tx,

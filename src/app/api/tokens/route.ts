@@ -3,6 +3,7 @@ import { apolloClient } from "@/lib/apollo-client"
 import { GET_POOLS } from "@/graphql/pools"
 import { CONFIG_KEYS } from "@interest-protocol/memez-fun-sdk"
 import { processMultiplePools } from "@/lib/process-pool-data"
+import { Pool } from "@/types/pool"
 
 export async function GET(request: NextRequest) {
 	try {
@@ -66,7 +67,7 @@ export async function GET(request: NextRequest) {
 			throw new Error("No pools data received")
 		}
 
-		const allPools = data.pools.pools
+		const allPools: Pool[] = data.pools.pools
 
 		// filter out test creator addresses first
 		let filteredPools = allPools
@@ -90,11 +91,6 @@ export async function GET(request: NextRequest) {
 				total: filteredPools.length,
 				page,
 				pageSize
-			},
-			{
-				// headers: {
-				// 	'Cache-Control': 's-maxage=3, stale-while-revalidate'
-				// }
 			}
 		)
 	} catch (error: any) {
