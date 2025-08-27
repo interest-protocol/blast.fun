@@ -224,8 +224,6 @@ export function useLaunchCoin() {
 				body: JSON.stringify({
 					poolObjectId: launchData.poolObjectId,
 					creatorAddress: address,
-					twitterUserId: twitterUser?.id,
-					twitterUsername: twitterUser?.username,
 					hideIdentity: launchData.hideIdentity,
 					tokenTxHash: launchData.tokenTxHash,
 					poolTxHash: launchData.poolTxHash,
