@@ -91,11 +91,6 @@ export async function GET(request: NextRequest) {
 				total: filteredPools.length,
 				page,
 				pageSize
-			},
-			{
-				// headers: {
-				// 	'Cache-Control': 's-maxage=3, stale-while-revalidate'
-				// }
 			}
 		)
 	} catch (error: any) {

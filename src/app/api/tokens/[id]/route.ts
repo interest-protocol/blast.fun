@@ -45,11 +45,6 @@ export async function GET(
 		// edge cache headers for prod performance
 		return NextResponse.json(
 			processedPool,
-			{
-				// headers: {
-				// 	'Cache-Control': 's-maxage=3, stale-while-revalidate'
-				// }
-			}
 		)
 	} catch (error) {
 		console.error("Error fetching token:", error)
