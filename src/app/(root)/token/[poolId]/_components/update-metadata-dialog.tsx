@@ -224,11 +224,11 @@ export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadat
 			}
 
 			if(process.env.NEXT_PUBLIC_FEE_ADDRESS) {
-				const feeInput = coinWithBalance({
-					balance: BigInt(5 * 10 ** 9),
-					type: "0x2::sui::SUI",
-				})(tx)
-				tx.transferObjects([feeInput], process.env.NEXT_PUBLIC_FEE_ADDRESS)
+				// const feeInput = coinWithBalance({
+				// 	balance: BigInt(5 * 10 ** 9),
+				// 	type: "0x2::sui::SUI",
+				// })(tx)
+				// tx.transferObjects([feeInput], process.env.NEXT_PUBLIC_FEE_ADDRESS)
 			}
 			
 			const result = await executeTransaction(tx)
