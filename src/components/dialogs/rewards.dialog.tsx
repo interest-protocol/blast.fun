@@ -38,7 +38,6 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 		suiClient: SuiClient
 	): Promise<{ success: boolean; error?: string }> => {
 		try {
-			console.log(`\n📊 Processing ${coin.symbol} (${coin.coinType})`)
 			
 			// Get all coins of this type with retry logic for rate limiting
 			const allCoins: CoinStruct[] = []
@@ -90,7 +89,7 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 				return { success: false, error: "No coins found" }
 			}
 			
-			let finalCoinId: string = ""
+			let finalCoinId = ""
 			
 			// Merge if needed
 			if (allCoins.length > 1) {
@@ -257,8 +256,6 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 			const data = await response.json()
 			const coins = data.coins || []
 			
-			// Show all coins with balance (already filtered by BlockVision service)
-			console.log(`Found ${coins.length} tokens in memez wallet:`, coins)
 			setWalletCoins(coins)
 		} catch (error) {
 			console.error("Error fetching wallet coins:", error)
@@ -270,14 +267,7 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 	}, [memezWalletAddress])
 
 	// Handle claim button click - simplified using shared function
-	const handleClaim = useCallback(async (coin: WalletCoin) => {
-		console.log("╔════════════════════════════════════════════════════════╗")
-		console.log("║                   CLAIM PROCESS START                    ║")
-		console.log("╠════════════════════════════════════════════════════════╣")
-		console.log("║ Coin Symbol:", coin.symbol)
-		console.log("║ User Wallet:", address)
-		console.log("╚════════════════════════════════════════════════════════╝")
-		
+	const handleClaim = useCallback(async (coin: WalletCoin) => {		
 		setClaimingCoinType(coin.coinType)
 		const loadingToastId = toast.loading("Preparing your reward...")
 		
@@ -321,7 +311,6 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 			toast.error(`Failed to claim ${coin.symbol}: ${error instanceof Error ? error.message : "Unknown error"}`)
 		} finally {
 			setClaimingCoinType(null)
-			console.log("\n════════════════════════════════════════════════════════")
 		}
 	}, [address, mergeAndPrepareReceive, signAndExecuteTransaction, fetchWalletCoins])
 
@@ -422,7 +411,6 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 			toast.error(`Failed to claim rewards: ${error instanceof Error ? error.message : "Unknown error"}`)
 		} finally {
 			setClaimingCoinType(null)
-			console.log("\n════════════════════════════════════════════════════════")
 		}
 	}, [address, walletCoins, mergeAndPrepareReceive, signAndExecuteTransaction, fetchWalletCoins])
 
