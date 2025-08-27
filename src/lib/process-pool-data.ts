@@ -3,6 +3,7 @@ import { nexaServerClient } from "@/lib/nexa-server"
 import { fetchCreatorData } from "@/lib/fetch-creator-data"
 import { suiClient } from "@/lib/sui-client"
 import { prisma } from "@/lib/prisma"
+import { blockVisionService } from "@/services/blockvision.service"
 
 export interface ProcessedPool {
 	[key: string]: any
@@ -73,14 +74,71 @@ export async function processPoolData(pool: any): Promise<ProcessedPool> {
 		}
 	}
 
+	// @dev: Don't return cached data if market cap is 0, try to fetch from BlockVision
 	if (
 		// process.env.NODE_ENV === "development" && 
-		processedPool.marketData && processedPool.coinMetadata && processedPool.creatorData) {
+		processedPool.marketData && processedPool.coinMetadata && processedPool.creatorData
+		&& processedPool.marketData.marketCap && processedPool.marketData.marketCap > 0) {
 		return processedPool
 	}
 
 	try {
-		const marketData = await nexaServerClient.getMarketData(pool.coinType)
+		let marketData = await nexaServerClient.getMarketData(pool.coinType)
+		
+		// @dev: If Nexa returns 0 or missing market cap, try BlockVision as backup
+		if (!marketData || !marketData.marketCap || marketData.marketCap === 0) {
+			console.log(`Market cap is 0 or missing from Nexa for ${pool.coinType}, trying BlockVision...`)
+			try {
+				const blockVisionResponse = await blockVisionService.getCoinDetails(pool.coinType)
+				if (blockVisionResponse.success && blockVisionResponse.data) {
+					const blockVisionData = blockVisionResponse.data
+					// @dev: Merge BlockVision data with Nexa data, preferring BlockVision for market cap
+					if (marketData) {
+						marketData = {
+							...marketData,
+							marketCap: blockVisionData.marketCap ? parseFloat(blockVisionData.marketCap) : marketData.marketCap,
+							coinPrice: blockVisionData.price ? parseFloat(blockVisionData.price) : marketData.coinPrice,
+							holdersCount: blockVisionData.holders || marketData.holdersCount,
+							coinMetadata: {
+								...marketData.coinMetadata,
+								name: blockVisionData.name || marketData.coinMetadata?.name,
+								symbol: blockVisionData.symbol || marketData.coinMetadata?.symbol,
+								decimals: blockVisionData.decimals || marketData.coinMetadata?.decimals,
+								iconUrl: blockVisionData.logo || marketData.coinMetadata?.iconUrl,
+								verified: blockVisionData.verified,
+							}
+						}
+					} else {
+						// @dev: If no Nexa data, create basic MarketData from BlockVision
+						marketData = {
+							coinPrice: blockVisionData.price ? parseFloat(blockVisionData.price) : 0,
+							suiPrice: 0,
+							isCoinHoneyPot: false,
+							totalLiquidityUsd: 0,
+							marketCap: blockVisionData.marketCap ? parseFloat(blockVisionData.marketCap) : 0,
+							coin24hTradeCount: 0,
+							coin24hTradeVolumeUsd: 0,
+							price1DayAgo: 0,
+							price5MinsAgo: null,
+							price1HrAgo: null,
+							price4HrAgo: null,
+							holdersCount: blockVisionData.holders || 0,
+							coinMetadata: {
+								name: blockVisionData.name,
+								symbol: blockVisionData.symbol,
+								decimals: blockVisionData.decimals,
+								iconUrl: blockVisionData.logo,
+								verified: blockVisionData.verified,
+								coinType: blockVisionData.coinType,
+							}
+						}
+					}
+					console.log(`Successfully fetched market cap from BlockVision: ${marketData.marketCap}`)
+				}
+			} catch (blockVisionError) {
+				console.error(`BlockVision fallback failed for ${pool.coinType}:`, blockVisionError)
+			}
+		}
 
 		const { coinMetadata, ...restMarketData } = marketData
 		if (pool.migrated && restMarketData.pools && Array.isArray(restMarketData.pools)) {
