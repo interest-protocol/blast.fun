@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/resizable"
 import { useBreakpoint } from "@/hooks/use-breakpoint"
 import { TOTAL_POOL_SUPPLY, DEFAULT_TOKEN_DECIMALS } from "@/constants"
+import { formatNumberWithSuffix } from "@/utils/format"
 
 interface TokenModuleProps {
 	pool: PoolWithMetadata
@@ -54,6 +55,15 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 			tokenPriceSocket.unsubscribeFromTokenPrice(subscriptionId, 'direct')
 		}
 	}, [pool.innerState, pool.mostLiquidPoolId, pool.migrated, pool.coinMetadata?.decimals])
+
+	// @dev: Update document title when market cap changes
+	useEffect(() => {
+		if (marketCap !== null) {
+			const symbol = pool.coinMetadata?.symbol || pool.metadata?.symbol || "UNKNOWN"
+			const formattedMcap = formatNumberWithSuffix(marketCap)
+			document.title = `${symbol} $${formattedMcap} | BLAST.FUN`
+		}
+	}, [marketCap, pool.coinMetadata?.symbol, pool.metadata?.symbol])
 
 	if (isMobile) {
 		return <MobileTokenView pool={pool} referral={referral} />
