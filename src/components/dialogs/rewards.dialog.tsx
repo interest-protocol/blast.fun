@@ -238,7 +238,7 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 	const fetchWalletCoins = useCallback(async () => {
 		if (!memezWalletAddress) return
 
-		console.log("Fetching wallet coins for Memez wallet address:", memezWalletAddress)
+		console.log("Fetching wallet coins for reward wallet address:", memezWalletAddress)
 		setIsLoading(true)
 		try {
 			const response = await fetch("/api/wallet/coins", {
@@ -423,12 +423,12 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 					const memezAddr = await walletSdk.getWalletAddress(address)
 					console.log("=====================================")
 					console.log("Connected Wallet Address:", address)
-					console.log("Memez Wallet Address:", memezAddr)
+					console.log("reward wallet Address:", memezAddr)
 					console.log("=====================================")
 					setMemezWalletAddress(memezAddr)
 				} catch (error) {
-					console.error("Failed to get Memez wallet address:", error)
-					toast.error("Failed to get Memez wallet address")
+					console.error("Failed to get reward wallet address:", error)
+					toast.error("Failed to get reward wallet address")
 				}
 			}
 			getMemezWallet()
