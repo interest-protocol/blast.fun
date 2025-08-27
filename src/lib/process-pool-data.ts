@@ -77,10 +77,7 @@ export async function processPoolData(pool: Pool): Promise<ProcessedPool> {
 	}
 
 	// @dev: Don't return cached data if market cap is 0, try to fetch from BlockVision
-	if (
-		// process.env.NODE_ENV === "development" && 
-		processedPool.marketData && processedPool.coinMetadata && processedPool.creatorData
-		&& processedPool.marketData.marketCap && processedPool.marketData.marketCap > 0) {
+	if (processedPool.marketData && processedPool.coinMetadata && processedPool.creatorData && processedPool.marketData.marketCap && processedPool.marketData.marketCap > 0) {
 		return processedPool
 	}
 

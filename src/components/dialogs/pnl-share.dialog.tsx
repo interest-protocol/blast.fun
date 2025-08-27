@@ -14,6 +14,7 @@ import * as htmlToImage from "html-to-image"
 import type { PoolWithMetadata } from "@/types/pool"
 import { useUserHoldings } from "@/hooks/use-user-holdings"
 import { formatNumberWithSuffix, formatSmallPrice } from "@/utils/format"
+import Image from "next/image"
 
 interface PnlDialogProps {
 	isOpen: boolean
@@ -133,10 +134,11 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 								}}
 							>
 								{/* Background Image */}
-								<img
+								<Image
 									src="/logo/share-bg.png"
 									alt=""
 									className="absolute inset-0"
+									unoptimized
 									style={{
 										width: "100%",
 										height: "100%",
@@ -155,10 +157,11 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 											{/* Token Icon */}
 											<div className="relative h-14 w-14 flex-shrink-0">
 												{iconUrl ? (
-													<img
+													<Image
 														src={iconUrl}
 														alt={symbol}
 														className="h-14 w-14 rounded-full object-cover"
+														unoptimized
 													/>
 												) : (
 													<div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">

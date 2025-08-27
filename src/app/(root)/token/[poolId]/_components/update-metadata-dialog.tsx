@@ -22,6 +22,7 @@ import { pumpSdk } from "@/lib/pump"
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions"
 import { getBase64ForMetadata } from "./metadata-image-utils"
 import { cn } from "@/utils"
+import Image from "next/image"
 
 interface UpdateMetadataDialogProps {
 	open: boolean
@@ -349,10 +350,11 @@ export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadat
 									{iconUrl ? (
 										<div className="relative w-full h-full">
 											{/* eslint-disable-next-line @next/next/no-img-element */}
-											<img
+											<Image
 												src={iconUrl}
 												alt="Token icon"
 												className="w-full h-full object-contain rounded-lg"
+												unoptimized
 											/>
 											<Button
 												type="button"
@@ -406,10 +408,11 @@ export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadat
 									{imageUrlInput && (
 										<div className="w-full h-24 border rounded-lg overflow-hidden">
 											{/* eslint-disable-next-line @next/next/no-img-element */}
-											<img
+											<Image
 												src={imageUrlInput}
 												alt="Token icon preview"
 												className="w-full h-full object-contain"
+												unoptimized
 												onError={(e) => {
 													e.currentTarget.style.display = 'none'
 												}}

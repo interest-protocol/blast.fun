@@ -11,6 +11,7 @@ import { Logo } from "@/components/ui/logo"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useSuiNSNames } from "@/hooks/use-suins"
 import { formatNumberWithSuffix } from "@/utils/format"
+import Image from "next/image"
 
 interface HoldersTabProps {
 	pool: PoolWithMetadata
@@ -163,10 +164,11 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 									{/* Address */}
 									<div className="col-span-5 flex items-center gap-2">
 										{holder.image && (
-											<img 
+											<Image 
 												src={holder.image} 
 												alt={holder.name || "Holder"} 
 												className="w-5 h-5 sm:w-6 sm:h-6 rounded-full"
+												unoptimized
 											/>
 										)}
 										<div className="flex-1">
