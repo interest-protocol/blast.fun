@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { Edit2, Loader2, CheckCircle, Upload, X, Link2, Globe, MessageCircle, Twitter } from "lucide-react"
 import {
 	Dialog,
@@ -37,6 +37,20 @@ export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadat
 	const [symbol, setSymbol] = useState(metadata?.symbol || "")
 	const [description, setDescription] = useState(metadata?.description || "")
 	const [iconUrl, setIconUrl] = useState(metadata?.iconUrl || metadata?.icon_url || "")
+
+	useEffect(() => {
+		const fetchPoolMetadata = async () => {
+			const targetPool = await pumpSdk.getPumpPool(pool.poolId)
+			const poolMetadata = await pumpSdk.getPoolMetadata({
+				poolId: targetPool.objectId,
+				quoteCoinType: targetPool.quoteCoinType,
+				memeCoinType: pool.coinType,
+				curveType: pool.curve
+			})
+			console.log({poolMetadata})
+		}
+		fetchPoolMetadata()
+	}, [metadata])
 	
 	// Form state - pool metadata (initialize with existing values)
 	const [twitter, setTwitter] = useState(pool.metadata?.X || "")
@@ -232,7 +246,7 @@ export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadat
 			}
 			
 			const result = await executeTransaction(tx)
-			setSuccess(`Successfully updated metadata! Transaction: ${result.digest.slice(0, 8)}...`)
+			setSuccess(`Successfully updated metadata! Changes will be reflected in approximately 30 minutes.`)
 			
 			setTimeout(() => {
 				onOpenChange(false)

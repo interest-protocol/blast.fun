@@ -23,13 +23,6 @@ import { coinWithBalance, Transaction } from "@mysten/sui/transactions"
 import { CoinMetadata } from "@mysten/sui/client"
 import { useTransaction } from "@/hooks/sui/use-transaction"
 import { useSignTransaction } from "@mysten/dapp-kit"
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { TokenAvatar } from "@/components/tokens/token-avatar"
 
@@ -48,12 +41,11 @@ export function AirdropUtility() {
 	const [csvInput, setCsvInput] = useState<string>("")
 	const [recipients, setRecipients] = useState<AirdropRecipient[]>([])
 	const [isLoadingCoins, setIsLoadingCoins] = useState(false)
-	const [viewMode, setViewMode] = useState<"csv" | "table">("csv")
+	const [viewMode, setViewMode] = useState<"csv" | "import" | "table">("csv")
 	const [isResolvingAddresses, setIsResolvingAddresses] = useState(false)
 	const { executeTransaction } = useTransaction()
 	const { mutateAsync: signTransaction } = useSignTransaction()
 	const [isRecoveringGas, setIsRecoveringGas] = useState(false)
-	const [showImportDialog, setShowImportDialog] = useState(false)
 	const [isDragging, setIsDragging] = useState(false)
 
 	// @dev: Fetch user's coins from BlockVision API
@@ -407,9 +399,9 @@ export function AirdropUtility() {
 				return
 			}
 
-			// @dev: Set the CSV input and close dialog
+			// @dev: Set the CSV input and switch to CSV input tab
 			setCsvInput(csvRows.join("\n"))
-			setShowImportDialog(false)
+			setViewMode("csv")
 			toast.success(`Imported ${csvRows.length} recipients from CSV`)
 		} catch (error) {
 			console.error("Error importing CSV:", error)
@@ -507,38 +499,103 @@ export function AirdropUtility() {
 					{/* Recipients Input */}
 					<div className="space-y-2">
 						<Label>Recipients</Label>
-						<Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "csv" | "table")}>
-							<TabsList className="grid w-full grid-cols-2">
+						<Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "csv" | "import" | "table")}>
+							<TabsList className="grid w-full grid-cols-3">
+								<TabsTrigger value="import">CSV Import</TabsTrigger>
 								<TabsTrigger value="csv">CSV Input</TabsTrigger>
 								<TabsTrigger value="table">Preview ({recipients.length})</TabsTrigger>
 							</TabsList>
 							
 							<TabsContent value="csv" className="space-y-4">
 								<div className="space-y-2">
-									<div className="flex items-center justify-between">
-										<Label htmlFor="csv-input">
-											Enter addresses and amounts (tab or comma separated)
-										</Label>
-										<Button
-											variant="outline"
-											size="sm"
-											className="gap-2"
-											onClick={() => setShowImportDialog(true)}
-										>
-											<Upload className="h-4 w-4" />
-											Import CSV
-										</Button>
-									</div>
+									<Label htmlFor="csv-input">
+										Enter addresses and amounts (tab or comma separated)
+									</Label>
 									<Textarea
 										id="csv-input"
 										placeholder={`0x123...abc,100\nalice.sui,200\n@bob,300\n0x789...ghi	400`}
-										className="min-h-[200px] max-h-[33vh] overflow-y-auto font-mono text-sm"
+										className="min-h-[200px] font-mono text-sm"
 										value={csvInput}
 										onChange={(e) => setCsvInput(e.target.value)}
 									/>
 									<p className="text-xs text-muted-foreground">
 										Format: address/SuiNS[tab or comma]amount (one per line). Supports SuiNS names (e.g., alice.sui or @alice)
 									</p>
+								</div>
+							</TabsContent>
+
+							<TabsContent value="import" className="space-y-4">
+								<div className="space-y-4">
+									<div className="flex justify-end">
+										<Button
+											variant="outline"
+											size="sm"
+											className="gap-2"
+											onClick={downloadTemplate}
+										>
+											<Download className="h-4 w-4" />
+											Download Template
+										</Button>
+									</div>
+									<div
+										className={`
+											border-2 border-dashed rounded-lg p-8
+											transition-colors cursor-pointer
+											${
+												isDragging
+													? "border-primary bg-primary/5"
+													: "border-muted-foreground/25 hover:border-muted-foreground/50"
+											}
+										`}
+										onDragOver={(e) => {
+											e.preventDefault()
+											setIsDragging(true)
+										}}
+										onDragLeave={(e) => {
+											e.preventDefault()
+											setIsDragging(false)
+										}}
+										onDrop={(e) => {
+											e.preventDefault()
+											setIsDragging(false)
+											const files = e.dataTransfer.files
+											if (files.length > 0) {
+												handleFileImport(files[0])
+											}
+										}}
+										onClick={() => {
+											const input = document.getElementById("csv-file-input-inline") as HTMLInputElement
+											input?.click()
+										}}
+									>
+										<div className="flex flex-col items-center justify-center space-y-2 text-center">
+											<Upload className="h-8 w-8 text-muted-foreground" />
+											<p className="text-sm font-medium">
+												Drag & drop your CSV file here
+											</p>
+											<p className="text-xs text-muted-foreground">
+												or click to browse
+											</p>
+										</div>
+									</div>
+									<Input
+										id="csv-file-input-inline"
+										type="file"
+										accept=".csv"
+										className="hidden"
+										onChange={(e) => {
+											const file = e.target.files?.[0]
+											if (file) {
+												handleFileImport(file)
+											}
+										}}
+									/>
+									<div className="rounded-lg bg-muted/50 p-3">
+										<p className="text-xs text-muted-foreground">
+											<strong>Expected format:</strong> CSV file with &quot;address&quot; and &quot;amount&quot; columns (case-insensitive).
+											SuiNS names (like alice.sui) are supported.
+										</p>
+									</div>
 								</div>
 							</TabsContent>
 
@@ -549,10 +606,10 @@ export function AirdropUtility() {
 										<span className="text-sm">Resolving SuiNS names...</span>
 									</div>
 								)}
-								<div className="border rounded-lg overflow-hidden">
-									<div className="overflow-x-auto">
+								<div className="border rounded-lg overflow-hidden max-h-[33vh]">
+									<div className="overflow-auto max-h-[33vh]">
 										<table className="w-full">
-											<thead className="bg-muted/50">
+											<thead className="bg-muted/50 sticky top-0 z-10">
 												<tr>
 													<th className="px-4 py-2 text-left text-sm font-medium">#</th>
 													<th className="px-4 py-2 text-left text-sm font-medium">Input</th>
@@ -564,7 +621,7 @@ export function AirdropUtility() {
 												{recipients.length === 0 ? (
 													<tr>
 														<td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-															No recipients added yet. Use the CSV input to add recipients.
+															No recipients added yet. Use the CSV input or import to add recipients.
 														</td>
 													</tr>
 												) : (
@@ -610,7 +667,7 @@ export function AirdropUtility() {
 												)}
 											</tbody>
 											{recipients.length > 0 && (
-												<tfoot className="bg-muted/50 border-t">
+												<tfoot className="bg-muted/50 border-t sticky bottom-0">
 													<tr>
 														<td colSpan={3} className="px-4 py-2 text-sm font-medium">
 															Total
@@ -653,91 +710,6 @@ export function AirdropUtility() {
 					)}
 				</CardContent>
 			</Card>
-
-			{/* CSV Import Dialog */}
-			<Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
-				<DialogContent className="sm:max-w-md">
-					<DialogHeader>
-						<DialogTitle>Import CSV File</DialogTitle>
-						<DialogDescription>
-							Upload a CSV file with &quot;address&quot; and &quot;amount&quot; columns. The file will be parsed and added to the CSV input area.
-						</DialogDescription>
-					</DialogHeader>
-					<div className="space-y-4">
-						{/* Download Template Button */}
-						<div className="flex justify-end">
-							<Button
-								variant="outline"
-								size="sm"
-								className="gap-2"
-								onClick={downloadTemplate}
-							>
-								<Download className="h-4 w-4" />
-								Download Template
-							</Button>
-						</div>
-						<div
-							className={`
-								border-2 border-dashed rounded-lg p-8
-								transition-colors cursor-pointer
-								${
-									isDragging
-										? "border-primary bg-primary/5"
-										: "border-muted-foreground/25 hover:border-muted-foreground/50"
-								}
-							`}
-							onDragOver={(e) => {
-								e.preventDefault()
-								setIsDragging(true)
-							}}
-							onDragLeave={(e) => {
-								e.preventDefault()
-								setIsDragging(false)
-							}}
-							onDrop={(e) => {
-								e.preventDefault()
-								setIsDragging(false)
-								const files = e.dataTransfer.files
-								if (files.length > 0) {
-									handleFileImport(files[0])
-								}
-							}}
-							onClick={() => {
-								const input = document.getElementById("csv-file-input") as HTMLInputElement
-								input?.click()
-							}}
-						>
-							<div className="flex flex-col items-center justify-center space-y-2 text-center">
-								<Upload className="h-8 w-8 text-muted-foreground" />
-								<p className="text-sm font-medium">
-									Drag & drop your CSV file here
-								</p>
-								<p className="text-xs text-muted-foreground">
-									or click to browse
-								</p>
-							</div>
-						</div>
-						<Input
-							id="csv-file-input"
-							type="file"
-							accept=".csv"
-							className="hidden"
-							onChange={(e) => {
-								const file = e.target.files?.[0]
-								if (file) {
-									handleFileImport(file)
-								}
-							}}
-						/>
-						<div className="rounded-lg bg-muted/50 p-3">
-							<p className="text-xs text-muted-foreground">
-								<strong>Expected format:</strong> CSV file with &quot;address&quot; and &quot;amount&quot; columns (case-insensitive).
-								SuiNS names (like alice.sui) are supported.
-							</p>
-						</div>
-					</div>
-				</DialogContent>
-			</Dialog>
 		</div>
 	)
 }
