@@ -245,7 +245,6 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 			if (isExactBalance || isNearExact) {
 				// If selling exact balance, use the actual balance directly
 				amountInSmallestUnit = actualBalanceBigInt
-				console.log('[Trading] Using exact balance for sell:', actualBalance)
 			} else if (amountInSmallestUnit > actualBalanceBigInt) {
 				setError(`You don't have enough for this. You only have ${actualBalanceInDisplayUnit.toFixed()} ${pool.coinMetadata?.symbol || "TOKEN"}`)
 				return

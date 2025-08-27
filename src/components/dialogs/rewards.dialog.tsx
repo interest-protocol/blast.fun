@@ -65,7 +65,6 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 							}
 							// Exponential backoff: 1s, 2s, 4s
 							const waitTime = Math.pow(2, retries - 1) * 1000
-							console.log(`    ⏳ Rate limited, waiting ${waitTime}ms before retry ${retries}/${maxRetries}`)
 							await new Promise(resolve => setTimeout(resolve, waitTime))
 						} else {
 							throw error // Re-throw non-rate-limit errors
@@ -82,10 +81,7 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 				cursor = response.nextCursor
 			}
 			
-			console.log(`  → Found ${allCoins.length} coins`)
-			
 			if (allCoins.length === 0) {
-				console.log(`  → No coins to claim`)
 				return { success: false, error: "No coins found" }
 			}
 			
@@ -93,8 +89,6 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 			
 			// Merge if needed
 			if (allCoins.length > 1) {
-				console.log(`  → Merging ${allCoins.length} coins...`)
-				
 				const BATCH_SIZE = 500
 				let remainingCoins = [...allCoins]
 				
@@ -106,12 +100,9 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 						batches.push(remainingCoins.slice(i, Math.min(i + BATCH_SIZE, remainingCoins.length)))
 					}
 					
-					console.log(`    Creating ${batches.length} batch(es) from ${remainingCoins.length} coins`)
-					
 					// Merge all batches in parallel
 					const mergePromises = batches.map(async (batch, index) => {
-						console.log(`    Batch ${index + 1}: Merging ${batch.length} coins`)
-						
+				
 						const mergeResponse = await fetch("/api/wallet/merge-coins", {
 							method: "POST",
 							headers: {
@@ -139,7 +130,6 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 							throw new Error(mergeData.error || `Merge failed for batch ${index + 1}`)
 						}
 						
-						console.log(`    ✅ Batch ${index + 1} merged! TX: ${mergeData.transactionDigest}`)
 						return mergeData
 					})
 					
@@ -147,7 +137,6 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 					await Promise.all(mergePromises)
 					
 					// Wait for chain to update
-					console.log(`    ⏳ Waiting for chain update...`)
 					await new Promise(resolve => setTimeout(resolve, 3000))
 					
 					// Fetch all updated coins (with pagination to get all)
@@ -175,7 +164,6 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 										throw new Error(`Rate limited after ${maxRetries} retries while fetching updated coins`)
 									}
 									const waitTime = Math.pow(2, retries - 1) * 1000
-									console.log(`    ⏳ Rate limited on update check, waiting ${waitTime}ms before retry ${retries}/${maxRetries}`)
 									await new Promise(resolve => setTimeout(resolve, waitTime))
 								} else {
 									throw error
@@ -192,7 +180,6 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 						cursor = response.nextCursor
 					}
 					
-					console.log(`    → After merging: ${updatedCoins.length} coin(s) remaining`)
 					remainingCoins = updatedCoins
 					
 					if (remainingCoins.length === 1) {
@@ -208,10 +195,9 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 				throw new Error("No final coin ID after merge")
 			}
 			
-			console.log(`  → Final coin: ${finalCoinId}`)
 			
 			// Add receive operation to the transaction
-			const { object } = await walletSdk.receive({
+			const { object } = walletSdk.receive({
 				tx,
 				type: `0x2::coin::Coin<${coin.coinType}>`,
 				objectId: finalCoinId,
@@ -221,7 +207,6 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 			// Transfer to user's wallet
 			tx.transferObjects([object], address!)
 			
-			console.log(`  ✅ ${coin.symbol} prepared for claiming`)
 			
 			return { success: true }
 			
@@ -238,7 +223,6 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 	const fetchWalletCoins = useCallback(async () => {
 		if (!memezWalletAddress) return
 
-		console.log("Fetching wallet coins for reward wallet address:", memezWalletAddress)
 		setIsLoading(true)
 		try {
 			const response = await fetch("/api/wallet/coins", {
@@ -288,15 +272,10 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 			// Set gas budget
 			tx.setGasBudget(10000000)
 			
-			console.log("\n💰 Requesting user signature...")
-			
 			// Have the user sign and execute the transaction
-			const txResult = await signAndExecuteTransaction({
+			await signAndExecuteTransaction({
 				transaction: tx,
 			})
-			
-			console.log("\n✅ CLAIM SUCCESSFUL!")
-			console.log(`  → Transaction: ${txResult.digest}`)
 			
 			toast.success(`${coin.symbol} claimed successfully!`)
 			
@@ -322,16 +301,6 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 		const MAX_COINS = 10
 		const coinsToProcess = walletCoins.slice(0, MAX_COINS)
 		
-		console.log("╔════════════════════════════════════════════════════════╗")
-		console.log("║                CLAIM ALL PROCESS START                   ║")
-		console.log("╠════════════════════════════════════════════════════════╣")
-		console.log("║ Total Coin Types:", coinsToProcess.length)
-		if (walletCoins.length > MAX_COINS) {
-			console.log("║ Note: Limited to first 200 coins")
-		}
-		console.log("║ User Wallet:", address)
-		console.log("╚════════════════════════════════════════════════════════╝")
-		
 		setClaimingCoinType("all")
 		let progressToastId: string | undefined
 		
@@ -340,7 +309,6 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 			const tx = new Transaction()
 			
 			// Process each coin sequentially with progress updates
-			console.log("\n📊 Processing coins sequentially...")
 			let successCount = 0
 			const failedCoins: string[] = []
 			
@@ -359,7 +327,6 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 					successCount++
 				} else {
 					failedCoins.push(coin.symbol)
-					console.log(`  ⚠️ Skipping ${coin.symbol}: ${result.error}`)
 				}
 			}
 			
@@ -385,16 +352,10 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 			// Set gas budget
 			tx.setGasBudget(10000000)
 			
-			console.log(`\n💰 Requesting user signature for ${successCount} coin(s)...`)
-			
 			// Have the user sign and execute the transaction
-			const txResult = await signAndExecuteTransaction({
+			await signAndExecuteTransaction({
 				transaction: tx,
 			})
-			
-			console.log("\n✅ CLAIM ALL SUCCESSFUL!")
-			console.log(`  → Transaction: ${txResult.digest}`)
-			console.log(`  → ${successCount} coin(s) transferred to your wallet`)
 			
 			toast.success(`Successfully claimed ${successCount} reward(s)!`)
 			
@@ -421,10 +382,6 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 			const getMemezWallet = async () => {
 				try {
 					const memezAddr = await walletSdk.getWalletAddress(address)
-					console.log("=====================================")
-					console.log("Connected Wallet Address:", address)
-					console.log("reward wallet Address:", memezAddr)
-					console.log("=====================================")
 					setMemezWalletAddress(memezAddr)
 				} catch (error) {
 					console.error("Failed to get reward wallet address:", error)

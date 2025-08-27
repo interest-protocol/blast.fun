@@ -38,9 +38,6 @@ export async function POST(req: NextRequest) {
 			)
 		}
 
-		console.log(`Merging ${coins.length} coins of type ${coinType}`)
-		console.log(`Wallet address: ${walletAddress}`)
-
 		// Initialize SDK and SUI client
 		const walletSdk = new MemezWalletSDK()
 		const suiClient = new SuiClient({ url: getFullnodeUrl("mainnet") })
@@ -48,11 +45,9 @@ export async function POST(req: NextRequest) {
 		// Create a temporary keypair for this transaction
 		const tempKeypair = new Ed25519Keypair()
 		const tempAddress = tempKeypair.toSuiAddress()
-		
-		console.log("Created temporary address:", tempAddress)
 
 		// Use MemezWalletSDK to create the merge transaction
-		const { tx } = await walletSdk.mergeCoins({
+		const { tx } = walletSdk.mergeCoins({
 			coinType: coinType,
 			coins: coins,
 			wallet: walletAddress,
@@ -64,8 +59,6 @@ export async function POST(req: NextRequest) {
 		// Build the transaction
 		const txBytes = await tx.build({ client: suiClient, onlyTransactionKind: true })
 		const txBytesHex = toHex(txBytes)
-		
-		console.log("Requesting gas station sponsorship...")
 		
 		// Sponsor the transaction using SDK
 		let sponsorData
@@ -86,8 +79,6 @@ export async function POST(req: NextRequest) {
 			throw error
 		}
 
-		console.log("Sponsorship received, executing transaction...")
-
 		// Sign the sponsored transaction with the temporary keypair
 		const sponsoredTxBytes = fromHex(sponsorData.txBytesHex)
 		const signature = await tempKeypair.signTransaction(sponsoredTxBytes)
@@ -101,8 +92,6 @@ export async function POST(req: NextRequest) {
 				showObjectChanges: true,
 			},
 		})
-		
-		console.log(`Transaction executed: ${result.digest}`)
 		
 		if (result.effects?.status?.status !== "success") {
 			return NextResponse.json(
