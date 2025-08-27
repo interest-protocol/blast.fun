@@ -102,7 +102,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 		// 	return
 		// }
 
-		if (!isMigrated && (pool.canMigrate || parseInt(pool.bondingCurve) >= 100)) {
+		if (!isMigrated && (pool.canMigrate || pool.bondingCurve >= 100)) {
 			setError('TOKEN::MIGRATING')
 			return
 		}

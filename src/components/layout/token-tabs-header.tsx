@@ -49,7 +49,7 @@ function TokenTabItem({
 
 	const coinType = poolData?.coinType || tab.coinType || ""
 	const { data: marketData } = useMarketData(coinType, 10000)
-	const progress = poolData?.bondingCurve ? parseFloat(poolData.bondingCurve) : tab.bondingCurve || 0
+	const progress = poolData?.bondingCurve ? parseFloat(String(poolData.bondingCurve)) : tab.bondingCurve || 0
 	const isComplete = progress >= 100
 	const marketCap = marketData?.marketCap || 0
 
