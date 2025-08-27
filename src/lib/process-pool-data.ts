@@ -4,6 +4,7 @@ import { fetchCreatorData } from "@/lib/fetch-creator-data"
 import { suiClient } from "@/lib/sui-client"
 import { prisma } from "@/lib/prisma"
 import { blockVisionService } from "@/services/blockvision.service"
+import { Pool } from "@/types/pool"
 
 export interface ProcessedPool {
 	[key: string]: any
@@ -23,7 +24,8 @@ export interface ProcessedPool {
  * - Creator data fetching and caching
  * - Fallback strategies for failed API calls
  */
-export async function processPoolData(pool: any): Promise<ProcessedPool> {
+export async function processPoolData(pool: Pool): Promise<ProcessedPool> {
+
 	const processedPool: ProcessedPool = {
 		...pool,
 		isProtected: !!pool.publicKey,

@@ -4,6 +4,7 @@ import { GET_POOL } from "@/graphql/pools"
 import { CONFIG_KEYS } from "@interest-protocol/memez-fun-sdk"
 import { isValidSuiObjectId } from "@mysten/sui/utils"
 import { processPoolData } from "@/lib/process-pool-data"
+import type { GetPoolResponse, GetPoolVariables } from "@/types/graphql"
 
 export async function GET(
 	_request: NextRequest,
@@ -18,7 +19,7 @@ export async function GET(
 			)
 		}
 
-		const { data } = await apolloClient.query({
+		const { data } = await apolloClient.query<GetPoolResponse, GetPoolVariables>({
 			query: GET_POOL,
 			variables: { poolId },
 			context: {
