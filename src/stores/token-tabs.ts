@@ -13,6 +13,7 @@ export interface TokenTab {
 interface TokenTabsStore {
 	tabs: TokenTab[]
 	addTab: (tab: TokenTab) => void
+	updateTab: (poolId: string, updates: Partial<TokenTab>) => void
 	removeTab: (poolId: string) => void
 	removeAllTabs: () => void
 	getTab: (poolId: string) => TokenTab | undefined
@@ -34,6 +35,13 @@ export const useTokenTabs = create<TokenTabsStore>()(
 					}
 				}),
 
+			updateTab: (poolId, updates) =>
+				set((state) => ({
+					tabs: state.tabs.map((tab) =>
+						tab.poolId === poolId ? { ...tab, ...updates } : tab
+					),
+				})),
+
 			removeTab: (poolId) =>
 				set((state) => ({
 					tabs: state.tabs.filter((t) => t.poolId !== poolId),
@@ -47,7 +55,7 @@ export const useTokenTabs = create<TokenTabsStore>()(
 			getTab: (poolId) => get().tabs.find((t) => t.poolId === poolId),
 		}),
 		{
-			name: "token-tabs-storage",
+			name: "token-tabs",
 			partialize: (state) => ({ tabs: state.tabs }),
 		}
 	)

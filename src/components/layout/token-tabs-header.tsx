@@ -8,16 +8,10 @@ import { TokenAvatar } from "../tokens/token-avatar"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { useBreakpoint } from "@/hooks/use-breakpoint"
-import { useMarketData } from "@/hooks/use-market-data"
-import { formatNumberWithSuffix } from "@/utils/format"
-import { useQuery } from "@tanstack/react-query"
-import { apolloClient } from "@/lib/apollo-client"
-import { GET_POOL } from "@/graphql/pools"
-import type { GetPoolResponse, GetPoolVariables } from "@/types/graphql"
-import { CONFIG_KEYS } from "@interest-protocol/memez-fun-sdk"
-import { useRef, useState, useEffect } from "react"
+import { useBondingProgress } from "@/hooks/use-bonding-progress"
+import { useRef, useState, useEffect, useCallback, memo } from "react"
 
-function TokenTabItem({
+const TokenTabItem = memo(function TokenTabItem({
 	tab,
 	isActive,
 	onTabClick,
@@ -28,70 +22,62 @@ function TokenTabItem({
 	onTabClick: (poolId: string) => void
 	onCloseTab: (e: React.MouseEvent, poolId: string) => void
 }) {
-	const { data: poolData } = useQuery({
-		queryKey: ["pool", tab.poolId],
-		queryFn: async () => {
-			const { data } = await apolloClient.query<GetPoolResponse, GetPoolVariables>({
-				query: GET_POOL,
-				context: {
-					headers: {
-						"config-key": CONFIG_KEYS.mainnet.XPUMP
-					}
-				},
-				variables: { poolId: tab.poolId },
-				fetchPolicy: "network-only",
-			})
-			return data?.pool
-		},
-		refetchInterval: 10000,
-		enabled: !!tab.poolId
-	})
-
-	const coinType = poolData?.coinType || tab.coinType || ""
-	const { data: marketData } = useMarketData(coinType, 10000)
-	const progress = poolData?.bondingCurve ? parseFloat(String(poolData.bondingCurve)) : tab.bondingCurve || 0
+	const { updateTab } = useTokenTabs()
+	
+	// @dev: pass undefined to the hook to prevent fetching if we bonded.
+	const isAlreadyComplete = tab.bondingCurve >= 100
+	const { data: bondingData } = useBondingProgress(
+		isAlreadyComplete ? undefined : tab.coinType
+	)
+	
+	// @dev: prio bonding progress from API or just fallback to stale tab data
+	const progress = bondingData?.progress ?? tab.bondingCurve ?? 0
 	const isComplete = progress >= 100
-	const marketCap = marketData?.marketCap || 0
+	
+	// @dev: update tab data when bonding occurs
+	useEffect(() => {
+		if (bondingData?.progress && bondingData.progress !== tab.bondingCurve) {
+			updateTab(tab.poolId, { bondingCurve: bondingData.progress })
+		}
+	}, [bondingData?.progress, tab.poolId, tab.bondingCurve, updateTab])
 
-	const metadata = marketData?.coinMetadata
+	const handleClick = useCallback(() => {
+		onTabClick(tab.poolId)
+	}, [onTabClick, tab.poolId])
+
+	const handleClose = useCallback((e: React.MouseEvent) => {
+		onCloseTab(e, tab.poolId)
+	}, [onCloseTab, tab.poolId])
 
 	return (
 		<Button
-			key={tab.poolId}
 			variant={isActive ? "outline" : "ghost"}
 			size="sm"
-			onClick={() => onTabClick(tab.poolId)}
+			onClick={handleClick}
 			className={cn(
-				"group relative h-auto rounded-xl py-1.5 px-2 min-w-[160px] max-w-[240px] font-normal flex-shrink-0",
+				"group relative h-8 rounded-md py-1 px-2 min-w-[120px] max-w-[180px] font-normal flex-shrink-0 justify-start",
 				isActive && "!border-destructive/50 !bg-destructive/10 hover:!bg-destructive/15"
 			)}
 		>
-			<div className="flex items-center gap-2 min-w-0">
+			<div className="flex items-center gap-2 min-w-0 w-full justify-start">
 				<TokenAvatar
-					iconUrl={metadata?.iconUrl || tab.iconUrl || undefined}
-					symbol={metadata?.symbol || tab.symbol}
-					name={metadata?.name || tab.name}
-					className="relative w-7 h-7 rounded-lg border-2 border-border/20 group-hover:border-primary/30 transition-all duration-300 shadow-sm"
+					iconUrl={tab.iconUrl || undefined}
+					symbol={tab.symbol}
+					name={tab.name}
+					className="relative w-5 h-5 rounded border border-border/20 group-hover:border-primary/30 transition-all duration-300 flex-shrink-0"
 				/>
 
-				<div className="flex flex-col items-start min-w-0">
-					<div className="flex items-center gap-1 min-w-0">
-						<span className="text-xs font-medium truncate">
-							{metadata?.symbol || tab.symbol}
-						</span>
-						{marketCap > 0 && (
-							<span className="text-[10px] text-green-500/90 font-semibold">
-								${formatNumberWithSuffix(marketCap)}
-							</span>
-						)}
-					</div>
+				<div className="flex flex-col items-start min-w-0 flex-1 gap-0.5">
+					<span className="text-xs font-medium truncate w-full leading-tight text-left">
+						{tab.symbol}
+					</span>
 
-					<div className="relative">
+					<div className="relative w-full">
 						<Progress
 							value={Math.min(progress, 100)}
 							className={cn(
-								"h-1 w-16 bg-muted/50 rounded-xl",
-								"[&>div]:transition-all [&>div]:duration-500",
+								"h-1 w-full bg-muted/50 rounded-full",
+								"[&>div]:transition-all [&>div]:duration-500 [&>div]:rounded-full",
 								isComplete
 									? "[&>div]:bg-gradient-to-r [&>div]:from-yellow-400 [&>div]:to-amber-400"
 									: progress >= 85
@@ -99,48 +85,39 @@ function TokenTabItem({
 										: "[&>div]:bg-gradient-to-r [&>div]:from-primary/60 [&>div]:to-primary"
 							)}
 						/>
-						{isComplete && (
-							<div className="absolute inset-0 h-1 w-16 bg-gradient-to-r from-yellow-400/40 to-amber-400/40 blur-sm animate-pulse" />
-						)}
-						{progress >= 85 && !isComplete && (
-							<>
-								<div className="absolute inset-0 h-1 w-16 bg-gradient-to-r from-green-500/30 to-emerald-500/30 blur-sm animate-pulse" />
-								<div className="absolute -top-0.5 right-0 w-1 h-2 bg-green-500 rounded-full animate-ping" />
-							</>
-						)}
 					</div>
 				</div>
-			</div>
 
-			<button
-				onClick={(e) => onCloseTab(e, tab.poolId)}
-				className={cn(
-					"opacity-0 group-hover:opacity-100 transition-opacity duration-200",
-					"hover:text-destructive p-0.5 rounded"
-				)}
-			>
-				<X className="w-3 h-3" />
-			</button>
+				<button
+					onClick={handleClose}
+					className={cn(
+						"opacity-0 group-hover:opacity-100 transition-opacity duration-200",
+						"hover:text-destructive p-0.5 rounded ml-auto flex-shrink-0"
+					)}
+				>
+					<X className="w-3 h-3" />
+				</button>
+			</div>
 		</Button>
 	)
-}
+})
 
-export function TokenTabsHeader() {
+export const TokenTabsHeader = memo(function TokenTabsHeader() {
 	const router = useRouter()
 	const pathname = usePathname()
-	const { isMobile } = useBreakpoint();
+	const { isMobile } = useBreakpoint()
 	const { tabs, removeTab, removeAllTabs } = useTokenTabs()
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 	const [canScrollLeft, setCanScrollLeft] = useState(false)
 	const [canScrollRight, setCanScrollRight] = useState(false)
 
-	const checkScrollButtons = () => {
+	const checkScrollButtons = useCallback(() => {
 		if (scrollContainerRef.current) {
 			const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current
 			setCanScrollLeft(scrollLeft > 0)
 			setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1)
 		}
-	}
+	}, [])
 
 	useEffect(() => {
 		checkScrollButtons()
@@ -154,17 +131,13 @@ export function TokenTabsHeader() {
 				window.removeEventListener('resize', checkScrollButtons)
 			}
 		}
-	}, [tabs])
+	}, [tabs.length, checkScrollButtons])
 
-	if (tabs.length === 0 || isMobile) {
-		return null
-	}
-
-	const handleTabClick = (poolId: string) => {
+	const handleTabClick = useCallback((poolId: string) => {
 		router.push(`/token/${poolId}`)
-	}
+	}, [router])
 
-	const handleCloseTab = (e: React.MouseEvent, poolId: string) => {
+	const handleCloseTab = useCallback((e: React.MouseEvent, poolId: string) => {
 		e.stopPropagation()
 		removeTab(poolId)
 
@@ -178,25 +151,23 @@ export function TokenTabsHeader() {
 				router.push("/")
 			}
 		}
-	}
+	}, [pathname, tabs, removeTab, router])
 
-	const handleCloseAll = () => {
+	const handleCloseAll = useCallback(() => {
 		removeAllTabs()
 		router.push("/")
-	}
+	}, [removeAllTabs, router])
 
-	const scrollLeft = () => {
+	const scrollLeft = useCallback(() => {
 		if (scrollContainerRef.current) {
 			const container = scrollContainerRef.current
-			const tabWidth = 180 // Approximate width of a tab
+			const tabWidth = 180
 			const visibleWidth = container.clientWidth
 			const currentScroll = container.scrollLeft
 
-			// calculate how many tabs fit in view
 			const tabsInView = Math.floor(visibleWidth / tabWidth)
 			const scrollAmount = Math.max(tabWidth, (tabsInView - 2) * tabWidth)
 
-			// if we're close to the start, scroll all the way
 			if (currentScroll <= scrollAmount) {
 				container.scrollTo({
 					left: 0,
@@ -209,21 +180,19 @@ export function TokenTabsHeader() {
 				})
 			}
 		}
-	}
+	}, [])
 
-	const scrollRight = () => {
+	const scrollRight = useCallback(() => {
 		if (scrollContainerRef.current) {
 			const container = scrollContainerRef.current
-			const tabWidth = 180 // Approximate width of a tab
+			const tabWidth = 180
 			const visibleWidth = container.clientWidth
 			const currentScroll = container.scrollLeft
 			const maxScroll = container.scrollWidth - visibleWidth
 
-			// calculate how many tabs fit in view
 			const tabsInView = Math.floor(visibleWidth / tabWidth)
 			const scrollAmount = Math.max(tabWidth, (tabsInView - 2) * tabWidth)
 
-			// if we're close to the end, scroll all the way
 			if (currentScroll >= maxScroll - scrollAmount) {
 				container.scrollTo({
 					left: maxScroll,
@@ -236,24 +205,30 @@ export function TokenTabsHeader() {
 				})
 			}
 		}
+	}, [])
+
+	const isTabActive = useCallback((poolId: string) => {
+		return pathname === `/token/${poolId}`
+	}, [pathname])
+
+	if (tabs.length === 0 || isMobile) {
+		return null
 	}
 
 	return (
 		<div className="border-b border-border bg-background/50 backdrop-blur-sm">
-			<div className="flex items-center py-2 px-4 gap-1">
-				{/* Left scroll button */}
+			<div className="flex items-center py-1.5 px-4 gap-1">
 				{canScrollLeft && (
 					<Button
 						variant="ghost"
 						size="icon"
 						onClick={scrollLeft}
-						className="h-7 w-7 flex-shrink-0 rounded-lg"
+						className="h-6 w-6 flex-shrink-0 rounded hover:bg-muted"
 					>
-						<ChevronLeft className="h-4 w-4" />
+						<ChevronLeft className="h-3 w-3" />
 					</Button>
 				)}
 
-				{/* Scrollable tabs container with gradient edges */}
 				<div className="relative flex-1 min-w-0">
 					<div
 						ref={scrollContainerRef}
@@ -268,14 +243,13 @@ export function TokenTabsHeader() {
 							<TokenTabItem
 								key={tab.poolId}
 								tab={tab}
-								isActive={pathname === `/token/${tab.poolId}`}
+								isActive={isTabActive(tab.poolId)}
 								onTabClick={handleTabClick}
 								onCloseTab={handleCloseTab}
 							/>
 						))}
 					</div>
 
-					{/* Gradient edges for smooth transition */}
 					{canScrollLeft && (
 						<div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background via-background/70 to-transparent pointer-events-none z-10" />
 					)}
@@ -284,30 +258,28 @@ export function TokenTabsHeader() {
 					)}
 				</div>
 
-				{/* Right scroll button */}
 				{canScrollRight && (
 					<Button
 						variant="ghost"
 						size="icon"
 						onClick={scrollRight}
-						className="h-7 w-7 mr-2 flex-shrink-0 rounded-lg text-muted-foreground"
+						className="h-6 w-6 flex-shrink-0 rounded text-muted-foreground hover:bg-muted"
 					>
-						<ChevronRight className="h-4 w-4" />
+						<ChevronRight className="h-3 w-3" />
 					</Button>
 				)}
 
-				{/* Fixed close all button */}
 				{tabs.length > 1 && (
 					<Button
 						variant="ghost"
 						size="icon"
 						onClick={handleCloseAll}
-						className="h-7 w-7 flex-shrink-0 rounded-lg text-muted-foreground hover:text-destructive"
+						className="h-6 w-6 flex-shrink-0 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10"
 					>
-						<XCircle className="w-4 h-4" />
+						<XCircle className="h-3.5 w-3.5" />
 					</Button>
 				)}
 			</div>
 		</div>
 	)
-}
+})
