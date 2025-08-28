@@ -13,6 +13,7 @@ export interface TokenTab {
 interface TokenTabsStore {
 	tabs: TokenTab[]
 	addTab: (tab: TokenTab) => void
+	updateTab: (poolId: string, updates: Partial<TokenTab>) => void
 	removeTab: (poolId: string) => void
 	removeAllTabs: () => void
 	getTab: (poolId: string) => TokenTab | undefined
@@ -33,6 +34,13 @@ export const useTokenTabs = create<TokenTabsStore>()(
 						tabs: [...state.tabs, tab],
 					}
 				}),
+
+			updateTab: (poolId, updates) =>
+				set((state) => ({
+					tabs: state.tabs.map((tab) =>
+						tab.poolId === poolId ? { ...tab, ...updates } : tab
+					),
+				})),
 
 			removeTab: (poolId) =>
 				set((state) => ({
