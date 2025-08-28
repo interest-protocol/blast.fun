@@ -317,31 +317,35 @@ export function AirdropUtility() {
 			const txBytes = await tx.build({
 				client: suiClient,
 			})
+			try {
+				const {signature: userSignature} = await signTransaction({
+					transaction: tx,
+				})
+				
+				const {signature: delegatorSignature} = await delegatorKeypair.signTransaction(txBytes)
 
-			const {signature: userSignature} = await signTransaction({
-				transaction: tx,
-			})
+				const txResult = await suiClient.executeTransactionBlock({
+					transactionBlock: txBytes,
+					signature: [userSignature, delegatorSignature],
+					options: {
+						showEffects: true,
+						showEvents: true,
+					},
+				})
+				setIsRecoveringGas(false)
 
-			const {signature: delegatorSignature} = await delegatorKeypair.signTransaction(txBytes)
+				await suiClient.waitForTransaction({
+					digest: txResult.digest,
+				})
+				toast.dismiss(previousToastId)
 
-			const txResult = await suiClient.executeTransactionBlock({
-				transactionBlock: txBytes,
-				signature: [userSignature, delegatorSignature],
-				options: {
-					showEffects: true,
-					showEvents: true,
-				},
-			})
-			setIsRecoveringGas(false)
-
-			await suiClient.waitForTransaction({
-				digest: txResult.digest,
-			})
-			toast.dismiss(previousToastId)
-
-			toast.success("Airdrop finished", {
-				duration: 3000,
-			})
+				toast.success("Airdrop finished", {
+					duration: 3000,
+				})
+			} catch (error) {
+				toast.dismiss(previousToastId)
+				return
+			}
 		}
 	}
 

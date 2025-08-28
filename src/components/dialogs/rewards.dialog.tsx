@@ -382,6 +382,7 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 			const getMemezWallet = async () => {
 				try {
 					const memezAddr = await walletSdk.getWalletAddress(address)
+					console.log("Rewards wallet address:", memezAddr)
 					setMemezWalletAddress(memezAddr)
 				} catch (error) {
 					console.error("Failed to get reward wallet address:", error)
