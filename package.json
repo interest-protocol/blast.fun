@@ -44,7 +44,7 @@
 		"@radix-ui/react-tabs": "^1.1.12",
 		"@radix-ui/react-tooltip": "^1.2.7",
 		"@t3-oss/env-nextjs": "^0.13.8",
-		"@tanstack/react-query": "^5.76.2",
+		"@tanstack/react-query": "^5.83.1",
 		"aftermath-ts-sdk": "^1.3.14",
 		"bignumber.js": "^9.3.1",
 		"class-variance-authority": "^0.7.1",
