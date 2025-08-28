@@ -25,35 +25,6 @@ interface TokenInfoProps {
 	realtimeMarketCap?: number | null
 }
 
-// @dev: Function to fuzz numbers for privacy when identity is hidden
-function fuzzyNumber(num: number): string {
-	if (num <= 5) return "0-5"
-	if (num <= 50) {
-		const lower = Math.max(0, num - 10)
-		const upper = num + 10
-		return `${lower}-${upper}`
-	}
-	if (num <= 200) {
-		const lower = Math.max(0, num - 25)
-		const upper = num + 25
-		return `${lower}-${upper}`
-	}
-	if (num <= 500) {
-		const lower = Math.max(0, num - 50)
-		const upper = num + 50
-		return `${lower}-${upper}`
-	}
-	if (num <= 1000) {
-		const lower = Math.max(0, num - 100)
-		const upper = num + 100
-		return `${lower}-${upper}`
-	}
-	// For 1000+
-	const lower = Math.max(0, num - 200)
-	const upper = num + 200
-	return `${lower}-${upper}`
-}
-
 export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoProps) {
 	const [updateMetadataDialogOpen, setUpdateMetadataDialogOpen] = useState(false)
 	const { isConnected, address } = useApp()
@@ -199,19 +170,13 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 							{creatorData && (
 								<div className="flex items-center gap-3 text-xs select-none">
 									<span className="text-muted-foreground">
-										<span className="text-foreground font-medium">
-											{!showTwitterCreator ? fuzzyNumber(creatorData.launchCount) : creatorData.launchCount}
-										</span> launches
+										<span className="text-foreground font-medium">{creatorData.launchCount}</span> launches
 									</span>
 									<span className="text-muted-foreground">
-										<span className="text-foreground font-medium">
-											{!showTwitterCreator ? fuzzyNumber(creatorData.trustedFollowers) : creatorData.trustedFollowers}
-										</span> trusted
+										<span className="text-foreground font-medium">{creatorData.trustedFollowers}</span> trusted
 									</span>
 									<span className="text-muted-foreground">
-										<span className="text-foreground font-medium">
-											{!showTwitterCreator ? fuzzyNumber(creatorData.followers) : creatorData.followers}
-										</span> followers
+										<span className="text-foreground font-medium">{creatorData.followers}</span> followers
 									</span>
 								</div>
 							)}
