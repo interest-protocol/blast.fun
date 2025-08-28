@@ -70,8 +70,8 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 	return (
 		<>
 			<div className="bg-background">
-				<div className="p-3">
-					<div className="flex gap-3">
+				<div>
+					<div className="p-3 flex gap-3">
 						<div className="flex-shrink-0">
 							<TokenAvatar
 								iconUrl={metadata?.iconUrl || metadata?.icon_url}
@@ -135,15 +135,8 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 									</span>
 								</div>
 
+								{/* Social icons */}
 								<div className="flex items-center gap-1">
-									{/* Protection badges */}
-									<ProtectionBadges 
-										protectionSettings={protectionSettings}
-										isProtected={pool.isProtected}
-										size="md"
-									/>
-
-									{/* Social icons */}
 									{pool.metadata?.X && (
 										<div className="group cursor-pointer rounded-full p-0.5">
 											<a href={pool.metadata.X} target="_blank" rel="noopener noreferrer">
@@ -189,6 +182,17 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 							)}
 						</div>
 					</div>
+					
+					{/* Protection badges section */}
+					{(pool.isProtected || protectionSettings) && (
+						<div className="pt-2 pb-1 pl-3 pr-3 border-t border-border/50">
+							<ProtectionBadges 
+								protectionSettings={protectionSettings}
+								isProtected={pool.isProtected}
+								size="md"
+							/>
+						</div>
+					)}
 				</div>
 
 				{/* Market Data */}
