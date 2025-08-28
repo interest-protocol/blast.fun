@@ -71,7 +71,7 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 		<>
 			<div className="bg-background">
 				<div>
-					<div className="p-3 flex gap-3">
+					<div className="p-2 flex gap-2">
 						<div className="flex-shrink-0">
 							<TokenAvatar
 								iconUrl={metadata?.iconUrl || metadata?.icon_url}
@@ -185,7 +185,7 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 					
 					{/* Protection badges section */}
 					{(pool.isProtected || protectionSettings) && (
-						<div className="pt-2 pb-1 pl-3 pr-3 border-t border-border/50">
+						<div className="px-2 pb-2">
 							<ProtectionBadges 
 								protectionSettings={protectionSettings}
 								isProtected={pool.isProtected}
