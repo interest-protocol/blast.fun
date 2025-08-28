@@ -245,6 +245,7 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 	}
 
 	const formatValue = (value: number) => {
+		if (value === 0) return "-"
 		if (value < 1) return `$${value.toFixed(4)}`
 		if (value < 1000) return `$${value.toFixed(2)}`
 		return `$${formatAmountWithSuffix(value)}`
