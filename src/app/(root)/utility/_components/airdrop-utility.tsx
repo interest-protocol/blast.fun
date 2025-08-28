@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { useApp } from "@/context/app.context"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -12,9 +12,10 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+// Removed Card import - using div with proper styling instead
 import { Label } from "@/components/ui/label"
 import { Loader2, Send, AlertCircle, Upload, Download } from "lucide-react"
+import { Logo } from "@/components/ui/logo"
 import type { WalletCoin } from "@/types/blockvision"
 import toast from "react-hot-toast"
 import { suiClient } from "@/lib/sui-client"
@@ -35,7 +36,7 @@ interface AirdropRecipient {
 }
 
 export function AirdropUtility() {
-	const { address } = useApp()
+	const { address, setIsConnectDialogOpen } = useApp()
 	const [coins, setCoins] = useState<WalletCoin[]>([])
 	const [selectedCoin, setSelectedCoin] = useState<string>("")
 	const [csvInput, setCsvInput] = useState<string>("")
@@ -47,6 +48,8 @@ export function AirdropUtility() {
 	const { mutateAsync: signTransaction } = useSignTransaction()
 	const [isRecoveringGas, setIsRecoveringGas] = useState(false)
 	const [isDragging, setIsDragging] = useState(false)
+	const [coinSearchQuery, setCoinSearchQuery] = useState<string>("")
+	const searchInputRef = useRef<HTMLInputElement>(null)
 
 	// @dev: Fetch user's coins from BlockVision API
 	useEffect(() => {
@@ -403,9 +406,9 @@ export function AirdropUtility() {
 				return
 			}
 
-			// @dev: Set the CSV input and switch to CSV input tab
+			// @dev: Set the CSV input and switch to preview tab
 			setCsvInput(csvRows.join("\n"))
-			setViewMode("csv")
+			setViewMode("table") // Switch to preview tab to see imported data
 			toast.success(`Imported ${csvRows.length} recipients from CSV`)
 		} catch (error) {
 			console.error("Error importing CSV:", error)
@@ -430,25 +433,44 @@ export function AirdropUtility() {
 
 	if (!address) {
 		return (
-			<div className="flex items-center justify-center min-h-[60vh]">
-				<p className="text-muted-foreground">Please connect your wallet to use the airdrop utility</p>
+			<div className="flex flex-col items-center justify-center min-h-[60vh]">
+				<Logo className="w-12 h-12 mx-auto mb-4 text-foreground/20" />
+				<p className="font-mono text-sm uppercase tracking-wider text-muted-foreground">
+					WALLET NOT CONNECTED
+				</p>
+				<p className="font-mono text-xs uppercase text-muted-foreground/60 mt-2">
+					CONNECT YOUR WALLET TO ACCESS AIRDROP UTILITY
+				</p>
+				<Button
+					onClick={() => setIsConnectDialogOpen(true)}
+					className="font-mono uppercase tracking-wider mt-6"
+					variant="outline"
+				>
+					CONNECT WALLET
+				</Button>
 			</div>
 		)
 	}
 
 	return (
-		<div className="w-full max-w-4xl px-4 space-y-6">
-			<Card>
-				<CardHeader>
-					<CardTitle>Airdrop Utility</CardTitle>
-				</CardHeader>
-				<CardContent className="space-y-6">
+		<div className="w-full max-w-4xl px-4 space-y-2">
+			<div className="border-2 shadow-lg rounded-xl">
+				<div className="p-4 border-b">
+					<h3 className="font-mono text-lg uppercase tracking-wider text-foreground/80">AIRDROP UTILITY</h3>
+				</div>
+				<div className="p-4 space-y-4">
 					{/* Coin Selection */}
 					<div className="space-y-2">
 						<Label htmlFor="coin-select">Select Coin</Label>
 						<Select
 							value={selectedCoin}
-							onValueChange={setSelectedCoin}
+							onValueChange={(value) => {
+								setSelectedCoin(value)
+								setCoinSearchQuery("") // Clear search when selecting
+							}}
+							onOpenChange={(open) => {
+								if (!open) setCoinSearchQuery("") // Clear search when closing
+							}}
 							disabled={isLoadingCoins}
 						>
 							<SelectTrigger id="coin-select" className="w-full">
@@ -467,15 +489,64 @@ export function AirdropUtility() {
 										/>
 										<span className="font-medium">{selectedCoinInfo.symbol}</span>
 										<span className="text-muted-foreground text-xs">
-											Balance: {parseFloat(selectedCoinInfo.balance) / Math.pow(10, selectedCoinInfo.decimals)}
+											Balance: {(parseFloat(selectedCoinInfo.balance) / Math.pow(10, selectedCoinInfo.decimals)).toFixed(2)}
 										</span>
 									</div>
 								) : (
-									<SelectValue placeholder="Select a coin to airdrop" />
+									<SelectValue placeholder="SELECT TOKEN TO AIRDROP" />
 								)}
 							</SelectTrigger>
-							<SelectContent>
-								{coins.map((coin) => (
+							<SelectContent onCloseAutoFocus={(e) => e.preventDefault()}>
+								<div className="p-2" onPointerDown={(e) => e.preventDefault()}>
+									<Input
+										ref={searchInputRef}
+										placeholder="SEARCH TOKEN"
+										value={coinSearchQuery}
+										onChange={(e) => {
+											setCoinSearchQuery(e.target.value)
+											// Keep focus on input after change
+											setTimeout(() => searchInputRef.current?.focus(), 0)
+										}}
+										className="font-mono text-xs uppercase placeholder:text-muted-foreground/60"
+										onClick={(e) => e.stopPropagation()}
+										onPointerDown={(e) => e.stopPropagation()}
+										onKeyDown={(e) => {
+											e.stopPropagation()
+											// Prevent select from closing on Enter
+											if (e.key === "Enter") {
+												e.preventDefault()
+											}
+											// Prevent default arrow key behavior
+											if (["ArrowUp", "ArrowDown"].includes(e.key)) {
+												e.preventDefault()
+											}
+										}}
+										autoFocus
+									/>
+								</div>
+								{(() => {
+									const filteredCoins = coins.filter((coin) => {
+										const query = coinSearchQuery.toLowerCase()
+										return (
+											coin.symbol.toLowerCase().includes(query) ||
+											coin.name.toLowerCase().includes(query)
+										)
+									})
+									
+									if (filteredCoins.length === 0) {
+										return (
+											<div className="py-4 text-center">
+												<p className="font-mono text-xs uppercase text-muted-foreground">
+													NO TOKENS FOUND
+												</p>
+												<p className="font-mono text-xs uppercase text-muted-foreground/60 mt-1">
+													TRY A DIFFERENT SEARCH
+												</p>
+											</div>
+										)
+									}
+									
+									return filteredCoins.map((coin) => (
 									<SelectItem key={coin.coinType} value={coin.coinType}>
 										<div className="flex items-center gap-2">
 											<TokenAvatar
@@ -486,49 +557,80 @@ export function AirdropUtility() {
 											/>
 											<span className="font-medium">{coin.symbol}</span>
 											<span className="text-muted-foreground text-xs">
-												Balance: {parseFloat(coin.balance) / Math.pow(10, coin.decimals)}
+												Balance: {(parseFloat(coin.balance) / Math.pow(10, coin.decimals)).toFixed(2)}
 											</span>
 										</div>
 									</SelectItem>
-								))}
+									))
+								})()}
 							</SelectContent>
 						</Select>
-						{selectedCoinInfo && (
-							<p className="text-sm text-muted-foreground">
-								Available balance: {parseFloat(selectedCoinInfo.balance) / Math.pow(10, selectedCoinInfo.decimals)} {selectedCoinInfo.symbol}
-							</p>
-						)}
 					</div>
 
 					{/* Recipients Input */}
 					<div className="space-y-2">
-						<Label>Recipients</Label>
+						<Label className="font-mono text-xs uppercase tracking-wider text-muted-foreground">RECIPIENTS</Label>
 						<Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "csv" | "import" | "table")}>
-							<TabsList className="grid w-full grid-cols-3">
-								<TabsTrigger value="import">CSV Import</TabsTrigger>
-								<TabsTrigger value="csv">CSV Input</TabsTrigger>
-								<TabsTrigger value="table">Preview ({recipients.length})</TabsTrigger>
+							<TabsList className="grid w-full grid-cols-3 bg-background/30 border">
+								<TabsTrigger value="import" className="font-mono text-xs uppercase tracking-wider data-[state=active]:bg-background/80">IMPORT CSV</TabsTrigger>
+								<TabsTrigger value="csv" className="font-mono text-xs uppercase tracking-wider data-[state=active]:bg-background/80">MANUAL INPUT</TabsTrigger>
+								<TabsTrigger value="table" className="font-mono text-xs uppercase tracking-wider data-[state=active]:bg-background/80">PREVIEW [{recipients.length}]</TabsTrigger>
 							</TabsList>
 							
-							<TabsContent value="csv" className="space-y-4">
-								<div className="space-y-2">
-									<Label htmlFor="csv-input">
-										Enter addresses and amounts (tab or comma separated)
-									</Label>
-									<Textarea
-										id="csv-input"
-										placeholder={`0x123...abc,100\nalice.sui,200\n@bob,300`}
-										className="min-h-[200px] font-mono text-sm"
-										value={csvInput}
-										onChange={(e) => setCsvInput(e.target.value)}
-									/>
-									<p className="text-xs text-muted-foreground">
-										Format: address/SuiNS[tab or comma]amount (one per line). Supports SuiNS names (e.g., alice.sui or @alice)
-									</p>
+							<TabsContent value="csv" className="space-y-4 mt-4">
+								<div className="border-2 border-dashed border-border/50 rounded-lg bg-background/30 p-4 space-y-4">
+									<div className="space-y-2">
+										<Label htmlFor="csv-input" className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+											ENTER RECIPIENTS DATA
+										</Label>
+										<div className="relative">
+											<Textarea
+												id="csv-input"
+												placeholder={`0x123...abc,100\nalice.sui,200\n@bob,300`}
+												className="min-h-[300px] font-mono text-sm bg-background/50 border-2 placeholder:text-muted-foreground/40 resize-none"
+												value={csvInput}
+												onChange={(e) => setCsvInput(e.target.value)}
+											/>
+											{csvInput && (
+												<div className="absolute top-2 right-2">
+													<span className="px-2 py-1 bg-background/80 rounded text-xs font-mono uppercase text-muted-foreground">
+														{csvInput.split('\n').filter(l => l.trim()).length} LINES
+													</span>
+											</div>
+										)}
+									</div>
+									</div>
+									
+									<div className="grid grid-cols-1 md:grid-cols-3 gap-2 pt-2">
+										<div className="space-y-1">
+											<p className="font-mono text-xs uppercase text-foreground/80">SUPPORTED FORMATS</p>
+											<p className="font-mono text-xs text-muted-foreground/60">ADDRESS,AMOUNT</p>
+											<p className="font-mono text-xs text-muted-foreground/60">SUINS.SUI,AMOUNT</p>
+											<p className="font-mono text-xs text-muted-foreground/60">@USERNAME,AMOUNT</p>
+										</div>
+										<div className="space-y-1">
+											<p className="font-mono text-xs uppercase text-foreground/80">SEPARATORS</p>
+											<p className="font-mono text-xs text-muted-foreground/60">COMMA (,)</p>
+											<p className="font-mono text-xs text-muted-foreground/60">TAB</p>
+										</div>
+										<div className="space-y-1">
+											<p className="font-mono text-xs uppercase text-foreground/80">STATUS</p>
+											{recipients.length > 0 ? (
+												<>
+													<p className="font-mono text-xs text-green-500">{recipients.filter(r => !r.resolutionError).length} VALID</p>
+													{recipients.some(r => r.resolutionError) && (
+														<p className="font-mono text-xs text-destructive">{recipients.filter(r => r.resolutionError).length} ERRORS</p>
+													)}
+												</>
+											) : (
+												<p className="font-mono text-xs text-muted-foreground/60">AWAITING INPUT</p>
+											)}
+										</div>
+									</div>
 								</div>
 							</TabsContent>
 
-							<TabsContent value="import" className="space-y-4">
+							<TabsContent value="import" className="space-y-4 mt-4">
 								<div className="space-y-4">
 									<div className="flex justify-end">
 										<Button
@@ -603,7 +705,7 @@ export function AirdropUtility() {
 								</div>
 							</TabsContent>
 
-							<TabsContent value="table" className="space-y-4">
+							<TabsContent value="table" className="space-y-4 mt-4">
 								{isResolvingAddresses && (
 									<div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
 										<Loader2 className="h-4 w-4 animate-spin" />
@@ -613,19 +715,21 @@ export function AirdropUtility() {
 								<div className="border rounded-lg overflow-hidden max-h-[33vh]">
 									<div className="overflow-auto max-h-[33vh]">
 										<table className="w-full">
-											<thead className="bg-muted/50 sticky top-0 z-10">
+											<thead className="bg-background/30 border-b-2 border-border sticky top-0 z-10">
 												<tr>
-													<th className="px-4 py-2 text-left text-sm font-medium">#</th>
-													<th className="px-4 py-2 text-left text-sm font-medium">Input</th>
-													<th className="px-4 py-2 text-left text-sm font-medium">Address</th>
-													<th className="px-4 py-2 text-right text-sm font-medium">Amount</th>
+													<th className="px-4 py-2 text-left font-mono text-xs uppercase tracking-wider text-muted-foreground">#</th>
+													<th className="px-4 py-2 text-left font-mono text-xs uppercase tracking-wider text-muted-foreground">INPUT</th>
+													<th className="px-4 py-2 text-left font-mono text-xs uppercase tracking-wider text-muted-foreground">ADDRESS</th>
+													<th className="px-4 py-2 text-right font-mono text-xs uppercase tracking-wider text-muted-foreground">AMOUNT</th>
 												</tr>
 											</thead>
 											<tbody>
 												{recipients.length === 0 ? (
 													<tr>
-														<td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-															No recipients added yet. Use the CSV input or import to add recipients.
+														<td colSpan={4} className="px-4 py-8 text-center">
+															<Logo className="w-8 h-8 mx-auto mb-2 text-foreground/20" />
+															<p className="font-mono text-xs uppercase text-muted-foreground">NO RECIPIENTS ADDED</p>
+															<p className="font-mono text-xs uppercase text-muted-foreground/60 mt-1">USE CSV INPUT OR IMPORT</p>
 														</td>
 													</tr>
 												) : (
@@ -671,12 +775,12 @@ export function AirdropUtility() {
 												)}
 											</tbody>
 											{recipients.length > 0 && (
-												<tfoot className="bg-muted/50 border-t sticky bottom-0">
+												<tfoot className="bg-background/30 border-t-2 border-border sticky bottom-0">
 													<tr>
-														<td colSpan={3} className="px-4 py-2 text-sm font-medium">
-															Total
+														<td colSpan={3} className="px-4 py-2 font-mono text-xs uppercase tracking-wider text-muted-foreground">
+															TOTAL
 														</td>
-														<td className="px-4 py-2 text-sm font-medium text-right">
+														<td className="px-4 py-2 font-mono text-xs uppercase text-right font-bold text-foreground/80">
 															{totalAmount.toFixed(2)}
 														</td>
 													</tr>
@@ -690,30 +794,82 @@ export function AirdropUtility() {
 					</div>
 
 					{/* Summary and Action */}
-					{recipients.length > 0 && (
-						<Card className="bg-muted/30">
-							<CardContent className="pt-6">
-								<div className="flex items-center justify-between">
-									<div className="space-y-1">
-										<p className="text-sm text-muted-foreground">Summary</p>
-										<p className="text-lg font-medium">
-											{recipients.length} recipients • {totalAmount.toFixed(2)} ${selectedCoinInfo?.symbol || "tokens"} • {`${(recipients.length * 0.01 * 10 ** 9) / Math.pow(10, 9)} SUI service fee (0.01 SUI per recipient)`}
-										</p>
-									</div>
-									<Button 
-										onClick={handleAirdrop}
-										disabled={!selectedCoin || recipients.length === 0}
-										className="gap-2"
-									>
-										<Send className="h-4 w-4" />
-										{isRecoveringGas ? "Resume Gas Recovery" : "Airdrop"}
-									</Button>
+					{recipients.length > 0 && selectedCoinInfo && (
+						<div className="border-2 border-border rounded-lg bg-background/30 backdrop-blur-sm p-6">
+							<div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+								{/* Recipients Count */}
+								<div className="space-y-1">
+									<p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">RECIPIENTS</p>
+									<p className="font-mono text-xl font-bold text-foreground/80">{recipients.length}</p>
 								</div>
-							</CardContent>
-						</Card>
+								
+								{/* Total Amount */}
+								<div className="space-y-1">
+									<p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">TOTAL AMOUNT</p>
+									<p className="font-mono text-xl font-bold text-foreground/80">
+										{totalAmount.toFixed(2)}
+									</p>
+									<p className="font-mono text-xs uppercase text-muted-foreground/60">
+										{selectedCoinInfo.symbol}
+									</p>
+								</div>
+								
+								{/* Service Fee */}
+								<div className="space-y-1">
+									<p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">SERVICE FEE</p>
+									<p className="font-mono text-xl font-bold text-foreground/80">
+										{(recipients.length * 0.01).toFixed(2)}
+									</p>
+									<p className="font-mono text-xs uppercase text-muted-foreground/60">
+										SUI
+									</p>
+								</div>
+								
+								{/* Status */}
+								<div className="space-y-1">
+									<p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">STATUS</p>
+									{recipients.some(r => r.resolutionError) ? (
+										<>
+											<p className="font-mono text-xl font-bold text-destructive">
+												{recipients.filter(r => r.resolutionError).length} ERRORS
+											</p>
+											<p className="font-mono text-xs uppercase text-destructive/60">
+												CHECK ADDRESSES
+											</p>
+										</>
+									) : (
+										<>
+											<p className="font-mono text-xl font-bold text-green-500">
+												READY
+											</p>
+											<p className="font-mono text-xs uppercase text-green-500/60">
+												ALL VALID
+											</p>
+										</>
+									)}
+								</div>
+							</div>
+							
+							{/* Action Button */}
+							<Button 
+								onClick={handleAirdrop}
+								disabled={!selectedCoin || recipients.length === 0 || recipients.some(r => r.resolutionError)}
+								className="w-full font-mono uppercase tracking-wider py-6 text-sm"
+								size="lg"
+							>
+								<Send className="h-4 w-4 mr-2" />
+								{isRecoveringGas ? "RESUME GAS RECOVERY" : "EXECUTE AIRDROP"}
+							</Button>
+							
+							{recipients.some(r => r.resolutionError) && (
+								<p className="font-mono text-xs uppercase text-destructive text-center mt-3">
+									FIX ADDRESS ERRORS BEFORE PROCEEDING
+								</p>
+							)}
+						</div>
 					)}
-				</CardContent>
-			</Card>
+				</div>
+			</div>
 		</div>
 	)
 }
