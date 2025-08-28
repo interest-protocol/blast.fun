@@ -22,7 +22,7 @@ export function ProtectionBadges({
 	const padding = size === "sm" ? "p-0.5" : size === "md" ? "p-1" : "p-1.5"
 
 	return (
-		<div className="flex items-center gap-1">
+		<div className="flex items-center gap-1.5">
 			{(protectionSettings?.sniperProtection || isProtected) && (
 				<Tooltip>
 					<TooltipTrigger asChild>

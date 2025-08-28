@@ -56,19 +56,42 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 
 	if (isLoading) {
 		return (
-			<div className="p-4 space-y-3">
+			<div className="w-full">
+				{/* Header Skeleton */}
+				<div className="grid grid-cols-12 py-2 border-b border-border/50">
+					<div className="col-span-1"></div>
+					<div className="col-span-5 pl-2">
+						<Skeleton className="h-3 w-16" />
+					</div>
+					<div className="col-span-3 flex justify-end">
+						<Skeleton className="h-3 w-16" />
+					</div>
+					<div className="col-span-3 flex justify-end pr-2">
+						<Skeleton className="h-3 w-16" />
+					</div>
+				</div>
+				
+				{/* Holders List Skeleton */}
 				{Array.from({ length: 10 }).map((_, i) => (
-					<div key={i} className="flex items-center justify-between py-3 border-b border-border/30">
-						<div className="flex items-center gap-3">
-							<Skeleton className="w-8 h-8 rounded-full" />
-							<div className="space-y-1">
-								<Skeleton className="h-4 w-32" />
-								<Skeleton className="h-3 w-20" />
-							</div>
+					<div key={i} className="grid grid-cols-12 py-3 items-center border-b border-border/30">
+						{/* Rank */}
+						<div className="col-span-1 flex justify-center">
+							<Skeleton className="h-3 w-3" />
 						</div>
-						<div className="text-right">
-							<Skeleton className="h-4 w-16 ml-auto" />
-							<Skeleton className="h-3 w-24 mt-1" />
+						
+						{/* Address */}
+						<div className="col-span-5 pl-2">
+							<Skeleton className="h-3 w-24" />
+						</div>
+						
+						{/* Holdings */}
+						<div className="col-span-3 flex justify-end">
+							<Skeleton className="h-3 w-16" />
+						</div>
+						
+						{/* Percentage */}
+						<div className="col-span-3 flex justify-end pr-2">
+							<Skeleton className="h-3 w-12" />
 						</div>
 					</div>
 				))}

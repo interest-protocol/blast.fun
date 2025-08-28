@@ -15,7 +15,7 @@ interface WalletAccountItemProps {
 
 function WalletAccountItem({ account, isActive, onSelect }: WalletAccountItemProps) {
 	const { data: domain } = useResolveSuiNSName(account.address)
-	const { copy, isCopied } = useClipboard()
+	const { copy, copied } = useClipboard()
 	
 	// Show the address directly - either SuiNS domain or formatted address
 	const displayAddress = domain || formatAddress(account.address)
@@ -44,7 +44,7 @@ function WalletAccountItem({ account, isActive, onSelect }: WalletAccountItemPro
 					onClick={handleCopy}
 					className="p-1 hover:bg-background rounded transition-all"
 				>
-					{isCopied ? (
+					{copied ? (
 						<CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
 					) : (
 						<Copy className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
