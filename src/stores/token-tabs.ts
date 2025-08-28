@@ -47,7 +47,7 @@ export const useTokenTabs = create<TokenTabsStore>()(
 			getTab: (poolId) => get().tabs.find((t) => t.poolId === poolId),
 		}),
 		{
-			name: "token-tabs-storage",
+			name: "token-tabs",
 			partialize: (state) => ({ tabs: state.tabs }),
 		}
 	)
