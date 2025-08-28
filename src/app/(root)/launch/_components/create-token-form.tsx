@@ -156,8 +156,53 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 		setIsDragging(false)
 	}, [])
 
+	// @dev: Handle paste event for images
+	const handlePaste = useCallback(
+		async (e: React.ClipboardEvent) => {
+			// @dev: Only process paste if no image is present
+			if (imageUrl) return
+
+			const items = e.clipboardData?.items
+			if (!items) return
+
+			for (const item of items) {
+				if (item.type.startsWith("image/")) {
+					e.preventDefault()
+					const file = item.getAsFile()
+					if (file) {
+						handleImageUpload(file)
+						break
+					}
+				}
+			}
+		},
+		[handleImageUpload, imageUrl]
+	)
+
+	// @dev: Add paste event listener to the entire form
+	useEffect(() => {
+		const handleGlobalPaste = (e: ClipboardEvent) => {
+			// @dev: Only handle paste when form is visible and no image is present
+			if (!imageUrl && e.clipboardData?.items) {
+				for (const item of e.clipboardData.items) {
+					if (item.type.startsWith("image/")) {
+						e.preventDefault()
+						const file = item.getAsFile()
+						if (file) {
+							handleImageUpload(file)
+							break
+						}
+					}
+				}
+			}
+		}
+
+		document.addEventListener("paste", handleGlobalPaste)
+		return () => document.removeEventListener("paste", handleGlobalPaste)
+	}, [handleImageUpload, imageUrl])
+
 	return (
-		<div className="w-full p-4 rounded-xl border-2 bg-background/50 backdrop-blur-sm shadow-2xl">
+		<div className="w-full p-4 rounded-xl border-2 bg-background/50 backdrop-blur-sm shadow-2xl" onPaste={handlePaste}>
 			<Form {...form}>
 				<form className="space-y-6">
 					<div className="flex gap-6">
@@ -203,6 +248,9 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 													<Upload className="w-8 h-8 text-foreground/20 mb-2" />
 													<span className="text-xs font-mono uppercase text-foreground/40">
 														DROP::IMAGE
+													</span>
+													<span className="text-[10px] font-mono text-foreground/30 mt-1">
+														OR PASTE
 													</span>
 													<input
 														type="file"
