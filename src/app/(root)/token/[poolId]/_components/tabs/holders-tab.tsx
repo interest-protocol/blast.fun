@@ -106,10 +106,10 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 				<div className="relative">
 					{/* Header */}
 					<div className="grid grid-cols-12 gap-2 px-2 sm:px-4 py-2 border-b border-border/50 text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground sticky top-0 bg-background/95 backdrop-blur-sm z-10 select-none">
-						<div className="col-span-1">RANK</div>
-						<div className="col-span-5">WALLET::ADDRESS</div>
+						<div className="col-span-1"></div>
+						<div className="col-span-5">ADDRESS</div>
 						<div className="col-span-3 text-right">HOLDINGS</div>
-						<div className="col-span-3 text-right">SHARE::%</div>
+						<div className="col-span-3 text-right">SHARE %</div>
 					</div>
 
 					{/* Holders List */}
