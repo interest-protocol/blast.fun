@@ -513,7 +513,7 @@ export function AirdropUtility() {
 									</Label>
 									<Textarea
 										id="csv-input"
-										placeholder={`0x123...abc,100\nalice.sui,200\n@bob,300\n0x789...ghi	400`}
+										placeholder={`0x123...abc,100\nalice.sui,200\n@bob,300`}
 										className="min-h-[200px] font-mono text-sm"
 										value={csvInput}
 										onChange={(e) => setCsvInput(e.target.value)}
