@@ -2,8 +2,10 @@
 
 import { formatAddress } from "@mysten/sui/utils"
 import { useResolveSuiNSName } from "@mysten/dapp-kit"
-import { Wallet, Check } from "lucide-react"
+import { Wallet, Check, Copy, CheckCircle2 } from "lucide-react"
 import { useApp } from "@/context/app.context"
+import { useState } from "react"
+import { useClipboard } from "@/hooks/use-clipboard"
 
 interface WalletAccountItemProps {
 	account: any
@@ -13,25 +15,46 @@ interface WalletAccountItemProps {
 
 function WalletAccountItem({ account, isActive, onSelect }: WalletAccountItemProps) {
 	const { data: domain } = useResolveSuiNSName(account.address)
+	const { copy, copied } = useClipboard()
 	
 	// Show the address directly - either SuiNS domain or formatted address
 	const displayAddress = domain || formatAddress(account.address)
 	
+	const handleCopy = (e: React.MouseEvent) => {
+		e.stopPropagation()
+		copy(account.address)
+	}
+	
 	return (
-		<button
-			className="w-full p-2 flex items-center justify-between hover:bg-muted rounded-lg transition-colors"
-			onClick={onSelect}
+		<div
+			className="w-full p-2 flex items-center justify-between hover:bg-muted rounded-lg transition-colors group"
 		>
-			<div className="flex items-center gap-2">
+			<button
+				className="flex items-center gap-2 flex-1"
+				onClick={onSelect}
+			>
 				<Wallet className="w-4 h-4 text-muted-foreground" />
 				<span className="text-sm">
 					{displayAddress}
 				</span>
+			</button>
+			<div className="flex items-center gap-1">
+				<button
+					type="button"
+					onClick={handleCopy}
+					className="p-1 hover:bg-background rounded transition-all"
+				>
+					{copied ? (
+						<CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+					) : (
+						<Copy className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
+					)}
+				</button>
+				{isActive && (
+					<Check className="w-4 h-4 text-primary" />
+				)}
 			</div>
-			{isActive && (
-				<Check className="w-4 h-4 text-primary" />
-			)}
-		</button>
+		</div>
 	)
 }
 

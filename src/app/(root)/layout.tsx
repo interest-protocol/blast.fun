@@ -25,7 +25,7 @@ export default function Layout({
 		<div className="flex flex-col h-screen overflow-hidden">
 			{/* <Ticker /> */}
 			<Header />
-			{/* <TokenTabsHeader /> */}
+			<TokenTabsHeader />
 
 			<main className="flex-1 overflow-hidden">
 				{shouldHavePadding ? (

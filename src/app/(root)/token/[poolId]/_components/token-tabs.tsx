@@ -4,12 +4,11 @@ import { useState, useEffect } from "react"
 import { useTheme } from "next-themes"
 import Image from "next/image"
 import Link from "next/link"
-import { Activity, Users, Droplets } from "lucide-react"
+import { Activity, Users } from "lucide-react"
 import { cn } from "@/utils"
 import { PoolWithMetadata } from "@/types/pool"
 import { TradesTab } from "./tabs/trades-tab"
 import { HoldersTab } from "./tabs/holders-tab"
-import { PoolsTab } from "./tabs/pools-tab"
 
 interface TokenTabsProps {
 	pool: PoolWithMetadata
@@ -36,17 +35,10 @@ const tabs: Tab[] = [
 		icon: Users,
 		component: HoldersTab
 	},
-	{
-		id: "pools",
-		label: "Pools",
-		icon: Droplets,
-		component: PoolsTab
-	},
 ]
 
 export function TokenTabs({ pool, className }: TokenTabsProps) {
 	const [activeTab, setActiveTab] = useState("trades")
-	const [rightTab, setRightTab] = useState("holders") // @dev: For split view right side
 	const { resolvedTheme } = useTheme()
 	const [isSplitView, setIsSplitView] = useState(false)
 
@@ -63,12 +55,11 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 	}, [])
 
 	const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || TradesTab
-	const RightComponent = tabs.find(tab => tab.id === rightTab)?.component || HoldersTab
 
 	// @dev: Split view for xl and 2xl screens
 	if (isSplitView) {
 		return (
-			<div className={cn("flex h-full gap-2", className)}>
+			<div className={cn("flex h-full", className)}>
 				{/* Left side - Always Trades (70% width) */}
 				<div className="flex w-[70%] flex-col border-r">
 					<div className="border-b">
@@ -86,35 +77,15 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 					</div>
 				</div>
 
-				{/* Right side - Holders/Pools toggle (30% width) */}
+				{/* Right side - Holders (30% width) */}
 				<div className="flex w-[30%] flex-col">
 					<div className="border-b">
 						<div className="flex items-center justify-between p-2">
 							<div className="flex items-center gap-1">
-								<button
-									onClick={() => setRightTab("holders")}
-									className={cn(
-										"flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
-										rightTab === "holders"
-											? "bg-primary/10 text-primary border border-primary/20"
-											: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-									)}
-								>
+								<div className="flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
 									<Users className="h-3.5 w-3.5" />
 									<span>Top Holders</span>
-								</button>
-								<button
-									onClick={() => setRightTab("pools")}
-									className={cn(
-										"flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
-										rightTab === "pools"
-											? "bg-primary/10 text-primary border border-primary/20"
-											: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-									)}
-								>
-									<Droplets className="h-3.5 w-3.5" />
-									<span>Pools</span>
-								</button>
+								</div>
 							</div>
 
 							<Link
@@ -142,7 +113,7 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 						</div>
 					</div>
 					<div className="flex-1 overflow-hidden">
-						<RightComponent pool={pool} className="h-full" />
+						<HoldersTab pool={pool} className="h-full" />
 					</div>
 				</div>
 			</div>

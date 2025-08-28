@@ -28,14 +28,15 @@ When implementing a dystopian UI, follow these specific design patterns:
 
 ## 5. Card Design
 ```tsx
-<Card className="border-2 bg-background/50 backdrop-blur-sm shadow-2xl">
-  <CardHeader className="pb-4 border-b">
-    <CardTitle className="text-lg font-mono uppercase tracking-wider">SECTION::TITLE</CardTitle>
-  </CardHeader>
-  <CardContent>
+// @dev: Use div elements with proper styling instead of Card component
+<div className="border-2 shadow-lg rounded-xl">
+  <div className="p-4 border-b">
+    <h3 className="text-lg font-mono uppercase tracking-wider">SECTION::TITLE</h3>
+  </div>
+  <div className="p-4 space-y-2">
     {/* Content */}
-  </CardContent>
-</Card>
+  </div>
+</div>
 ```
 
 ## 6. Interactive Elements
@@ -46,7 +47,7 @@ When implementing a dystopian UI, follow these specific design patterns:
 
 ## 7. Layout Patterns
 - Heavy use of borders: `border-t`, `border-b` for section separation
-- Generous spacing with `space-y-6`, `gap-4`
+- Consistent 2-unit spacing: `space-y-2`, `gap-2`, `p-2`, `mt-2`, `mb-2`
 - Nested relative/absolute positioning for overlay effects
 
 ## 8. Common Components
