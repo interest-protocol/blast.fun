@@ -2,7 +2,7 @@
 
 import { useMemo } from "react"
 import { PoolWithMetadata } from "@/types/pool"
-import { Users, ExternalLink, Trophy } from "lucide-react"
+import { Users, ExternalLink } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useQuery } from "@tanstack/react-query"
 import { formatAddress } from "@mysten/sui/utils"
@@ -105,17 +105,16 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 			<div className="w-full">
 				<div className="relative">
 					{/* Header */}
-					<div className="grid grid-cols-12 gap-2 px-2 sm:px-4 py-2 border-b border-border/50 text-[10px] sm:text-xs font-mono uppercase text-muted-foreground sticky top-0 bg-background/95 backdrop-blur-sm z-10 select-none">
-						<div className="col-span-1">Rank</div>
-						<div className="col-span-5">Address</div>
-						<div className="col-span-3 text-right">Holdings</div>
-						<div className="col-span-3 text-right">Share</div>
+					<div className="grid grid-cols-12 gap-2 px-2 sm:px-4 py-2 border-b border-border/50 text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground sticky top-0 bg-background/95 backdrop-blur-sm z-10 select-none">
+						<div className="col-span-1">RANK</div>
+						<div className="col-span-5">WALLET::ADDRESS</div>
+						<div className="col-span-3 text-right">HOLDINGS</div>
+						<div className="col-span-3 text-right">SHARE::%</div>
 					</div>
 
 					{/* Holders List */}
 					{data.holders.map((holder, index) => {
 						const rank = index + 1
-						const isTop3 = rank <= 3
 						// @dev: Calculate percentage - if empty from API, calculate from balance / 1B total supply
 						let percentage: number
 						if (!holder.percentage || holder.percentage === "") {
@@ -130,33 +129,19 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 						const formattedBalance = formatNumberWithSuffix(balanceNum)
 						// @dev: Check if this holder is the developer
 						const isDev = holder.account === pool.creatorAddress || holder.account === pool.coinMetadata?.dev
+						// @dev: Check if this is the burn address
+						const isBurn = holder.account === "0x0000000000000000000000000000000000000000000000000000000000000000"
 
 						return (
 							<div
 								key={holder.account}
 								className="relative group hover:bg-muted/5 transition-all duration-200"
 							>
-								{/* Background gradient for percentage */}
-								<div
-									className={cn(
-										"absolute inset-0 opacity-5 transition-all duration-500",
-										isTop3 ? "bg-yellow-500" : "bg-primary"
-									)}
-									style={{ width: `${Math.min(percentage * 10, 100)}%` }} 
-								/>
-
 								<div className="relative grid grid-cols-12 gap-2 px-2 sm:px-4 py-2 sm:py-3 items-center border-b border-border/30">
 									{/* Rank */}
 									<div className="col-span-1">
-										<div className={cn(
-											"flex items-center justify-center w-6 h-6 rounded-full font-mono text-[10px] sm:text-xs font-bold",
-											isTop3 ? "bg-yellow-500/10 text-yellow-500" : "text-muted-foreground"
-										)}>
-											{isTop3 ? (
-												<Trophy className="w-3 h-3 sm:w-4 sm:h-4" />
-											) : (
-												rank
-											)}
+										<div className="font-mono text-[10px] sm:text-xs text-muted-foreground">
+											{rank}
 										</div>
 									</div>
 
@@ -170,58 +155,67 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 											/>
 										)}
 										<div className="flex-1">
-											{holder.name ? (
-												<a
-													href={`https://suivision.xyz/account/${holder.account}`}
-													target="_blank"
-													rel="noopener noreferrer"
-													className="flex flex-col hover:opacity-80 transition-opacity"
-												>
-													<div className="flex items-center gap-1">
-														<span className="font-mono text-[10px] sm:text-xs text-primary">
-															{holder.name}
-															{isDev && <span className="text-destructive"> (dev)</span>}
+											<div className="flex items-center gap-2">
+												{holder.name ? (
+													<a
+														href={`https://suivision.xyz/account/${holder.account}`}
+														target="_blank"
+														rel="noopener noreferrer"
+														className="flex flex-col hover:opacity-80 transition-opacity"
+													>
+														<div className="flex items-center gap-1">
+															<span className="font-mono text-[10px] sm:text-xs text-primary">
+																{holder.name}
+															</span>
+															{holder.website && (
+																<ExternalLink className="h-2.5 w-2.5 opacity-50" />
+															)}
+														</div>
+														<span className="font-mono text-[9px] sm:text-[10px] text-muted-foreground">
+															{formatAddress(holder.account)}
 														</span>
-														{holder.website && (
-															<ExternalLink className="h-2.5 w-2.5 opacity-50" />
-														)}
-													</div>
-													<span className="font-mono text-[9px] sm:text-[10px] text-muted-foreground">
-														{formatAddress(holder.account)}
+													</a>
+												) : suinsName ? (
+													<a
+														href={`https://suivision.xyz/account/${holder.account}`}
+														target="_blank"
+														rel="noopener noreferrer"
+														className="flex flex-col hover:opacity-80 transition-opacity"
+													>
+														<span className="font-mono text-[10px] sm:text-xs text-foreground">
+															{suinsName}
+														</span>
+														<span className="font-mono text-[9px] sm:text-[10px] text-muted-foreground">
+															{formatAddress(holder.account)}
+														</span>
+													</a>
+												) : (
+													<a
+														href={`https://suivision.xyz/account/${holder.account}`}
+														target="_blank"
+														rel="noopener noreferrer"
+														className="font-mono text-[10px] sm:text-xs text-muted-foreground hover:text-primary transition-colors"
+													>
+														<span className="sm:hidden">
+															{formatAddress(holder.account).slice(0, 6) + '...'}
+														</span>
+														<span className="hidden sm:inline">
+															{formatAddress(holder.account)}
+														</span>
+													</a>
+												)}
+												{/* Labels for special wallets */}
+												{isDev && (
+													<span className="px-1.5 py-0.5 bg-primary/10 rounded font-mono text-[9px] uppercase text-primary">
+														DEV
 													</span>
-												</a>
-											) : suinsName ? (
-												<a
-													href={`https://suivision.xyz/account/${holder.account}`}
-													target="_blank"
-													rel="noopener noreferrer"
-													className="flex flex-col hover:opacity-80 transition-opacity"
-												>
-													<span className="font-mono text-[10px] sm:text-xs text-foreground">
-														{suinsName}
-														{isDev && <span className="text-destructive"> (dev)</span>}
+												)}
+												{isBurn && (
+													<span className="px-1.5 py-0.5 bg-destructive/10 rounded font-mono text-[9px] uppercase text-destructive">
+														BURN
 													</span>
-													<span className="font-mono text-[9px] sm:text-[10px] text-muted-foreground">
-														{formatAddress(holder.account)}
-													</span>
-												</a>
-											) : (
-												<a
-													href={`https://suivision.xyz/account/${holder.account}`}
-													target="_blank"
-													rel="noopener noreferrer"
-													className="font-mono text-[10px] sm:text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
-												>
-													<span className="sm:hidden">
-														{formatAddress(holder.account).slice(0, 6) + '...'}
-														{isDev && <span className="text-destructive"> (dev)</span>}
-													</span>
-													<span className="hidden sm:inline">
-														{formatAddress(holder.account)}
-														{isDev && <span className="text-destructive"> (dev)</span>}
-													</span>
-												</a>
-											)}
+												)}
+											</div>
 										</div>
 									</div>
 
