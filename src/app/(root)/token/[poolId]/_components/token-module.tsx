@@ -19,6 +19,7 @@ import {
 import { useBreakpoint } from "@/hooks/use-breakpoint"
 import { TOTAL_POOL_SUPPLY, DEFAULT_TOKEN_DECIMALS } from "@/constants"
 import { formatNumberWithSuffix } from "@/utils/format"
+import { useTokenTabs } from "@/stores/token-tabs"
 
 interface TokenModuleProps {
 	pool: PoolWithMetadata
@@ -29,6 +30,21 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 	const [price, setPrice] = useState<number | null>(pool.marketData?.coinPrice || null)
 	const [marketCap, setMarketCap] = useState<number | null>(pool.marketData?.marketCap || null)
 	const { isMobile } = useBreakpoint()
+	const { addTab } = useTokenTabs()
+
+	// @dev: add this token tab to our registry for quick switching.
+	useEffect(() => {
+		if (pool.poolId && pool.coinMetadata) {
+			addTab({
+				poolId: pool.poolId,
+				name: pool.coinMetadata.name || pool.metadata?.name || "Unknown",
+				symbol: pool.coinMetadata.symbol || pool.metadata?.symbol || "???",
+				iconUrl: pool.coinMetadata.iconUrl || pool.metadata?.image_url,
+				bondingCurve: parseFloat(String(pool.bondingCurve)) || 0,
+				coinType: pool.coinType,
+			})
+		}
+	}, [pool.poolId, pool.coinMetadata, pool.metadata, pool.bondingCurve, pool.coinType, addTab])
 
 	useEffect(() => {
 		const subscriptionId = pool.migrated && pool.mostLiquidPoolId
