@@ -1,18 +1,18 @@
 "use client"
 
 import { formatAddress } from "@mysten/sui/utils"
-import { LogOut, Unplug } from "lucide-react"
+import { LogOut, Unplug, Wallet, Wrench } from "lucide-react"
 import { useState } from "react"
 import { useApp } from "@/context/app.context"
 import { useTwitter } from "@/context/twitter.context"
 import { Button } from "../ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { TwitterUserAvatar } from "./user-avatar"
-import { UserDetails } from "./user-details"
 import { BsTwitterX } from 'react-icons/bs'
 import { WalletList } from "../shared/wallet-list"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog"
 import { WalletManager } from "./wallet-manager"
+import Link from "next/link"
 
 export function UserDropdown() {
 	const [open, setOpen] = useState(false)
@@ -76,13 +76,29 @@ export function UserDropdown() {
 
 					<PopoverContent className="min-w-[320px] p-3" align="end">
 						<div className="space-y-3">
-							<div className="pb-2 border-b">
-								<UserDetails />
-							</div>
-							
 							{/* Wallet Manager */}
 							<div className="pb-2 border-b">
 								<WalletManager />
+							</div>
+							
+							{/* Navigation Links */}
+							<div className="pb-2 border-b space-y-1">
+								<Link 
+									href="/portfolio" 
+									className="w-full p-2 flex items-center gap-2 hover:bg-muted rounded-lg transition-colors"
+									onClick={() => setOpen(false)}
+								>
+									<Wallet className="w-4 h-4 text-muted-foreground" />
+									<span className="text-sm font-medium">Portfolio</span>
+								</Link>
+								<Link 
+									href="/utility" 
+									className="w-full p-2 flex items-center gap-2 hover:bg-muted rounded-lg transition-colors"
+									onClick={() => setOpen(false)}
+								>
+									<Wrench className="w-4 h-4 text-muted-foreground" />
+									<span className="text-sm font-medium">Utility</span>
+								</Link>
 							</div>
 
 							{/* Social Accounts */}

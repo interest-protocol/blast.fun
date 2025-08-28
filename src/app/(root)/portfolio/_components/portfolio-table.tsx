@@ -137,21 +137,21 @@ export function PortfolioTable({ portfolio, hideSmallBalance, onHideSmallBalance
 												</div>
 											)}
 											<div>
-												<p className="font-mono font-semibold">
-													{item.coinMetadata?.symbol || "Unknown"}
+												<p className="font-mono font-semibold uppercase text-foreground/80">
+													{item.coinMetadata?.symbol || "[UNKNOWN]"}
 												</p>
-												<p className="font-mono text-xs text-muted-foreground">
-													{item.coinMetadata?.name || "Unknown Token"}
+												<p className="font-mono text-xs text-muted-foreground/60">
+													{item.coinMetadata?.name || "[UNNAMED TOKEN]"}
 												</p>
 											</div>
 										</div>
 									</td>
 									<td className="px-3 md:px-6 py-4 text-right">
 										<div className="flex flex-col items-end">
-											<p className="font-mono font-semibold text-sm md:text-base">
+											<p className="font-mono font-semibold text-sm md:text-base text-foreground/80">
 												{formatTokenAmount(item.balance, item.coinMetadata?.decimals || 9)}
 											</p>
-											<p className="font-mono text-xs text-muted-foreground">
+											<p className="font-mono text-xs text-muted-foreground/60">
 												${formatNumber(item.value)}
 											</p>
 										</div>
@@ -195,7 +195,7 @@ export function PortfolioTable({ portfolio, hideSmallBalance, onHideSmallBalance
 					</tbody>
 				</table>
 			</div>
-			<div className="flex items-center justify-between p-4 border-t border-border">
+			<div className="flex items-center justify-between p-4 border-t-2 border-border bg-background/30">
 				<div className="flex items-center gap-2">
 					<Switch
 						id="hide-small-balance"
@@ -204,13 +204,13 @@ export function PortfolioTable({ portfolio, hideSmallBalance, onHideSmallBalance
 					/>
 					<label
 						htmlFor="hide-small-balance"
-						className="font-mono text-sm text-muted-foreground cursor-pointer"
+						className="font-mono text-xs uppercase tracking-wider text-muted-foreground cursor-pointer"
 					>
-						Hide small balances (&lt; $1)
+						HIDE SMALL BALANCES [&lt; $1]
 					</label>
 				</div>
-				<div className="font-mono text-xs text-muted-foreground">
-					Showing {sortedBalances.length} of {portfolio.balances.length} tokens
+				<div className="font-mono text-xs uppercase tracking-wider text-muted-foreground/60">
+					SHOWING {sortedBalances.length} OF {portfolio.balances.length} TOKENS
 				</div>
 			</div>
 		</div>
