@@ -105,11 +105,11 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 			<div className="w-full">
 				<div className="relative">
 					{/* Header */}
-					<div className="grid grid-cols-12 gap-2 px-2 sm:px-4 py-2 border-b border-border/50 text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground sticky top-0 bg-background/95 backdrop-blur-sm z-10 select-none">
-						<div className="col-span-1"></div>
-						<div className="col-span-5">ADDRESS</div>
+					<div className="grid grid-cols-12 py-2 border-b border-border/50 text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground sticky top-0 bg-background/95 backdrop-blur-sm z-10 select-none">
+						<div className="col-span-1 text-center"></div>
+						<div className="col-span-5 pl-2">ADDRESS</div>
 						<div className="col-span-3 text-right">HOLDINGS</div>
-						<div className="col-span-3 text-right">SHARE %</div>
+						<div className="col-span-3 text-right pr-2">SHARE %</div>
 					</div>
 
 					{/* Holders List */}
@@ -137,16 +137,16 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 								key={holder.account}
 								className="relative group hover:bg-muted/5 transition-all duration-200"
 							>
-								<div className="relative grid grid-cols-12 gap-2 px-2 sm:px-4 py-2 sm:py-3 items-center border-b border-border/30">
+								<div className="relative grid grid-cols-12 py-2 sm:py-3 items-center border-b border-border/30">
 									{/* Rank */}
-									<div className="col-span-1">
+									<div className="col-span-1 text-center">
 										<div className="font-mono text-[10px] sm:text-xs text-muted-foreground">
 											{rank}
 										</div>
 									</div>
 
 									{/* Address */}
-									<div className="col-span-5 flex items-center gap-2">
+									<div className="col-span-5 flex items-center gap-2 pl-2">
 										{holder.image && (
 											<img 
 												src={holder.image} 
@@ -225,7 +225,7 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 									</div>
 
 									{/* Percentage */}
-									<div className="col-span-3 text-right">
+									<div className="col-span-3 text-right pr-2">
 										<span className={cn(
 											"font-mono text-[10px] sm:text-xs font-bold",
 											percentage >= 10 ? "text-destructive" : 

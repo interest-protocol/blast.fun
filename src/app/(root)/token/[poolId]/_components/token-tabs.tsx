@@ -68,7 +68,7 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 	// @dev: Split view for xl and 2xl screens
 	if (isSplitView) {
 		return (
-			<div className={cn("flex h-full gap-2", className)}>
+			<div className={cn("flex h-full", className)}>
 				{/* Left side - Always Trades (70% width) */}
 				<div className="flex w-[70%] flex-col border-r">
 					<div className="border-b">
