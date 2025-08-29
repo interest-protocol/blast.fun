@@ -35,6 +35,7 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 	const creatorData = pool.creatorData
 
 	const creatorTwitterHandle = creatorData?.twitterHandle
+	const creatorTwitterId = creatorData?.twitterId
 	const creatorWallet = pool.creatorAddress
 	const showTwitterCreator = !!creatorTwitterHandle
 
@@ -71,7 +72,7 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 		<>
 			<div className="bg-background">
 				<div>
-					<div className="p-3 flex gap-3">
+					<div className="p-2 flex gap-2">
 						<div className="flex-shrink-0">
 							<TokenAvatar
 								iconUrl={metadata?.iconUrl || metadata?.icon_url}
@@ -109,7 +110,7 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 										<span className="text-muted-foreground">by</span>
 										{showTwitterCreator ? (
 											<a
-												href={`https://x.com/${creatorTwitterHandle}`}
+												href={creatorTwitterId ? `https://x.com/i/user/${creatorTwitterId}` : `https://x.com/${creatorTwitterHandle}`}
 												target="_blank"
 												rel="noopener noreferrer"
 												className="font-medium text-foreground hover:text-blue-400 transition-colors"
@@ -185,7 +186,7 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 					
 					{/* Protection badges section */}
 					{(pool.isProtected || protectionSettings) && (
-						<div className="pt-2 pb-1 pl-3 pr-3 border-t border-border/50">
+						<div className="px-2 pb-2">
 							<ProtectionBadges 
 								protectionSettings={protectionSettings}
 								isProtected={pool.isProtected}

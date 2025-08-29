@@ -19,6 +19,7 @@ interface CreatorDetailsProps {
 
 export function CreatorDetails({ pool }: CreatorDetailsProps) {
 	const creatorTwitterHandle = pool.creatorData?.twitterHandle;
+	const creatorTwitterId = pool.creatorData?.twitterId;
 	const creatorWallet = pool.creatorAddress;
 	const showTwitterCreator = !!creatorTwitterHandle;
 	const data = pool.creatorData;
@@ -71,7 +72,7 @@ export function CreatorDetails({ pool }: CreatorDetailsProps) {
 							</span>
 							{showTwitterCreator && (
 								<a
-									href={`https://x.com/${creatorTwitterHandle}`}
+									href={creatorTwitterId ? `https://x.com/i/user/${creatorTwitterId}` : `https://x.com/${creatorTwitterHandle}`}
 									target="_blank"
 									rel="noopener noreferrer"
 									className="text-muted-foreground hover:text-foreground transition-colors"

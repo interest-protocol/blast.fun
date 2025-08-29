@@ -56,6 +56,7 @@ export type CreatorData = {
 	trustedFollowers: string
 	followers: string
 	twitterHandle?: string | null
+	twitterId?: string | null
 }
 
 export type PoolWithMetadata = Pool & {
