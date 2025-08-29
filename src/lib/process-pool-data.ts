@@ -223,7 +223,10 @@ export async function processPoolData(pool: Pool): Promise<ProcessedPool> {
 
 	if (!processedPool.creatorData) {
 		try {
-			processedPool.creatorData = await fetchCreatorData(pool.creatorAddress)
+			processedPool.creatorData = await fetchCreatorData({
+				poolId: pool.poolId,
+				creatorAddressOrHandle: pool.creatorAddress
+			})
 		} catch (error) {
 			console.error(`Failed to fetch creator data for ${pool.creatorAddress}:`, error)
 		}

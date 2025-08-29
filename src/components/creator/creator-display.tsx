@@ -6,6 +6,7 @@ import { forwardRef, useMemo } from "react"
 
 interface CreatorDisplayProps extends React.HTMLAttributes<HTMLElement> {
 	twitterHandle?: string
+	twitterId?: string
 	walletAddress?: string
 	className?: string
 	onClick?: (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void
@@ -17,6 +18,7 @@ export const CreatorDisplay = forwardRef<
 	CreatorDisplayProps
 >(({
 	twitterHandle,
+	twitterId,
 	walletAddress,
 	className = "",
 	onClick,
@@ -30,9 +32,14 @@ export const CreatorDisplay = forwardRef<
 	const displayData = useMemo(() => {
 		// priority: handle > resolved domain > wallet address
 		if (twitterHandle) {
+			// @dev: Use twitterId for stable link if available, fallback to handle
+			const href = twitterId 
+				? `https://x.com/i/user/${twitterId}`
+				: `https://x.com/${twitterHandle}`
+			
 			return {
 				display: `@${twitterHandle}`,
-				href: `https://x.com/${twitterHandle}`,
+				href,
 				type: 'twitter' as const
 			}
 		}
@@ -50,7 +57,7 @@ export const CreatorDisplay = forwardRef<
 			href: null,
 			type: 'wallet' as const
 		}
-	}, [twitterHandle, resolvedDomain, walletAddress])
+	}, [twitterHandle, twitterId, resolvedDomain, walletAddress])
 
 	const handleClick = (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
 		if (onClick) {

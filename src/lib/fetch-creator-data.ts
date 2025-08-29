@@ -4,30 +4,66 @@ import { redisGet, redisSetEx, CACHE_TTL, CACHE_PREFIX } from "@/lib/redis/clien
 import type { CreatorData } from "@/types/pool"
 
 export async function fetchCreatorData(
-	creatorAddressOrHandle: string,
-	twitterHandle?: string | null
+	params: {
+		creatorAddressOrHandle?: string
+		poolId?: string
+		twitterHandle?: string | null
+	}
 ): Promise<CreatorData> {
 	try {
-		// determine if we need to find the creator address from twitter handle
-		let creatorAddress = creatorAddressOrHandle
-		let finalTwitterHandle = twitterHandle
+		let creatorAddress: string | undefined
+		let finalTwitterHandle = params.twitterHandle
+		let finalTwitterId: string | null = null
 		let hideIdentity = false
 
-		// @dev: if twitterHandle is provided and matches creatorAddressOrHandle, 
-		// we need to find the actual creator address
-		if (twitterHandle && creatorAddressOrHandle === twitterHandle) {
+		// @dev: if poolId is provided, fetch creator address from tokenLaunches
+		if (params.poolId) {
+			// First try to find by poolId
 			const tokenLaunch = await prisma.tokenLaunches.findFirst({
-				where: { twitterUsername: twitterHandle },
+				where: { poolObjectId: params.poolId },
 				select: { 
 					creatorAddress: true,
-					hideIdentity: true 
+					hideIdentity: true,
+					twitterUserId: true,
+					twitterUsername: true
 				}
 			})
 
 			if (tokenLaunch) {
 				creatorAddress = tokenLaunch.creatorAddress
 				hideIdentity = tokenLaunch.hideIdentity
+				finalTwitterId = tokenLaunch.twitterUserId
+				finalTwitterHandle = tokenLaunch.twitterUsername
+			} else if (params.creatorAddressOrHandle) {
+				// @dev: Fallback to creatorAddress if no tokenLaunch found by poolId
+				// This is important for tokens that don't have tokenLaunch records
+				creatorAddress = params.creatorAddressOrHandle
 			}
+		} else if (params.creatorAddressOrHandle) {
+			creatorAddress = params.creatorAddressOrHandle
+			
+			// @dev: if twitterHandle is provided and matches creatorAddressOrHandle, 
+			// we need to find the actual creator address
+			if (params.twitterHandle && params.creatorAddressOrHandle === params.twitterHandle) {
+				const tokenLaunch = await prisma.tokenLaunches.findFirst({
+					where: { twitterUsername: params.twitterHandle },
+					select: { 
+						creatorAddress: true,
+						hideIdentity: true,
+						twitterUserId: true
+					}
+				})
+
+				if (tokenLaunch) {
+					creatorAddress = tokenLaunch.creatorAddress
+					hideIdentity = tokenLaunch.hideIdentity
+					finalTwitterId = tokenLaunch.twitterUserId
+				}
+			}
+		}
+
+		if (!creatorAddress) {
+			throw new Error("No creatorAddress or poolId provided")
 		}
 
 		const cacheKey = `${CACHE_PREFIX.CREATOR_DATA}${creatorAddress}`
@@ -48,12 +84,21 @@ export async function fetchCreatorData(
 		// check if any launch has hideIdentity set to true
 		hideIdentity = tokenLaunches.some(launch => launch.hideIdentity)
 
-		// get twitter handle if not hiding identity
+		// get twitter handle and id if not hiding identity
 		finalTwitterHandle = hideIdentity ? null : finalTwitterHandle
-		if (!hideIdentity && !finalTwitterHandle && tokenLaunches.length > 0) {
-			const launchWithTwitter = tokenLaunches.find(l => l.twitterUsername)
-			if (launchWithTwitter) {
-				finalTwitterHandle = launchWithTwitter.twitterUsername
+		finalTwitterId = hideIdentity ? null : finalTwitterId
+		if (!hideIdentity && tokenLaunches.length > 0) {
+			if (!finalTwitterHandle) {
+				const launchWithTwitter = tokenLaunches.find(l => l.twitterUsername)
+				if (launchWithTwitter) {
+					finalTwitterHandle = launchWithTwitter.twitterUsername
+				}
+			}
+			if (!finalTwitterId) {
+				const launchWithTwitterId = tokenLaunches.find(l => l.twitterUserId)
+				if (launchWithTwitterId) {
+					finalTwitterId = launchWithTwitterId.twitterUserId
+				}
 			}
 		}
 
@@ -138,6 +183,12 @@ export async function fetchCreatorData(
 			return `>${formatFollowerCount(lastThreshold)}`
 		}
 
+		// @dev: If followers is 0 but trusted followers is not 0, it likely means the handle changed
+		// Set trusted followers to 0 as well to avoid showing misleading data
+		if (followerCount === 0 && trustedFollowerCount > 0) {
+			trustedFollowerCount = 0
+		}
+
 		const trustedFollowerThresholds = [10, 50, 100, 250, 500, 1000, 5000, 10000, 25000]
 		const followerThresholds = [100, 500, 1000, 5000, 10000, 25000, 50000, 100000, 500000, 1000000]
 
@@ -149,7 +200,8 @@ export async function fetchCreatorData(
 			followers: hideIdentity
 				? bandValue(followerCount, followerThresholds)
 				: formatFollowerCount(followerCount),
-			twitterHandle: finalTwitterHandle
+			twitterHandle: finalTwitterHandle,
+			twitterId: finalTwitterId
 		}
 
 		// Only cache if we have non-zero follower count
@@ -169,7 +221,8 @@ export async function fetchCreatorData(
 			launchCount: 0,
 			trustedFollowers: "0",
 			followers: "0",
-			twitterHandle: null
+			twitterHandle: null,
+			twitterId: null
 		}
 	}
 }

@@ -10,10 +10,10 @@ export async function GET(
 		const { handle } = await params;
 		const isWalletAddress = isValidSuiAddress(handle);
 		
-		const creatorData = await fetchCreatorData(
-			handle,
-			isWalletAddress ? null : handle
-		);
+		const creatorData = await fetchCreatorData({
+			creatorAddressOrHandle: handle,
+			twitterHandle: isWalletAddress ? null : handle
+		});
 		
 		return NextResponse.json(creatorData);
 	} catch (error) {
