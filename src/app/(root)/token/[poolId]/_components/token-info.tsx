@@ -35,6 +35,7 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 	const creatorData = pool.creatorData
 
 	const creatorTwitterHandle = creatorData?.twitterHandle
+	const creatorTwitterId = creatorData?.twitterId
 	const creatorWallet = pool.creatorAddress
 	const showTwitterCreator = !!creatorTwitterHandle
 
@@ -109,7 +110,7 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 										<span className="text-muted-foreground">by</span>
 										{showTwitterCreator ? (
 											<a
-												href={`https://x.com/${creatorTwitterHandle}`}
+												href={creatorTwitterId ? `https://x.com/i/user/${creatorTwitterId}` : `https://x.com/${creatorTwitterHandle}`}
 												target="_blank"
 												rel="noopener noreferrer"
 												className="font-medium text-foreground hover:text-blue-400 transition-colors"

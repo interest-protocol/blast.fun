@@ -20,6 +20,7 @@ import type { CreatorData } from "@/types/pool";
 
 interface CreatorHoverCardProps {
 	twitterHandle?: string;
+	twitterId?: string;
 	walletAddress?: string;
 	children: React.ReactNode;
 	className?: string;
