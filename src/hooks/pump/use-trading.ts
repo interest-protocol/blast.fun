@@ -13,6 +13,8 @@ import { useTwitter } from "@/context/twitter.context"
 import { TOTAL_POOL_SUPPLY } from "@/constants"
 import { fetchCoinBalance } from "@/lib/fetch-portfolio"
 
+const SLIPPAGE_TOLERANCE_ERROR = "Error: Slippage tolerance exceeded. Transaction reverted."
+
 interface UseTradingOptions {
 	pool: PoolWithMetadata
 	decimals?: number
@@ -203,7 +205,10 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 				)
 			}
 		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : "UNKNOWN_ERROR"
+			let errorMessage = err instanceof Error ? err.message : "UNKNOWN_ERROR"
+			if(errorMessage.includes("MoveAbort") && errorMessage.includes(", 3)")) {
+				errorMessage = SLIPPAGE_TOLERANCE_ERROR
+			}
 			setError(errorMessage)
 			throw err
 		} finally {
@@ -312,7 +317,10 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 				)
 			}
 		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : "UNKNOWN_ERROR"
+			let errorMessage = err instanceof Error ? err.message : "UNKNOWN_ERROR"
+			if(errorMessage.includes("MoveAbort") && errorMessage.includes(", 3)")) {
+				errorMessage = SLIPPAGE_TOLERANCE_ERROR
+			}
 			setError(errorMessage)
 			throw err
 		} finally {
