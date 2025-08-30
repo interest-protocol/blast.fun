@@ -14,7 +14,10 @@ import { usePrivySuiWallet } from "./use-privy-sui-wallet"
 export interface UsePrivySuiTransactionReturn {
 	signAndExecuteTransaction: (tx: Transaction) => Promise<any>
 	signTransaction: (tx: Transaction) => Promise<string>
-	signMessage: (message: string) => Promise<string | undefined>
+	signPersonalMessage: (message: string) => Promise<{
+		signature: string
+		bytes: string
+	} | undefined>
 }
 
 export function usePrivySuiTransaction(): UsePrivySuiTransactionReturn {
@@ -99,7 +102,10 @@ export function usePrivySuiTransaction(): UsePrivySuiTransactionReturn {
 		}
 	}, [authenticated, client, getSuiWallet, signTransaction])
 
-	const signMessage = useCallback(async (message: string): Promise<string | undefined> => {
+	const signPersonalMessage = useCallback(async (message: string): Promise<{
+		signature: string
+		bytes: string
+	} | undefined> => {
 		if (!authenticated) {
 			toast.error("Please login first")
 			return undefined
@@ -117,9 +123,12 @@ export function usePrivySuiTransaction(): UsePrivySuiTransactionReturn {
 			
 			// @dev: Sign the message
 			const messageBytes = new TextEncoder().encode(message)
-			const signature = await keypair.sign(messageBytes)
+			const signature = await keypair.signPersonalMessage(messageBytes)
 			
-			return toBase64(signature)
+			return {
+				signature: signature.signature,
+				bytes: signature.bytes,
+			}
 		} catch (error) {
 			console.error("Failed to sign message:", error)
 			toast.error("Failed to sign message")
@@ -130,6 +139,6 @@ export function usePrivySuiTransaction(): UsePrivySuiTransactionReturn {
 	return {
 		signAndExecuteTransaction,
 		signTransaction,
-		signMessage,
+		signPersonalMessage,
 	}
 }

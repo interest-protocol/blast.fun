@@ -8,14 +8,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Copy, Wallet, Plus, Trash2 } from "lucide-react"
+import { Copy, Wallet, Plus, Trash2, CheckCircle, XCircle } from "lucide-react"
 import copy from "copy-to-clipboard"
 import toast from "react-hot-toast"
+import { useState } from "react"
+import { verifyPersonalMessageSignature, verifySignature } from "@mysten/sui/verify"
 
 export default function PrivyDemoPage() {
 	const { isAuthenticated, user, solanaAddress } = usePrivyAuth()
 	const { suiAddress, suiPublicKey, createSuiWallet, clearSuiWallet, isCreating } = usePrivySuiWallet()
-	const { signMessage } = usePrivySuiTransaction()
+	const { signPersonalMessage } = usePrivySuiTransaction()
+	const [lastSignature, setLastSignature] = useState<{ message: string; signature: string; verified?: boolean }>()
 
 	const handleCopyAddress = (address: string) => {
 		copy(address)
@@ -23,11 +26,53 @@ export default function PrivyDemoPage() {
 	}
 
 	const handleSignSuiMessage = async () => {
+		if (!suiAddress) {
+			toast.error("No Sui wallet found")
+			return
+		}
+
 		const message = "Hello from BLAST.FUN!"
-		const signature = await signMessage(message)
+		const signatureData = await signPersonalMessage(message)
+		if (!signatureData) {
+			toast.error("Failed to sign Sui message")
+			return
+		}
+		const { signature, bytes } = signatureData
 		if (signature) {
 			toast.success("Sui message signed successfully!")
 			console.log("Sui Signature:", signature)
+			console.log("Sui Bytes:", bytes)
+			
+			// @dev: Verify the signature
+			try {
+				const messageBytes = new TextEncoder().encode(message)
+				const publicKey = await verifyPersonalMessageSignature(messageBytes, signature)
+				const recoveredAddress = publicKey.toSuiAddress()
+				
+				const isValid = recoveredAddress.toLowerCase() === suiAddress.toLowerCase()
+				
+				setLastSignature({
+					message,
+					signature,
+					verified: isValid
+				})
+				
+				if (isValid) {
+					toast.success("Signature verified successfully!")
+					console.log("Recovered address:", recoveredAddress)
+					console.log("Expected address:", suiAddress)
+				} else {
+					toast.error("Signature verification failed - address mismatch")
+				}
+			} catch (error) {
+				console.error("Failed to verify signature:", error)
+				toast.error("Failed to verify signature")
+				setLastSignature({
+					message,
+					signature,
+					verified: false
+				})
+			}
 		}
 	}
 
@@ -173,6 +218,42 @@ export default function PrivyDemoPage() {
 									</>
 								)}
 							</div>
+
+							{/* @dev: Signature Verification Result */}
+							{lastSignature && (
+								<div className="mt-4 p-4 rounded-lg border bg-card">
+									<div className="flex items-center justify-between mb-2">
+										<span className="font-semibold text-sm">Last Signature</span>
+										<Badge variant={lastSignature.verified ? "default" : "destructive"}>
+											{lastSignature.verified ? (
+												<>
+													<CheckCircle className="h-3 w-3 mr-1" />
+													Verified
+												</>
+											) : (
+												<>
+													<XCircle className="h-3 w-3 mr-1" />
+													Invalid
+												</>
+											)}
+										</Badge>
+									</div>
+									<div className="space-y-2">
+										<div>
+											<p className="text-xs text-muted-foreground">Message:</p>
+											<code className="text-xs bg-muted px-2 py-1 rounded block mt-1">
+												{lastSignature.message}
+											</code>
+										</div>
+										<div>
+											<p className="text-xs text-muted-foreground">Signature:</p>
+											<code className="text-xs bg-muted px-2 py-1 rounded block mt-1 break-all">
+												{lastSignature.signature.slice(0, 50)}...
+											</code>
+										</div>
+									</div>
+								</div>
+							)}
 						</CardContent>
 					</Card>
 
