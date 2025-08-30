@@ -8,7 +8,8 @@ import { Activity, Users } from "lucide-react"
 import { cn } from "@/utils"
 import { PoolWithMetadata } from "@/types/pool"
 import { TradesTab } from "./tabs/trades-tab"
-import { HoldersTab, useHoldersData } from "./tabs/holders-tab"
+import { HoldersTab } from "./tabs/holders-tab"
+import { useHoldersData } from "../_hooks/use-holders-data"
 
 interface TokenTabsProps {
 	pool: PoolWithMetadata
