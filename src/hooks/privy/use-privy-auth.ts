@@ -1,6 +1,6 @@
 "use client"
 
-import { usePrivy, useSolanaWallets, useLogin } from "@privy-io/react-auth"
+import { usePrivy, useLogin } from "@privy-io/react-auth"
 import { useEffect, useState, useCallback } from "react"
 import toast from "react-hot-toast"
 
@@ -9,12 +9,17 @@ export interface PrivyAuthState {
 	isReady: boolean
 	isLoading: boolean
 	user: any
-	solanaAddress?: string
-	solanaPublicKey?: string
+	googleEmail?: string
+	twitterUsername?: string
+	discordUsername?: string
 	login: () => void
 	logout: () => void
-	linkWallet: () => void
-	unlinkWallet: (address: string) => void
+	linkGoogle: () => void
+	linkTwitter: () => void
+	linkDiscord: () => void
+	unlinkGoogle: (subject: string) => void
+	unlinkTwitter: (subject: string) => void
+	unlinkDiscord: (subject: string) => void
 	refreshUser: () => void
 }
 
@@ -24,9 +29,12 @@ export function usePrivyAuth(): PrivyAuthState {
 		authenticated, 
 		user, 
 		logout: privyLogout,
-		linkWallet: privyLinkWallet,
-		unlinkWallet: privyUnlinkWallet,
-		exportWallet,
+		linkGoogle: privyLinkGoogle,
+		linkTwitter: privyLinkTwitter,
+		linkDiscord: privyLinkDiscord,
+		unlinkGoogle: privyUnlinkGoogle,
+		unlinkTwitter: privyUnlinkTwitter,
+		unlinkDiscord: privyUnlinkDiscord,
 	} = usePrivy()
 	
 	const { login: privyLogin } = useLogin({
@@ -43,33 +51,33 @@ export function usePrivyAuth(): PrivyAuthState {
 		},
 	})
 	
-	const solanaWallets = useSolanaWallets()
-	
 	const [isLoading, setIsLoading] = useState(false)
-	const [solanaAddress, setSolanaAddress] = useState<string>()
-	const [solanaPublicKey, setSolanaPublicKey] = useState<string>()
+	const [googleEmail, setGoogleEmail] = useState<string>()
+	const [twitterUsername, setTwitterUsername] = useState<string>()
+	const [discordUsername, setDiscordUsername] = useState<string>()
 
-	// @dev: Extract Solana address and public key from linked accounts
+	// @dev: Extract account information from linked accounts
 	useEffect(() => {
 		if (user?.linkedAccounts) {
-			const solanaWallet = user.linkedAccounts.find(
-				(account: any) => account.type === "wallet" && account.chainType === "solana"
-			)
-			if (solanaWallet && 'address' in solanaWallet) {
-				setSolanaAddress(solanaWallet.address)
-				// @dev: For Solana, the address is the public key
-				setSolanaPublicKey(solanaWallet.address)
+			// @dev: Extract Google
+			const googleAccount = user.linkedAccounts.find((account: any) => account.type === "google_oauth")
+			if (googleAccount && 'email' in googleAccount) {
+				setGoogleEmail(googleAccount.email || undefined)
+			}
+
+			// @dev: Extract Twitter
+			const twitterAccount = user.linkedAccounts.find((account: any) => account.type === "twitter_oauth")
+			if (twitterAccount && 'username' in twitterAccount) {
+				setTwitterUsername(twitterAccount.username || undefined)
+			}
+
+			// @dev: Extract Discord
+			const discordAccount = user.linkedAccounts.find((account: any) => account.type === "discord_oauth")
+			if (discordAccount && 'username' in discordAccount) {
+				setDiscordUsername(discordAccount.username || undefined)
 			}
 		}
-		
-		// @dev: Also check Solana wallets directly
-		if (solanaWallets.wallets.length > 0) {
-			const primaryWallet = solanaWallets.wallets[0]
-			setSolanaAddress(primaryWallet.address)
-			// @dev: For Solana wallets, address is the public key
-			setSolanaPublicKey(primaryWallet.address)
-		}
-	}, [user, solanaWallets.wallets])
+	}, [user])
 
 	const login = useCallback(async () => {
 		setIsLoading(true)
@@ -84,39 +92,95 @@ export function usePrivyAuth(): PrivyAuthState {
 		setIsLoading(true)
 		try {
 			await privyLogout()
-			setSolanaAddress(undefined)
-			setSolanaPublicKey(undefined)
+			setGoogleEmail(undefined)
+			setTwitterUsername(undefined)
+			setDiscordUsername(undefined)
 			toast.success("Logged out successfully")
 		} finally {
 			setIsLoading(false)
 		}
 	}, [privyLogout])
 
-	const linkWallet = useCallback(async () => {
+	const linkGoogle = useCallback(async () => {
 		setIsLoading(true)
 		try {
-			await privyLinkWallet()
-			toast.success("Wallet linked successfully")
+			await privyLinkGoogle()
+			toast.success("Google account linked successfully")
 		} catch (error) {
-			console.error("Link wallet error:", error)
-			toast.error("Failed to link wallet")
+			console.error("Link Google error:", error)
+			toast.error("Failed to link Google account")
 		} finally {
 			setIsLoading(false)
 		}
-	}, [privyLinkWallet])
+	}, [privyLinkGoogle])
 
-	const unlinkWallet = useCallback(async (address: string) => {
+	const linkTwitter = useCallback(async () => {
 		setIsLoading(true)
 		try {
-			await privyUnlinkWallet(address)
-			toast.success("Wallet unlinked successfully")
+			await privyLinkTwitter()
+			toast.success("Twitter account linked successfully")
 		} catch (error) {
-			console.error("Unlink wallet error:", error)
-			toast.error("Failed to unlink wallet")
+			console.error("Link Twitter error:", error)
+			toast.error("Failed to link Twitter account")
 		} finally {
 			setIsLoading(false)
 		}
-	}, [privyUnlinkWallet])
+	}, [privyLinkTwitter])
+
+	const linkDiscord = useCallback(async () => {
+		setIsLoading(true)
+		try {
+			await privyLinkDiscord()
+			toast.success("Discord account linked successfully")
+		} catch (error) {
+			console.error("Link Discord error:", error)
+			toast.error("Failed to link Discord account")
+		} finally {
+			setIsLoading(false)
+		}
+	}, [privyLinkDiscord])
+
+	const unlinkGoogle = useCallback(async (subject: string) => {
+		setIsLoading(true)
+		try {
+			await privyUnlinkGoogle(subject)
+			setGoogleEmail(undefined)
+			toast.success("Google account unlinked successfully")
+		} catch (error) {
+			console.error("Unlink Google error:", error)
+			toast.error("Failed to unlink Google account")
+		} finally {
+			setIsLoading(false)
+		}
+	}, [privyUnlinkGoogle])
+
+	const unlinkTwitter = useCallback(async (subject: string) => {
+		setIsLoading(true)
+		try {
+			await privyUnlinkTwitter(subject)
+			setTwitterUsername(undefined)
+			toast.success("Twitter account unlinked successfully")
+		} catch (error) {
+			console.error("Unlink Twitter error:", error)
+			toast.error("Failed to unlink Twitter account")
+		} finally {
+			setIsLoading(false)
+		}
+	}, [privyUnlinkTwitter])
+
+	const unlinkDiscord = useCallback(async (subject: string) => {
+		setIsLoading(true)
+		try {
+			await privyUnlinkDiscord(subject)
+			setDiscordUsername(undefined)
+			toast.success("Discord account unlinked successfully")
+		} catch (error) {
+			console.error("Unlink Discord error:", error)
+			toast.error("Failed to unlink Discord account")
+		} finally {
+			setIsLoading(false)
+		}
+	}, [privyUnlinkDiscord])
 
 	const refreshUser = useCallback(() => {
 		// @dev: Privy automatically refreshes user data
@@ -128,12 +192,17 @@ export function usePrivyAuth(): PrivyAuthState {
 		isReady: ready,
 		isLoading,
 		user,
-		solanaAddress,
-		solanaPublicKey,
+		googleEmail,
+		twitterUsername,
+		discordUsername,
 		login,
 		logout,
-		linkWallet,
-		unlinkWallet,
+		linkGoogle,
+		linkTwitter,
+		linkDiscord,
+		unlinkGoogle,
+		unlinkTwitter,
+		unlinkDiscord,
 		refreshUser,
 	}
 }

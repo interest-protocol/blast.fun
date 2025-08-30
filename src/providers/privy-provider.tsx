@@ -5,22 +5,15 @@ import { PrivyProvider as PrivyProviderBase, type PrivyProviderProps as PrivyPro
 import { env } from "@/env"
 
 const privyConfig: PrivyProviderBaseProps["config"] = {
-	// @dev: Configure Solana wallet support only
-	externalWallets: {
-		solana: {},
-	},
-	// @dev: Disable embedded wallets - we'll create Sui wallets separately
+	// @dev: Match Nexa's configuration - social logins only
+	loginMethods: ["google", "twitter", "discord"],
+	// @dev: Disable embedded wallets - Nexa backend creates Sui wallets
 	embeddedWallets: {
 		createOnLogin: "off",
 	},
-	// @dev: Configure login methods - Solana wallet only
-	loginMethods: ["wallet"],
-	// @dev: Configure appearance
+	// @dev: Configure appearance to match Nexa
 	appearance: {
 		theme: "dark",
-		accentColor: "#6366f1",
-		showWalletLoginFirst: true,
-		logo: "/logo.png",
 	},
 }
 
@@ -32,7 +25,6 @@ export function PrivyProvider({ children }: PrivyProviderProps) {
 	return (
 		<PrivyProviderBase
 			appId={env.NEXT_PUBLIC_PRIVY_APP_ID}
-			clientId={env.NEXT_PUBLIC_PRIVY_CLIENT_ID}
 			config={privyConfig}
 		>
 			{children}

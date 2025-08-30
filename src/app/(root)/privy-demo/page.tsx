@@ -8,15 +8,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Copy, Wallet, Plus, Trash2, CheckCircle, XCircle } from "lucide-react"
+import { Copy, Wallet, Plus, Trash2, CheckCircle, XCircle, LogOut } from "lucide-react"
 import copy from "copy-to-clipboard"
 import toast from "react-hot-toast"
 import { useState } from "react"
-import { verifyPersonalMessageSignature, verifySignature } from "@mysten/sui/verify"
+import { verifyPersonalMessageSignature } from "@mysten/sui/verify"
 
 export default function PrivyDemoPage() {
-	const { isAuthenticated, user, solanaAddress } = usePrivyAuth()
-	const { suiAddress, suiPublicKey, createSuiWallet, clearSuiWallet, isCreating } = usePrivySuiWallet()
+	const { 
+		isAuthenticated, 
+		user, 
+		googleEmail,
+		twitterUsername,
+		discordUsername,
+		login,
+		logout,
+		linkGoogle,
+		linkTwitter,
+		linkDiscord,
+		unlinkGoogle,
+		unlinkTwitter,
+		unlinkDiscord,
+	} = usePrivyAuth()
+	const { suiAddress, suiPublicKey, createSuiWallet, clearSuiWallet, isCreating, isLoading } = usePrivySuiWallet()
 	const { signPersonalMessage } = usePrivySuiTransaction()
 	const [lastSignature, setLastSignature] = useState<{ message: string; signature: string; verified?: boolean }>()
 
@@ -81,7 +95,7 @@ export default function PrivyDemoPage() {
 			<div className="mb-8">
 				<h1 className="text-3xl font-bold mb-2">Privy + Sui Integration Demo</h1>
 				<p className="text-muted-foreground">
-					Connect your Solana wallet for authentication and create a Sui wallet for transactions
+					Connect with social accounts and use Sui wallet for transactions via Nexa backend
 				</p>
 			</div>
 
@@ -89,7 +103,7 @@ export default function PrivyDemoPage() {
 			<Card className="mb-6">
 				<CardHeader>
 					<CardTitle>Connection Status</CardTitle>
-					<CardDescription>Your wallet connection state</CardDescription>
+					<CardDescription>Your authentication state</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<div className="flex items-center justify-between">
@@ -101,58 +115,157 @@ export default function PrivyDemoPage() {
 								<Badge variant="outline">Sui Wallet Active</Badge>
 							)}
 						</div>
-						<PrivyConnectButton />
+						<div className="flex items-center gap-2">
+							{isAuthenticated ? (
+								<Button
+									variant="destructive"
+									onClick={logout}
+									className="flex items-center gap-2"
+								>
+									<LogOut className="h-4 w-4" />
+									Disconnect All
+								</Button>
+							) : (
+								<PrivyConnectButton />
+							)}
+						</div>
 					</div>
 				</CardContent>
 			</Card>
 
 			{isAuthenticated && (
 				<>
-					{/* @dev: Wallet Information */}
+					{/* @dev: Linked Accounts */}
 					<Card className="mb-6">
 						<CardHeader>
-							<CardTitle>Wallet Management</CardTitle>
-							<CardDescription>Your connected wallets</CardDescription>
+							<CardTitle>Linked Accounts</CardTitle>
+							<CardDescription>Your connected social accounts</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-4">
-							{/* @dev: Solana Wallet (Authentication) */}
-							{solanaAddress && (
-								<div className="p-4 rounded-lg border bg-card">
-									<div className="flex items-center justify-between mb-2">
-										<div className="flex items-center gap-2">
-											<Wallet className="h-4 w-4 text-purple-500" />
-											<span className="font-semibold">Solana Wallet</span>
-										</div>
-										<Badge variant="outline">Authentication</Badge>
-									</div>
+							{/* @dev: Google Account */}
+							<div className="p-4 rounded-lg border bg-card">
+								<div className="flex items-center justify-between">
 									<div className="flex items-center gap-2">
-										<code className="text-sm bg-muted px-2 py-1 rounded flex-1 truncate">
-											{solanaAddress}
-										</code>
-										<Button
-											variant="ghost"
-											size="icon"
-											className="h-8 w-8"
-											onClick={() => handleCopyAddress(solanaAddress)}
-										>
-											<Copy className="h-3 w-3" />
-										</Button>
+										<span className="font-semibold">Google</span>
 									</div>
-									<p className="text-xs text-muted-foreground mt-2">
-										Used for authentication with Privy
-									</p>
+									{googleEmail ? (
+										<div className="flex items-center gap-2">
+											<code className="text-sm bg-muted px-2 py-1 rounded">
+												{googleEmail}
+											</code>
+											<Button
+												variant="ghost"
+												size="sm"
+												onClick={() => {
+													const googleAccount = user?.linkedAccounts?.find((a: any) => a.type === "google_oauth")
+													if (googleAccount?.subject) unlinkGoogle(googleAccount.subject)
+												}}
+											>
+												Unlink
+											</Button>
+										</div>
+									) : (
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={linkGoogle}
+										>
+											Link Google
+										</Button>
+									)}
 								</div>
-							)}
+							</div>
 
-							{/* @dev: Sui Wallet (Transactions) */}
-							{suiAddress ? (
+							{/* @dev: Twitter Account */}
+							<div className="p-4 rounded-lg border bg-card">
+								<div className="flex items-center justify-between">
+									<div className="flex items-center gap-2">
+										<span className="font-semibold">Twitter</span>
+									</div>
+									{twitterUsername ? (
+										<div className="flex items-center gap-2">
+											<code className="text-sm bg-muted px-2 py-1 rounded">
+												@{twitterUsername}
+											</code>
+											<Button
+												variant="ghost"
+												size="sm"
+												onClick={() => {
+													const twitterAccount = user?.linkedAccounts?.find((a: any) => a.type === "twitter_oauth")
+													if (twitterAccount?.subject) unlinkTwitter(twitterAccount.subject)
+												}}
+											>
+												Unlink
+											</Button>
+										</div>
+									) : (
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={linkTwitter}
+										>
+											Link Twitter
+										</Button>
+									)}
+								</div>
+							</div>
+
+							{/* @dev: Discord Account */}
+							<div className="p-4 rounded-lg border bg-card">
+								<div className="flex items-center justify-between">
+									<div className="flex items-center gap-2">
+										<span className="font-semibold">Discord</span>
+									</div>
+									{discordUsername ? (
+										<div className="flex items-center gap-2">
+											<code className="text-sm bg-muted px-2 py-1 rounded">
+												{discordUsername}
+											</code>
+											<Button
+												variant="ghost"
+												size="sm"
+												onClick={() => {
+													const discordAccount = user?.linkedAccounts?.find((a: any) => a.type === "discord_oauth")
+													if (discordAccount?.subject) unlinkDiscord(discordAccount.subject)
+												}}
+											>
+												Unlink
+											</Button>
+										</div>
+									) : (
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={linkDiscord}
+										>
+											Link Discord
+										</Button>
+									)}
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+
+					{/* @dev: Wallet Management */}
+					<Card className="mb-6">
+						<CardHeader>
+							<CardTitle>Sui Wallet Management</CardTitle>
+							<CardDescription>Managed by Nexa backend</CardDescription>
+						</CardHeader>
+						<CardContent className="space-y-4">
+							{/* @dev: Sui Wallet */}
+							{isLoading ? (
+								<div className="p-4 rounded-lg border bg-card">
+									<p className="text-sm text-muted-foreground">Loading wallet...</p>
+								</div>
+							) : suiAddress ? (
 								<div className="p-4 rounded-lg border bg-card">
 									<div className="flex items-center justify-between mb-2">
 										<div className="flex items-center gap-2">
 											<Wallet className="h-4 w-4 text-blue-500" />
 											<span className="font-semibold">Sui Wallet</span>
 										</div>
-										<Badge variant="outline">Transactions</Badge>
+										<Badge variant="outline">Active</Badge>
 									</div>
 									<div className="flex items-center gap-2">
 										<code className="text-sm bg-muted px-2 py-1 rounded flex-1 truncate">
@@ -176,13 +289,13 @@ export default function PrivyDemoPage() {
 										</div>
 									)}
 									<p className="text-xs text-muted-foreground mt-2">
-										Used for Sui blockchain transactions
+										Managed securely by Nexa backend server
 									</p>
 								</div>
 							) : (
 								<div className="p-4 rounded-lg border border-dashed">
 									<p className="text-sm text-muted-foreground mb-3">
-										No Sui wallet created yet. Create one to start transacting on Sui.
+										No Sui wallet found. Create one to start transacting on Sui.
 									</p>
 									<Button
 										onClick={createSuiWallet}
@@ -261,25 +374,25 @@ export default function PrivyDemoPage() {
 					<Card className="mb-6">
 						<CardHeader>
 							<CardTitle>How It Works</CardTitle>
-							<CardDescription>Understanding the Privy + Sui integration</CardDescription>
+							<CardDescription>Understanding the Privy + Nexa integration</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-3">
 							<div className="p-3 rounded-lg bg-muted">
-								<p className="text-sm font-semibold mb-1">1. Solana Authentication</p>
+								<p className="text-sm font-semibold mb-1">1. Social Authentication</p>
 								<p className="text-xs text-muted-foreground">
-									Connect your Solana wallet (Phantom, Solflare, etc.) through Privy for secure authentication.
+									Login with Google, Twitter, or Discord through Privy for secure authentication.
 								</p>
 							</div>
 							<div className="p-3 rounded-lg bg-muted">
-								<p className="text-sm font-semibold mb-1">2. Sui Wallet Creation</p>
+								<p className="text-sm font-semibold mb-1">2. Sui Wallet Management</p>
 								<p className="text-xs text-muted-foreground">
-									Generate a local Ed25519 keypair for Sui transactions. The wallet is stored locally (encrypted in production).
+									Sui wallet is created and managed on Nexa's secure backend. Private keys never touch the client.
 								</p>
 							</div>
 							<div className="p-3 rounded-lg bg-muted">
 								<p className="text-sm font-semibold mb-1">3. Transaction Signing</p>
 								<p className="text-xs text-muted-foreground">
-									Sign Sui transactions using the local keypair with Ed25519 signatures, compatible with Sui's requirements.
+									All Sui transactions are signed server-side via Nexa API, ensuring maximum security.
 								</p>
 							</div>
 						</CardContent>
