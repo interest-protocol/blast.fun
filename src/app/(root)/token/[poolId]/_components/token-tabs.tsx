@@ -9,6 +9,7 @@ import { cn } from "@/utils"
 import { PoolWithMetadata } from "@/types/pool"
 import { TradesTab } from "./tabs/trades-tab"
 import { HoldersTab } from "./tabs/holders-tab"
+import { useHoldersData } from "../_hooks/use-holders-data"
 
 interface TokenTabsProps {
 	pool: PoolWithMetadata
@@ -39,8 +40,10 @@ const tabs: Tab[] = [
 
 export function TokenTabs({ pool, className }: TokenTabsProps) {
 	const [activeTab, setActiveTab] = useState("trades")
+	const [holdersActiveTab, setHoldersActiveTab] = useState<"holders" | "projects">("holders")
 	const { resolvedTheme } = useTheme()
 	const [isSplitView, setIsSplitView] = useState(false)
+	const { hasProjects } = useHoldersData(pool.coinType)
 
 	// @dev: Check screen size for split view
 	useEffect(() => {
@@ -82,10 +85,32 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 					<div className="border-b">
 						<div className="flex items-center justify-between p-2">
 							<div className="flex items-center gap-1">
-								<div className="flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
+								<button
+									onClick={() => setHoldersActiveTab("holders")}
+									className={cn(
+										"flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
+										holdersActiveTab === "holders"
+											? "bg-primary/10 text-primary border border-primary/20"
+											: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+									)}
+								>
 									<Users className="h-3.5 w-3.5" />
-									<span>Top Holders</span>
-								</div>
+									<span>Holders</span>
+								</button>
+								{hasProjects && (
+									<button
+										onClick={() => setHoldersActiveTab("projects")}
+										className={cn(
+											"flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
+											holdersActiveTab === "projects"
+												? "bg-primary/10 text-primary border border-primary/20"
+												: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+										)}
+									>
+										<Users className="h-3.5 w-3.5" />
+										<span>Projects</span>
+									</button>
+								)}
 							</div>
 
 							<Link
@@ -113,7 +138,12 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 						</div>
 					</div>
 					<div className="flex-1 overflow-hidden">
-						<HoldersTab pool={pool} className="h-full" />
+						<HoldersTab 
+							pool={pool} 
+							className="h-full" 
+							activeTab={holdersActiveTab}
+							onTabChange={setHoldersActiveTab}
+						/>
 					</div>
 				</div>
 			</div>
@@ -130,6 +160,49 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 						{tabs.map((tab) => {
 							const Icon = tab.icon
 							const isActive = activeTab === tab.id
+
+							if (tab.id === "holders") {
+								return (
+									<div key={tab.id} className="flex items-center gap-1">
+										<button
+											onClick={() => {
+												setActiveTab(tab.id)
+												setHoldersActiveTab("holders")
+											}}
+											className={cn(
+												"flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
+												isActive && holdersActiveTab === "holders"
+													? "bg-primary/10 text-primary border border-primary/20"
+													: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+											)}
+										>
+											<Icon className="h-3.5 w-3.5" />
+											<span className="hidden sm:inline">
+												{tab.label}
+											</span>
+										</button>
+										{hasProjects && (
+											<button
+												onClick={() => {
+													setActiveTab(tab.id)
+													setHoldersActiveTab("projects")
+												}}
+												className={cn(
+													"flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
+													isActive && holdersActiveTab === "projects"
+														? "bg-primary/10 text-primary border border-primary/20"
+														: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+												)}
+											>
+												<Users className="h-3.5 w-3.5" />
+												<span className="hidden sm:inline">
+													Projects
+												</span>
+											</button>
+										)}
+									</div>
+								)
+							}
 
 							return (
 								<button
@@ -178,7 +251,16 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 
 			{/* Tab Content */}
 			<div className="flex-1 overflow-hidden">
-				<ActiveComponent pool={pool} className="h-full" />
+				{activeTab === "holders" ? (
+					<HoldersTab 
+						pool={pool} 
+						className="h-full" 
+						activeTab={holdersActiveTab}
+						onTabChange={setHoldersActiveTab}
+					/>
+				) : (
+					<ActiveComponent pool={pool} className="h-full" />
+				)}
 			</div>
 		</div>
 	)
