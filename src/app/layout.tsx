@@ -11,6 +11,7 @@ import { TwitterAuthProvider } from "@/context/twitter.context"
 import { geistMono, geistSans } from "@/fonts"
 import { ApolloProvider } from "@/providers/apollo-provider"
 import SuiProvider from "@/providers/sui-provider"
+import { PrivyProvider } from "@/providers/privy-provider"
 import { ThemeProvider } from "@/providers/theme-provider"
 import { cn } from "@/utils"
 import { TooltipProvider } from "@/components/ui/tooltip"
@@ -39,24 +40,26 @@ export default function RootLayout({
 						<SessionProvider>
 							<TwitterAuthProvider>
 								<ApolloProvider>
-									<SuiProvider>
-										{children}
-										<TermsPrivacyDialog />
+									<PrivyProvider>
+										<SuiProvider>
+											{children}
+											<TermsPrivacyDialog />
 
-										<TailwindIndicator />
-										<Toaster
-											position="bottom-center"
-											reverseOrder={true}
-											toastOptions={{
-												style: {
-													backgroundColor: "var(--card)",
-													color: "var(--foreground)",
-													padding: "12px 12px",
-													border: "1px solid var(--border)",
-												},
-											}}
-										/>
-									</SuiProvider>
+											<TailwindIndicator />
+											<Toaster
+												position="bottom-center"
+												reverseOrder={true}
+												toastOptions={{
+													style: {
+														backgroundColor: "var(--card)",
+														color: "var(--foreground)",
+														padding: "12px 12px",
+														border: "1px solid var(--border)",
+													},
+												}}
+											/>
+										</SuiProvider>
+									</PrivyProvider>
 								</ApolloProvider>
 							</TwitterAuthProvider>
 						</SessionProvider>
