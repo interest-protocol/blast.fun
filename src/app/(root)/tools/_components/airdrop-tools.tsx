@@ -35,7 +35,7 @@ interface AirdropRecipient {
 	resolutionError?: string
 }
 
-export function AirdropUtility() {
+export function AirdropTools() {
 	const { address, setIsConnectDialogOpen } = useApp()
 	const [coins, setCoins] = useState<WalletCoin[]>([])
 	const [selectedCoin, setSelectedCoin] = useState<string>("")
@@ -439,7 +439,7 @@ export function AirdropUtility() {
 					WALLET NOT CONNECTED
 				</p>
 				<p className="font-mono text-xs uppercase text-muted-foreground/60 mt-2">
-					CONNECT YOUR WALLET TO ACCESS AIRDROP UTILITY
+					CONNECT YOUR WALLET TO ACCESS AIRDROP TOOLS
 				</p>
 				<Button
 					onClick={() => setIsConnectDialogOpen(true)}
@@ -456,7 +456,7 @@ export function AirdropUtility() {
 		<div className="w-full max-w-4xl px-4 space-y-2">
 			<div className="border-2 shadow-lg rounded-xl">
 				<div className="p-4 border-b">
-					<h3 className="font-mono text-lg uppercase tracking-wider text-foreground/80">AIRDROP UTILITY</h3>
+					<h3 className="font-mono text-lg uppercase tracking-wider text-foreground/80">AIRDROP TOOLS</h3>
 				</div>
 				<div className="p-4 space-y-4">
 					{/* Coin Selection */}
