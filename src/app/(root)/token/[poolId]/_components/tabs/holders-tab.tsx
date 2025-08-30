@@ -1,8 +1,8 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { PoolWithMetadata } from "@/types/pool"
-import { Users, ExternalLink } from "lucide-react"
+import { Users, ExternalLink, Building2 } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useQuery } from "@tanstack/react-query"
 import { formatAddress } from "@mysten/sui/utils"
@@ -11,11 +11,20 @@ import { Logo } from "@/components/ui/logo"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useSuiNSNames } from "@/hooks/use-suins"
 import { formatNumberWithSuffix } from "@/utils/format"
+import { PROJECT_WALLETS } from "@/constants/project-wallets"
 
 interface HoldersTabProps {
 	pool: PoolWithMetadata
 	className?: string
+	activeTab?: "holders" | "projects"
+	onTabChange?: (tab: "holders" | "projects") => void
 }
+
+interface HoldersWithTabsProps {
+	pool: PoolWithMetadata
+	className?: string
+}
+
 
 interface CoinHolder {
 	account: string
@@ -31,7 +40,46 @@ interface HoldersResponse {
 	timestamp: number
 }
 
-export function HoldersTab({ pool, className }: HoldersTabProps) {
+// @dev: Hook to get holders data and check for projects
+export function useHoldersData(coinType: string) {
+	const { data, isLoading, error } = useQuery<HoldersResponse>({
+		queryKey: ["holders", coinType],
+		queryFn: async () => {
+			const response = await fetch(`/api/coin/holders/${encodeURIComponent(coinType)}`)
+			if (!response.ok) {
+				throw new Error("Failed to fetch holders")
+			}
+			return response.json()
+		},
+		enabled: !!coinType,
+		refetchInterval: 15000,
+		staleTime: 10000,
+	})
+	
+	const projectHolders = useMemo(() => {
+		if (!data?.holders) return []
+		return data.holders.filter(holder => PROJECT_WALLETS[holder.account])
+	}, [data?.holders])
+	
+	return { data, isLoading, error, hasProjects: projectHolders.length > 0 }
+}
+
+// @dev: Wrapper component that manages state
+export function HoldersWithTabs({ pool, className }: HoldersWithTabsProps) {
+	const [activeTab, setActiveTab] = useState<"holders" | "projects">("holders")
+	
+	return (
+		<HoldersTab 
+			pool={pool} 
+			className={className} 
+			activeTab={activeTab} 
+			onTabChange={setActiveTab} 
+		/>
+	)
+}
+
+export function HoldersTab({ pool, className, activeTab = "holders", onTabChange }: HoldersTabProps) {
+	
 	const { data, isLoading, error } = useQuery<HoldersResponse>({
 		queryKey: ["holders", pool.coinType],
 		queryFn: async () => {
@@ -46,10 +94,24 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 		staleTime: 10000, // @dev: Consider data stale after 10 seconds
 	})
 
+	// @dev: Filter project holders from the main holders list
+	const projectHolders = useMemo(() => {
+		if (!data?.holders) return []
+		return data.holders.filter(holder => PROJECT_WALLETS[holder.account])
+	}, [data?.holders])
+
+	// @dev: Get display holders based on active tab
+	const displayHolders = useMemo(() => {
+		if (activeTab === "projects") {
+			return projectHolders
+		}
+		return data?.holders || []
+	}, [activeTab, data?.holders, projectHolders])
+
 	// @dev: Get all holder addresses for SuiNS resolution
 	const holderAddresses = useMemo(() => {
-		return data?.holders.map(h => h.account) || []
-	}, [data?.holders])
+		return displayHolders.map(h => h.account) || []
+	}, [displayHolders])
 
 	// @dev: Fetch SuiNS names for all holders
 	const { data: suinsNames } = useSuiNSNames(holderAddresses)
@@ -123,20 +185,35 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 		)
 	}
 
+	// @dev: Check if there are no project holders for the projects tab
+	if (activeTab === "projects" && projectHolders.length === 0) {
+		return (
+			<div className="text-center py-12">
+				<Building2 className="w-12 h-12 mx-auto text-foreground/20 mb-4 animate-pulse" />
+				<p className="font-mono text-sm uppercase text-muted-foreground">
+					NO::PROJECTS::HOLDING
+				</p>
+				<p className="font-mono text-xs uppercase text-muted-foreground/60 mt-2">
+					NO_ECOSYSTEM_PROJECTS_FOUND
+				</p>
+			</div>
+		)
+	}
+
 	return (
 		<ScrollArea className={cn(className || "h-[500px]")}>
-			<div className="w-full">
-				<div className="relative">
-					{/* Header */}
-					<div className="grid grid-cols-12 py-2 border-b border-border/50 text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground sticky top-0 bg-background/95 backdrop-blur-sm z-10 select-none">
-						<div className="col-span-1 text-center"></div>
-						<div className="col-span-5 pl-2">ADDRESS</div>
-						<div className="col-span-3 text-right">HOLDINGS</div>
-						<div className="col-span-3 text-right pr-2">SHARE %</div>
-					</div>
+				<div className="w-full">
+					<div className="relative">
+						{/* Header */}
+						<div className="grid grid-cols-12 py-2 border-b border-border/50 text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground sticky top-0 bg-background/95 backdrop-blur-sm z-10 select-none">
+							<div className="col-span-1 text-center"></div>
+							<div className="col-span-5 pl-2">ADDRESS</div>
+							<div className="col-span-3 text-right">HOLDINGS</div>
+							<div className="col-span-3 text-right pr-2">SHARE %</div>
+						</div>
 
-					{/* Holders List */}
-					{data.holders.map((holder, index) => {
+						{/* Holders List */}
+						{displayHolders.map((holder, index) => {
 						const rank = index + 1
 						// @dev: Calculate percentage - if empty from API, calculate from balance / 1B total supply
 						let percentage: number
@@ -147,6 +224,8 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 							percentage = parseFloat(holder.percentage) * 100 // @dev: Convert decimal to percentage
 						}
 						const suinsName = suinsNames?.[holder.account]
+						// @dev: Check if this is a project wallet
+						const projectName = PROJECT_WALLETS[holder.account]
 						// @dev: Format balance with K/M suffix
 						const balanceNum = parseFloat(holder.balance.replace(/,/g, ""))
 						const formattedBalance = formatNumberWithSuffix(balanceNum)
@@ -179,7 +258,24 @@ export function HoldersTab({ pool, className }: HoldersTabProps) {
 										)}
 										<div className="flex-1">
 											<div className="flex items-center gap-2">
-												{holder.name ? (
+												{projectName ? (
+													<a
+														href={`https://suivision.xyz/account/${holder.account}`}
+														target="_blank"
+														rel="noopener noreferrer"
+														className="flex flex-col hover:opacity-80 transition-opacity"
+													>
+														<div className="flex items-center gap-1">
+															<span className="font-mono text-[10px] sm:text-xs text-primary">
+																{projectName}
+															</span>
+															<ExternalLink className="h-2.5 w-2.5 opacity-50" />
+														</div>
+														<span className="font-mono text-[9px] sm:text-[10px] text-muted-foreground">
+															{formatAddress(holder.account)}
+														</span>
+													</a>
+												) : holder.name ? (
 													<a
 														href={`https://suivision.xyz/account/${holder.account}`}
 														target="_blank"
