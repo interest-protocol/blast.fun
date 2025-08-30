@@ -2,13 +2,13 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { ChartCandlestick, DollarSign, Activity, Home, Users, Droplets } from "lucide-react"
+import { ChartCandlestick, DollarSign, Activity, Home, Users } from "lucide-react"
 import { cn } from "@/utils"
 import { TradeTerminal } from "./trade-terminal"
 import { NexaChart } from "@/components/shared/nexa-chart"
 import { TradesTab } from "./tabs/trades-tab"
 import { HoldersTab } from "./tabs/holders-tab"
-import { PoolsTab } from "./tabs/pools-tab"
+import { useHoldersData } from "../_hooks/use-holders-data"
 import { HolderDetails } from "./holder-details"
 import { MobileMarketStats } from "./mobile-market-stats"
 import type { PoolWithMetadata } from "@/types/pool"
@@ -22,8 +22,9 @@ interface MobileTab {
 
 export default function MobileTokenView({ pool, referral }: { pool: PoolWithMetadata; referral?: string }) {
 	const [activeTab, setActiveTab] = useState("chart")
-	const [activitySubTab, setActivitySubTab] = useState<"trades" | "holders" | "pools">("trades")
+	const [activitySubTab, setActivitySubTab] = useState<"trades" | "holders" | "projects">("trades")
 	const router = useRouter()
+	const { hasProjects } = useHoldersData(pool.coinType)
 
 	const mobileTabs: MobileTab[] = [
 		{ id: "home", label: "Home", icon: Home, action: () => router.push("/") },
@@ -62,7 +63,7 @@ export default function MobileTokenView({ pool, referral }: { pool: PoolWithMeta
 
 				{activeTab === "activity" && (
 					<div className="h-full relative flex flex-col">
-						{/* @dev: Sub-tabs for Trades, Holders, and Pools */}
+						{/* @dev: Sub-tabs for Trades, Holders, and Projects (if available) */}
 						<div className="border-b bg-background/95 backdrop-blur-sm sticky top-0 z-10">
 							<div className="flex items-center gap-1 p-2">
 								<button
@@ -87,20 +88,22 @@ export default function MobileTokenView({ pool, referral }: { pool: PoolWithMeta
 									)}
 								>
 									<Users className="h-3 w-3" />
-									<span>Top Holders</span>
+									<span>Holders</span>
 								</button>
-								<button
-									onClick={() => setActivitySubTab("pools")}
-									className={cn(
-										"flex items-center gap-1 px-2 py-1.5 rounded-md font-mono text-[10px] uppercase tracking-wider transition-all flex-1",
-										activitySubTab === "pools"
-											? "bg-primary/10 text-primary border border-primary/20"
-											: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-									)}
-								>
-									<Droplets className="h-3 w-3" />
-									<span>Pools</span>
-								</button>
+								{hasProjects && (
+									<button
+										onClick={() => setActivitySubTab("projects")}
+										className={cn(
+											"flex items-center gap-1 px-2 py-1.5 rounded-md font-mono text-[10px] uppercase tracking-wider transition-all flex-1",
+											activitySubTab === "projects"
+												? "bg-primary/10 text-primary border border-primary/20"
+												: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+										)}
+									>
+										<Users className="h-3 w-3" />
+										<span>Projects</span>
+									</button>
+								)}
 							</div>
 						</div>
 
@@ -108,10 +111,12 @@ export default function MobileTokenView({ pool, referral }: { pool: PoolWithMeta
 						<div className="flex-1 overflow-hidden">
 							{activitySubTab === "trades" ? (
 								<TradesTab pool={pool} className="h-full" />
-							) : activitySubTab === "holders" ? (
-								<HoldersTab pool={pool} className="h-full" />
 							) : (
-								<PoolsTab pool={pool} className="h-full" />
+								<HoldersTab 
+									pool={pool} 
+									className="h-full" 
+									activeTab={activitySubTab === "projects" ? "projects" : "holders"}
+								/>
 							)}
 						</div>
 					</div>

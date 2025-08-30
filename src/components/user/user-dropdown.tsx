@@ -92,12 +92,12 @@ export function UserDropdown() {
 									<span className="text-sm font-medium">Portfolio</span>
 								</Link>
 								<Link 
-									href="/utility" 
+									href="/tools" 
 									className="w-full p-2 flex items-center gap-2 hover:bg-muted rounded-lg transition-colors"
 									onClick={() => setOpen(false)}
 								>
 									<Wrench className="w-4 h-4 text-muted-foreground" />
-									<span className="text-sm font-medium">Utility</span>
+									<span className="text-sm font-medium">Tools</span>
 								</Link>
 							</div>
 
