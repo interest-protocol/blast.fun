@@ -13,7 +13,6 @@ import { Skeleton } from "../ui/skeleton"
 import { usePrivyAuth } from "@/hooks/privy/use-privy-auth"
 import { Separator } from "../ui/separator"
 import { QuickAccountDialog } from "../dialogs/QuickAccountDialog"
-import { privyRedirect } from "@/utils/privy-redirect"
 
 type WalletListWithPrivyProps = {
 	onSelect: (wallet: WalletWithRequiredFeatures) => Promise<void>
@@ -29,9 +28,7 @@ export function WalletListWithPrivy({ onSelect, isConnecting = false, onClose }:
 	const [showQuickAccountDialog, setShowQuickAccountDialog] = useState(false)
 
 	const handleQuickAccountClick = () => {
-		// @dev: Save current page for redirect after auth
-		privyRedirect.saveCurrentPage()
-		// @dev: Show the Quick Account dialog
+		// @dev: Show the Quick Account dialog - Solana wallets don't need redirects
 		setShowQuickAccountDialog(true)
 	}
 

@@ -12,6 +12,9 @@ export interface PrivyAuthState {
 	googleEmail?: string
 	twitterUsername?: string
 	discordUsername?: string
+	// @dev: External wallet info (if user logged in with wallet)
+	externalWalletAddress?: string
+	externalWalletType?: "ethereum" | "solana"
 	login: () => void
 	logout: () => void
 	linkGoogle: () => void
@@ -55,6 +58,8 @@ export function usePrivyAuth(): PrivyAuthState {
 	const [googleEmail, setGoogleEmail] = useState<string>()
 	const [twitterUsername, setTwitterUsername] = useState<string>()
 	const [discordUsername, setDiscordUsername] = useState<string>()
+	const [externalWalletAddress, setExternalWalletAddress] = useState<string>()
+	const [externalWalletType, setExternalWalletType] = useState<"ethereum" | "solana">()
 
 	// @dev: Extract account information from linked accounts
 	useEffect(() => {
@@ -76,12 +81,32 @@ export function usePrivyAuth(): PrivyAuthState {
 			if (discordAccount && 'username' in discordAccount) {
 				setDiscordUsername(discordAccount.username || undefined)
 			}
+
+			// @dev: Extract External Wallet (Ethereum/Solana)
+			const walletAccount = user.linkedAccounts.find((account: any) => 
+				account.type === "wallet" || 
+				account.type === "ethereum" || 
+				account.type === "solana"
+			)
+			if (walletAccount && 'address' in walletAccount) {
+				setExternalWalletAddress(walletAccount.address)
+				// @dev: Determine wallet type based on address format or type
+				const accountType = (walletAccount as any).type
+				const address = walletAccount.address
+				if (accountType === "solana" || (address && address.length === 44)) {
+					setExternalWalletType("solana")
+				} else {
+					setExternalWalletType("ethereum")
+				}
+			}
 		}
 	}, [user])
 
 	const login = useCallback(async () => {
 		setIsLoading(true)
 		try {
+			// @dev: Call Privy login - it will use the current URL as redirect
+			// We handle redirection to home page before calling this
 			await privyLogin()
 		} finally {
 			setIsLoading(false)
@@ -195,6 +220,8 @@ export function usePrivyAuth(): PrivyAuthState {
 		googleEmail,
 		twitterUsername,
 		discordUsername,
+		externalWalletAddress,
+		externalWalletType,
 		login,
 		logout,
 		linkGoogle,

@@ -5,7 +5,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button"
 import { Zap, Sparkles, Shield, Loader2 } from "lucide-react"
 import { usePrivyAuth } from "@/hooks/privy/use-privy-auth"
-import { privyRedirect } from "@/utils/privy-redirect"
 
 interface QuickAccountDialogProps {
 	open: boolean
@@ -30,20 +29,16 @@ export function QuickAccountDialog({ open, onOpenChange }: QuickAccountDialogPro
 	}, [isAuthenticated, open, hasStartedLogin, onOpenChange])
 	
 	const handleContinue = async () => {
-		// @dev: Save current page for redirect after auth
-		privyRedirect.saveCurrentPage()
-		
-		// @dev: Call Privy login directly - it will show its own UI
+		// @dev: Call Privy login directly - Solana wallets don't need OAuth redirect
 		setIsLoading(true)
 		setHasStartedLogin(true)
 		try {
 			await login()
 			// @dev: Dialog will auto-close when isAuthenticated becomes true
 		} catch (error) {
-			// Reset if login fails and clear redirect
+			// Reset if login fails
 			setIsLoading(false)
 			setHasStartedLogin(false)
-			privyRedirect.clearRedirect()
 		}
 	}
 	
@@ -54,7 +49,7 @@ export function QuickAccountDialog({ open, onOpenChange }: QuickAccountDialogPro
 					<DialogHeader className="text-center mb-6">
 						<DialogTitle className="text-2xl font-bold mb-2">Quick Account Login</DialogTitle>
 						<DialogDescription className="text-muted-foreground">
-							Login with your social accounts to access BLAST.FUN
+							Connect your Solana wallet to access BLAST.FUN
 						</DialogDescription>
 					</DialogHeader>
 					
@@ -78,7 +73,7 @@ export function QuickAccountDialog({ open, onOpenChange }: QuickAccountDialogPro
 							<div>
 								<h3 className="font-semibold mb-1">Easy Onboarding</h3>
 								<p className="text-sm text-muted-foreground">
-									Login with Google, Twitter, or Discord to get started
+									Connect with Phantom, Solflare, or any Solana wallet
 								</p>
 							</div>
 						</div>

@@ -6,18 +6,22 @@ import { env } from "@/env"
 
 const getPrivyConfig = (): PrivyProviderBaseProps["config"] => {
 	return {
-		// @dev: Match Nexa's configuration - social logins only
-		loginMethods: ["google", "twitter", "discord"],
+		// @dev: ONLY Solana wallet connections - no social login, no Ethereum
+		// Solana wallets (Phantom, Solflare, etc.) authenticate directly without OAuth redirects
+		loginMethods: ["wallet"],
+		
 		// @dev: Disable embedded wallets - Nexa backend creates Sui wallets
 		embeddedWallets: {
 			createOnLogin: "off",
 		},
+		
 		// @dev: Configure appearance to match Nexa
 		appearance: {
 			theme: "dark",
 		},
-		// @dev: Don't set redirectUrl - let Privy handle it based on current location
-		// Nexa's Privy app should have localhost:3000 and production domains whitelisted
+		
+		// @dev: Wallet connection config
+		// Privy will automatically detect Solana wallets like Phantom
 	}
 }
 
