@@ -1,15 +1,21 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
-import { HostStream } from "../_components/host-stream"
+import { LiveKitRoom } from "@livekit/components-react"
+import { env } from "@/env"
+import { StreamView } from "../_components/stream-view"
+import { TokenContext } from "../_components/token-context"
+import { useSession } from "next-auth/react"
 
-export default function HostPage() {
+function HostContent() {
 	const searchParams = useSearchParams()
 	const router = useRouter()
 	const roomName = searchParams.get("room")
-	const [token, setToken] = useState<string>("")
+	const [authToken, setAuthToken] = useState<string>("")
+	const [roomToken, setRoomToken] = useState<string>("")
 	const [loading, setLoading] = useState(true)
+	const { data: session } = useSession()
 
 	useEffect(() => {
 		if (!roomName) {
@@ -17,13 +23,14 @@ export default function HostPage() {
 			return
 		}
 
-		// @dev: Get the stored token from session storage
-		const storedToken = sessionStorage.getItem("stream_token")
+		// @dev: Get the stored tokens from session storage
+		const storedAuthToken = sessionStorage.getItem("stream_token")
 		const storedConnection = sessionStorage.getItem("stream_connection")
 		
-		if (storedToken && storedConnection) {
+		if (storedAuthToken && storedConnection) {
 			const connection = JSON.parse(storedConnection)
-			setToken(connection.token)
+			setAuthToken(storedAuthToken)
+			setRoomToken(connection.token)
 			setLoading(false)
 		} else {
 			router.push("/stream")
@@ -38,7 +45,7 @@ export default function HostPage() {
 		)
 	}
 
-	if (!token) {
+	if (!roomToken) {
 		return (
 			<div className="flex items-center justify-center min-h-screen">
 				<p className="text-muted-foreground">Failed to setup stream</p>
@@ -46,9 +53,29 @@ export default function HostPage() {
 		)
 	}
 
+	// @dev: Use the same StreamView component as viewers for consistent UI
 	return (
-		<div className="container mx-auto py-4">
-			<HostStream token={token} roomName={roomName!} />
-		</div>
+		<TokenContext.Provider value={authToken}>
+			<LiveKitRoom 
+				serverUrl={env.NEXT_PUBLIC_LIVEKIT_WS_URL} 
+				token={roomToken}
+				audio={true}
+				video={true}
+			>
+				<StreamView roomName={roomName!} session={session} isHost={true} />
+			</LiveKitRoom>
+		</TokenContext.Provider>
+	)
+}
+
+export default function HostPage() {
+	return (
+		<Suspense fallback={
+			<div className="flex items-center justify-center min-h-screen">
+				<p className="text-muted-foreground">Setting up stream...</p>
+			</div>
+		}>
+			<HostContent />
+		</Suspense>
 	)
 }

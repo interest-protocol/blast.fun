@@ -25,7 +25,7 @@ export function PresenceDialog({ children, isHost = false }: PresenceDialogProps
 	const [open, setOpen] = useState(false)
 	const { localParticipant } = useLocalParticipant()
 	const participants = useParticipants()
-	const { metadata } = useRoomContext()
+	const { metadata, name: roomName } = useRoomContext()
 	const roomMetadata = metadata ? JSON.parse(metadata) : {}
 	const authToken = useAuthToken()
 	
@@ -41,6 +41,7 @@ export function PresenceDialog({ children, isHost = false }: PresenceDialogProps
 			},
 			body: JSON.stringify({
 				identity: localParticipant.identity,
+				roomName: roomName,
 			}),
 		})
 	}
@@ -54,6 +55,7 @@ export function PresenceDialog({ children, isHost = false }: PresenceDialogProps
 			},
 			body: JSON.stringify({
 				identity,
+				roomName: roomName,
 			}),
 		})
 	}
@@ -67,6 +69,7 @@ export function PresenceDialog({ children, isHost = false }: PresenceDialogProps
 			},
 			body: JSON.stringify({
 				identity,
+				roomName: roomName,
 			}),
 		})
 	}
@@ -76,7 +79,7 @@ export function PresenceDialog({ children, isHost = false }: PresenceDialogProps
 			<DialogTrigger asChild>{children}</DialogTrigger>
 			<DialogContent className="max-w-md">
 				<DialogHeader>
-					<DialogTitle>Who's here</DialogTitle>
+					<DialogTitle>Who&apos;s here</DialogTitle>
 				</DialogHeader>
 				
 				{isHost && (
@@ -90,8 +93,9 @@ export function PresenceDialog({ children, isHost = false }: PresenceDialogProps
 						{participants.map((participant) => {
 							const metadata = participant.metadata ? JSON.parse(participant.metadata) : {}
 							const isCreator = roomMetadata?.creator_identity === participant.identity
-							const isOnStage = metadata?.invited_to_stage && metadata?.hand_raised
+							const isOnStage = metadata?.invited_to_stage && metadata?.accepted_invite
 							const hasRaisedHand = metadata?.hand_raised && !metadata?.invited_to_stage
+							const hasPendingInvite = metadata?.invited_to_stage && !metadata?.accepted_invite
 							const isLocal = participant.identity === localParticipant.identity
 							
 							return (
@@ -124,6 +128,11 @@ export function PresenceDialog({ children, isHost = false }: PresenceDialogProps
 											{hasRaisedHand && (
 												<Hand className="h-3 w-3 text-orange-500 animate-pulse" />
 											)}
+											{hasPendingInvite && (
+												<Badge variant="outline" className="text-[10px] px-1 animate-pulse">
+													Invited
+												</Badge>
+											)}
 										</div>
 									</div>
 									
@@ -153,7 +162,7 @@ export function PresenceDialog({ children, isHost = false }: PresenceDialogProps
 											</>
 										)}
 										
-										{isLocal && canRaiseHand && (
+										{isLocal && canRaiseHand && !isOnStage && !hasPendingInvite && (
 											<Button
 												size="sm"
 												variant={localMetadata?.hand_raised ? "default" : "outline"}
@@ -163,6 +172,18 @@ export function PresenceDialog({ children, isHost = false }: PresenceDialogProps
 												<Hand className="h-3 w-3 mr-1" />
 												{localMetadata?.hand_raised ? "Lower" : "Raise"}
 											</Button>
+										)}
+										
+										{isLocal && hasPendingInvite && (
+											<Badge variant="destructive" className="text-xs animate-pulse">
+												Invitation Pending...
+											</Badge>
+										)}
+										
+										{isLocal && isOnStage && !isCreator && (
+											<Badge variant="default" className="text-xs">
+												On Stage
+											</Badge>
 										)}
 									</div>
 								</div>

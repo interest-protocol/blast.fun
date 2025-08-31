@@ -1,11 +1,11 @@
 "use client"
 
-import { Plus, Radio, Users } from "lucide-react"
+import { Plus, Radio } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { CreateRoomDialog } from "./create-room-dialog"
+import { StreamPreview } from "./stream-preview"
 
 interface Room {
 	name: string
@@ -81,35 +81,25 @@ export function RoomList() {
 				</Card>
 			)}
 
-			{/* @dev: Room cards */}
+			{/* @dev: Room cards with preview */}
 			{rooms.map((room) => (
 				<Card 
 					key={room.name}
-					className="cursor-pointer hover:shadow-lg transition-shadow"
+					className="cursor-pointer hover:shadow-lg transition-shadow overflow-hidden"
 					onClick={() => handleJoinRoom(room.name)}
 				>
-					<CardHeader>
-						<div className="flex items-start justify-between">
-							<div className="flex-1">
-								<CardTitle className="text-lg">{room.name}</CardTitle>
-								<CardDescription className="mt-1">
-									Host: {room.creatorName}
-								</CardDescription>
-							</div>
-							{room.isLive && (
-								<div className="flex items-center gap-1 text-xs bg-red-500 text-white px-2 py-1 rounded-full">
-									<div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-									LIVE
-								</div>
-							)}
-						</div>
+					{/* @dev: Stream preview thumbnail */}
+					<StreamPreview 
+						roomName={room.name}
+						participantCount={room.participantCount}
+					/>
+					
+					<CardHeader className="pb-3">
+						<CardTitle className="text-base line-clamp-1">{room.name}</CardTitle>
+						<CardDescription className="text-sm">
+							Host: {room.creatorName}
+						</CardDescription>
 					</CardHeader>
-					<CardContent>
-						<div className="flex items-center gap-2 text-sm text-muted-foreground">
-							<Users className="w-4 h-4" />
-							<span>{room.participantCount} viewers</span>
-						</div>
-					</CardContent>
 				</Card>
 			))}
 		</div>

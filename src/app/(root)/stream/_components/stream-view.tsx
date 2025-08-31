@@ -3,6 +3,7 @@
 import { StreamVideoPlayer } from "./stream-video-player"
 import { StreamChat } from "./stream-chat"
 import { ReactionBar } from "./reaction-bar"
+import { StageInvitationDialog } from "./stage-invitation-dialog"
 import { useBreakpoint } from "@/hooks/use-breakpoint"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -11,9 +12,10 @@ import { MessageSquare, X } from "lucide-react"
 interface StreamViewProps {
 	roomName: string
 	session: any
+	isHost?: boolean
 }
 
-export function StreamView({ roomName, session }: StreamViewProps) {
+export function StreamView({ roomName, session, isHost = false }: StreamViewProps) {
 	const { isMobile } = useBreakpoint()
 	const [showMobileChat, setShowMobileChat] = useState(false)
 
@@ -21,9 +23,10 @@ export function StreamView({ roomName, session }: StreamViewProps) {
 	if (isMobile) {
 		return (
 			<div className="relative w-full h-[calc(100vh-64px-64px)]">
+				<StageInvitationDialog />
 				<div className="flex flex-col h-full">
 					<div className="flex-1 bg-black">
-						<StreamVideoPlayer session={session} />
+						<StreamVideoPlayer session={session} isHost={isHost} />
 					</div>
 					<ReactionBar />
 				</div>
@@ -62,9 +65,10 @@ export function StreamView({ roomName, session }: StreamViewProps) {
 	// @dev: Desktop layout - side by side
 	return (
 		<div className="w-full h-[calc(100vh-64px)] flex">
+			<StageInvitationDialog />
 			<div className="flex-1 flex flex-col min-w-0">
 				<div className="flex-1 bg-black relative">
-					<StreamVideoPlayer session={session} />
+					<StreamVideoPlayer session={session} isHost={isHost} />
 				</div>
 				<ReactionBar />
 			</div>

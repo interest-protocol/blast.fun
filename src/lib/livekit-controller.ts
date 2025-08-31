@@ -252,15 +252,37 @@ export class LiveKitController {
 	}
 
 	async updateParticipantMetadata(roomName: string, identity: string, metadata: any) {
-		const participant = await this.roomService.getParticipant(roomName, identity)
-		const currentMetadata = participant?.metadata ? JSON.parse(participant.metadata) : {}
-		
-		await this.roomService.updateParticipant(roomName, identity, {
-			metadata: JSON.stringify({
-				...currentMetadata,
-				...metadata,
-			}),
-		})
+		try {
+			const participant = await this.roomService.getParticipant(roomName, identity)
+			const currentMetadata = participant?.metadata ? JSON.parse(participant.metadata) : {}
+			
+			await this.roomService.updateParticipant(roomName, identity, {
+				metadata: JSON.stringify({
+					...currentMetadata,
+					...metadata,
+				}),
+			})
+		} catch (error: any) {
+			// @dev: If participant doesn't exist, try to get room participants
+			if (error?.code === 'not_found') {
+				const participants = await this.roomService.listParticipants(roomName)
+				const participant = participants.find(p => p.identity === identity)
+				
+				if (!participant) {
+					throw new Error(`Participant ${identity} not found in room ${roomName}`)
+				}
+				
+				const currentMetadata = participant?.metadata ? JSON.parse(participant.metadata) : {}
+				await this.roomService.updateParticipant(roomName, identity, {
+					metadata: JSON.stringify({
+						...currentMetadata,
+						...metadata,
+					}),
+				})
+			} else {
+				throw error
+			}
+		}
 	}
 
 	async updateParticipantPermissions(roomName: string, identity: string, permissions: any) {

@@ -13,18 +13,16 @@ export async function POST(req: NextRequest) {
 			return Response.json({ error: "Unauthorized" }, { status: 401 })
 		}
 		
-		const { identity } = await req.json()
+		const { identity, roomName } = await req.json()
 		
-		if (!identity) {
-			return Response.json({ error: "Identity required" }, { status: 400 })
+		if (!identity || !roomName) {
+			return Response.json({ error: "Identity and room name required" }, { status: 400 })
 		}
-		
-		// @dev: Get room name from token
-		const roomName = token.split("-")[0]
 		
 		// @dev: Update participant metadata to remove from stage
 		await livekitController.updateParticipantMetadata(roomName, identity, {
 			invited_to_stage: false,
+			accepted_invite: false,
 			hand_raised: false,
 		})
 		

@@ -123,7 +123,7 @@ export function StreamPlayerClient({ roomName, session }: StreamPlayerClientProp
 			<LiveKitRoom 
 				serverUrl={env.NEXT_PUBLIC_LIVEKIT_WS_URL} 
 				token={roomToken}
-				audio={true}
+				audio={false}
 				video={false}
 			>
 				<StreamView roomName={roomName} session={session} />

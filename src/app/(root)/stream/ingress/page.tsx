@@ -1,13 +1,13 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Copy, Check, ArrowLeft } from "lucide-react"
 import toast from "react-hot-toast"
 
-export default function IngressPage() {
+function IngressContent() {
 	const searchParams = useSearchParams()
 	const router = useRouter()
 	const roomName = searchParams.get("room")
@@ -157,5 +157,17 @@ export default function IngressPage() {
 				</CardContent>
 			</Card>
 		</div>
+	)
+}
+
+export default function IngressPage() {
+	return (
+		<Suspense fallback={
+			<div className="flex items-center justify-center min-h-screen">
+				<p className="text-muted-foreground">Loading...</p>
+			</div>
+		}>
+			<IngressContent />
+		</Suspense>
 	)
 }
