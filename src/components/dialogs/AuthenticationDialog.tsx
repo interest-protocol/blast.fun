@@ -1,20 +1,22 @@
+"use client"
+
+import { useState } from "react"
 import { useApp } from "@/context/app.context"
-import { WalletList } from "../shared/wallet-list"
+import { WalletListWithPrivy } from "../shared/wallet-list-with-privy"
 import { Button } from "../ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog"
 
 export function AuthenticationDialog() {
 	const {
 		isConnecting,
-
-		isConnectDialogOpen,
-		setIsConnectDialogOpen,
-
 		connect,
 	} = useApp()
+	
+	// @dev: Local dialog state for unified wallet
+	const [isOpen, setIsOpen] = useState(false)
 
 	return (
-		<Dialog open={isConnectDialogOpen} onOpenChange={setIsConnectDialogOpen}>
+		<Dialog open={isOpen} onOpenChange={setIsOpen}>
 			<DialogTrigger asChild>
 				<Button variant="outline" className="rounded-xl" disabled={isConnecting}>
 					Connect Wallet
@@ -30,7 +32,11 @@ export function AuthenticationDialog() {
 						</DialogDescription>
 					</DialogHeader>
 
-					<WalletList onSelect={connect} isConnecting={isConnecting} />
+					<WalletListWithPrivy 
+						onSelect={connect} 
+						isConnecting={isConnecting} 
+						onClose={() => setIsOpen(false)}
+					/>
 				</div>
 			</DialogContent>
 		</Dialog>

@@ -1,8 +1,7 @@
-import { useSignTransaction } from "@mysten/dapp-kit"
 import { SuiTransactionBlockResponse } from "@mysten/sui/client"
 import type { Transaction } from "@mysten/sui/transactions"
 import { useCallback } from "react"
-import { useApp } from "@/context/app.context"
+import { useUnifiedWallet } from "@/hooks/use-unified-wallet"
 import { suiClient } from "@/lib/sui-client"
 import { ExecuteTransactionOptions, TimedSuiTransactionBlockResponse, throwTransactionIfFailed } from "@/utils/transaction"
 
@@ -12,36 +11,46 @@ interface TransactionResult extends TimedSuiTransactionBlockResponse {
 }
 
 export const useTransaction = () => {
-	const { wallet } = useApp()
-	const { mutateAsync: signTransaction } = useSignTransaction()
+	const { isConnected, signAndExecuteTransaction } = useUnifiedWallet()
 
 	const executeTransaction = useCallback(
 		async (tx: Transaction, options: ExecuteTransactionOptions = {}): Promise<TransactionResult> => {
-			if (!wallet) {
-				throw new Error("No account connected")
+			if (!isConnected) {
+				throw new Error("No wallet connected")
 			}
 
 			try {
-				const { signature, bytes } = await signTransaction({
-					account: wallet,
-					transaction: tx,
-				})
-
 				const startTime = Date.now()
-
-				const txResult = await suiClient.executeTransactionBlock({
-					transactionBlock: bytes,
-					signature,
-					options: {
-						showEffects: true,
-						...options,
-					},
-					requestType: "WaitForLocalExecution",
-				})
-
+				
+				// @dev: Use unified wallet to sign and execute transaction
+				const result = await signAndExecuteTransaction(tx)
+				
 				const endTime = Date.now()
 
-				throwTransactionIfFailed(txResult)
+				// @dev: Handle both standard wallet and Privy response formats
+				let txResult: any
+				if (result?.digest) {
+					// @dev: Direct result from transaction
+					txResult = result
+				} else if (result?.txDigest) {
+					// @dev: Privy format - wait for transaction to be indexed
+					await suiClient.waitForTransaction({
+						digest: result.txDigest,
+					})
+					// @dev: Now fetch the full transaction details
+					txResult = await suiClient.getTransactionBlock({
+						digest: result.txDigest,
+						options: {
+							showEffects: true,
+							showObjectChanges: true,
+							showEvents: true,
+						},
+					})
+				} else {
+					throw new Error("Invalid transaction result format")
+				}
+
+				await throwTransactionIfFailed(txResult)
 
 				let finalResult: TimedSuiTransactionBlockResponse
 
@@ -51,6 +60,11 @@ export const useTransaction = () => {
 						time: Number(txResult.timestampMs) - startTime,
 					}
 				} else {
+					// @dev: Wait for transaction to be indexed before fetching
+					await suiClient.waitForTransaction({
+						digest: txResult.digest,
+					})
+					
 					const fullTxResponse = await suiClient.getTransactionBlock({
 						digest: txResult.digest,
 						options: {
@@ -80,7 +94,7 @@ export const useTransaction = () => {
 				throw error instanceof Error ? error : new Error("Transaction failed")
 			}
 		},
-		[wallet, signTransaction]
+		[isConnected, signAndExecuteTransaction]
 	)
 
 	const executeTransactionWithRetry = useCallback(

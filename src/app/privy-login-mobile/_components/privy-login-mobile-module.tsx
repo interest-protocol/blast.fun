@@ -38,8 +38,8 @@ const PrivyLoginMobileModule = () => {
 
 			toast.success("Successfully logged in with Privy")
 			
-			// @dev: Redirect to demo page or handle mobile app deep link
-			const returnUrl = searchParams.get("returnUrl") || "/privy-demo"
+			// @dev: Redirect to home page or handle mobile app deep link
+			const returnUrl = searchParams.get("returnUrl") || "/"
 			
 			// @dev: Check if this is from mobile app
 			const source = searchParams.get("source")

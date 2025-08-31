@@ -9,6 +9,7 @@ import {
 	verifyAndExecutePrivyTransaction,
 	verifyAndSignPersonalMessageWithPrivy,
 } from "@/utils/privy"
+import { usePrivySuiWallet } from "./use-privy-sui-wallet"
 
 export interface UsePrivySuiTransactionReturn {
 	signAndExecuteTransaction: (tx: Transaction) => Promise<any>
@@ -21,14 +22,23 @@ export interface UsePrivySuiTransactionReturn {
 
 export function usePrivySuiTransaction(): UsePrivySuiTransactionReturn {
 	const { authenticated, getAccessToken } = usePrivy()
+	const { suiAddress } = usePrivySuiWallet()
 
 	const signTransaction = useCallback(async (tx: Transaction): Promise<string | null> => {
 		if (!authenticated) {
 			toast.error("Please login first")
 			return null
 		}
+		
+		if (!suiAddress) {
+			toast.error("Sui wallet not ready")
+			return null
+		}
 
 		try {
+			// @dev: Set the sender for the transaction
+			tx.setSender(suiAddress)
+			
 			const accessToken = await getAccessToken()
 			const result = await verifyAndSignPrivyTransaction(tx, accessToken)
 			return result?.signature || null
@@ -37,15 +47,23 @@ export function usePrivySuiTransaction(): UsePrivySuiTransactionReturn {
 			toast.error("Failed to sign transaction")
 			return null
 		}
-	}, [authenticated, getAccessToken])
+	}, [authenticated, getAccessToken, suiAddress])
 
 	const signAndExecuteTransaction = useCallback(async (tx: Transaction): Promise<any> => {
 		if (!authenticated) {
 			toast.error("Please login first")
 			return null
 		}
+		
+		if (!suiAddress) {
+			toast.error("Sui wallet not ready")
+			return null
+		}
 
 		try {
+			// @dev: Set the sender for the transaction
+			tx.setSender(suiAddress)
+			
 			const accessToken = await getAccessToken()
 			const result = await verifyAndExecutePrivyTransaction(tx, accessToken)
 			if (result) {
@@ -57,7 +75,7 @@ export function usePrivySuiTransaction(): UsePrivySuiTransactionReturn {
 			toast.error("Failed to execute transaction")
 			return null
 		}
-	}, [authenticated, getAccessToken])
+	}, [authenticated, getAccessToken, suiAddress])
 
 	const signPersonalMessage = useCallback(async (message: string): Promise<{
 		signature: string
