@@ -96,7 +96,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	}, [quickBuyAmounts, quickSellPercentages])
 
 	// state for quote from bonding curve
-	const [quote, setQuote] = useState<{ memeAmountOut?: bigint; suiAmountOut?: bigint; coinAmountOut?: bigint } | null>(null)
+	const [quote, setQuote] = useState<{ memeAmountOut?: bigint; suiAmountOut?: bigint; coinAmountOut?: bigint; burnFee?: bigint } | null>(null)
 	const [isLoadingQuote, setIsLoadingQuote] = useState(false)
 	const [isRefreshingQuote, setIsRefreshingQuote] = useState(false)
 
@@ -156,7 +156,8 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 					setQuote({
 						memeAmountOut: tokenInSmallestUnit,
 						suiAmountOut: quoteResult.quoteAmountOut,
-						coinAmountOut: quoteResult.quoteAmountOut
+						coinAmountOut: quoteResult.quoteAmountOut,
+						burnFee: quoteResult.burnFee
 					})
 				}
 			}
@@ -201,6 +202,17 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 		}
 		return 0
 	}, [quote, tradeType, decimals])
+
+	// @dev: Calculate burn percentage for display
+	const burnPercentage = useMemo(() => {
+		if (!quote || !quote.burnFee || !quote.memeAmountOut || tradeType !== "sell") return 0
+		
+		const burnAmount = Number(quote.burnFee)
+		const totalAmount = Number(quote.memeAmountOut)
+		
+		if (totalAmount === 0) return 0
+		return (burnAmount / totalAmount) * 100
+	}, [quote, tradeType])
 
 	// calculate USD value
 	const usdValue = useMemo(() => {
@@ -748,7 +760,16 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 								{tradeType === "buy"
 									? isLoadingQuote ? `Calculating...` : `Buy ${formatNumberWithSuffix(calculateOutputAmount)} ${metadata?.symbol}`
 									: tradeType === "sell"
-										? isLoadingQuote ? `Calculating...` : `Sell ${formatNumberWithSuffix(parseFloat(amount) || 0)} ${metadata?.symbol} for ${formatNumberWithSuffix(calculateOutputAmount)} SUI`
+										? isLoadingQuote ? `Calculating...` : (
+											<>
+												Sell {formatNumberWithSuffix(parseFloat(amount) || 0)} {metadata?.symbol} for {formatNumberWithSuffix(calculateOutputAmount)} SUI
+												{burnPercentage > 0 && !pool.migrated && (
+													<span className="ml-1 text-xs opacity-80">
+														({burnPercentage.toFixed(1)}% burn)
+													</span>
+												)}
+											</>
+										)
 										: (<><Flame className="h-3.5 w-3.5 mr-1 inline" />Burn {formatNumberWithSuffix(parseFloat(amount) || 0)} {metadata?.symbol}</>)
 								}
 							</>
