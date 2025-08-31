@@ -16,10 +16,11 @@ export default function Layout({
 	const { isMobile, width } = useBreakpoint()
 
 	const isTokenPage = pathname.startsWith('/token/')
+	const isStreamPage = pathname.startsWith('/stream/room/')
 	const isHomePage = pathname === "/"
 
 	// during initial load (width === 0), default to desktop behavior for padding
-	const shouldHavePadding = !isTokenPage && !(width > 0 && isMobile && isHomePage)
+	const shouldHavePadding = !isTokenPage && !isStreamPage && !(width > 0 && isMobile && isHomePage)
 
 	return (
 		<div className="flex flex-col h-screen overflow-hidden">

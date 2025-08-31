@@ -1,4 +1,4 @@
-import { Compass, Gift, LucideIcon, Rocket } from "lucide-react"
+import { Compass, Gift, LucideIcon, Rocket, Radio } from "lucide-react"
 
 export interface NavItem {
 	label: string
@@ -21,5 +21,10 @@ export const navigationItems: NavItem[] = [
 		label: "REWARDS",
 		href: "/rewards",
 		icon: Gift,
+	},
+	{
+		label: "STREAM",
+		href: "/stream",
+		icon: Radio,
 	},
 ]

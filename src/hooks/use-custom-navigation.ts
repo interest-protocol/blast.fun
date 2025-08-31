@@ -12,6 +12,10 @@ const customNavConfigs: CustomNavConfig[] = [
 		pathPattern: /^\/token\/[^\/]+$/,  // /token/[poolId]
 		hideMainNav: true
 	},
+	{
+		pathPattern: /^\/stream\/room\/[^\/]+$/,  // /stream/room/[roomId]
+		hideMainNav: true
+	},
 ]
 
 export function useCustomNavigation() {
