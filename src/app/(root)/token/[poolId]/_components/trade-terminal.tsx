@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useMemo } from "react"
+import React, { useState, useEffect, useMemo, useCallback } from "react"
 import { Loader2, Settings2, Wallet, Activity, Pencil, Check, X, Rocket, AlertTriangle, Flame } from "lucide-react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -96,11 +96,11 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	}, [quickBuyAmounts, quickSellPercentages])
 
 	// state for quote from bonding curve
-	const [quote, setQuote] = useState<{ memeAmountOut?: bigint; suiAmountOut?: bigint; coinAmountOut?: bigint } | null>(null)
+	const [quote, setQuote] = useState<{ memeAmountOut?: bigint; memeAmountIn?: bigint; suiAmountOut?: bigint; coinAmountOut?: bigint; burnFee?: bigint } | null>(null)
 	const [isLoadingQuote, setIsLoadingQuote] = useState(false)
 	const [isRefreshingQuote, setIsRefreshingQuote] = useState(false)
 
-	const fetchQuote = async (isRefresh = false) => {
+	const fetchQuote = useCallback(async (isRefresh = false) => {
 		if (!amount || parseFloat(amount) === 0 || !pool.poolId || tradeType === "burn") {
 			setQuote(null)
 			return
@@ -143,7 +143,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 				if (isMigrated) {
 					const quoteResult = await getSellQuote(pool.coinType, tokenInSmallestUnit, slippage)
 					setQuote({
-						memeAmountOut: tokenInSmallestUnit,
+						memeAmountIn: tokenInSmallestUnit,
 						suiAmountOut: quoteResult.amountOut,
 						coinAmountOut: quoteResult.amountOut
 					})
@@ -154,9 +154,10 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 						amount: tokenInSmallestUnit,
 					})
 					setQuote({
-						memeAmountOut: tokenInSmallestUnit,
+						memeAmountIn: tokenInSmallestUnit,
 						suiAmountOut: quoteResult.quoteAmountOut,
-						coinAmountOut: quoteResult.quoteAmountOut
+						coinAmountOut: quoteResult.quoteAmountOut,
+						burnFee: quoteResult.burnFee
 					})
 				}
 			}
@@ -167,13 +168,13 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 			setIsLoadingQuote(false)
 			setIsRefreshingQuote(false)
 		}
-	}
+	}, [amount, tradeType, pool.poolId, pool.coinType, pool.migrated, decimals, slippage])
 
 	// initial quote fetch when amount changes
 	useEffect(() => {
 		const timer = setTimeout(() => fetchQuote(false), 300)
 		return () => clearTimeout(timer)
-	}, [amount, tradeType, pool.poolId, pool.coinType, pool.migrated, decimals, slippage])
+	}, [fetchQuote])
 
 	// refresh quote every 15 seconds (except for burn)
 	useEffect(() => {
@@ -184,7 +185,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 		}, 15000)
 
 		return () => clearInterval(interval)
-	}, [amount, tradeType, pool.poolId, pool.coinType, pool.migrated, decimals, slippage])
+	}, [amount, tradeType, fetchQuote])
 
 	// calculate output amount based on bonding curve quote
 	const calculateOutputAmount = useMemo(() => {
@@ -201,6 +202,17 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 		}
 		return 0
 	}, [quote, tradeType, decimals])
+
+	// @dev: Calculate burn percentage for display
+	const burnPercentage = useMemo(() => {
+		if (!quote || !quote.burnFee || !quote.memeAmountIn || tradeType !== "sell") return 0
+		
+		const burnAmount = Number(quote.burnFee)
+		const totalAmount = Number(quote.memeAmountIn)
+		
+		if (totalAmount === 0) return 0
+		return (burnAmount / totalAmount) * 100
+	}, [quote, tradeType])
 
 	// calculate USD value
 	const usdValue = useMemo(() => {
@@ -748,7 +760,16 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 								{tradeType === "buy"
 									? isLoadingQuote ? `Calculating...` : `Buy ${formatNumberWithSuffix(calculateOutputAmount)} ${metadata?.symbol}`
 									: tradeType === "sell"
-										? isLoadingQuote ? `Calculating...` : `Sell ${formatNumberWithSuffix(parseFloat(amount) || 0)} ${metadata?.symbol} for ${formatNumberWithSuffix(calculateOutputAmount)} SUI`
+										? isLoadingQuote ? `Calculating...` : (
+											<>
+												Sell {formatNumberWithSuffix(parseFloat(amount) || 0)} {metadata?.symbol} for {formatNumberWithSuffix(calculateOutputAmount)} SUI
+												{burnPercentage > 0 && !pool.migrated && (
+													<span className="ml-1 text-xs opacity-80">
+														({burnPercentage.toFixed(1)}% burn)
+													</span>
+												)}
+											</>
+										)
 										: (<><Flame className="h-3.5 w-3.5 mr-1 inline" />Burn {formatNumberWithSuffix(parseFloat(amount) || 0)} {metadata?.symbol}</>)
 								}
 							</>

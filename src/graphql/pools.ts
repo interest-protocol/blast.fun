@@ -18,6 +18,7 @@ export const GET_POOLS = gql`
 				lastTradeAt
 				publicKey
 				innerState
+				burnTax
       		}
 			total
     	}
@@ -57,6 +58,7 @@ export const GET_POOL = gql`
 			updatedAt
 			publicKey
 			innerState
+			burnTax
 		}
 	}
 `

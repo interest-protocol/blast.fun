@@ -82,7 +82,14 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 	}, [marketCap, pool.coinMetadata?.symbol, pool.metadata?.symbol])
 
 	if (isMobile) {
-		return <MobileTokenView pool={pool} referral={referral} />
+		return (
+			<MobileTokenView 
+				pool={pool} 
+				referral={referral} 
+				realtimePrice={price}
+				realtimeMarketCap={marketCap}
+			/>
+		)
 	}
 
 	return (
