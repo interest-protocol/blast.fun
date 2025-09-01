@@ -111,9 +111,10 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 		hideIdentity,
 		sniperProtection,
 		requireTwitter,
+		minFollowerCount,
 		maxHoldingPercent,
 		devBuyAmount,
-	}), [imageUrl, tokenName, tokenSymbol, hideIdentity, sniperProtection, requireTwitter, maxHoldingPercent, devBuyAmount])
+	}), [imageUrl, tokenName, tokenSymbol, hideIdentity, sniperProtection, requireTwitter, minFollowerCount, maxHoldingPercent, devBuyAmount])
 
 	useEffect(() => {
 		if (onFormChange) {

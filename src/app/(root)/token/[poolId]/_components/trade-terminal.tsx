@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useMemo } from "react"
+import React, { useState, useEffect, useMemo, useCallback } from "react"
 import { Loader2, Settings2, Wallet, Activity, Pencil, Check, X, Rocket, AlertTriangle, Flame } from "lucide-react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -96,11 +96,11 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	}, [quickBuyAmounts, quickSellPercentages])
 
 	// state for quote from bonding curve
-	const [quote, setQuote] = useState<{ memeAmountOut?: bigint; suiAmountOut?: bigint; coinAmountOut?: bigint; burnFee?: bigint } | null>(null)
+	const [quote, setQuote] = useState<{ memeAmountOut?: bigint; memeAmountIn?: bigint; suiAmountOut?: bigint; coinAmountOut?: bigint; burnFee?: bigint } | null>(null)
 	const [isLoadingQuote, setIsLoadingQuote] = useState(false)
 	const [isRefreshingQuote, setIsRefreshingQuote] = useState(false)
 
-	const fetchQuote = async (isRefresh = false) => {
+	const fetchQuote = useCallback(async (isRefresh = false) => {
 		if (!amount || parseFloat(amount) === 0 || !pool.poolId || tradeType === "burn") {
 			setQuote(null)
 			return
@@ -143,7 +143,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 				if (isMigrated) {
 					const quoteResult = await getSellQuote(pool.coinType, tokenInSmallestUnit, slippage)
 					setQuote({
-						memeAmountOut: tokenInSmallestUnit,
+						memeAmountIn: tokenInSmallestUnit,
 						suiAmountOut: quoteResult.amountOut,
 						coinAmountOut: quoteResult.amountOut
 					})
@@ -154,7 +154,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 						amount: tokenInSmallestUnit,
 					})
 					setQuote({
-						memeAmountOut: tokenInSmallestUnit,
+						memeAmountIn: tokenInSmallestUnit,
 						suiAmountOut: quoteResult.quoteAmountOut,
 						coinAmountOut: quoteResult.quoteAmountOut,
 						burnFee: quoteResult.burnFee
@@ -168,13 +168,13 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 			setIsLoadingQuote(false)
 			setIsRefreshingQuote(false)
 		}
-	}
+	}, [amount, tradeType, pool.poolId, pool.coinType, pool.migrated, decimals, slippage])
 
 	// initial quote fetch when amount changes
 	useEffect(() => {
 		const timer = setTimeout(() => fetchQuote(false), 300)
 		return () => clearTimeout(timer)
-	}, [amount, tradeType, pool.poolId, pool.coinType, pool.migrated, decimals, slippage])
+	}, [fetchQuote])
 
 	// refresh quote every 15 seconds (except for burn)
 	useEffect(() => {
@@ -185,7 +185,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 		}, 15000)
 
 		return () => clearInterval(interval)
-	}, [amount, tradeType, pool.poolId, pool.coinType, pool.migrated, decimals, slippage])
+	}, [amount, tradeType, fetchQuote])
 
 	// calculate output amount based on bonding curve quote
 	const calculateOutputAmount = useMemo(() => {
@@ -205,10 +205,10 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 
 	// @dev: Calculate burn percentage for display
 	const burnPercentage = useMemo(() => {
-		if (!quote || !quote.burnFee || !quote.memeAmountOut || tradeType !== "sell") return 0
+		if (!quote || !quote.burnFee || !quote.memeAmountIn || tradeType !== "sell") return 0
 		
 		const burnAmount = Number(quote.burnFee)
-		const totalAmount = Number(quote.memeAmountOut)
+		const totalAmount = Number(quote.memeAmountIn)
 		
 		if (totalAmount === 0) return 0
 		return (burnAmount / totalAmount) * 100

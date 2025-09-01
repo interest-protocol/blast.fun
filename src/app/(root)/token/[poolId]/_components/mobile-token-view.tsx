@@ -11,6 +11,7 @@ import { HoldersTab } from "./tabs/holders-tab"
 import { useHoldersData } from "../_hooks/use-holders-data"
 import { HolderDetails } from "./holder-details"
 import { MobileMarketStats } from "./mobile-market-stats"
+import { TokenInfo } from "./token-info"
 import type { PoolWithMetadata } from "@/types/pool"
 
 interface MobileTab {
@@ -20,7 +21,17 @@ interface MobileTab {
 	action?: () => void
 }
 
-export default function MobileTokenView({ pool, referral }: { pool: PoolWithMetadata; referral?: string }) {
+export default function MobileTokenView({ 
+	pool, 
+	referral, 
+	realtimePrice, 
+	realtimeMarketCap 
+}: { 
+	pool: PoolWithMetadata; 
+	referral?: string;
+	realtimePrice?: number | null;
+	realtimeMarketCap?: number | null;
+}) {
 	const [activeTab, setActiveTab] = useState("chart")
 	const [activitySubTab, setActivitySubTab] = useState<"trades" | "holders" | "projects">("trades")
 	const router = useRouter()
@@ -43,10 +54,8 @@ export default function MobileTokenView({ pool, referral }: { pool: PoolWithMeta
 
 	return (
 		<div className="flex flex-col h-full lg:hidden">
-			{/* Show MobileMarketStats for trade tab, HolderDetails for other tabs */}
-			{activeTab === "trade" ? (
-				<MobileMarketStats pool={pool} />
-			) : (
+			{/* Show HolderDetails for non-trade tabs */}
+			{activeTab !== "trade" && (
 				<HolderDetails pool={pool} />
 			)}
 
@@ -57,6 +66,13 @@ export default function MobileTokenView({ pool, referral }: { pool: PoolWithMeta
 
 				{activeTab === "trade" && (
 					<div className="h-full overflow-y-auto">
+						<div className="border-b border-border">
+							<TokenInfo 
+								pool={pool} 
+								realtimePrice={realtimePrice || null} 
+								realtimeMarketCap={realtimeMarketCap || null}
+							/>
+						</div>
 						<TradeTerminal pool={pool} referral={referral} />
 					</div>
 				)}

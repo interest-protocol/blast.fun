@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 		const skipAddresses = [
 			"0xd2420ad33ab5e422becf2fa0e607e1dde978197905b87d070da9ffab819071d6",
 			"0xbbf31f4075625942aa967daebcafe0b1c90e6fa9305c9064983b5052ec442ef7",
-			"0xd6eb850fdab4143fa973ab119a1b27d5db8744cb8ef7a88125fd33a6ab85b351",
+			// "0xd6eb850fdab4143fa973ab119a1b27d5db8744cb8ef7a88125fd33a6ab85b351",
 			"0xfaac5bf9dd7da0706425a88413c7467b1f00a1df730ca71eca229950196a657b",
 		]
 
