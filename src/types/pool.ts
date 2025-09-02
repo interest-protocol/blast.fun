@@ -23,6 +23,7 @@ export type Pool = {
 	publicKey?: string
 	innerState?: string
 	mostLiquidPoolId?: string
+	burnTax?: number
 }
 
 export type CoinMetadata = {

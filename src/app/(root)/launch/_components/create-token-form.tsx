@@ -54,6 +54,10 @@ const tokenSchema = z.object({
 		(val) => !val || Number(val) >= 0,
 		"Must be a positive number"
 	),
+	burnTax: z.string().optional().refine(
+		(val) => !val || (Number(val) >= 0 && Number(val) <= 60),
+		"Must be between 0% and 60%"
+	),
 })
 
 export type TokenFormValues = z.infer<typeof tokenSchema>
@@ -84,6 +88,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 			minFollowerCount: "",
 			maxHoldingPercent: "",
 			devBuyAmount: "",
+			burnTax: "",
 		},
 		mode: "onBlur",
 	})
@@ -106,9 +111,10 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 		hideIdentity,
 		sniperProtection,
 		requireTwitter,
+		minFollowerCount,
 		maxHoldingPercent,
 		devBuyAmount,
-	}), [imageUrl, tokenName, tokenSymbol, hideIdentity, sniperProtection, requireTwitter, maxHoldingPercent, devBuyAmount])
+	}), [imageUrl, tokenName, tokenSymbol, hideIdentity, sniperProtection, requireTwitter, minFollowerCount, maxHoldingPercent, devBuyAmount])
 
 	useEffect(() => {
 		if (onFormChange) {
@@ -453,6 +459,41 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 											INSUFFICIENT::BALANCE
 										</p>
 									)}
+									<FormMessage className="font-mono text-xs" />
+								</div>
+							</FormItem>
+						)}
+					/>
+
+					{/* Burn Tax */}
+					<FormField
+						control={form.control}
+						name="burnTax"
+						render={({ field }) => (
+							<FormItem className="rounded-lg border-2 border-dashed p-4 bg-background/50">
+								<div className="space-y-3">
+									<FormLabel className="font-mono text-sm uppercase tracking-wider flex items-center gap-2">
+										🔥 BURN TAX (optional)
+									</FormLabel>
+									<FormControl>
+										<div className="relative">
+											<Input
+												placeholder="0"
+												className="font-mono text-sm pr-12 focus:border-primary/50"
+												type="number"
+												step="0.1"
+												min="0"
+												max="60"
+												{...field}
+											/>
+											<span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono text-sm text-muted-foreground">
+												%
+											</span>
+										</div>
+									</FormControl>
+									<FormDescription className="font-mono text-xs uppercase text-muted-foreground">
+										PERCENTAGE_OF_TOKENS_BURNED_ON_EACH_SELL (0-60%)
+									</FormDescription>
 									<FormMessage className="font-mono text-xs" />
 								</div>
 							</FormItem>

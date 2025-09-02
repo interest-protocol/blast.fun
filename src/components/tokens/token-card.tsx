@@ -143,6 +143,7 @@ export const TokenCard = memo(function TokenCard({
 									protectionSettings={pool.protectionSettings}
 									isProtected={pool.isProtected}
 									size="sm"
+									burnTax={pool.burnTax}
 								/>
 								
 								<CopyableToken symbol={coinMetadata?.symbol || "[???]"} coinType={pool.coinType} className="ml-auto text-xs" />

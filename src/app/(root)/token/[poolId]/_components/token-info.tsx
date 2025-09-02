@@ -185,12 +185,13 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 					</div>
 					
 					{/* Protection badges section */}
-					{(pool.isProtected || protectionSettings) && (
+					{(pool.isProtected || protectionSettings || (pool.burnTax && pool.burnTax > 0)) && (
 						<div className="px-2 pb-2">
 							<ProtectionBadges 
 								protectionSettings={protectionSettings}
 								isProtected={pool.isProtected}
 								size="md"
+								burnTax={pool.burnTax}
 							/>
 						</div>
 					)}
