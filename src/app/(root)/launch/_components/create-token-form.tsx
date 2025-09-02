@@ -492,7 +492,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 										</div>
 									</FormControl>
 									<FormDescription className="font-mono text-xs uppercase text-muted-foreground">
-										PERCENTAGE_OF_TOKENS_BURNED_ON_EACH_SELL (0-60%)
+									The burn/sell tax is progressive: it starts at 0% and increases up to the max % chosen by the creator, depending on how close the pool is to full bonding.
 									</FormDescription>
 									<FormMessage className="font-mono text-xs" />
 								</div>
