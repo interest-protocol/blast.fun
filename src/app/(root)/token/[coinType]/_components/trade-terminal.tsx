@@ -695,11 +695,11 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 				</div>
 
 				{/* X Identity Reveal Warning - Only for bonding curve tokens */}
-				{tradeType === "buy" && protectionSettings?.revealTraderIdentity && !pool.pool?.migrated && (
+				{["buy", "sell"].includes(tradeType) && protectionSettings?.revealTraderIdentity && !pool.pool?.migrated && (
 					<div className="flex items-center gap-2 p-3 rounded-lg border border-yellow-500/30 bg-yellow-500/5">
 						<AlertTriangle className="h-4 w-4 text-yellow-500 shrink-0" />
 						<span className="text-xs text-yellow-500 font-medium">
-							This buy will reveal your X (Twitter) username in trade history table.
+							This {tradeType} will reveal your X (Twitter) username in trade history table.
 						</span>
 					</div>
 				)}

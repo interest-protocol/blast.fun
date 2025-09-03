@@ -95,7 +95,8 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 			return data.relations as TwitterRelation[]
 		},
 		enabled: !!pool.pool?.poolId && pool.pool?.isProtected,
-		staleTime: 30000, // 30 seconds
+		staleTime: 10000, // 10 seconds
+		refetchInterval: 10000,
 		refetchOnWindowFocus: false
 	})
 
