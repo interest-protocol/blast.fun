@@ -3,12 +3,12 @@
 import { apolloClient } from "@/lib/apollo-client"
 import { CONFIG_KEYS } from "@interest-protocol/memez-fun-sdk"
 import { redisGet, redisSetEx, CACHE_PREFIX, CACHE_TTL } from "@/lib/redis/client"
-import { nexaServerClient } from "@/lib/nexa-server"
 import { fetchCreatorData } from "@/lib/fetch-creator-data"
+import { nexaServerClient } from "@/lib/nexa-server"
 import { GET_POOL_BY_COIN_TYPE } from "@/graphql/pools"
-import type { PoolWithMetadata } from "@/types/pool"
+import type { Token } from "@/types/token"
 
-export async function fetchTokenByCoinType(coinType: string): Promise<PoolWithMetadata | null> {
+export async function fetchTokenByCoinType(coinType: string): Promise<Token | null> {
 	try {
 		const decodedCoinType = decodeURIComponent(coinType)
 		const { data } = await apolloClient.query({
@@ -27,104 +27,116 @@ export async function fetchTokenByCoinType(coinType: string): Promise<PoolWithMe
 		}
 
 		const pool = data.coinPool
-		const processedPool: PoolWithMetadata = {
-			...pool,
-			isProtected: !!pool.publicKey,
+		
+		// @dev: fetch market data from Nexa to get metadata and market info
+		let marketData: any = null
+		let metadata: any = pool.metadata || {}
+		
+		try {
+			marketData = await nexaServerClient.getMarketData(pool.coinType)
+			if ((marketData as any).coinMetadata) {
+				metadata = (marketData as any).coinMetadata
+			}
+		} catch (error) {
+			console.error("Failed to fetch market data from Nexa:", error)
+		}
+		
+		// @dev: find most liquid pool for migrated tokens
+		let mostLiquidPoolId = (marketData as any)?.mostLiquidPoolId
+		if (pool.migrated && (marketData as any)?.pools && Array.isArray((marketData as any).pools)) {
+			const pools = (marketData as any).pools
+			const mostLiquid = pools.reduce((max: any, p: any) => 
+				(p.liqUsd > (max?.liqUsd || 0)) ? p : max, null)
+			if (mostLiquid?.pool) {
+				mostLiquidPoolId = mostLiquid.pool
+			}
+		}
+		
+		// @dev: construct token object with data from gql + nexa
+		const processedPool: Token = {
+			id: pool.poolId,
+			coinType: pool.coinType,
+			treasuryCap: pool.treasuryCap || "",
+			metadata: {
+				name: metadata.name || "",
+				symbol: metadata.symbol || "",
+				description: metadata.description || "",
+				icon_url: metadata.icon_url || metadata.iconUrl || "",
+				decimals: metadata.decimals || 9,
+				supply: metadata.supply || 0,
+				Website: pool.metadata?.Website,
+				X: pool.metadata?.X,
+				Telegram: pool.metadata?.Telegram,
+				Discord: pool.metadata?.Discord
+			},
+			creator: {
+				address: pool.creatorAddress || "",
+				launchCount: 0,
+				trustedFollowers: "0",
+				followers: "0"
+			},
+			market: {
+				marketCap: (marketData as any)?.marketCap || 0,
+				holdersCount: (marketData as any)?.holdersCount || 0,
+				volume24h: (marketData as any)?.coin24hTradeVolumeUsd || 0,
+				liquidity: (marketData as any)?.totalLiquidityUsd || 0,
+				price: (marketData as any)?.coinPrice || 0,
+				bondingProgress: pool.bondingCurve || 0,
+				circulating: (marketData as any)?.coinSupply,
+				dexPaid: pool.migrated
+			},
+			pool: {
+				poolId: pool.poolId,
+				coinType: pool.coinType,
+				bondingCurve: pool.bondingCurve,
+				coinBalance: pool.coinBalance,
+				virtualLiquidity: pool.virtualLiquidity,
+				targetQuoteLiquidity: pool.targetQuoteLiquidity,
+				quoteBalance: pool.quoteBalance,
+				migrated: pool.migrated,
+				curve: pool.curve,
+				coinIpxTreasuryCap: pool.coinIpxTreasuryCap,
+				canMigrate: pool.canMigrate,
+				canonical: pool.canonical,
+				migrationWitness: pool.migrationWitness,
+				isProtected: !!pool.publicKey,
+				publicKey: pool.publicKey,
+				mostLiquidPoolId: mostLiquidPoolId
+			},
+			createdAt: pool.createdAt || Date.now(),
+			lastTradeAt: pool.lastTradeAt || new Date().toISOString(),
+			isHoneypot: false,
+			nsfw: pool.nsfw
 		}
 
-		const marketCacheKey = `${CACHE_PREFIX.MARKET_DATA}${pool.poolId}`
-		const metadataCacheKey = `${CACHE_PREFIX.COIN_METADATA}${pool.poolId}`
-		const creatorCacheKey = `${CACHE_PREFIX.CREATOR_DATA}${pool.creatorAddress}`
-
-		const [cachedMarketData, cachedMetadata, cachedCreatorData] = await Promise.all([
-			redisGet(marketCacheKey),
-			redisGet(metadataCacheKey),
-			redisGet(creatorCacheKey)
-		])
-
-		if (cachedMarketData) {
-			try {
-				const parsedMarketData = JSON.parse(cachedMarketData)
-				processedPool.marketData = parsedMarketData
-
-				if (parsedMarketData.mostLiquidPoolId) {
-					processedPool.mostLiquidPoolId = parsedMarketData.mostLiquidPoolId
+		// @dev: fetch creator data if we have a creator address
+		if (pool.creatorAddress) {
+			const creatorCacheKey = `${CACHE_PREFIX.CREATOR_DATA}${pool.creatorAddress}`
+			const cachedCreatorData = await redisGet(creatorCacheKey)
+			
+			if (cachedCreatorData) {
+				try {
+					processedPool.creator = JSON.parse(cachedCreatorData)
+				} catch (error) {
+					console.error(`Failed to parse cached creator data for ${pool.creatorAddress}:`, error)
 				}
-			} catch (error) {
-				console.error(`Failed to parse cached market data for pool ${pool.poolId}:`, error)
-			}
-		}
-
-		if (cachedMetadata) {
-			try {
-				processedPool.coinMetadata = JSON.parse(cachedMetadata)
-			} catch (error) {
-				console.error(`Failed to parse cached metadata for pool ${pool.poolId}:`, error)
-			}
-		}
-
-		if (cachedCreatorData) {
-			try {
-				processedPool.creatorData = JSON.parse(cachedCreatorData)
-			} catch (error) {
-				console.error(`Failed to parse cached creator data for ${pool.creatorAddress}:`, error)
-			}
-		}
-
-		// @dev: fetch market data if not cached
-		if (!processedPool.marketData || !processedPool.coinMetadata) {
-			try {
-				const marketData = await nexaServerClient.getMarketData(pool.coinType)
-
-				const { coinMetadata, ...restMarketData } = marketData
-
-				// @dev: get the most liquid pool if migrated
-				if (pool.migrated && restMarketData.pools && Array.isArray(restMarketData.pools)) {
-					let mostLiquidPool = null
-					let highestLiquidity = 0
-
-					for (const p of restMarketData.pools) {
-						if (p.liqUsd && p.liqUsd > highestLiquidity) {
-							highestLiquidity = p.liqUsd
-							mostLiquidPool = p
-						}
+			} else {
+				try {
+					const creatorData = await fetchCreatorData({
+						creatorAddressOrHandle: pool.creatorAddress,
+						poolId: pool.poolId
+					})
+					if (creatorData) {
+						processedPool.creator = creatorData
+						await redisSetEx(creatorCacheKey, CACHE_TTL.CREATOR_DATA, JSON.stringify(creatorData))
 					}
-
-					if (mostLiquidPool && mostLiquidPool.pool) {
-						processedPool.mostLiquidPoolId = mostLiquidPool.pool
-					}
+				} catch (error) {
+					console.error("Failed to fetch creator data:", error)
 				}
-
-				processedPool.marketData = restMarketData
-
-				if (!processedPool.coinMetadata && coinMetadata) {
-					processedPool.coinMetadata = coinMetadata
-				}
-
-				await Promise.all([
-					redisSetEx(marketCacheKey, CACHE_TTL.MARKET_DATA, JSON.stringify(restMarketData)),
-					coinMetadata && redisSetEx(metadataCacheKey, CACHE_TTL.COIN_METADATA, JSON.stringify(coinMetadata))
-				])
-			} catch (error) {
-				console.error("Failed to fetch market data:", error)
 			}
 		}
 
-		// @dev: fetch creator data if not cached
-		if (!processedPool.creatorData && pool.creatorAddress) {
-			try {
-				const creatorData = await fetchCreatorData({
-					creatorAddressOrHandle: pool.creatorAddress,
-					poolId: pool.poolId
-				})
-				if (creatorData) {
-					processedPool.creatorData = creatorData
-					await redisSetEx(creatorCacheKey, CACHE_TTL.CREATOR_DATA, JSON.stringify(creatorData))
-				}
-			} catch (error) {
-				console.error("Failed to fetch creator data:", error)
-			}
-		}
+		console.log(processedPool)
 
 		return processedPool
 	} catch (error) {

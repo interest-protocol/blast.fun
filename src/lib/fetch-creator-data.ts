@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { formatAmountWithSuffix } from "@/utils/format"
 import { redisGet, redisSetEx, CACHE_TTL, CACHE_PREFIX } from "@/lib/redis/client"
-import type { CreatorData } from "@/types/pool"
+import type { TokenCreator } from "@/types/token"
 
 export async function fetchCreatorData(
 	params: {
@@ -9,7 +9,7 @@ export async function fetchCreatorData(
 		poolId?: string
 		twitterHandle?: string | null
 	}
-): Promise<CreatorData> {
+): Promise<TokenCreator> {
 	try {
 		let creatorAddress: string | undefined
 		let finalTwitterHandle = params.twitterHandle
@@ -192,7 +192,8 @@ export async function fetchCreatorData(
 		const trustedFollowerThresholds = [10, 50, 100, 250, 500, 1000, 5000, 10000, 25000]
 		const followerThresholds = [100, 500, 1000, 5000, 10000, 25000, 50000, 100000, 500000, 1000000]
 
-		const creatorData: CreatorData = {
+		const creatorData: TokenCreator = {
+			address: creatorAddress,
 			launchCount,
 			trustedFollowers: hideIdentity
 				? bandValue(trustedFollowerCount, trustedFollowerThresholds)
@@ -201,7 +202,8 @@ export async function fetchCreatorData(
 				? bandValue(followerCount, followerThresholds)
 				: formatFollowerCount(followerCount),
 			twitterHandle: finalTwitterHandle,
-			twitterId: finalTwitterId
+			twitterId: finalTwitterId,
+			hideIdentity
 		}
 
 		// Only cache if we have non-zero follower count
@@ -218,11 +220,13 @@ export async function fetchCreatorData(
 	} catch (error) {
 		console.error("Error fetching creator data:", error)
 		return {
+			address: "",
 			launchCount: 0,
 			trustedFollowers: "0",
 			followers: "0",
 			twitterHandle: null,
-			twitterId: null
+			twitterId: null,
+			hideIdentity: false
 		}
 	}
 }

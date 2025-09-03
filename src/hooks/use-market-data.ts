@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import type { MarketData } from "@/types/market"
+import type { TokenMarketData } from "@/types/token"
 import { nexaClient } from "@/lib/nexa"
 
 export function useMarketData(coinType: string, refetchInterval = 30000) {

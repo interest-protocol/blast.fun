@@ -5,63 +5,84 @@ import { Users, Globe, Send } from "lucide-react"
 import Link from "next/link"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { TokenAvatar } from "./token-avatar"
-import type { PoolWithMetadata } from "@/types/pool"
+import type { Token } from "@/types/token"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { CopyableToken } from "../shared/copyable-token"
 import { CreatorHoverCard } from "@/components/creator/creator-hover-card"
 import { CreatorDisplay } from "@/components/creator/creator-display"
 import { RelativeAge } from "@/components/shared/relative-age"
 import { BsTwitterX } from "react-icons/bs"
-import { ProtectionBadges } from "@/components/shared/protection-badges"
+import { TokenSocials } from "./token-socials"
 
 interface TokenCardProps {
-	pool: PoolWithMetadata
+	pool: Token | any // @dev: Support both new Token type and legacy format
 }
 
 export const TokenCard = memo(function TokenCard({
-	pool
+	pool: tokenData
 }: TokenCardProps) {
-	const coinMetadata = pool.coinMetadata || pool.metadata
-	const bondingProgress = parseFloat(String(pool.bondingCurve))
+	// @dev: Normalize data structure - support both new Token type and legacy format
+	const token = tokenData.market ? tokenData : {
+		...tokenData,
+		market: { 
+			bondingProgress: tokenData.bondingProgress || 0,
+			marketCap: tokenData.marketCap || 0,
+			volume24h: tokenData.volume24h || tokenData.volume || 0,
+			holdersCount: tokenData.holdersCount || 0,
+			dexPaid: tokenData.dexPaid
+		},
+		metadata: tokenData.metadata || {
+			name: tokenData.name,
+			symbol: tokenData.symbol,
+			icon_url: tokenData.iconUrl || tokenData.icon_url,
+			X: tokenData.metadata?.X,
+			Telegram: tokenData.metadata?.Telegram,
+			Website: tokenData.metadata?.Website
+		},
+		creator: tokenData.creator || tokenData.creatorData || {
+			address: tokenData.dev || tokenData.creatorAddress,
+			launchCount: tokenData.creatorData?.launchCount || 0,
+			trustedFollowers: tokenData.creatorData?.trustedFollowers || "0",
+			followers: tokenData.creatorData?.followers || "0",
+			twitterHandle: tokenData.creatorData?.twitterHandle,
+			twitterId: tokenData.creatorData?.twitterId
+		}
+	}
+	
+	const bondingProgress = token.market?.bondingProgress || tokenData.bondingProgress || 0
+	const isGraduated = bondingProgress >= 100 || token.market?.dexPaid || tokenData.dexPaid
 
-	// extract market data values
-	const marketData = pool.marketData
-	const marketCap = marketData?.marketCap || 0
-	const liquidity = marketData?.totalLiquidityUsd || marketData?.liqUsd || 0
-	const holdersCount = marketData?.holdersCount || 0
-	const volume24h = marketData?.coin24hTradeVolumeUsd || 0
-
-	const creatorWallet = pool.creatorAddress
-	const creatorTwitterHandle = pool.creatorData?.twitterHandle || undefined
-	const creatorTwitterId = pool.creatorData?.twitterId || undefined
-
-	// social links from metadata
-	const metadata = pool.metadata || {}
+	// @dev: Social links from metadata
 	const socialLinks = [
-		{ href: metadata.X, icon: BsTwitterX, tooltip: "X" },
-		{ href: metadata.Telegram, icon: Send, tooltip: "TELEGRAM::CHAT" },
-		{ href: metadata.Website, icon: Globe, tooltip: "WEBSITE::LINK" },
+		{ href: token.metadata?.X, icon: BsTwitterX, tooltip: "X" },
+		{ href: token.metadata?.Telegram, icon: Send, tooltip: "TELEGRAM" },
+		{ href: token.metadata?.Website, icon: Globe, tooltip: "WEBSITE" },
 	].filter((link) => link.href)
 
 	return (
-		<Link href={`/token/${pool.poolId}`} className="cursor-default">
+		<Link href={`/token/${token.coinType}`} className="cursor-default">
 			<div className="relative border-b border-border/40 group hover:bg-accent/15 transition-all duration-300 overflow-hidden">
 				{/* Content */}
 				<div className="relative p-3 sm:p-2">
 					<div className="flex gap-3 sm:gap-2.5">
 						<div className="flex-shrink-0">
-							{pool.migrated ? (
-								<div className="relative h-[48px] w-[48px] sm:h-[56px] sm:w-[56px] overflow-hidden rounded-md cursor-pointer">
+							<div className="w-[48px] sm:w-[56px] h-[48px] sm:h-[56px] flex flex-col items-center justify-start">
+								{/* avatar with conic progress */}
+								<div className={`relative overflow-hidden rounded-md flex-shrink-0 ${
+									isGraduated 
+										? 'w-[48px] sm:w-[56px] h-[48px] sm:h-[56px]' 
+										: 'w-[48px] sm:w-[56px] h-[38px] sm:h-[44px]'
+								}`}>
 									<div className="relative w-full h-full">
-										{/* Dimmed background for incomplete progress */}
+										{/* background for incomplete progress */}
 										<div className={`absolute inset-0 rounded-md ${bondingProgress >= 100
 											? 'bg-gradient-to-br from-yellow-600/30 to-amber-600/30' // True gold for graduated
 											: bondingProgress >= 50
 												? 'bg-gradient-to-br from-pink-400/30 to-rose-500/30' // Pink for mid-tier
 												: 'bg-gradient-to-br from-blue-400/30 to-cyan-500/30' // Blue for new
-											}`} />
+										}`} />
 
-										{/* Conic gradient progress */}
+										{/* gradient conic progress */}
 										<div
 											className="absolute inset-0 rounded-md"
 											style={{
@@ -70,94 +91,55 @@ export const TokenCard = memo(function TokenCard({
 													: bondingProgress >= 50
 														? 'rgb(236, 72, 153)' // Pink
 														: 'rgb(59, 130, 246)' // Blue
-													} ${bondingProgress}%, transparent ${bondingProgress}%)`
+												} ${Math.min(bondingProgress, 100)}%, transparent ${Math.min(bondingProgress, 100)}%)`
 											}}
 										/>
 
-										{/* Token Avatar */}
 										<div className="absolute inset-[3px] rounded overflow-hidden">
 											<TokenAvatar
-												iconUrl={coinMetadata?.iconUrl || coinMetadata?.icon_url || undefined}
-												symbol={coinMetadata?.symbol}
-												name={coinMetadata?.name}
-												className="h-full w-full object-cover"
+												iconUrl={token.metadata?.icon_url || tokenData.iconUrl || tokenData.icon_url}
+												symbol={token.metadata?.symbol || tokenData.symbol}
+												name={token.metadata?.name || tokenData.name}
+												className="w-full h-full object-cover"
+												enableHover={true}
 											/>
 										</div>
 									</div>
 								</div>
-							) : (
-								<Tooltip>
-									<TooltipTrigger asChild>
-										<div className="relative h-[48px] w-[48px] sm:h-[56px] sm:w-[56px] overflow-hidden rounded-md cursor-pointer">
-											<div className="relative w-full h-full">
-												{/* Dimmed background for incomplete progress */}
-												<div className={`absolute inset-0 rounded-md ${bondingProgress >= 100
-													? 'bg-gradient-to-br from-yellow-600/30 to-amber-600/30' // True gold for graduated
-													: bondingProgress >= 50
-														? 'bg-gradient-to-br from-pink-400/30 to-rose-500/30' // Pink for mid-tier
-														: 'bg-gradient-to-br from-blue-400/30 to-cyan-500/30' // Blue for new
-													}`} />
 
-												{/* Conic gradient progress */}
-												<div
-													className="absolute inset-0 rounded-md"
-													style={{
-														background: `conic-gradient(${bondingProgress >= 100
-															? 'rgb(202, 138, 4)' // True gold color
-															: bondingProgress >= 50
-																? 'rgb(236, 72, 153)' // Pink
-																: 'rgb(59, 130, 246)' // Blue
-															} ${bondingProgress}%, transparent ${bondingProgress}%)`
-													}}
-												/>
-
-												{/* Token Avatar */}
-												<div className="absolute inset-[3px] rounded overflow-hidden">
-													<TokenAvatar
-														iconUrl={coinMetadata?.iconUrl || coinMetadata?.icon_url || undefined}
-														symbol={coinMetadata?.symbol}
-														name={coinMetadata?.name}
-														className="h-full w-full object-cover"
-													/>
-												</div>
-											</div>
-										</div>
-									</TooltipTrigger>
-									<TooltipContent>
-										<p className="text-xs font-mono uppercase">
-											Bonding: {bondingProgress}%
+								{!isGraduated && (
+									<div className="flex items-center justify-center w-full mt-1">
+										<p className={`text-[10px] font-mono font-semibold ${
+											bondingProgress >= 50
+												? 'text-pink-500/80'
+												: 'text-blue-500/80'
+										}`}>
+											{bondingProgress.toFixed(1)}%
 										</p>
-									</TooltipContent>
-								</Tooltip>
-							)}
+									</div>
+								)}
+							</div>
 						</div>
 
 						{/* Content */}
 						<div className="flex-1 min-w-0 space-y-1">
 							<div className="flex items-center gap-2">
 								<h3 className="font-mono font-bold text-xs sm:text-sm uppercase tracking-wider text-foreground/90 truncate">
-									{coinMetadata?.name || "[UNNAMED]"}
+									{token.metadata?.name || tokenData.name || "[UNNAMED]"}
 								</h3>
 								
-								<ProtectionBadges 
-									protectionSettings={pool.protectionSettings}
-									isProtected={pool.isProtected}
-									size="sm"
-									burnTax={pool.burnTax}
-								/>
-								
-								<CopyableToken symbol={coinMetadata?.symbol || "[???]"} coinType={pool.coinType} className="ml-auto text-xs" />
+								<CopyableToken symbol={token.metadata?.symbol || tokenData.symbol || "[???]"} coinType={tokenData.coinType} className="ml-auto text-xs" />
 							</div>
 
-							{/* Stats - Using market data from pool */}
+							{/* stats */}
 							<div className="flex items-center gap-2 sm:gap-3 text-xs font-mono flex-wrap">
-								{marketCap > 0 && (
+								{(token.market?.marketCap || tokenData.marketCap) > 0 && (
 									<Tooltip>
 										<TooltipTrigger asChild>
 											<div className="flex items-center gap-1">
 												<span className="text-muted-foreground/60 uppercase tracking-wider text-[9px] sm:text-[10px]">MC</span>
 												<span className="font-semibold text-green-500/90 text-[11px] sm:text-xs">
-													${formatNumberWithSuffix(marketCap)}
+													${formatNumberWithSuffix(token.market?.marketCap || tokenData.marketCap)}
 												</span>
 											</div>
 										</TooltipTrigger>
@@ -167,13 +149,13 @@ export const TokenCard = memo(function TokenCard({
 									</Tooltip>
 								)}
 
-								{volume24h > 0 && (
+								{(token.market?.volume24h || tokenData.volume24h) > 0 && (
 									<Tooltip>
 										<TooltipTrigger asChild>
 											<div className="flex items-center gap-1">
 												<span className="text-muted-foreground/60 uppercase tracking-wider text-[9px] sm:text-[10px]">VOL</span>
 												<span className="font-semibold text-purple-500/90 text-[11px] sm:text-xs">
-													${formatNumberWithSuffix(volume24h)}
+													${formatNumberWithSuffix(token.market?.volume24h || tokenData.volume24h)}
 												</span>
 											</div>
 										</TooltipTrigger>
@@ -183,34 +165,18 @@ export const TokenCard = memo(function TokenCard({
 									</Tooltip>
 								)}
 
-								{holdersCount > 0 && (
+								{(token.market?.holdersCount || tokenData.holdersCount) > 0 && (
 									<Tooltip>
 										<TooltipTrigger asChild>
 											<div className="flex items-center gap-1">
 												<Users className="w-3 h-3 text-muted-foreground/60" />
 												<span className="font-semibold text-foreground/70 text-[11px] sm:text-xs">
-													{formatNumberWithSuffix(holdersCount)}
+													{formatNumberWithSuffix(token.market?.holdersCount || tokenData.holdersCount)}
 												</span>
 											</div>
 										</TooltipTrigger>
 										<TooltipContent>
 											<p className="text-xs font-mono uppercase">HOLDERS</p>
-										</TooltipContent>
-									</Tooltip>
-								)}
-
-								{liquidity > 0 && (
-									<Tooltip>
-										<TooltipTrigger asChild>
-											<div className="flex items-center gap-1">
-												<span className="text-muted-foreground/60 uppercase tracking-wider text-[9px] sm:text-[10px]">LIQ</span>
-												<span className="font-semibold text-blue-500/90 text-[11px] sm:text-xs">
-													${formatNumberWithSuffix(liquidity)}
-												</span>
-											</div>
-										</TooltipTrigger>
-										<TooltipContent>
-											<p className="text-xs font-mono uppercase">LIQUIDITY::POOL</p>
 										</TooltipContent>
 									</Tooltip>
 								)}
@@ -220,68 +186,55 @@ export const TokenCard = memo(function TokenCard({
 							<div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs font-mono">
 								<div className="flex items-center gap-1.5">
 									<RelativeAge
-										timestamp={(() => {
-											if (!pool.createdAt) return Date.now()
-											// Check if it's a numeric string (timestamp in ms)
-											const numericValue = Number(pool.createdAt)
-											if (!isNaN(numericValue) && numericValue > 0) {
-												return numericValue
-											}
-											// Try parsing as ISO date string
-											const dateValue = new Date(pool.createdAt).getTime()
-											return isNaN(dateValue) ? Date.now() : dateValue
-										})()}
+										timestamp={tokenData.createdAt}
 										className="text-muted-foreground/60 uppercase font-medium tracking-wide"
 									/>
 									<span className="text-muted-foreground/40 hidden sm:inline">·</span>
 									<div className="flex items-center gap-1">
 										<span className="text-muted-foreground/60 uppercase tracking-wide hidden sm:inline">by</span>
 										<CreatorHoverCard
-											walletAddress={creatorWallet}
-											twitterHandle={creatorTwitterHandle}
-											twitterId={creatorTwitterId}
-											creatorData={pool.creatorData}
+											walletAddress={token.creator?.address || tokenData.dev || tokenData.creatorAddress}
+											twitterHandle={token.creator?.twitterHandle || tokenData.creatorData?.twitterHandle || undefined}
+											twitterId={token.creator?.twitterId || tokenData.creatorData?.twitterId || undefined}
+											data={token.creator || tokenData.creatorData}
 										>
 											<span>
 												<CreatorDisplay
-													walletAddress={creatorWallet}
-													twitterHandle={creatorTwitterHandle}
-													twitterId={creatorTwitterId}
-													className="text-foreground/70 hover:text-foreground transition-colors text-left"
+													walletAddress={token.creator?.address || tokenData.dev || tokenData.creatorAddress}
+													twitterHandle={token.creator?.twitterHandle || tokenData.creatorData?.twitterHandle || undefined}
+													twitterId={token.creator?.twitterId || tokenData.creatorData?.twitterId || undefined}
+													className="text-muted-foreground/80 hover:text-primary transition-colors cursor-pointer"
 												/>
 											</span>
 										</CreatorHoverCard>
 									</div>
 								</div>
 
+								{/* Social Links */}
 								{socialLinks.length > 0 && (
-									<div className="flex items-center gap-1">
+									<>
 										<span className="text-muted-foreground/40 hidden sm:inline">·</span>
-										<div className="flex items-center gap-1">
-											{socialLinks.map((link, index) => {
-												const Icon = link.icon
-												return (
-													<Tooltip key={index}>
-														<TooltipTrigger asChild>
-															<button
-																onClick={(e) => {
-																	e.stopPropagation()
-																	e.preventDefault()
-																	window.open(link.href, "_blank", "noopener,noreferrer")
-																}}
-																className="text-muted-foreground/60 hover:text-foreground/80 transition-all p-0.5 hover:bg-accent/20 rounded-md"
-															>
-																<Icon className="w-3 h-3" />
-															</button>
-														</TooltipTrigger>
-														<TooltipContent>
-															<p className="text-xs font-mono uppercase">{link.tooltip}</p>
-														</TooltipContent>
-													</Tooltip>
-												)
-											})}
+										<div className="flex items-center gap-1.5">
+											{socialLinks.map((link, index) => (
+												<Tooltip key={index}>
+													<TooltipTrigger asChild>
+														<a
+															href={link.href}
+															target="_blank"
+															rel="noopener noreferrer"
+															onClick={(e) => e.stopPropagation()}
+															className="text-muted-foreground/60 hover:text-primary transition-colors"
+														>
+															<link.icon className="w-3 h-3" />
+														</a>
+													</TooltipTrigger>
+													<TooltipContent>
+														<p className="text-xs font-mono uppercase">{link.tooltip}</p>
+													</TooltipContent>
+												</Tooltip>
+											))}
 										</div>
-									</div>
+									</>
 								)}
 							</div>
 						</div>
@@ -289,18 +242,5 @@ export const TokenCard = memo(function TokenCard({
 				</div>
 			</div>
 		</Link>
-	)
-}, (prevProps, nextProps) => {
-	// Custom comparison function for React.memo
-	// Only re-render if these specific properties change
-	return (
-		prevProps.pool.poolId === nextProps.pool.poolId &&
-		prevProps.pool.bondingCurve === nextProps.pool.bondingCurve &&
-		prevProps.pool.createdAt === nextProps.pool.createdAt &&
-		prevProps.pool.coinType === nextProps.pool.coinType &&
-		JSON.stringify(prevProps.pool.marketData) === JSON.stringify(nextProps.pool.marketData) &&
-		JSON.stringify(prevProps.pool.metadata) === JSON.stringify(nextProps.pool.metadata) &&
-		JSON.stringify(prevProps.pool.coinMetadata) === JSON.stringify(nextProps.pool.coinMetadata) &&
-		JSON.stringify(prevProps.pool.creatorData) === JSON.stringify(nextProps.pool.creatorData)
 	)
 })

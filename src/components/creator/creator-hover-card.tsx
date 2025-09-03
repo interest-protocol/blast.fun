@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/hover-card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-import type { CreatorData } from "@/types/pool";
+import type { TokenCreator } from "@/types/token";
 
 interface CreatorHoverCardProps {
 	twitterHandle?: string;
@@ -22,7 +22,7 @@ interface CreatorHoverCardProps {
 	walletAddress?: string;
 	children: React.ReactNode;
 	className?: string;
-	data?: CreatorData;
+	data?: TokenCreator;
 }
 
 export function CreatorHoverCard({
@@ -31,8 +31,6 @@ export function CreatorHoverCard({
 	children,
 	data
 }: CreatorHoverCardProps) {
-	console.log(data)
-
 	const { data: resolvedDomain } = useResolveSuiNSName(!twitterHandle && walletAddress ? walletAddress : null);
 
 	const displayName = twitterHandle

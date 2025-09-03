@@ -59,12 +59,6 @@ export interface TokenPoolData {
 	innerState?: string
 }
 
-export interface TokenPlatform {
-	platform: string
-	threshold?: number
-	virtualSui?: number
-}
-
 export interface Token {
 	id: string
 	_id?: string
@@ -76,14 +70,12 @@ export interface Token {
 	creator: TokenCreator
 	market: TokenMarketData
 	pool?: TokenPoolData
-	platform: TokenPlatform
 
 	// @dev: flags
 	createdAt: number
 	lastTradeAt: string
 	updatedAt?: string
 	isHoneypot: boolean
-	isMemeZone: boolean
 	nsfw?: boolean
 }
 

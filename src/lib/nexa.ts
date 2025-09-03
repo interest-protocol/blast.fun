@@ -1,5 +1,5 @@
-import { MarketData } from "@/types/market"
-import { CoinMetadata } from "@/types/pool"
+import type { TokenMarketData } from "@/types/token"
+import type { TokenMetadata } from "@/types/token"
 
 const NEXA_API_BASE = "https://spot.api.sui-prod.bluefin.io/internal-api/insidex"
 
@@ -51,7 +51,7 @@ class NexaClient {
 		return response
 	}
 
-	async getCoinMetadata(coinType: string): Promise<CoinMetadata | null> {
+	async getCoinMetadata(coinType: string): Promise<TokenMetadata | null> {
 		try {
 			const response = await this.fetch(`/coins/${coinType}/coin-metadata`, {
 				revalidate: 21600, // 6 hours in seconds
@@ -61,7 +61,7 @@ class NexaClient {
 			if (!text || text.trim() === '') return null
 
 			try {
-				return JSON.parse(text) as CoinMetadata
+				return JSON.parse(text) as TokenMetadata
 			} catch {
 				return null
 			}
@@ -92,7 +92,7 @@ class NexaClient {
 		}
 	}
 
-	async getMarketData(coinType: string): Promise<MarketData | null> {
+	async getMarketData(coinType: string): Promise<TokenMarketData | null> {
 		try {
 			const response = await this.fetch(`/coins/${coinType}/minified-market-data`, {
 				revalidate: 10,
@@ -102,7 +102,7 @@ class NexaClient {
 			if (!text || text.trim() === '') return null
 
 			try {
-				return JSON.parse(text) as MarketData
+				return JSON.parse(text) as TokenMarketData
 			} catch {
 				return null
 			}
