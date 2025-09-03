@@ -33,7 +33,6 @@ export type CoinMetadata = {
 	circulating?: number
 	circulatingUpdatedAt?: number
 	dexPaid?: boolean
-	isMemeZone?: boolean
 	platform?: string
 	threshold?: number
 	virtualSui?: number

@@ -1,7 +1,7 @@
 "use client"
 
 import { use, useEffect, useState } from "react"
-import { useTokenWithMetadata } from "@/hooks/pump/use-token-with-metadata"
+import { useToken } from "@/hooks/pump/use-token"
 import { XCardTrading } from "./_components/x-card-trading"
 import { SplashLoader } from "@/components/shared/splash-loader"
 import { EmbedHeader } from "./_components/embed-header"
@@ -10,8 +10,8 @@ import { useReferrals } from "@/hooks/use-referrals"
 import { Logo } from "@/components/ui/logo"
 
 export default function XCardPage({ params }: { params: Promise<{ id: string }> }) {
-	const { id } = use(params)
-	const { data: pool, isLoading, error } = useTokenWithMetadata(id)
+	const { id: coinType } = use(params)
+	const { data: pool, isLoading, error } = useToken(coinType)
 	const searchParams = useSearchParams()
 	const refCode = searchParams.get("ref")
 	const { checkReferralCode } = useReferrals()
@@ -34,13 +34,13 @@ export default function XCardPage({ params }: { params: Promise<{ id: string }> 
 			if (typeof window !== 'undefined' && window.self === window.top) {
 				setIsRedirecting(true)
 				// Redirect to main token page
-				const tokenUrl = refCode ? `/token/${id}?ref=${refCode}` : `/token/${id}`
+				const tokenUrl = refCode ? `/token/${coinType}?ref=${refCode}` : `/token/${coinType}`
 				window.location.replace(tokenUrl)
 			}
 		}, 100)
 
 		return () => clearTimeout(checkIframe)
-	}, [id, refCode])
+	}, [coinType, refCode])
 
 	if (isLoading || isRedirecting) {
 		return (

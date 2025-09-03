@@ -1,14 +1,14 @@
-import type { Pool } from "./pool"
+import type { Token } from "./token"
 
 export interface GetPoolsResponse {
 	pools: {
-		pools: Pool[]
+		pools: Token[]
 		total: number
 	}
 }
 
 export interface GetPoolResponse {
-	pool: Pool
+	pool: Token
 }
 
 export type SortDirection = "ASC" | "DESC"

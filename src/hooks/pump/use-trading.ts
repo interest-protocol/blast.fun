@@ -7,7 +7,7 @@ import { useTransaction } from "@/hooks/sui/use-transaction"
 import { playSound } from "@/lib/audio"
 import { pumpSdk } from "@/lib/pump"
 import { buyMigratedToken, sellMigratedToken, getBuyQuote, getSellQuote } from "@/lib/aftermath"
-import type { PoolWithMetadata } from "@/types/pool"
+import type { Token } from "@/types/token"
 import { formatMistToSui } from "@/utils/format"
 import { useTwitter } from "@/context/twitter.context"
 import { TOTAL_POOL_SUPPLY } from "@/constants"
@@ -16,7 +16,7 @@ import { fetchCoinBalance } from "@/lib/fetch-portfolio"
 const SLIPPAGE_TOLERANCE_ERROR = "Error: Slippage tolerance exceeded. Transaction reverted."
 
 interface UseTradingOptions {
-	pool: PoolWithMetadata
+	pool: Token
 	decimals?: number
 	actualBalance?: string
 	referrerWallet?: string | null
@@ -39,7 +39,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 	const [error, setError] = useState<string | null>(null)
 	const [success, setSuccess] = useState<string | null>(null)
 
-	const isMigrated = pool.migrated === true
+	const isMigrated = pool.pool?.migrated === true
 
 	useEffect(() => {
 		if (success) {
@@ -51,14 +51,14 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 	}, [success])
 
 	const getProtectedPoolSignature = async (amount: string) => {
-		if (!pool.isProtected) return null
+		if (!pool.pool?.isProtected) return null
 
 		try {
 			const response = await fetch("/api/token-protection/signature", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
-					poolId: pool.poolId,
+					poolId: pool.pool?.poolId || pool.id,
 					amount,
 					walletAddress: address,
 					// Twitter credentials are now obtained from the authenticated session on the server
@@ -104,7 +104,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 		// 	return
 		// }
 
-		if (!isMigrated && (pool.canMigrate || pool.bondingCurve >= 100)) {
+		if (!isMigrated && (pool.pool?.canMigrate || (pool.pool?.bondingCurve || 0) >= 100)) {
 			setError('TOKEN::MIGRATING')
 			return
 		}
@@ -135,12 +135,12 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 
 				const tokenAmount = Number(quote.amountOut) / Math.pow(10, decimals)
 				setSuccess(
-					`ORDER::FILLED - Bought ${tokenAmount.toFixed(2)} ${pool.coinMetadata?.symbol || "TOKEN"} for ${amount} SUI via Aftermath`
+					`ORDER::FILLED - Bought ${tokenAmount.toFixed(2)} ${pool.metadata?.symbol || "TOKEN"} for ${amount} SUI via Aftermath`
 				)
 			} else {
-				if (pool.isProtected) {
+				if (pool.pool?.isProtected) {
 					try {
-						const response = await fetch(`/api/token-protection/settings/${pool.poolId}`)
+						const response = await fetch(`/api/token-protection/settings/${pool.pool?.poolId || pool.id}`)
 						if (response.ok) {
 							const { settings } = await response.json()
 
@@ -149,7 +149,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 								const currentBalanceBigInt = BigInt(currentBalance)
 
 								const quote = await pumpSdk.quotePump({
-									pool: pool.poolId,
+									pool: pool.pool?.poolId || pool.id,
 									amount: amountInMist,
 								})
 
@@ -172,7 +172,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 				}
 
 				const quote = await pumpSdk.quotePump({
-					pool: pool.poolId,
+					pool: pool.pool?.poolId || pool.id,
 					amount: amountInMist,
 				})
 
@@ -187,7 +187,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 				const signatureData = await getProtectedPoolSignature(amountInSui)
 				const { memeCoin, tx: pumpTx } = await pumpSdk.pump({
 					tx,
-					pool: pool.poolId,
+					pool: pool.pool?.poolId || pool.id,
 					quoteCoin,
 					minAmountOut,
 					referrer: referrerWallet ?? undefined,
@@ -201,7 +201,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 
 				const tokenAmount = Number(quote.memeAmountOut) / Math.pow(10, decimals)
 				setSuccess(
-					`ORDER::FILLED - Bought ${tokenAmount.toFixed(2)} ${pool.coinMetadata?.symbol || "TOKEN"} for ${amount} SUI`
+					`ORDER::FILLED - Bought ${tokenAmount.toFixed(2)} ${pool.metadata?.symbol || "TOKEN"} for ${amount} SUI`
 				)
 			}
 		} catch (err) {
@@ -251,7 +251,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 				// If selling exact balance, use the actual balance directly
 				amountInSmallestUnit = actualBalanceBigInt
 			} else if (amountInSmallestUnit > actualBalanceBigInt) {
-				setError(`You don't have enough for this. You only have ${actualBalanceInDisplayUnit.toFixed()} ${pool.coinMetadata?.symbol || "TOKEN"}`)
+				setError(`You don't have enough for this. You only have ${actualBalanceInDisplayUnit.toFixed()} ${pool.metadata?.symbol || "TOKEN"}`)
 				return
 			}
 		}
@@ -275,7 +275,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 				await executeTransaction(tx)
 				playSound("sell")
 				setSuccess(
-					`ORDER::FILLED - Sold ${amount} ${pool.coinMetadata?.symbol || "TOKEN"} for ${formatMistToSui(quote.amountOut)} SUI via Aftermath`
+					`ORDER::FILLED - Sold ${amount} ${pool.metadata?.symbol || "TOKEN"} for ${formatMistToSui(quote.amountOut)} SUI via Aftermath`
 				)
 			} else {
 				// For non-migrated tokens, amountInSmallestUnit has already been set correctly
@@ -283,7 +283,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 				const amountToSell = amountInSmallestUnit
 
 				const quote = await pumpSdk.quoteDump({
-					pool: pool.poolId,
+					pool: pool.pool?.poolId || pool.id,
 					amount: amountToSell,
 				})
 
@@ -302,7 +302,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 
 				const { quoteCoin, tx: dumpTx } = await pumpSdk.dump({
 					tx,
-					pool: pool.poolId,
+					pool: pool.pool?.poolId || pool.id,
 					memeCoin,
 					minAmountOut,
 					referrer: referrerWallet ?? undefined
@@ -313,7 +313,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 				await executeTransaction(dumpTx)
 				playSound("sell")
 				setSuccess(
-					`ORDER::FILLED - Sold ${amount} ${pool.coinMetadata?.symbol || "TOKEN"} for ${formatMistToSui(quote.quoteAmountOut)} SUI`
+					`ORDER::FILLED - Sold ${amount} ${pool.metadata?.symbol || "TOKEN"} for ${formatMistToSui(quote.quoteAmountOut)} SUI`
 				)
 			}
 		} catch (err) {
