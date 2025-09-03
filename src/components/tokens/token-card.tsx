@@ -89,8 +89,8 @@ export const TokenCard = memo(function TokenCard({
 										{/* background for incomplete progress */}
 										<div className={`absolute inset-0 rounded-md ${bondingProgress >= 100
 											? 'bg-gradient-to-br from-yellow-600/30 to-amber-600/30' // True gold for graduated
-											: bondingProgress >= 50
-												? 'bg-gradient-to-br from-pink-400/30 to-rose-500/30' // Pink for mid-tier
+											: bondingProgress >= 30
+												? 'bg-gradient-to-br from-pink-400/30 to-rose-500/30' // Pink for near graduation
 												: 'bg-gradient-to-br from-blue-400/30 to-cyan-500/30' // Blue for new
 										}`} />
 
@@ -100,8 +100,8 @@ export const TokenCard = memo(function TokenCard({
 											style={{
 												background: `conic-gradient(${bondingProgress >= 100
 													? 'rgb(202, 138, 4)' // True gold color
-													: bondingProgress >= 50
-														? 'rgb(236, 72, 153)' // Pink
+													: bondingProgress >= 30
+														? 'rgb(236, 72, 153)' // Pink for near graduation
 														: 'rgb(59, 130, 246)' // Blue
 												} ${Math.min(bondingProgress, 100)}%, transparent ${Math.min(bondingProgress, 100)}%)`
 											}}
@@ -123,7 +123,7 @@ export const TokenCard = memo(function TokenCard({
 								{!isGraduated && (
 									<div className="flex items-center justify-center w-full mt-1">
 										<p className={`text-[10px] font-mono font-semibold ${
-											bondingProgress >= 50
+											bondingProgress >= 30
 												? 'text-pink-500/80'
 												: 'text-blue-500/80'
 										}`}>
