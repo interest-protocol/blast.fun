@@ -11,6 +11,8 @@ import { CopyableToken } from "../shared/copyable-token"
 import { CreatorHoverCard } from "@/components/creator/creator-hover-card"
 import { CreatorDisplay } from "@/components/creator/creator-display"
 import { RelativeAge } from "@/components/shared/relative-age"
+import { ProtectionBadges } from "@/components/shared/protection-badges"
+import { useTokenProtection } from "@/hooks/use-token-protection"
 import { BsTwitterX } from "react-icons/bs"
 
 interface TokenCardProps {
@@ -45,8 +47,19 @@ export const TokenCard = memo(function TokenCard({
 			followers: tokenData.creatorData?.followers || "0",
 			twitterHandle: tokenData.creatorData?.twitterHandle,
 			twitterId: tokenData.creatorData?.twitterId
+		},
+		pool: tokenData.pool || {
+			poolId: tokenData.poolId,
+			isProtected: tokenData.isProtected,
+			burnTax: tokenData.burnTax
 		}
 	}
+	
+	// @dev: get protection settings if pool is protected
+	const { settings: protectionSettings } = useTokenProtection(
+		token.pool?.poolId || "", 
+		token.pool?.isProtected || false
+	)
 	
 	const bondingProgress = token.market?.bondingProgress || tokenData.bondingProgress || 0
 	const isGraduated = bondingProgress >= 100 || token.market?.dexPaid || tokenData.dexPaid
@@ -127,6 +140,16 @@ export const TokenCard = memo(function TokenCard({
 								<h3 className="font-mono font-bold text-xs sm:text-sm uppercase tracking-wider text-foreground/90 truncate">
 									{token.metadata?.name || tokenData.name || "[UNNAMED]"}
 								</h3>
+								
+								{/* Protection Badges */}
+								{(token.pool?.isProtected || protectionSettings || (token.pool?.burnTax && token.pool?.burnTax > 0)) && (
+									<ProtectionBadges 
+										protectionSettings={protectionSettings}
+										isProtected={token.pool?.isProtected}
+										burnTax={token.pool?.burnTax}
+										size="sm"
+									/>
+								)}
 								
 								<CopyableToken symbol={token.metadata?.symbol || tokenData.symbol || "[???]"} coinType={tokenData.coinType} className="ml-auto text-xs" />
 							</div>
