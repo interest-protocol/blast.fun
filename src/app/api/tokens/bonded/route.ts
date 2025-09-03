@@ -61,7 +61,7 @@ export async function GET(request: Request) {
 				const poolIds = Array.from(poolMap.values())
 					.filter((p: any) => p?.publicKey)
 					.map((p: any) => p.poolId)
-				let protectionSettingsMap = new Map()
+				const protectionSettingsMap = new Map()
 
 				if (poolIds.length > 0) {
 					try {

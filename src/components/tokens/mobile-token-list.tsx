@@ -40,7 +40,6 @@ const TABS: TabData[] = [
 	}
 ]
 
-
 const TabContent = memo(function TabContent({
 	tab,
 	isActive,
@@ -62,28 +61,32 @@ const TabContent = memo(function TabContent({
 		return Object.keys(params).length > 0 ? params : undefined
 	}, [tab.key])
 
-	// @dev: Use appropriate hook based on tab
-	const queryResult = tab.key === "new" 
-		? useLatestTokens(filterParams, {
-			enabled: isActive,
-			refetchInterval: isActive ? tab.pollInterval : undefined
-		})
-		: tab.key === "graduating"
-		? useAboutToBondTokens(filterParams, {
-			enabled: isActive,
-			refetchInterval: isActive ? tab.pollInterval : undefined
-		})
-		: useBondedTokens(filterParams, {
-			enabled: isActive,
-			refetchInterval: isActive ? tab.pollInterval : undefined
-		})
+	// @dev: aall all hooks unconditionally to satisfy React rules
+	const latestTokensQuery = useLatestTokens(filterParams, {
+		enabled: isActive && tab.key === "new",
+		refetchInterval: isActive && tab.key === "new" ? tab.pollInterval : undefined
+	})
 
-	const { data, isLoading, error } = queryResult
+	const aboutToBondQuery = useAboutToBondTokens(filterParams, {
+		enabled: isActive && tab.key === "graduating",
+		refetchInterval: isActive && tab.key === "graduating" ? tab.pollInterval : undefined
+	})
+
+	const bondedTokensQuery = useBondedTokens(filterParams, {
+		enabled: isActive && tab.key === "graduated",
+		refetchInterval: isActive && tab.key === "graduated" ? tab.pollInterval : undefined
+	})
+
+	// @dev: select the active query result based on current tab
+	const { data, isLoading, error } = tab.key === "new" 
+		? latestTokensQuery
+		: tab.key === "graduating"
+		? aboutToBondQuery
+		: bondedTokensQuery
 
 	const sortedTokens = useMemo(() => {
 		if (!data || data.length === 0) return []
 
-		// @dev: Apply sorting based on settings
 		switch (settings.sortBy) {
 			case "bondingCurve":
 				return [...data].sort((a, b) => {
@@ -116,7 +119,6 @@ const TabContent = memo(function TabContent({
 					return bHolders - aHolders
 				})
 			default:
-				// @dev: Default sort by tab type
 				if (tab.key === "new") {
 					return [...data].sort((a, b) => {
 						const aDate = new Date(a.createdAt || 0).getTime()
@@ -198,7 +200,6 @@ export const MobileTokenList = memo(function MobileTokenList() {
 
 	const handleTabChange = useCallback((tab: TabType) => {
 		setActiveTab(tab)
-		// @dev: Reset sort when changing tabs
 		const defaultSort = tab === "graduating" ? "bondingCurve" : tab === "graduated" ? "marketCap" : "date"
 		setSettings(prev => ({ ...prev, sortBy: defaultSort }))
 	}, [])
