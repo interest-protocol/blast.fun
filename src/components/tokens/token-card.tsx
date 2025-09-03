@@ -12,7 +12,6 @@ import { CreatorHoverCard } from "@/components/creator/creator-hover-card"
 import { CreatorDisplay } from "@/components/creator/creator-display"
 import { RelativeAge } from "@/components/shared/relative-age"
 import { BsTwitterX } from "react-icons/bs"
-import { TokenSocials } from "./token-socials"
 
 interface TokenCardProps {
 	pool: Token | any // @dev: Support both new Token type and legacy format
@@ -95,12 +94,13 @@ export const TokenCard = memo(function TokenCard({
 											}}
 										/>
 
-										<div className="absolute inset-[3px] rounded overflow-hidden">
+										<div className="absolute inset-[3px] rounded overflow-hidden bg-background flex items-center justify-center">
 											<TokenAvatar
 												iconUrl={token.metadata?.icon_url || tokenData.iconUrl || tokenData.icon_url}
 												symbol={token.metadata?.symbol || tokenData.symbol}
 												name={token.metadata?.name || tokenData.name}
 												className="w-full h-full object-cover"
+												fallbackClassName="w-full h-full flex items-center justify-center"
 												enableHover={true}
 											/>
 										</div>
