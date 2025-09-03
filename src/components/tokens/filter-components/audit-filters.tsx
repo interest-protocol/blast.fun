@@ -97,7 +97,7 @@ export function AuditFilters(props: AuditFiltersProps) {
 		<div className="space-y-4">
 			<div>
 				<Label className="font-mono text-xs uppercase tracking-wider text-foreground/60">
-					TOKEN::AGE <span className="text-muted-foreground/40">(MINS)</span>
+					TOKEN AGE <span className="text-muted-foreground/40">(MINS)</span>
 				</Label>
 				<div className="flex gap-2 mt-2">
 					<Input
@@ -127,7 +127,7 @@ export function AuditFilters(props: AuditFiltersProps) {
 
 			<div>
 				<Label className="font-mono text-xs uppercase tracking-wider text-foreground/60">
-					TOP10::HOLDINGS <span className="text-muted-foreground/40">(%)</span>
+					TOP10 HOLDINGS <span className="text-muted-foreground/40">(%)</span>
 				</Label>
 				<div className="flex gap-2 mt-2">
 					<Input
@@ -149,7 +149,7 @@ export function AuditFilters(props: AuditFiltersProps) {
 
 			<div>
 				<Label className="font-mono text-xs uppercase tracking-wider text-foreground/60">
-					DEV::HOLDINGS <span className="text-muted-foreground/40">(%)</span>
+					DEV HOLDINGS <span className="text-muted-foreground/40">(%)</span>
 				</Label>
 				<div className="flex gap-2 mt-2">
 					<Input
@@ -171,7 +171,7 @@ export function AuditFilters(props: AuditFiltersProps) {
 
 			<div>
 				<Label className="font-mono text-xs uppercase tracking-wider text-foreground/60">
-					HOLDERS::COUNT
+					HOLDERS COUNT
 				</Label>
 				<div className="flex gap-2 mt-2">
 					<Input

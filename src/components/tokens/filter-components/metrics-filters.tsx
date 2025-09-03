@@ -45,7 +45,7 @@ export function MetricsFilters(props: MetricsFiltersProps) {
 		<div className="space-y-4">
 			<div>
 				<Label className="font-mono text-xs uppercase tracking-wider text-foreground/60">
-					MARKET::CAP <span className="text-muted-foreground/40">($)</span>
+					MARKET CAP <span className="text-muted-foreground/40">($)</span>
 				</Label>
 				<div className="flex gap-2 mt-2">
 					<Input
@@ -67,7 +67,7 @@ export function MetricsFilters(props: MetricsFiltersProps) {
 
 			<div>
 				<Label className="font-mono text-xs uppercase tracking-wider text-foreground/60">
-					VOLUME::24H <span className="text-muted-foreground/40">($)</span>
+					VOLUME 24H <span className="text-muted-foreground/40">($)</span>
 				</Label>
 				<div className="flex gap-2 mt-2">
 					<Input
@@ -111,7 +111,7 @@ export function MetricsFilters(props: MetricsFiltersProps) {
 
 			<div>
 				<Label className="font-mono text-xs uppercase tracking-wider text-foreground/60">
-					TRADE::COUNT
+					TRADE COUNT
 				</Label>
 				<div className="flex gap-2 mt-2">
 					<Input

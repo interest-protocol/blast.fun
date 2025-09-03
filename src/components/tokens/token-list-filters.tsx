@@ -180,10 +180,10 @@ export const TokenListFilters = memo(function TokenListFilters({
 					<Settings2 className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
 				</Button>
 			</DialogTrigger>
-			<DialogContent className="sm:max-w-[450px] p-6 rounded-xl border-2 bg-background/50 backdrop-blur-sm shadow-2xl">
+			<DialogContent className="sm:max-w-[450px] p-6 rounded-xl border-2 bg-background shadow-2xl">
 				<DialogHeader className="pb-4">
 					<DialogTitle className="font-mono text-base uppercase tracking-wider text-foreground/80">
-						FILTER::TOKENS
+						Token Filters
 					</DialogTitle>
 				</DialogHeader>
 
@@ -191,9 +191,9 @@ export const TokenListFilters = memo(function TokenListFilters({
 					{/* Tab Selection */}
 					<div>
 						<Label className="font-mono text-xs uppercase tracking-wider text-foreground/60">
-							TOKEN::STATUS
+							Token Status
 						</Label>
-						<div className="flex bg-muted/30 rounded-lg border-2 border-dashed p-1 mt-2">
+						<div className="flex bg-muted rounded-lg border p-1 mt-2">
 							<button
 								className={cn(
 									"flex-1 py-2 px-3 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
@@ -234,7 +234,7 @@ export const TokenListFilters = memo(function TokenListFilters({
 					{tabType !== 'bonded' && (
 						<div>
 							<Label className="font-mono text-xs uppercase tracking-wider text-foreground/60">
-								BONDING::PROGRESS <span className="text-muted-foreground/40">(%)</span>
+								BONDING PROGRESS <span className="text-muted-foreground/40">(%)</span>
 							</Label>
 							<div className="flex gap-2 mt-2">
 								<Input
@@ -257,7 +257,7 @@ export const TokenListFilters = memo(function TokenListFilters({
 
 					{/* Filter Mode Toggle */}
 					<div>
-						<div className="flex bg-muted/30 rounded-lg border-2 border-dashed p-1 mb-4">
+						<div className="flex bg-muted rounded-lg border p-1 mb-4">
 							<button
 								onClick={() => setSelectedSubMenu('audit')}
 								className={cn(
@@ -267,7 +267,7 @@ export const TokenListFilters = memo(function TokenListFilters({
 										: "hover:text-foreground text-muted-foreground"
 								)}
 							>
-								AUDIT::FILTERS
+								AUDIT
 							</button>
 							<button
 								onClick={() => setSelectedSubMenu('metrics')}
@@ -278,12 +278,12 @@ export const TokenListFilters = memo(function TokenListFilters({
 										: "hover:text-foreground text-muted-foreground"
 								)}
 							>
-								METRICS::FILTERS
+								METRICS
 							</button>
 						</div>
 
 						{/* Filter Views */}
-						<div className="rounded-lg p-4 bg-background/30 border-2 border-dashed">
+						<div className="rounded-lg p-4 border-2 border-dashed">
 							{selectedSubMenu === 'audit' ? (
 								<AuditFilters
 									createdAtMin={filters.ageMin}
@@ -331,15 +331,15 @@ export const TokenListFilters = memo(function TokenListFilters({
 						<Button
 							variant="outline"
 							onClick={handleReset}
-							className="flex-1 font-mono text-xs uppercase tracking-wider border-2 border-dashed hover:bg-muted/30"
+							className="flex-1 font-mono text-xs uppercase tracking-wider"
 						>
-							RESET::ALL
+							RESET
 						</Button>
 						<Button
 							onClick={handleApply}
 							className="flex-1 font-mono text-xs uppercase tracking-wider"
 						>
-							APPLY::FILTERS
+							APPLY
 						</Button>
 					</div>
 				</div>
