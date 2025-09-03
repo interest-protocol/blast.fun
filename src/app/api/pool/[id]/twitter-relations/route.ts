@@ -64,11 +64,16 @@ export async function GET(
 			purchases: relation.purchases as any // Purchases is stored as JSON
 		}))
 
-		return NextResponse.json({
+		const response = NextResponse.json({
 			poolId,
 			relations: processedRelations,
 			total: processedRelations.length
 		})
+
+		// @dev: Cache for 10 seconds to reduce database load
+		response.headers.set('Cache-Control', 'public, s-maxage=10, stale-while-revalidate=30')
+		
+		return response
 
 	} catch (error) {
 		console.error("Error fetching Twitter relations:", error)
