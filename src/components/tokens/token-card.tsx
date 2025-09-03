@@ -203,7 +203,7 @@ export const TokenCard = memo(function TokenCard({
 													walletAddress={token.creator?.address || tokenData.dev || tokenData.creatorAddress}
 													twitterHandle={token.creator?.twitterHandle || tokenData.creatorData?.twitterHandle || undefined}
 													twitterId={token.creator?.twitterId || tokenData.creatorData?.twitterId || undefined}
-													className="text-muted-foreground/80 hover:text-primary transition-colors cursor-pointer"
+													className="text-foreground/80 hover:text-foreground transition-colors cursor-pointer"
 												/>
 											</span>
 										</CreatorHoverCard>
