@@ -1,10 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-
-interface CreatorData {
-	launchCount: number;
-	trustedFollowers: string;
-	followers: string;
-}
+import type { CreatorData } from "@/types/pool";
 
 export function useCreatorData(identifier: string | undefined) {
 	return useQuery<CreatorData>({
