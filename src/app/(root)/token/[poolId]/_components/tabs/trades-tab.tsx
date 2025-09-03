@@ -85,7 +85,7 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 	const TRADES_PER_PAGE = 20
 	const metadata = pool.coinMetadata || pool.metadata
 
-	// Fetch Twitter relations for this pool
+	// Fetch Twitter relations for this pool - poll every 10 seconds
 	const { data: twitterRelations } = useQuery({
 		queryKey: ["twitter-relations", pool.poolId],
 		queryFn: async () => {
@@ -95,7 +95,8 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 			return data.relations as TwitterRelation[]
 		},
 		enabled: !!pool.poolId && pool.isProtected,
-		staleTime: 30000, // 30 seconds
+		staleTime: 10000, // 10 seconds
+		refetchInterval: 10000, // Poll every 10 seconds
 		refetchOnWindowFocus: false
 	})
 
