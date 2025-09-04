@@ -104,6 +104,7 @@ export async function GET(request: Request) {
 						bondingProgress: pool?.migrated ? 100 : ((token.bondingProgress || 0) * 100),
 						migrated: pool?.migrated || false,
 						isProtected: !!pool?.publicKey,
+						burnTax: pool?.burnTax,
 						protectionSettings: pool?.publicKey ? protectionSettingsMap.get(pool.poolId) : undefined,
 						creatorData
 					}

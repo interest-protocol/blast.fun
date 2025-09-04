@@ -40,6 +40,7 @@ export const GET_COIN_POOL_BASIC = gql`
 			bondingCurve
 			migrated
 			publicKey
+			burnTax
 		}
 	}
 `

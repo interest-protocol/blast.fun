@@ -101,6 +101,7 @@ export async function fetchTokenByCoinType(coinType: string): Promise<Token | nu
 				migrationWitness: pool.migrationWitness,
 				isProtected: !!pool.publicKey,
 				publicKey: pool.publicKey,
+				burnTax: pool.burnTax,
 				mostLiquidPoolId: mostLiquidPoolId
 			},
 			createdAt: pool.createdAt || Date.now(),
