@@ -1,6 +1,7 @@
 import { env } from "@/env"
 import type { TokenMarketData } from "@/types/token"
 import type { TokenMetadata } from "@/types/token"
+import type { LeaderboardEntry } from "@/types/leaderboard"
 
 const NEXA_SERVER_API_BASE = "https://spot.api.sui-prod.bluefin.io/external-api/insidex"
 
@@ -60,6 +61,27 @@ class NexaServerClient {
 		})
 
 		return await response.json()
+	}
+
+	async getLeaderboard(params?: {
+		sortOn?: 'volume' | 'trades'
+		startTime?: number
+		endTime?: number
+	}): Promise<LeaderboardEntry[]> {
+		const searchParams = new URLSearchParams()
+		
+		if (params?.sortOn) searchParams.append('sortOn', params.sortOn)
+		if (params?.startTime) searchParams.append('startTime', params.startTime.toString())
+		if (params?.endTime) searchParams.append('endTime', params.endTime.toString())
+		
+		const queryString = searchParams.toString()
+		const endpoint = queryString ? `/blast-fun/leaderboard?${queryString}` : '/blast-fun/leaderboard'
+		
+		const response = await this.fetch(endpoint, {
+			revalidate: 60, // Cache for 1 minute
+		})
+
+		return await response.json() as LeaderboardEntry[]
 	}
 }
 
