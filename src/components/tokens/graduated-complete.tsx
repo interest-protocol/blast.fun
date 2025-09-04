@@ -19,8 +19,7 @@ export const GraduatedComplete = memo(function GraduatedComplete({
 	const [settings, setSettings] = useState<TokenListSettings>({
 		sortBy: "marketCap",
 		filters: {
-			tabType: 'bonded',
-			dexPaid: true
+			tabType: 'bonded'
 		}
 	})
 
@@ -28,8 +27,7 @@ export const GraduatedComplete = memo(function GraduatedComplete({
 	const filterParams = useMemo<TokenFilters>(() => {
 		return {
 			...settings.filters,
-			tabType: 'bonded',
-			dexPaid: true
+			tabType: 'bonded'
 		}
 	}, [settings.filters])
 

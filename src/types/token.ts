@@ -30,12 +30,18 @@ export interface TokenMarketData {
 	bondingProgress: number
 	circulating?: number
 	circulatingUpdatedAt?: number
-	dexPaid?: boolean
+
 	top10Holdings?: number
 	devHoldings?: number
+
 	tradeCount?: number
 	buyTradeCount?: number
 	sellTradeCount?: number
+
+	price5MinsAgo?: number
+	price1HrAgo?: number
+	price4HrAgo?: number
+	price1DayAgo?: number
 }
 
 export interface TokenPoolData {
@@ -75,7 +81,6 @@ export interface Token {
 	createdAt: number
 	lastTradeAt: string
 	updatedAt?: string
-	isHoneypot: boolean
 	nsfw?: boolean
 }
 
@@ -109,7 +114,6 @@ export interface TokenFilters {
 	sellTradeCountMin?: number
 	sellTradeCountMax?: number
 
-	dexPaid?: boolean
 	hasWebsite?: boolean
 	hasTwitter?: boolean
 	hasTelegram?: boolean

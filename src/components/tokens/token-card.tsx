@@ -29,8 +29,7 @@ export const TokenCard = memo(function TokenCard({
 			bondingProgress: tokenData.bondingProgress || 0,
 			marketCap: tokenData.marketCap || 0,
 			volume24h: tokenData.volume24h || tokenData.volume || 0,
-			holdersCount: tokenData.holdersCount || 0,
-			dexPaid: tokenData.dexPaid
+			holdersCount: tokenData.holdersCount || 0
 		},
 		metadata: tokenData.metadata || {
 			name: tokenData.name,
@@ -62,7 +61,7 @@ export const TokenCard = memo(function TokenCard({
 	)
 	
 	const bondingProgress = token.market?.bondingProgress || tokenData.bondingProgress || 0
-	const isGraduated = bondingProgress >= 100 || token.market?.dexPaid || tokenData.dexPaid
+	const isGraduated = bondingProgress >= 100 || token.pool?.migrated
 
 	// @dev: Social links from metadata
 	const socialLinks = [
