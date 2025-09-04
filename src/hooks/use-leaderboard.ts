@@ -1,18 +1,20 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { LeaderboardEntry } from "@/types/leaderboard"
 
 export type TimeRange = '1d' | '1w' | '1m'
 export type SortBy = 'volume' | 'trades'
+export type SortOrder = 'asc' | 'desc'
 
 interface UseLeaderboardOptions {
 	timeRange?: TimeRange
-	sortBy?: SortBy
 }
 
-export function useLeaderboard({ timeRange = '1d', sortBy = 'volume' }: UseLeaderboardOptions = {}) {
-	const [data, setData] = useState<LeaderboardEntry[]>([])
+export function useLeaderboard({ timeRange = '1d' }: UseLeaderboardOptions = {}) {
+	const [rawData, setRawData] = useState<LeaderboardEntry[]>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
+	const [sortBy, setSortBy] = useState<SortBy>('volume')
+	const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
 
 	useEffect(() => {
 		const fetchLeaderboard = async () => {
@@ -22,7 +24,7 @@ export function useLeaderboard({ timeRange = '1d', sortBy = 'volume' }: UseLeade
 			try {
 				const params = new URLSearchParams({
 					timeRange,
-					sortOn: sortBy
+					sortOn: 'volume' // @dev: Always fetch by volume from API, we'll sort client-side
 				})
 				
 				const response = await fetch(`/api/leaderboard?${params}`)
@@ -30,41 +32,58 @@ export function useLeaderboard({ timeRange = '1d', sortBy = 'volume' }: UseLeade
 				
 				if (result.error) {
 					setError(result.error)
-					setData([])
+					setRawData([])
 				} else {
-					let entries: LeaderboardEntry[] = Array.isArray(result) ? result : result.leaderboard || []
-					
-					entries = entries.sort((a: LeaderboardEntry, b: LeaderboardEntry) => {
-						if (sortBy === 'volume') {
-							return (b.totalVolume || 0) - (a.totalVolume || 0)
-						} else {
-							return (b.tradeCount || 0) - (a.tradeCount || 0)
-						}
-					})
-
-					entries = entries.map((entry: LeaderboardEntry, index: number) => ({
-						...entry,
-						rank: index + 1
-					}))
-					
-					setData(entries)
+					const entries: LeaderboardEntry[] = Array.isArray(result) ? result : result.leaderboard || []
+					setRawData(entries)
 				}
 			} catch (err) {
 				console.error('Failed to fetch leaderboard:', err)
 				setError('Failed to load leaderboard')
-				setData([])
+				setRawData([])
 			} finally {
 				setLoading(false)
 			}
 		}
 
 		fetchLeaderboard()
-	}, [timeRange, sortBy])
+	}, [timeRange])
+
+	// @dev: Sort data based on current sort settings
+	const data = useMemo(() => {
+		const sorted = [...rawData].sort((a: LeaderboardEntry, b: LeaderboardEntry) => {
+			const aValue = sortBy === 'volume' ? (a.totalVolume || 0) : (a.tradeCount || 0)
+			const bValue = sortBy === 'volume' ? (b.totalVolume || 0) : (b.tradeCount || 0)
+			
+			if (sortOrder === 'desc') {
+				return bValue - aValue
+			}
+			return aValue - bValue
+		})
+
+		return sorted.map((entry: LeaderboardEntry, index: number) => ({
+			...entry,
+			rank: index + 1
+		}))
+	}, [rawData, sortBy, sortOrder])
+
+	const handleSort = (field: SortBy) => {
+		if (field === sortBy) {
+			// @dev: Toggle order if same field
+			setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')
+		} else {
+			setSortBy(field)
+			setSortOrder('desc')
+		}
+	}
 
 	return {
 		data,
 		loading,
 		error,
+		sortBy,
+		sortOrder,
+		handleSort,
 		refetch: () => {
 			setLoading(true)
 			setError(null)

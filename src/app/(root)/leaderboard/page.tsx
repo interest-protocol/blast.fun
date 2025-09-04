@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { useLeaderboard, TimeRange, SortBy } from "@/hooks/use-leaderboard"
-import { Trophy, Medal, DollarSign, Activity, ExternalLink } from "lucide-react"
+import { useLeaderboard, TimeRange } from "@/hooks/use-leaderboard"
+import { Trophy, Medal, ArrowUp, ArrowDown } from "lucide-react"
 import { cn } from "@/utils/index"
 import { formatAddress } from "@mysten/sui/utils"
 import { formatPrice } from "@/lib/format"
@@ -13,8 +13,7 @@ import { useSuiNSNames } from "@/hooks/use-suins"
 
 export default function LeaderboardPage() {
 	const [timeRange, setTimeRange] = useState<TimeRange>('1d')
-	const [sortBy, setSortBy] = useState<SortBy>('volume')
-	const { data, loading, error } = useLeaderboard({ timeRange, sortBy })
+	const { data, loading, error, sortBy, sortOrder, handleSort } = useLeaderboard({ timeRange })
 
 	const traderAddresses = useMemo(() => {
 		return data.map(entry => entry.user) || []
@@ -32,7 +31,7 @@ export default function LeaderboardPage() {
 	return (
 		<div className="container max-w-7xl mx-auto h-full flex flex-col">
 			{/* Controls Section */}
-			<div className="flex flex-col sm:flex-row gap-2 justify-between items-center mb-3">
+			<div className="flex justify-center mb-3">
 				<div className="p-0.5 bg-card/50 backdrop-blur-sm border border-border/50 rounded-md flex items-center">
 					{(['1d', '1w', '1m'] as const).map((range) => (
 						<button
@@ -54,37 +53,6 @@ export default function LeaderboardPage() {
 					))}
 				</div>
 
-				{/* Sort Options */}
-				<div className="p-0.5 bg-card/50 backdrop-blur-sm border border-border/50 rounded-md flex items-center">
-					<button
-						onClick={() => setSortBy('volume')}
-						disabled={loading}
-						className={cn(
-							"px-3 py-1 text-xs font-medium transition-all rounded flex items-center gap-1.5",
-							"disabled:opacity-50 disabled:cursor-not-allowed",
-							sortBy === 'volume'
-								? "bg-destructive/80 backdrop-blur-sm text-destructive-foreground"
-								: "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-						)}
-					>
-						<DollarSign className="h-3 w-3" />
-						<span className="font-mono uppercase">Volume</span>
-					</button>
-					<button
-						onClick={() => setSortBy('trades')}
-						disabled={loading}
-						className={cn(
-							"px-3 py-1 text-xs font-medium transition-all rounded flex items-center gap-1.5",
-							"disabled:opacity-50 disabled:cursor-not-allowed",
-							sortBy === 'trades'
-								? "bg-destructive/80 backdrop-blur-sm text-destructive-foreground"
-								: "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-						)}
-					>
-						<Activity className="h-3 w-3" />
-						<span className="font-mono uppercase">Trades</span>
-					</button>
-				</div>
 			</div>
 
 			{/* Leaderboard Content */}
@@ -152,8 +120,24 @@ export default function LeaderboardPage() {
 								<div className="grid grid-cols-12 py-2 border-b border-border/50 text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground sticky top-0 bg-card/95 backdrop-blur-sm z-10 select-none">
 									<div className="col-span-1 text-center"></div>
 									<div className="col-span-5 pl-2">TRADER</div>
-									<div className="col-span-3 text-right">VOLUME</div>
-									<div className="col-span-3 text-right pr-4">TRADES</div>
+									<div 
+										className="col-span-3 text-right cursor-pointer hover:text-foreground transition-colors flex justify-end items-center gap-1"
+										onClick={() => handleSort('volume')}
+									>
+										VOLUME
+										{sortBy === 'volume' && (
+											sortOrder === 'desc' ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />
+										)}
+									</div>
+									<div 
+										className="col-span-3 text-right pr-4 cursor-pointer hover:text-foreground transition-colors flex justify-end items-center gap-1"
+										onClick={() => handleSort('trades')}
+									>
+										TRADES
+										{sortBy === 'trades' && (
+											sortOrder === 'desc' ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />
+										)}
+									</div>
 								</div>
 
 								{/* Table Body */}
