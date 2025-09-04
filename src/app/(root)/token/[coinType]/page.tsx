@@ -3,6 +3,8 @@ import { constructMetadata } from "@/lib/metadata"
 import { TokenModule } from "./_components/token-module"
 import { fetchTokenByCoinType } from "@/lib/fetch-token-by-cointype"
 import { formatNumberWithSuffix } from "@/utils/format"
+import { redirect } from "next/navigation"
+import { fetchTokenByPool } from "@/lib/fetch-token-by-pool"
 
 export async function generateMetadata({
 	params
@@ -31,6 +33,12 @@ export default async function TokenPage({
 	searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
 	const { coinType } = await params
+	if(!coinType.includes("::")) {
+		const tokenData = await fetchTokenByPool(coinType)
+		if (tokenData) {
+			return redirect(`/token/${tokenData.coinType}`)
+		}	
+	}
 	const search = await searchParams
 	const referral = search?.ref as string | undefined
 
