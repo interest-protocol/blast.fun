@@ -23,7 +23,7 @@ export const calculateClaimableAmount = (
 
 	const elapsed = currentTime - position.startTime
 	const totalVested = (BigInt(position.lockedAmount) * BigInt(elapsed)) / BigInt(position.duration)
-	const claimable = totalVested - BigInt(position.claimedAmount)
+	const claimable = parseFloat(totalVested.toString()) - parseFloat(position.claimedAmount)
 	
 	return claimable > 0n ? claimable.toString() : "0"
 }
