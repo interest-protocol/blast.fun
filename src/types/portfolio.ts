@@ -28,7 +28,6 @@ export type CoinMetadata = {
 	lastTradeAt?: string
 	treasuryCap?: string
 	treasuryCapOwner?: any
-	isHoneypot?: boolean
 	bondingProgress?: number
 	circulating?: number
 	circulatingUpdatedAt?: number

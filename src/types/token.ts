@@ -82,7 +82,6 @@ export interface Token {
 	createdAt: number
 	lastTradeAt: string
 	updatedAt?: string
-	isHoneypot: boolean
 	nsfw?: boolean
 }
 

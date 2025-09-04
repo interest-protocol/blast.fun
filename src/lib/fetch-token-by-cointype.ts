@@ -109,7 +109,6 @@ export async function fetchTokenByCoinType(coinType: string): Promise<Token | nu
 			},
 			createdAt: pool.createdAt || Date.now(),
 			lastTradeAt: pool.lastTradeAt || new Date().toISOString(),
-			isHoneypot: false,
 			nsfw: pool.nsfw
 		}
 
