@@ -11,6 +11,7 @@ export default function VestingContent() {
 	const router = useRouter()
 	const pathname = usePathname()
 	const [activeTab, setActiveTab] = useState<string>()
+	const [shouldRefresh, setShouldRefresh] = useState(false)
 
 	useEffect(() => {
 		const tabParam = searchParams.get("tab")
@@ -31,6 +32,14 @@ export default function VestingContent() {
 
 	const switchToPositionsTab = () => {
 		handleTabChange("positions")
+	}
+
+	const handleVestingCreated = () => {
+		switchToPositionsTab()
+		// @dev: Trigger a refresh of positions after 3 seconds
+		setTimeout(() => {
+			setShouldRefresh(true)
+		}, 3000)
 	}
 
 	if (!activeTab) {
@@ -54,11 +63,11 @@ export default function VestingContent() {
 					</TabsList>
 
 					<TabsContent value="create" className="mt-6">
-						<CreateVesting onVestingCreated={switchToPositionsTab} />
+						<CreateVesting onVestingCreated={handleVestingCreated} />
 					</TabsContent>
 
 					<TabsContent value="positions" className="mt-6">
-						<VestingPositions />
+						<VestingPositions shouldRefresh={shouldRefresh} onRefreshed={() => setShouldRefresh(false)} />
 					</TabsContent>
 				</Tabs>
 			</div>

@@ -19,13 +19,26 @@ import { useVestingSDK } from "../_hooks/use-vesting-sdk"
 import { suiClient } from "@/lib/sui-client"
 import { CoinMetadata } from "@mysten/sui/client"
 
-export function VestingPositions() {
+interface VestingPositionsProps {
+	shouldRefresh?: boolean
+	onRefreshed?: () => void
+}
+
+export function VestingPositions({ shouldRefresh, onRefreshed }: VestingPositionsProps) {
 	const { address, setIsConnectDialogOpen } = useApp()
 	const { positions, isLoading, refetch } = useVestingApi()
 	const [claimingId, setClaimingId] = useState<string | null>(null)
 	const { executeTransaction } = useTransaction()
 	const vestingSdk = useVestingSDK()
 	const [tokenMetadata, setTokenMetadata] = useState<Record<string, CoinMetadata>>({})
+
+	// @dev: Refetch data when shouldRefresh is true
+	useEffect(() => {
+		if (shouldRefresh) {
+			refetch()
+			onRefreshed?.()
+		}
+	}, [shouldRefresh, refetch, onRefreshed])
 
 	// @dev: Fetch metadata for all unique coin types
 	useEffect(() => {
