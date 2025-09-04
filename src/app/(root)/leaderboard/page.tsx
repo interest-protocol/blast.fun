@@ -37,7 +37,7 @@ export default function LeaderboardPage() {
 						<button
 							key={range}
 							onClick={() => setTimeRange(range)}
-							disabled={loading}
+							disabled={loading || range !== '1d'}
 							className={cn(
 								"px-3 py-1 text-xs font-mono uppercase transition-all rounded",
 								"disabled:opacity-50 disabled:cursor-not-allowed",
@@ -45,6 +45,7 @@ export default function LeaderboardPage() {
 									? "bg-destructive/80 backdrop-blur-sm text-destructive-foreground"
 									: "text-muted-foreground hover:text-foreground hover:bg-muted/50"
 							)}
+							title={range !== '1d' ? 'Coming soon - data collection in progress' : undefined}
 						>
 							{range === '1d' && '24H'}
 							{range === '1w' && '7D'}
