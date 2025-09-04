@@ -31,7 +31,6 @@ export type CoinMetadata = {
 	bondingProgress?: number
 	circulating?: number
 	circulatingUpdatedAt?: number
-	dexPaid?: boolean
 	platform?: string
 	threshold?: number
 	virtualSui?: number

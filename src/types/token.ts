@@ -30,7 +30,6 @@ export interface TokenMarketData {
 	bondingProgress: number
 	circulating?: number
 	circulatingUpdatedAt?: number
-	dexPaid?: boolean
 
 	top10Holdings?: number
 	devHoldings?: number
@@ -115,7 +114,6 @@ export interface TokenFilters {
 	sellTradeCountMin?: number
 	sellTradeCountMax?: number
 
-	dexPaid?: boolean
 	hasWebsite?: boolean
 	hasTwitter?: boolean
 	hasTelegram?: boolean

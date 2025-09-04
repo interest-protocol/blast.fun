@@ -53,11 +53,6 @@ const TabContent = memo(function TabContent({
 	const filterParams = useMemo<TokenFilters | undefined>(() => {
 		const params: TokenFilters = {}
 		
-		// @dev: Add specific filters for graduated tokens
-		if (tab.key === "graduated") {
-			params.dexPaid = true
-		}
-		
 		return Object.keys(params).length > 0 ? params : undefined
 	}, [tab.key])
 
