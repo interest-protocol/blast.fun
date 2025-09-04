@@ -68,12 +68,9 @@ export function useLeaderboard({ timeRange = '1d' }: UseLeaderboardOptions = {})
 	}, [rawData, sortBy, sortOrder])
 
 	const handleSort = (field: SortBy) => {
-		if (field === sortBy) {
-			// @dev: Toggle order if same field
-			setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')
-		} else {
+		// @dev: Only allow sorting by different fields, always keep descending order
+		if (field !== sortBy) {
 			setSortBy(field)
-			setSortOrder('desc')
 		}
 	}
 

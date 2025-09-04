@@ -31,7 +31,7 @@ export default function LeaderboardPage() {
 	return (
 		<div className="container max-w-7xl mx-auto h-full flex flex-col">
 			{/* Controls Section */}
-			<div className="flex justify-center mb-3">
+			<div className="flex justify-start mb-3">
 				<div className="p-0.5 bg-card/50 backdrop-blur-sm border border-border/50 rounded-md flex items-center">
 					{(['1d', '1w', '1m'] as const).map((range) => (
 						<button
@@ -53,7 +53,6 @@ export default function LeaderboardPage() {
 						</button>
 					))}
 				</div>
-
 			</div>
 
 			{/* Leaderboard Content */}
@@ -126,18 +125,14 @@ export default function LeaderboardPage() {
 										onClick={() => handleSort('volume')}
 									>
 										VOLUME
-										{sortBy === 'volume' && (
-											sortOrder === 'desc' ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />
-										)}
+										{sortBy === 'volume' && <ArrowDown className="h-3 w-3" />}
 									</div>
 									<div 
 										className="col-span-3 text-right pr-4 cursor-pointer hover:text-foreground transition-colors flex justify-end items-center gap-1"
 										onClick={() => handleSort('trades')}
 									>
 										TRADES
-										{sortBy === 'trades' && (
-											sortOrder === 'desc' ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />
-										)}
+										{sortBy === 'trades' && <ArrowDown className="h-3 w-3" />}
 									</div>
 								</div>
 
