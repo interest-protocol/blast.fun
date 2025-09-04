@@ -271,7 +271,7 @@ export function VestingPositions({ shouldRefresh, onRefreshed }: VestingPosition
 									) : (
 										<>
 											<TrendingUp className="mr-2 h-4 w-4" />
-											Claim {formatAmount(claimableAmount)}
+											Claim {formatAmount(claimableAmount, 0)}
 											{metadata?.symbol && ` ${metadata.symbol}`}
 										</>
 									)}
