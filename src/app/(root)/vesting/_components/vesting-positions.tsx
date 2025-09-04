@@ -86,7 +86,7 @@ export function VestingPositions({ shouldRefresh, onRefreshed }: VestingPosition
 			await executeTransaction(tx)
 
 			toast.success("Successfully claimed vested tokens!")
-			await refetch()
+			refetch()
 		} catch (error) {
 			console.error("Error claiming vested tokens:", error)
 			toast.error("Failed to claim vested tokens")
@@ -116,7 +116,7 @@ export function VestingPositions({ shouldRefresh, onRefreshed }: VestingPosition
 			await executeTransaction(tx)
 
 			toast.success("Vesting position destroyed successfully!")
-			await refetch()
+			refetch()
 		} catch (error) {
 			console.error("Error destroying vesting position:", error)
 			toast.error("Failed to destroy vesting position")
