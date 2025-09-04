@@ -31,11 +31,18 @@ export interface TokenMarketData {
 	circulating?: number
 	circulatingUpdatedAt?: number
 	dexPaid?: boolean
+
 	top10Holdings?: number
 	devHoldings?: number
+
 	tradeCount?: number
 	buyTradeCount?: number
 	sellTradeCount?: number
+
+	price5MinsAgo?: number
+	price1HrAgo?: number
+	price4HrAgo?: number
+	price1DayAgo?: number
 }
 
 export interface TokenPoolData {

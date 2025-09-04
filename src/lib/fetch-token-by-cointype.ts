@@ -83,7 +83,11 @@ export async function fetchTokenByCoinType(coinType: string): Promise<Token | nu
 				price: (marketData as any)?.coinPrice || 0,
 				bondingProgress: pool.bondingCurve || 0,
 				circulating: (marketData as any)?.coinSupply,
-				dexPaid: pool.migrated
+				dexPaid: pool.migrated,
+				price5MinsAgo: (marketData as any)?.price5MinsAgo,
+				price1HrAgo: (marketData as any)?.price1HrAgo,
+				price4HrAgo: (marketData as any)?.price4HrAgo,
+				price1DayAgo: (marketData as any)?.price1DayAgo
 			},
 			pool: {
 				poolId: pool.poolId,

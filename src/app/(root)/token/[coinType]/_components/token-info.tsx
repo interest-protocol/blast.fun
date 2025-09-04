@@ -41,21 +41,20 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 
 	const { data: resolvedDomain } = useResolveSuiNSName(!showTwitterCreator && creatorWallet ? creatorWallet : null)
 
-	const priceData = marketData as any
-	const priceChange5m = priceData?.price5MinsAgo && priceData?.price
-		? ((priceData.price - priceData.price5MinsAgo) / priceData.price5MinsAgo) * 100
+	const priceChange5m = marketData?.price5MinsAgo && marketData?.price
+		? ((marketData.price - marketData.price5MinsAgo) / marketData.price5MinsAgo) * 100
 		: null
 
-	const priceChange1h = priceData?.price1HrAgo && priceData?.price
-		? ((priceData.price - priceData.price1HrAgo) / priceData.price1HrAgo) * 100
+	const priceChange1h = marketData?.price1HrAgo && marketData?.price
+		? ((marketData.price - marketData.price1HrAgo) / marketData.price1HrAgo) * 100
 		: null
 
-	const priceChange4h = priceData?.price4HrAgo && priceData?.price
-		? ((priceData.price - priceData.price4HrAgo) / priceData.price4HrAgo) * 100
+	const priceChange4h = marketData?.price4HrAgo && marketData?.price
+		? ((marketData.price - marketData.price4HrAgo) / marketData.price4HrAgo) * 100
 		: null
 
-	const priceChange24h = priceData?.price1DayAgo && priceData?.price
-		? ((priceData.price - priceData.price1DayAgo) / priceData.price1DayAgo) * 100
+	const priceChange24h = marketData?.price1DayAgo && marketData?.price
+		? ((marketData.price - marketData.price1DayAgo) / marketData.price1DayAgo) * 100
 		: null
 
 	const volume24h = marketData?.volume24h || 0
