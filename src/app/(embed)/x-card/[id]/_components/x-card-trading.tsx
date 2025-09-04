@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { ExternalLink, TrendingUp, ChartLine } from "lucide-react"
-import type { PoolWithMetadata } from "@/types/pool"
+import type { Token } from "@/types/token"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { TradingPanel } from "./trading-panel"
@@ -12,7 +12,7 @@ import { formatNumberWithSuffix, formatAmountWithSuffix } from "@/utils/format"
 import { cn } from "@/utils"
 
 interface XCardTradingProps {
-	pool: PoolWithMetadata
+	pool: Token
 	referrerWallet?: string | null
 	refCode?: string | null
 }
@@ -20,11 +20,11 @@ interface XCardTradingProps {
 export function XCardTrading({ pool, referrerWallet, refCode }: XCardTradingProps) {
 	const [activeTab, setActiveTab] = useState<"trade" | "chart">("trade")
 	const { data: marketData } = useMarketData(pool.coinType)
-	const metadata = marketData?.coinMetadata || pool.coinMetadata
+	const metadata = pool.metadata
 
-	const bondingProgress = pool.bondingCurve
+	const bondingProgress = pool.market?.bondingProgress || 0
 	const marketCap = marketData?.marketCap || 0
-	const totalLiquidity = marketData?.liqUsd || 0
+	const totalLiquidity = marketData?.liquidity || 0
 	const holdersCount = marketData?.holdersCount || 0
 
 	return (
@@ -41,7 +41,7 @@ export function XCardTrading({ pool, referrerWallet, refCode }: XCardTradingProp
 						<div className="p-3 text-center">
 							<p className="font-mono text-[10px] uppercase text-muted-foreground mb-1">Liquidity</p>
 							<p className="font-mono text-sm font-bold text-blue-500">
-								{marketData ? `$${formatNumberWithSuffix(totalLiquidity)}` : `${formatAmountWithSuffix(pool.quoteBalance)} SUI`}
+								{marketData ? `$${formatNumberWithSuffix(totalLiquidity)}` : `${formatAmountWithSuffix(pool.pool?.quoteBalance || "0")} SUI`}
 							</p>
 						</div>
 						<div className="p-3 text-center">
@@ -113,7 +113,7 @@ export function XCardTrading({ pool, referrerWallet, refCode }: XCardTradingProp
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-2.5">
 							<Avatar className="w-9 h-9 rounded-lg border-2">
-								<AvatarImage src={metadata?.iconUrl || ""} alt={metadata?.symbol} />
+								<AvatarImage src={metadata?.icon_url || ""} alt={metadata?.symbol} />
 								<AvatarFallback className="font-mono rounded-none text-xs uppercase">
 									{metadata?.symbol?.slice(0, 2) || "??"}
 								</AvatarFallback>
@@ -133,8 +133,8 @@ export function XCardTrading({ pool, referrerWallet, refCode }: XCardTradingProp
 							className="font-mono text-xs h-7"
 							onClick={() => {
 								const url = refCode
-									? `${window.location.origin}/token/${pool.poolId}?ref=${refCode}`
-									: `${window.location.origin}/token/${pool.poolId}`
+									? `${window.location.origin}/token/${pool.coinType}?ref=${refCode}`
+									: `${window.location.origin}/token/${pool.coinType}`
 								window.open(url, "_blank")
 							}}
 						>

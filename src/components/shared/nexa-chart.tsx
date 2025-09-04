@@ -1,12 +1,12 @@
 "use client"
 
-import { PoolWithMetadata } from "@/types/pool"
+import { Token } from "@/types/token"
 import { useState } from "react"
 import { cn } from "@/utils"
 import { useApp } from "@/context/app.context"
 
 interface NexaChartProps {
-	pool: PoolWithMetadata
+	pool: Token
 	className?: string
 }
 

@@ -46,59 +46,64 @@ const TokenTabItem = memo(function TokenTabItem({
 	}, [onTabClick, tab.poolId])
 
 	const handleClose = useCallback((e: React.MouseEvent) => {
+		e.stopPropagation()
 		onCloseTab(e, tab.poolId)
 	}, [onCloseTab, tab.poolId])
 
 	return (
-		<Button
-			variant={isActive ? "outline" : "ghost"}
-			size="sm"
-			onClick={handleClick}
-			className={cn(
-				"group relative h-8 rounded-md py-1 px-2 min-w-[120px] max-w-[180px] font-normal flex-shrink-0 justify-start",
-				isActive && "!border-destructive/50 !bg-destructive/10 hover:!bg-destructive/15"
-			)}
-		>
-			<div className="flex items-center gap-2 min-w-0 w-full justify-start">
-				<TokenAvatar
-					iconUrl={tab.iconUrl || undefined}
-					symbol={tab.symbol}
-					name={tab.name}
-					className="relative w-5 h-5 rounded border border-border/20 group-hover:border-primary/30 transition-all duration-300 flex-shrink-0"
-				/>
+		<div className="relative group flex-shrink-0">
+			<Button
+				variant={isActive ? "outline" : "ghost"}
+				size="sm"
+				onClick={handleClick}
+				className={cn(
+					"relative h-8 rounded-md py-1 pr-8 pl-2 min-w-[120px] max-w-[180px] font-normal flex-shrink-0 justify-start",
+					isActive && "!border-destructive/50 !bg-destructive/10 hover:!bg-destructive/15"
+				)}
+			>
+				<div className="flex items-center gap-2 min-w-0 w-full justify-start">
+					<TokenAvatar
+						iconUrl={tab.iconUrl || undefined}
+						symbol={tab.symbol}
+						name={tab.name}
+						className="relative w-5 h-5 rounded border border-border/20 group-hover:border-primary/30 transition-all duration-300 flex-shrink-0"
+					/>
 
-				<div className="flex flex-col items-start min-w-0 flex-1 gap-0.5">
-					<span className="text-xs font-medium truncate w-full leading-tight text-left">
-						{tab.symbol}
-					</span>
+					<div className="flex flex-col items-start min-w-0 flex-1 gap-0.5">
+						<span className="text-xs font-medium truncate w-full leading-tight text-left">
+							{tab.symbol}
+						</span>
 
-					<div className="relative w-full">
-						<Progress
-							value={Math.min(progress, 100)}
-							className={cn(
-								"h-1 w-full bg-muted/50 rounded-full",
-								"[&>div]:transition-all [&>div]:duration-500 [&>div]:rounded-full",
-								isComplete
-									? "[&>div]:bg-gradient-to-r [&>div]:from-yellow-400 [&>div]:to-amber-400"
-									: progress >= 85
-										? "[&>div]:bg-gradient-to-r [&>div]:from-green-500 [&>div]:to-emerald-500 [&>div]:animate-pulse"
-										: "[&>div]:bg-gradient-to-r [&>div]:from-primary/60 [&>div]:to-primary"
-							)}
-						/>
+						<div className="relative w-full">
+							<Progress
+								value={Math.min(progress, 100)}
+								className={cn(
+									"h-1 w-full bg-muted/50 rounded-full",
+									"[&>div]:transition-all [&>div]:duration-500 [&>div]:rounded-full",
+									isComplete
+										? "[&>div]:bg-gradient-to-r [&>div]:from-yellow-400 [&>div]:to-amber-400"
+										: progress >= 85
+											? "[&>div]:bg-gradient-to-r [&>div]:from-green-500 [&>div]:to-emerald-500 [&>div]:animate-pulse"
+											: "[&>div]:bg-gradient-to-r [&>div]:from-primary/60 [&>div]:to-primary"
+								)}
+							/>
+						</div>
 					</div>
 				</div>
-
-				<button
-					onClick={handleClose}
-					className={cn(
-						"opacity-0 group-hover:opacity-100 transition-opacity duration-200",
-						"hover:text-destructive p-0.5 rounded ml-auto flex-shrink-0"
-					)}
-				>
-					<X className="w-3 h-3" />
-				</button>
-			</div>
-		</Button>
+			</Button>
+			
+			<button
+				onClick={handleClose}
+				className={cn(
+					"absolute right-1 top-1/2 -translate-y-1/2 z-10",
+					"opacity-0 group-hover:opacity-100 transition-opacity duration-200",
+					"hover:text-destructive p-0.5 rounded flex-shrink-0",
+					"hover:bg-destructive/10"
+				)}
+			>
+				<X className="w-3 h-3" />
+			</button>
+		</div>
 	)
 })
 
