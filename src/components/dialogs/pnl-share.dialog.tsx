@@ -11,14 +11,14 @@ import { Button } from "@/components/ui/button"
 import { Loader2, Copy, Download } from "lucide-react"
 import toast from "react-hot-toast"
 import * as htmlToImage from "html-to-image"
-import type { PoolWithMetadata } from "@/types/pool"
+import type { Token } from "@/types/token"
 import { useUserHoldings } from "@/hooks/use-user-holdings"
 import { formatNumberWithSuffix, formatSmallPrice } from "@/utils/format"
 
 interface PnlDialogProps {
 	isOpen: boolean
 	onOpenChange: (open: boolean) => void
-	pool: PoolWithMetadata
+	pool: Token
 	address?: string | null
 }
 
@@ -26,9 +26,9 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 	const { data: pnlData, isLoading, error } = useUserHoldings(pool, address)
 	const cardRef = useRef<HTMLDivElement>(null)
 
-	const symbol = pool.coinMetadata?.symbol || "?"
-	const name = pool.coinMetadata?.name || "Unknown"
-	const iconUrl = pool.coinMetadata?.iconUrl
+	const symbol = pool.metadata?.symbol || "?"
+	const name = pool.metadata?.name || "Unknown"
+	const iconUrl = pool.metadata?.icon_url
 
 	const isProfit = (pnlData?.pnl ?? 0) >= 0
 	const pnlAmount = Math.abs(pnlData?.pnl ?? 0)

@@ -1,10 +1,8 @@
 "use client";
 
-import { useCreatorData } from "@/hooks/use-creator-data";
 import { useResolveSuiNSName } from "@mysten/dapp-kit";
 import { formatAddress } from "@mysten/sui/utils";
 import {
-	Loader2,
 	Rocket,
 	Users,
 	UserCheck
@@ -16,7 +14,7 @@ import {
 } from "@/components/ui/hover-card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-import type { CreatorData } from "@/types/pool";
+import type { TokenCreator } from "@/types/token";
 
 interface CreatorHoverCardProps {
 	twitterHandle?: string;
@@ -24,19 +22,15 @@ interface CreatorHoverCardProps {
 	walletAddress?: string;
 	children: React.ReactNode;
 	className?: string;
-	creatorData?: CreatorData;
+	data?: TokenCreator;
 }
 
 export function CreatorHoverCard({
 	twitterHandle,
 	walletAddress,
 	children,
-	creatorData: prefetchedData
+	data
 }: CreatorHoverCardProps) {
-	const identifier = twitterHandle || walletAddress;
-	const { data: fetchedData, isLoading } = useCreatorData(prefetchedData ? undefined : identifier);
-	const data = prefetchedData || fetchedData;
-
 	const { data: resolvedDomain } = useResolveSuiNSName(!twitterHandle && walletAddress ? walletAddress : null);
 
 	const displayName = twitterHandle
@@ -44,6 +38,7 @@ export function CreatorHoverCard({
 		: resolvedDomain
 			? resolvedDomain
 			: formatAddress(walletAddress || "");
+
 
 	return (
 		<HoverCard>
@@ -56,15 +51,12 @@ export function CreatorHoverCard({
 					<div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-dashed border-border/20">
 						<div>
 							<p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-								CREATOR::IDENTITY
+								CREATOR IDENTITY
 							</p>
 							<p className="font-mono text-sm uppercase tracking-wider text-foreground/80 mt-1">
 								{displayName}
 							</p>
 						</div>
-						{isLoading && !prefetchedData && (
-							<Loader2 className="h-4 w-4 animate-spin text-muted-foreground/60" />
-						)}
 					</div>
 
 					{/* Stats Grid */}
@@ -85,11 +77,21 @@ export function CreatorHoverCard({
 							</div>
 
 							{/* Trusted Followers */}
-							<Tooltip>
+							<Tooltip delayDuration={2000}>
 								<TooltipTrigger asChild>
 									<div className="relative group flex-1 cursor-help">
 										{(() => {
 											const parseFormattedNumber = (str: string): number => {
+												// Handle banded values like "10K-25K", ">1M", "<100"
+												if (str.includes('-')) {
+													// For ranges, use the lower bound
+													const parts = str.split('-');
+													str = parts[0];
+												} else if (str.startsWith('>') || str.startsWith('<')) {
+													// For > or < indicators, extract the number
+													str = str.substring(1);
+												}
+												
 												const cleanStr = str.replace(/,/g, '');
 												const match = cleanStr.match(/^(\d+\.?\d*)([KMB])?$/i);
 												if (!match) return 0;
@@ -173,13 +175,13 @@ export function CreatorHoverCard({
 								</div>
 							</div>
 						</div>
-					) : !isLoading ? (
+					) : (
 						<div className="text-center py-6">
 							<p className="font-mono text-xs uppercase text-muted-foreground">
 								DATA::UNAVAILABLE
 							</p>
 						</div>
-					) : null}
+					)}
 				</div>
 			</HoverCardContent>
 		</HoverCard>

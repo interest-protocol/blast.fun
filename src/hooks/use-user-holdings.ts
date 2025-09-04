@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import { nexaClient } from "@/lib/nexa"
-import type { PoolWithMetadata } from "@/types/pool"
+import type { Token } from "@/types/token"
 
 export interface UserHoldings {
 	bought: number
@@ -14,7 +14,7 @@ export interface UserHoldings {
 	hasPosition: boolean
 }
 
-export function useUserHoldings(pool: PoolWithMetadata, address?: string | null) {
+export function useUserHoldings(pool: Token, address?: string | null) {
 	const coinType = pool.coinType
 
 	return useQuery({
@@ -51,8 +51,8 @@ export function useUserHoldings(pool: PoolWithMetadata, address?: string | null)
 					}
 				}
 
-				const decimals = pool.coinMetadata?.decimals || pool.metadata?.decimals || 9
-				const currentPrice = pool.marketData?.coinPrice || 0
+				const decimals = pool.metadata?.decimals || 9
+				const currentPrice = pool.market?.price || 0
 
 				// calculate holdings
 				const tokensBought = stats.amountBought / Math.pow(10, decimals)

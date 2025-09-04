@@ -5,6 +5,9 @@ jiti("./src/env")
 /** @type {import('next').NextConfig} */
 export default {
     devIndicators: false,
+    compiler: {
+        removeConsole: process.env.NODE_ENV === 'production'
+    },
     images: {
         remotePatterns: [
             {
