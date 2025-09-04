@@ -141,7 +141,7 @@ export const TokenCard = memo(function TokenCard({
 								</h3>
 								
 								{/* Protection Badges */}
-								{(token.pool?.isProtected || protectionSettings || (token.pool?.burnTax && token.pool?.burnTax > 0)) && (
+								{(token.pool?.isProtected || protectionSettings || (typeof token.pool?.burnTax === 'number' && token.pool?.burnTax > 0)) && (
 									<ProtectionBadges 
 										protectionSettings={protectionSettings}
 										isProtected={token.pool?.isProtected}
