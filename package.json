@@ -9,6 +9,7 @@
 		"dev3": "prisma generate && next dev -p 3022",
 		"dev4": "prisma generate && next dev -p 3033",
 		"dev5": "prisma generate && next dev -p 3044",
+		"dev:nexa": "prisma generate && next dev -p 42062",
 		"build": "prisma generate && next build",
 		"start": "next start",
 		"lint": "next lint"

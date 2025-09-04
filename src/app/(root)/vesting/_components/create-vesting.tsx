@@ -30,7 +30,11 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/utils"
 
-export function CreateVesting() {
+interface CreateVestingProps {
+	onVestingCreated?: () => void
+}
+
+export function CreateVesting({ onVestingCreated }: CreateVestingProps) {
 	const { address, setIsConnectDialogOpen } = useApp()
 	const [coins, setCoins] = useState<WalletCoin[]>([])
 	const [selectedCoin, setSelectedCoin] = useState<string>("")
@@ -243,6 +247,9 @@ export function CreateVesting() {
 			setVestingDurationValue("")
 			setVestingStartDate(undefined)
 			setVestingEndDate(undefined)
+
+			// Switch to positions tab
+			onVestingCreated?.()
 		} catch (error) {
 			console.error("Error creating vesting:", error)
 			toast.error("Failed to create vesting position")

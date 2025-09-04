@@ -2,13 +2,13 @@ import { type ReactNode, createElement } from "react"
 import { MIST_PER_SUI } from "@mysten/sui/utils"
 import BigNumber from "bignumber.js"
 
-export const formatAmount = (amount: string | number | bigint | undefined) => {
+export const formatAmount = (amount: string | number | bigint | undefined, decimals = 9) => {
 	if (amount == null) {
 		return undefined
 	}
 
 	let bn = new BigNumber(amount.toString())
-	bn = bn.shiftedBy(-9)
+	bn = bn.shiftedBy(-decimals)
 
 	return bn.decimalPlaces(2, BigNumber.ROUND_DOWN).toFormat(2)
 }

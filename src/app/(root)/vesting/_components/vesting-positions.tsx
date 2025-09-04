@@ -9,7 +9,7 @@ import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { Loader2, AlertCircle, Clock, TrendingUp, Unlock } from "lucide-react"
 import { TokenAvatar } from "@/components/tokens/token-avatar"
-import { useVesting } from "../_hooks/use-vesting"
+import { useVestingApi } from "../_hooks/use-vesting-api"
 import { formatDuration, calculateClaimableAmount } from "../vesting.utils"
 import { formatAmount } from "@/utils/format"
 import { useTransaction } from "@/hooks/sui/use-transaction"
@@ -21,7 +21,7 @@ import { CoinMetadata } from "@mysten/sui/client"
 
 export function VestingPositions() {
 	const { address, setIsConnectDialogOpen } = useApp()
-	const { positions, isLoading, refetch } = useVesting()
+	const { positions, isLoading, refetch } = useVestingApi()
 	const [claimingId, setClaimingId] = useState<string | null>(null)
 	const { executeTransaction } = useTransaction()
 	const vestingSdk = useVestingSDK()
@@ -156,6 +156,7 @@ export function VestingPositions() {
 	}
 
 	const currentTime = Date.now()
+	console.log({positions});
 
 	return (
 		<div className="space-y-4">
@@ -175,7 +176,7 @@ export function VestingPositions() {
 							<div className="flex items-start justify-between">
 								<div className="flex items-center gap-3">
 									<TokenAvatar
-										iconUrl={metadata?.iconUrl}
+										iconUrl={metadata?.iconUrl || undefined}
 										symbol={metadata?.symbol || "TOKEN"}
 										className="w-10 h-10"
 									/>
@@ -208,21 +209,21 @@ export function VestingPositions() {
 								<div>
 									<p className="text-muted-foreground mb-1">Total Locked</p>
 									<p className="font-medium">
-										{formatAmount(position.lockedAmount, metadata?.decimals || 9)}
+										{formatAmount(position.lockedAmount, 0)}
 										{metadata?.symbol && ` ${metadata.symbol}`}
 									</p>
 								</div>
 								<div>
 									<p className="text-muted-foreground mb-1">Already Claimed</p>
 									<p className="font-medium">
-										{formatAmount(position.claimedAmount, metadata?.decimals || 9)}
+										{formatAmount(position.claimedAmount, 0)}
 										{metadata?.symbol && ` ${metadata.symbol}`}
 									</p>
 								</div>
 								<div>
 									<p className="text-muted-foreground mb-1">Claimable Now</p>
 									<p className="font-medium text-green-600">
-										{formatAmount(claimableAmount, metadata?.decimals || 9)}
+										{formatAmount(claimableAmount, 0)}
 										{metadata?.symbol && ` ${metadata.symbol}`}
 									</p>
 								</div>
@@ -257,7 +258,7 @@ export function VestingPositions() {
 									) : (
 										<>
 											<TrendingUp className="mr-2 h-4 w-4" />
-											Claim {formatAmount(claimableAmount, metadata?.decimals || 9)}
+											Claim {formatAmount(claimableAmount)}
 											{metadata?.symbol && ` ${metadata.symbol}`}
 										</>
 									)}
