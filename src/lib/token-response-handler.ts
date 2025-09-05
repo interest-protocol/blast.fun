@@ -80,7 +80,7 @@ export async function enhanceTokensWithTimeout(
 			.filter((p: any) => p?.publicKey)
 			.map((p: any) => p.poolId)
 		
-		let protectionSettingsMap = new Map()
+		const protectionSettingsMap = new Map()
 		if (poolIds.length > 0) {
 			try {
 				const protectionSettings = await prisma.tokenProtectionSettings.findMany({
