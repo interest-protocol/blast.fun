@@ -5,7 +5,7 @@ import { TokenCard } from "./token-card"
 import { TokenListLayout } from "./token-list.layout"
 import { TokenCardSkeleton } from "./token-card.skeleton"
 import { Logo } from "@/components/ui/logo"
-import { TokenListFilters } from "./token-list-filters"
+import { TokenListFilters } from "./token-list.filters"
 import { useLatestTokens } from "@/hooks/use-tokens"
 import type { TokenListSettings, TokenFilters } from "@/types/token"
 

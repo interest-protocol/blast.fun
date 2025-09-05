@@ -5,13 +5,13 @@ import { TokenCard } from "./token-card"
 import { TokenCardSkeleton } from "./token-card.skeleton"
 import { Logo } from "@/components/ui/logo"
 import { Button } from "@/components/ui/button"
-import { TokenListSettingsDialog, type TokenListSettings } from "./token-list.settings"
+import { TokenListFilters } from "./token-list.filters"
 import { 
 	useLatestTokens, 
 	useAboutToBondTokens, 
 	useBondedTokens
 } from "@/hooks/use-tokens"
-import type { TokenFilters } from "@/types/token"
+import type { TokenFilters, TokenListSettings, TokenSortOption } from "@/types/token"
 import { cn } from "@/utils"
 
 type TabType = "new" | "graduating" | "graduated"
@@ -30,12 +30,12 @@ const TABS: TabData[] = [
 	},
 	{
 		key: "graduating",
-		label: "SOON™",
+		label: "BONDING",
 		pollInterval: 10000
 	},
 	{
 		key: "graduated",
-		label: "GRAD",
+		label: "BONDED",
 		pollInterval: 30000
 	}
 ]
@@ -51,10 +51,14 @@ const TabContent = memo(function TabContent({
 }) {
 	// @dev: Build filter params based on settings
 	const filterParams = useMemo<TokenFilters | undefined>(() => {
-		const params: TokenFilters = {}
+		if (!settings.filters) return undefined
+		
+		const params: TokenFilters = {
+			...settings.filters
+		}
 		
 		return Object.keys(params).length > 0 ? params : undefined
-	}, [tab.key])
+	}, [settings.filters])
 
 	// @dev: aall all hooks unconditionally to satisfy React rules
 	const latestTokensQuery = useLatestTokens(filterParams, {
@@ -83,7 +87,7 @@ const TabContent = memo(function TabContent({
 		if (!data || data.length === 0) return []
 
 		switch (settings.sortBy) {
-			case "bondingCurve":
+			case "bondingProgress":
 				return [...data].sort((a, b) => {
 					const aBonding = a.market?.bondingProgress || 0
 					const bBonding = b.market?.bondingProgress || 0
@@ -186,43 +190,29 @@ export const MobileTokenList = memo(function MobileTokenList() {
 	const [activeTab, setActiveTab] = useState<TabType>("new")
 	const [settings, setSettings] = useState<TokenListSettings>({
 		sortBy: "date",
-		socialFilters: {
-			requireWebsite: false,
-			requireTwitter: false,
-			requireTelegram: false,
+		filters: {
+			tabType: 'newly-created'
 		}
 	})
 
 	const handleTabChange = useCallback((tab: TabType) => {
 		setActiveTab(tab)
-		const defaultSort = tab === "graduating" ? "bondingCurve" : tab === "graduated" ? "marketCap" : "date"
-		setSettings(prev => ({ ...prev, sortBy: defaultSort }))
+		const defaultSort: TokenSortOption = tab === "graduating" ? "bondingProgress" : tab === "graduated" ? "marketCap" : "date"
+		const tabType = tab === "graduating" ? "about-to-bond" : tab === "graduated" ? "bonded" : "newly-created"
+		setSettings(prev => ({ 
+			...prev, 
+			sortBy: defaultSort,
+			filters: {
+				...prev.filters,
+				tabType
+			}
+		}))
 	}, [])
 
-	const getSortOptions = useCallback((tab: TabType) => {
-		const baseOptions: Array<{ value: TokenListSettings["sortBy"], label: string }> = [
-			{ value: "marketCap", label: "MARKET::CAP" },
-			{ value: "volume", label: "VOLUME::24H" },
-			{ value: "holders", label: "HOLDER::COUNT" },
-		]
-
-		if (tab === "new") {
-			return [
-				{ value: "date" as const, label: "CREATION::TIME" },
-				...baseOptions
-			]
-		} else if (tab === "graduating") {
-			return [
-				{ value: "bondingCurve" as const, label: "BONDING::PROGRESS" },
-				{ value: "date" as const, label: "RECENT::TRADES" },
-				...baseOptions
-			]
-		} else {
-			return [
-				{ value: "date" as const, label: "RECENT::TRADES" },
-				...baseOptions
-			]
-		}
+	const getDefaultSort = useCallback((tab: TabType): TokenSortOption => {
+		if (tab === "graduating") return "bondingProgress"
+		if (tab === "graduated") return "marketCap"
+		return "date"
 	}, [])
 
 	return (
@@ -248,11 +238,11 @@ export const MobileTokenList = memo(function MobileTokenList() {
 					))}
 				</div>
 				
-				<TokenListSettingsDialog
+				<TokenListFilters
 					columnId={`mobile-${activeTab}`}
 					onSettingsChange={setSettings}
-					defaultSort={settings.sortBy}
-					availableSortOptions={getSortOptions(activeTab)}
+					defaultSort={getDefaultSort(activeTab)}
+					defaultTab={activeTab === "graduating" ? "about-to-bond" : activeTab === "graduated" ? "bonded" : "newly-created"}
 				/>
 			</div>
 
