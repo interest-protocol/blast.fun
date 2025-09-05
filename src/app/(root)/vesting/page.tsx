@@ -1,5 +1,7 @@
+import { Suspense } from "react"
 import { constructMetadata } from "@/lib/metadata"
 import VestingContent from "./_components/vesting-content"
+import { Loader2 } from "lucide-react"
 
 export const metadata = constructMetadata({
 	title: "Token Vesting",
@@ -7,5 +9,13 @@ export const metadata = constructMetadata({
 })
 
 export default function VestingPage() {
-	return <VestingContent />
+	return (
+		<Suspense fallback={
+			<div className="flex items-center justify-center min-h-screen">
+				<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+			</div>
+		}>
+			<VestingContent />
+		</Suspense>
+	)
 }
