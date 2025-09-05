@@ -2,7 +2,7 @@
 
 import { useMemo } from "react"
 import { MemezVestingSDK } from "@interest-protocol/memez-fun-sdk"
-import { Network } from "@interest-protocol/sui-core-sdk"
+import { Network } from "@/types/network"
 import { getFullnodeUrl } from "@mysten/sui/client"
 
 export function useVestingSDK() {
