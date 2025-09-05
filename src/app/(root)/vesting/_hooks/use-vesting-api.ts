@@ -39,7 +39,8 @@ export function useVestingApi() {
 					startTime: startTime,
 					duration: duration,
 					endTime: startTime + duration,
-					claimableAmount: "0" // Will be calculated below
+					claimableAmount: "0", // Will be calculated below
+					isDestroyed: apiPosition.isDestroyed,
 				}
 			})
 
