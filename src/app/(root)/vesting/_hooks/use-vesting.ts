@@ -43,16 +43,33 @@ export function useVesting() {
 			const vestingObjects = await vestingSdk.getMultiple(vestingIds)
 
 			// @dev: Convert to our VestingPosition format
-			const formattedPositions: VestingPosition[] = vestingObjects.map((vesting) => ({
-				id: vesting.objectId,
-				owner: vesting.owner,
-				coinType: vesting.coinType,
-				lockedAmount: (vesting.balance + vesting.released).toString(),
-				claimedAmount: vesting.released.toString(),
-				startTime: Number(vesting.start),
-				duration: Number(vesting.duration),
-				endTime: Number(vesting.start) + Number(vesting.duration),
-			}))
+			const formattedPositions: VestingPosition[] = vestingObjects.map((vesting) => {
+				const currentTime = Date.now()
+				const startTime = Number(vesting.start)
+				const duration = Number(vesting.duration)
+				const endTime = startTime + duration
+				const elapsed = Math.max(0, Math.min(currentTime - startTime, duration))
+				
+				// @dev: Convert bigint to number for calculations, then back to bigint
+				const totalAmount = vesting.balance + vesting.released
+				const vestedAmount = (totalAmount * BigInt(elapsed)) / BigInt(duration)
+				const claimableAmount = vestedAmount > vesting.released 
+					? vestedAmount - vesting.released 
+					: BigInt(0)
+				
+				return {
+					id: vesting.objectId,
+					owner: vesting.owner,
+					coinType: vesting.coinType,
+					lockedAmount: totalAmount.toString(),
+					claimedAmount: vesting.released.toString(),
+					claimableAmount: claimableAmount.toString(),
+					startTime,
+					duration,
+					endTime,
+					isDestroyed: false // @dev: Active vesting positions are not destroyed
+				}
+			})
 
 			setPositions(formattedPositions)
 		} catch (error) {
