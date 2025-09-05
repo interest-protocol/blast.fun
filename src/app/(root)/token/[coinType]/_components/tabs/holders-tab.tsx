@@ -283,10 +283,7 @@ export function HoldersTab({ pool, className, activeTab = "holders", onTabChange
 											<div className="flex items-center gap-2">
 												{isAggregatedBurn ? (
 													<div className="flex items-center gap-2">
-														<span className="font-mono text-[10px] sm:text-xs text-destructive">
-																0x0000...0000
-															</span>
-															<span className="px-1.5 py-0.5 bg-destructive/10 rounded font-mono text-[9px] uppercase text-destructive">
+														<span className="px-1.5 py-0.5 bg-destructive/10 rounded font-mono text-[9px] uppercase text-destructive">
 															BURN
 														</span>
 													</div>
