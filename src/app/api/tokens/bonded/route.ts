@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { fetchCreatorsBatch } from "@/lib/fetch-creators-batch"
 import { GET_POOLS_BATCH } from "@/graphql/pools"
 
-export const revalidate = 1
+export const revalidate = 5
 
 export async function GET(request: Request) {
 	try {
@@ -112,14 +112,14 @@ export async function GET(request: Request) {
 
 				return NextResponse.json(enhancedTokens, {
 					headers: {
-						"Cache-Control": "public, s-maxage=1, stale-while-revalidate=59"
+						"Cache-Control": "public, s-maxage=5, stale-while-revalidate=59"
 					}
 				})
 			} catch (graphqlError) {
 				console.error("GraphQL error:", graphqlError)
 				return NextResponse.json(tokens, {
 					headers: {
-						"Cache-Control": "public, s-maxage=1, stale-while-revalidate=59"
+						"Cache-Control": "public, s-maxage=5, stale-while-revalidate=59"
 					}
 				})
 			}
@@ -127,7 +127,7 @@ export async function GET(request: Request) {
 
 		return NextResponse.json(tokens, {
 			headers: {
-				"Cache-Control": "public, s-maxage=1, stale-while-revalidate=59"
+				"Cache-Control": "public, s-maxage=5, stale-while-revalidate=59"
 			}
 		})
 	} catch (error) {
