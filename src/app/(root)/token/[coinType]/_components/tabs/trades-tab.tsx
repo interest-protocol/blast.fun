@@ -88,7 +88,11 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 	const { data: twitterRelations } = useQuery({
 		queryKey: ["twitter-relations", pool.pool?.poolId],
 		queryFn: async () => {
-			const response = await fetch(`/api/pool/${pool.pool?.poolId}/twitter-relations`)
+			const response = await fetch(`/api/pool/${pool.pool?.poolId}/twitter-relations`, {
+				headers: {
+					'cloudflare-cache': '10'
+				}
+			})
 			if (!response.ok) return null
 			const data = await response.json()
 			return data.relations as TwitterRelation[]
