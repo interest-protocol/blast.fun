@@ -56,36 +56,19 @@ export async function GET(
 				throw new Error("No coin metadata from Nexa API")
 			}
 			const totalSupply = coinMetadata?.supply
-			const burnedSupply = String((1_000_000_000_000_000_000 - totalSupply) / 10 ** 9)
-			const burnAddress = "0x0000000000000000000000000000000000000000000000000000000000000000";
-			const burnHolderIndex = holders.findIndex((holder) => holder.account === burnAddress);
-			if (burnHolderIndex !== -1) {
-				// If burn address is present, add burnedSupply to its balance
-				const burnHolder = holders[burnHolderIndex];
-				const updatedBalance = (parseFloat(burnHolder.balance) + parseFloat(burnedSupply)).toString();
-				const updatedPercentage = (Number(updatedBalance) / 1_000_000_000).toString();
-				holders[burnHolderIndex] = {
-					...burnHolder,
-					balance: updatedBalance,
-					percentage: updatedPercentage,
-				};
-			} else {
-				// If burn address is not present, add a new holder for it
+			const trueBurnedSupply = String((1000000000000000000n - BigInt(totalSupply)) / 10n ** 9n)
+			
+			// Add true_burn as a separate holder if there's actually burned supply
+			if (parseFloat(trueBurnedSupply) > 0) {
 				holders.push({
-					account: burnAddress,
-					balance: burnedSupply,
-					percentage: (Number(burnedSupply) / 1_000_000_000).toString(),
+					account: "true_burn",
+					balance: trueBurnedSupply,
+					percentage: (Number(trueBurnedSupply) / 1_000_000_000).toString(),
 					name: "",
 					image: "",
 					website: ""
 				});
 			}
-			// Sort holders by balance (descending)
-			holders.sort((a, b) => {
-				const balanceA = typeof a.balance === "string" ? parseFloat(a.balance) : a.balance;
-				const balanceB = typeof b.balance === "string" ? parseFloat(b.balance) : b.balance;
-				return balanceB - balanceA;
-			});
 		} catch (nexaError) {
 			console.log(`⚠️ Nexa API failed, falling back to BlockVision: ${nexaError}`)
 			

@@ -9,6 +9,7 @@ import { formatAddress } from "@mysten/sui/utils"
 import { cn } from "@/utils"
 import { Logo } from "@/components/ui/logo"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useSuiNSNames } from "@/hooks/use-suins"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { PROJECT_WALLETS } from "@/constants/project-wallets"
@@ -33,6 +34,12 @@ interface CoinHolder {
 	name: string
 	image: string
 	website: string
+	burnBreakdown?: {
+		zeroAddress: number
+		zeroAddressPercent: number
+		trueBurn: number
+		trueBurnPercent: number
+	}
 }
 
 interface HoldersResponse {
@@ -76,12 +83,50 @@ export function HoldersTab({ pool, className, activeTab = "holders", onTabChange
 		return data.holders.filter(holder => PROJECT_WALLETS[holder.account])
 	}, [data?.holders])
 
-	// @dev: Get display holders based on active tab
+	// @dev: Get display holders based on active tab and aggregate burns
 	const displayHolders = useMemo(() => {
 		if (activeTab === "projects") {
 			return projectHolders
 		}
-		return data?.holders || []
+		
+		const holders = data?.holders || []
+		
+		// Find burn addresses
+		const burnAddress = holders.find(h => h.account === "0x0000000000000000000000000000000000000000000000000000000000000000")
+		const trueBurn = holders.find(h => h.account === "true_burn")
+		
+		// Filter out individual burn addresses
+		const filteredHolders = holders.filter(h => 
+			h.account !== "0x0000000000000000000000000000000000000000000000000000000000000000" && 
+			h.account !== "true_burn"
+		)
+		
+		// Create aggregated burn holder if either exists
+		if (burnAddress || trueBurn) {
+			const burnBalance = parseFloat(burnAddress?.balance || "0")
+			const trueBurnBalance = parseFloat(trueBurn?.balance || "0")
+			const totalBurnBalance = burnBalance + trueBurnBalance
+			
+			const aggregatedBurn = {
+				account: "aggregated_burn",
+				balance: totalBurnBalance.toString(),
+				percentage: (totalBurnBalance / 1_000_000_000).toString(),
+				name: "",
+				image: "",
+				website: "",
+				burnBreakdown: {
+					zeroAddress: burnBalance,
+					zeroAddressPercent: (burnBalance / 1_000_000_000) * 100,
+					trueBurn: trueBurnBalance,
+					trueBurnPercent: (trueBurnBalance / 1_000_000_000) * 100
+				}
+			}
+			
+			filteredHolders.push(aggregatedBurn)
+		}
+		
+		// Sort by balance descending
+		return filteredHolders.sort((a, b) => parseFloat(b.balance) - parseFloat(a.balance))
 	}, [activeTab, data?.holders, projectHolders])
 
 	// @dev: Get all holder addresses for SuiNS resolution
@@ -207,18 +252,20 @@ export function HoldersTab({ pool, className, activeTab = "holders", onTabChange
 						const formattedBalance = formatNumberWithSuffix(balanceNum)
 						// @dev: Check if this holder is the developer
 						const isDev = holder.account === pool.creator?.address
-						// @dev: Check if this is the burn address
-						const isBurn = holder.account === "0x0000000000000000000000000000000000000000000000000000000000000000"
+						// @dev: Check if this is the aggregated burn address
+						const isAggregatedBurn = holder.account === "aggregated_burn"
 
-						return (
-							<div
-								key={holder.account}
-								className="relative group hover:bg-muted/5 transition-all duration-200"
-							>
-								<div className="relative grid grid-cols-12 py-2 sm:py-3 items-center border-b border-border/30">
+						const rowContent = (
+							<div className={cn(
+								"relative grid grid-cols-12 py-2 sm:py-3 items-center border-b border-border/30",
+								isAggregatedBurn && "text-destructive"
+							)}>
 									{/* Rank */}
 									<div className="col-span-1 text-center">
-										<div className="font-mono text-[10px] sm:text-xs text-muted-foreground">
+										<div className={cn(
+											"font-mono text-[10px] sm:text-xs",
+											isAggregatedBurn ? "text-destructive" : "text-muted-foreground"
+										)}>
 											{rank}
 										</div>
 									</div>
@@ -234,7 +281,16 @@ export function HoldersTab({ pool, className, activeTab = "holders", onTabChange
 										)}
 										<div className="flex-1">
 											<div className="flex items-center gap-2">
-												{projectName ? (
+												{isAggregatedBurn ? (
+													<div className="flex items-center gap-2">
+														<span className="font-mono text-[10px] sm:text-xs text-destructive">
+																0x0000...0000
+															</span>
+															<span className="px-1.5 py-0.5 bg-destructive/10 rounded font-mono text-[9px] uppercase text-destructive">
+															BURN
+														</span>
+													</div>
+												) : projectName ? (
 													<a
 														href={`https://suivision.xyz/account/${holder.account}`}
 														target="_blank"
@@ -305,17 +361,15 @@ export function HoldersTab({ pool, className, activeTab = "holders", onTabChange
 														DEV
 													</span>
 												)}
-												{isBurn && (
-													<span className="px-1.5 py-0.5 bg-destructive/10 rounded font-mono text-[9px] uppercase text-destructive">
-														BURN
-													</span>
-												)}
 											</div>
 										</div>
 									</div>
 
 									{/* Holdings */}
-									<div className="col-span-3 text-right font-mono text-[10px] sm:text-xs text-foreground/80">
+									<div className={cn(
+										"col-span-3 text-right font-mono text-[10px] sm:text-xs",
+										isAggregatedBurn ? "text-destructive" : "text-foreground/80"
+									)}>
 										{formattedBalance}
 									</div>
 
@@ -323,6 +377,7 @@ export function HoldersTab({ pool, className, activeTab = "holders", onTabChange
 									<div className="col-span-3 text-right pr-2">
 										<span className={cn(
 											"font-mono text-[10px] sm:text-xs font-bold",
+											isAggregatedBurn ? "text-destructive" :
 											percentage >= 10 ? "text-destructive" : 
 											percentage >= 5 ? "text-yellow-500" : 
 											"text-foreground/60"
@@ -331,6 +386,32 @@ export function HoldersTab({ pool, className, activeTab = "holders", onTabChange
 										</span>
 									</div>
 								</div>
+						)
+
+						return (
+							<div
+								key={holder.account}
+								className="relative group hover:bg-muted/5 transition-all duration-200"
+							>
+								{isAggregatedBurn && holder.burnBreakdown ? (
+									<TooltipProvider>
+										<Tooltip>
+											<TooltipTrigger asChild>
+												<div className="cursor-help">
+													{rowContent}
+												</div>
+											</TooltipTrigger>
+											<TooltipContent>
+												<div className="space-y-1 text-xs">
+													<div>0x00...000: {holder.burnBreakdown.zeroAddressPercent.toFixed(1)}%</div>
+													<div>True Burn: {holder.burnBreakdown.trueBurnPercent.toFixed(1)}%</div>
+												</div>
+											</TooltipContent>
+										</Tooltip>
+									</TooltipProvider>
+								) : (
+									rowContent
+								)}
 							</div>
 						)
 					})}
