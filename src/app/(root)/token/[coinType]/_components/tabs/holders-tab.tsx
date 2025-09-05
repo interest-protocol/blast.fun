@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { Token } from "@/types/token"
-import { Users, ExternalLink, Building2 } from "lucide-react"
+import { Users, ExternalLink, Building2, User } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useQuery } from "@tanstack/react-query"
 import { formatAddress } from "@mysten/sui/utils"
@@ -13,6 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useSuiNSNames } from "@/hooks/use-suins"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { PROJECT_WALLETS } from "@/constants/project-wallets"
+import { useTwitterRelations } from "../../_context/twitter-relations.context"
 
 interface HoldersTabProps {
 	pool: Token
@@ -47,6 +48,7 @@ interface HoldersResponse {
 	timestamp: number
 }
 
+
 // @dev: Wrapper component that manages state
 export function HoldersWithTabs({ pool, className }: HoldersWithTabsProps) {
 	const [activeTab, setActiveTab] = useState<"holders" | "projects">("holders")
@@ -76,6 +78,8 @@ export function HoldersTab({ pool, className, activeTab = "holders", onTabChange
 		refetchInterval: 15000, // @dev: Refetch every 15 seconds (matches edge cache)
 		staleTime: 10000, // @dev: Consider data stale after 10 seconds
 	})
+
+	const { addressToTwitter } = useTwitterRelations()
 
 	// @dev: Filter project holders from the main holders list
 	const projectHolders = useMemo(() => {
@@ -287,6 +291,19 @@ export function HoldersTab({ pool, className, activeTab = "holders", onTabChange
 															BURN
 														</span>
 													</div>
+												) : addressToTwitter.has(holder.account) ? (
+													<a
+														href={`https://x.com/${addressToTwitter.get(holder.account)}`}
+														target="_blank"
+														rel="noopener noreferrer"
+														className="font-mono text-[10px] sm:text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+													>
+														<User className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />
+														<span className="text-primary truncate max-w-[80px] sm:max-w-[120px] md:max-w-[150px]">@{addressToTwitter.get(holder.account)}</span>
+														{isDev && (
+															<span className="text-destructive font-bold flex-shrink-0">(DEV)</span>
+														)}
+													</a>
 												) : projectName ? (
 													<a
 														href={`https://suivision.xyz/account/${holder.account}`}
