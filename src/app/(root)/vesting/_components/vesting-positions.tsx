@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Loader2, AlertCircle, Clock, TrendingUp, Unlock } from "lucide-react"
 import { TokenAvatar } from "@/components/tokens/token-avatar"
 import { useVestingApi } from "../_hooks/use-vesting-api"
-import { formatDuration } from "../vesting.utils"
+import { formatDuration, VestingPosition } from "../vesting.utils"
 import { formatAmount } from "@/utils/format"
 import { useTransaction } from "@/hooks/sui/use-transaction"
 import { Transaction } from "@mysten/sui/transactions"
@@ -70,52 +70,51 @@ export function VestingPositions({ shouldRefresh, onRefreshed }: VestingPosition
 		}
 	}, [positions])
 
-	const handleClaim = async (positionId: string) => {
+	const handleClaimOrDestroy = async (position: VestingPosition) => {
 		if (!address) {
 			setIsConnectDialogOpen(true)
 			return
 		}
 
-		setClaimingId(positionId)
+		const currentTime = Date.now()
+		const isFullyVested = currentTime >= position.endTime
+		const claimableAmount = parseFloat(position.claimableAmount)
+		const hasClaimableTokens = claimableAmount > 0
+
+		setClaimingId(position.id)
 		try {
-			// @dev: Claim vested tokens using SDK
-			const { tx, coin } = await vestingSdk.claim({
-				vesting: positionId,
-			})
-			tx.transferObjects([coin], address)
-			
-			await executeTransaction(tx)
-
-			toast.success("Successfully claimed vested tokens!")
-			refetch()
+			if (isFullyVested) {
+				// @dev: Vesting is complete - claim and destroy in one transaction
+				const { tx, coin } = await vestingSdk.claim({
+					vesting: position.id,
+				})
+				tx.transferObjects([coin], address)
+				
+				// @dev: Destroy vesting position after claiming
+				await vestingSdk.uncheckedDestroyZeroBalance({
+					tx,
+					vestingObjectId: position.id,
+					coinType: position.coinType,
+				})
+				
+				await executeTransaction(tx)
+				toast.success("All tokens claimed and vesting completed!")
+				refetch()
+			} else {
+				// @dev: Normal claim for active vesting
+				const { tx, coin } = await vestingSdk.claim({
+					vesting: position.id,
+				})
+				tx.transferObjects([coin], address)
+				
+				await executeTransaction(tx)
+				toast.success("Successfully claimed vested tokens!")
+				refetch()
+			}
 		} catch (error) {
-			console.error("Error claiming vested tokens:", error)
-			toast.error("Failed to claim vested tokens")
-		} finally {
-			setClaimingId(null)
-		}
-	}
-
-	const handleDestroy = async (positionId: string) => {
-		if (!address) {
-			setIsConnectDialogOpen(true)
-			return
-		}
-
-		setClaimingId(positionId)
-		try {
-			// @dev: Destroy vesting position when balance is zero
-			const { tx } = await vestingSdk.destroyZeroBalance({
-				vesting: positionId,
-			})
-			
-			await executeTransaction(tx)
-
-			toast.success("Vesting position destroyed successfully!")
-			refetch()
-		} catch (error) {
-			console.error("Error destroying vesting position:", error)
-			toast.error("Failed to destroy vesting position")
+			console.error("Error processing vesting action:", error)
+			const errorMessage = isFullyVested ? "Failed to complete vesting" : "Failed to claim vested tokens"
+			toast.error(errorMessage)
 		} finally {
 			setClaimingId(null)
 		}
@@ -170,14 +169,14 @@ export function VestingPositions({ shouldRefresh, onRefreshed }: VestingPosition
 	return (
 		<div className="space-y-4">
 			{positions.map((position) => {
-				const progress = Math.min(
-					100,
-					((currentTime - position.startTime) / position.duration) * 100
-				)
+				const progress = position.isDestroyed 
+					? 100 
+					: Math.min(100, ((currentTime - position.startTime) / position.duration) * 100)
 				const claimableAmount = position.claimableAmount
 				
 				const isFullyUnlocked = currentTime >= position.endTime
 				const hasStarted = currentTime >= position.startTime
+				const isDestroyed = position.isDestroyed
 				const metadata = tokenMetadata[position.coinType]
 
 				return (
@@ -199,8 +198,8 @@ export function VestingPositions({ shouldRefresh, onRefreshed }: VestingPosition
 										</CardDescription>
 									</div>
 								</div>
-								<Badge variant={isFullyUnlocked ? "default" : hasStarted ? "secondary" : "outline"}>
-									{isFullyUnlocked ? "Fully Unlocked" : hasStarted ? "Active" : "Pending"}
+								<Badge variant={isDestroyed ? "default" : isFullyUnlocked ? "default" : hasStarted ? "secondary" : "outline"}>
+									{isDestroyed ? "Finished" : isFullyUnlocked ? "Fully Unlocked" : hasStarted ? "Active" : "Pending"}
 								</Badge>
 							</div>
 						</CardHeader>
@@ -226,64 +225,71 @@ export function VestingPositions({ shouldRefresh, onRefreshed }: VestingPosition
 								<div>
 									<p className="text-muted-foreground mb-1">Already Claimed</p>
 									<p className="font-medium">
-										{formatAmount(position.claimedAmount, 0)}
+										{formatAmount(isDestroyed ? position.lockedAmount : position.claimedAmount, 0)}
 										{metadata?.symbol && ` ${metadata.symbol}`}
 									</p>
 								</div>
-								<div>
-									<p className="text-muted-foreground mb-1">Claimable Now</p>
-									<p className="font-medium text-green-600">
-										{formatAmount(parseFloat(claimableAmount) - parseFloat(position.claimedAmount), 0)}
-										{metadata?.symbol && ` ${metadata.symbol}`}
-									</p>
-								</div>
-								<div>
-									<p className="text-muted-foreground mb-1">Time Remaining</p>
-									<p className="font-medium">
-										{isFullyUnlocked
-											? "Complete"
-											: hasStarted
-											? formatDuration(position.endTime - currentTime)
-											: `Starts in ${formatDuration(position.startTime - currentTime)}`}
-									</p>
-								</div>
+								{!isDestroyed && (
+									<>
+										<div>
+											<p className="text-muted-foreground mb-1">Claimable Now</p>
+											<p className="font-medium text-green-600">
+												{formatAmount(parseFloat(claimableAmount) - parseFloat(position.claimedAmount), 0)}
+												{metadata?.symbol && ` ${metadata.symbol}`}
+											</p>
+										</div>
+										<div>
+											<p className="text-muted-foreground mb-1">Time Remaining</p>
+											<p className="font-medium">
+												{isFullyUnlocked
+													? "Complete"
+													: hasStarted
+													? formatDuration(position.endTime - currentTime)
+													: `Starts in ${formatDuration(position.startTime - currentTime)}`}
+											</p>
+										</div>
+									</>
+								)}
 							</div>
 
 							{/* Actions */}
-							<div className="flex gap-2">
-								<Button
-									onClick={() => handleClaim(position.id)}
-									disabled={
-										claimingId === position.id ||
-										!claimableAmount ||
-										claimableAmount === "0" ||
-										!hasStarted
-									}
-									className="flex-1"
-								>
-									{claimingId === position.id ? (
-										<>
-											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-											Claiming...
-										</>
-									) : (
-										<>
-											<TrendingUp className="mr-2 h-4 w-4" />
-											Claim {formatAmount(parseFloat(claimableAmount) - parseFloat(position.claimedAmount), 0)}
-											{metadata?.symbol && ` ${metadata.symbol}`}
-										</>
-									)}
-								</Button>
-								{position.owner === address && (
+							{!isDestroyed && (
+								<div className="flex justify-center">
 									<Button
-										onClick={() => handleDestroy(position.id)}
-										variant="destructive"
-										disabled={claimingId === position.id}
+										onClick={() => handleClaimOrDestroy(position)}
+										disabled={
+											claimingId === position.id ||
+											!claimableAmount ||
+											claimableAmount === "0" ||
+											!hasStarted
+										}
+										variant={isFullyUnlocked ? "destructive" : "default"}
+										className="flex-1"
 									>
-										<Unlock className="h-4 w-4" />
+										{claimingId === position.id ? (
+											<>
+												<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+												{isFullyUnlocked ? "Completing..." : "Claiming..."}
+											</>
+										) : (
+											<>
+												{isFullyUnlocked ? (
+													<>
+														<Unlock className="mr-2 h-4 w-4" />
+														Complete & Finish
+													</>
+												) : (
+													<>
+														<TrendingUp className="mr-2 h-4 w-4" />
+														Claim {formatAmount(claimableAmount)}
+														{metadata?.symbol && ` ${metadata.symbol}`}
+													</>
+												)}
+											</>
+										)}
 									</Button>
-								)}
-							</div>
+								</div>
+							)}
 						</CardContent>
 					</Card>
 				)

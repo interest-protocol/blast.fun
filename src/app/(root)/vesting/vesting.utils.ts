@@ -10,6 +10,7 @@ export interface VestingPosition {
 	duration: number
 	endTime: number
 	claimableAmount: string
+	isDestroyed: boolean
 }
 
 
