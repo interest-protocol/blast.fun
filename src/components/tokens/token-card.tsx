@@ -226,6 +226,7 @@ export const TokenCard = memo(function TokenCard({
 													twitterHandle={token.creator?.twitterHandle || tokenData.creatorData?.twitterHandle || undefined}
 													twitterId={token.creator?.twitterId || tokenData.creatorData?.twitterId || undefined}
 													className="text-foreground/80 hover:text-foreground transition-colors cursor-pointer"
+													asLink={false}
 												/>
 											</span>
 										</CreatorHoverCard>
@@ -240,15 +241,16 @@ export const TokenCard = memo(function TokenCard({
 											{socialLinks.map((link, index) => (
 												<Tooltip key={index}>
 													<TooltipTrigger asChild>
-														<a
-															href={link.href}
-															target="_blank"
-															rel="noopener noreferrer"
-															onClick={(e) => e.stopPropagation()}
+														<button
+															onClick={(e) => {
+																e.stopPropagation()
+																e.preventDefault()
+																window.open(link.href, '_blank', 'noopener,noreferrer')
+															}}
 															className="text-muted-foreground/60 hover:text-primary transition-colors"
 														>
 															<link.icon className="w-3 h-3" />
-														</a>
+														</button>
 													</TooltipTrigger>
 													<TooltipContent>
 														<p className="text-xs font-mono uppercase">{link.tooltip}</p>

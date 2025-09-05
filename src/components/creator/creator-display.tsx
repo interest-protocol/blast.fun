@@ -62,7 +62,7 @@ export const CreatorDisplay = forwardRef<
 	const handleClick = (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
 		if (onClick) {
 			onClick(e)
-		} else if (displayData.href && asLink) {
+		} else if (displayData.href) {
 			e.stopPropagation()
 			e.preventDefault()
 			window.open(displayData.href, "_blank", "noopener,noreferrer")

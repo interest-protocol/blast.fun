@@ -5,7 +5,7 @@ import type { Metadata } from "next"
 import { GoogleAnalytics } from '@next/third-parties/google'
 import { SessionProvider } from "next-auth/react"
 import { Toaster } from "react-hot-toast"
-import { ReactScan } from "@/components/utils/react-scan"
+// import { ReactScan } from "@/components/utils/react-scan"
 import { TailwindIndicator } from "@/components/utils/tailwind-indicator"
 import { TwitterAuthProvider } from "@/context/twitter.context"
 import { geistMono, geistSans } from "@/fonts"
@@ -23,6 +23,36 @@ export const metadata: Metadata = {
 		template: `%s | ${siteConfig.name}`,
 	},
 	description: siteConfig.description,
+	metadataBase: new URL(siteConfig.url),
+	openGraph: {
+		title: siteConfig.name,
+		description: siteConfig.description,
+		url: siteConfig.url,
+		siteName: siteConfig.name,
+		images: [
+			{
+				url: `${siteConfig.url}/api/og`,
+				width: 1200,
+				height: 630,
+				alt: siteConfig.name,
+				type: 'image/png',
+			},
+		],
+		locale: 'en_US',
+		type: 'website',
+	},
+	twitter: {
+		card: 'summary_large_image',
+		title: siteConfig.name,
+		description: siteConfig.description,
+		images: [`${siteConfig.url}/api/og`],
+		creator: '@blastdotfun',
+	},
+	icons: {
+		icon: '/favicon.ico',
+		shortcut: '/favicon-16x16.png',
+		apple: '/apple-touch-icon.png',
+	},
 }
 
 export default function RootLayout({
@@ -32,7 +62,7 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en" suppressHydrationWarning>
-			<ReactScan />
+			{/* <ReactScan /> */}
 			<body className={cn(geistSans.variable, geistMono.variable, "antialiased")}>
 				<ThemeProvider attribute="class" defaultTheme="dark" disableTransitionOnChange>
 					<TooltipProvider>

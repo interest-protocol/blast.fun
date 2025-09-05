@@ -11,12 +11,23 @@ const breakpoints = {
 } as const
 
 export function useBreakpoint() {
-	const [windowSize, setWindowSize] = useState({
-		width: typeof window !== "undefined" ? window.innerWidth : 0,
-		height: typeof window !== "undefined" ? window.innerHeight : 0,
+	// @dev: Initialize with desktop view to match server-side rendering
+	const [windowSize, setWindowSize] = useState(() => {
+		if (typeof window !== "undefined") {
+			return {
+				width: window.innerWidth,
+				height: window.innerHeight,
+			}
+		}
+		return {
+			width: 1920,
+			height: 1080,
+		}
 	})
+	const [isHydrated, setIsHydrated] = useState(false)
 
 	useEffect(() => {
+		setIsHydrated(true)
 		const handleResize = () => {
 			setWindowSize({
 				width: window.innerWidth,
@@ -24,22 +35,24 @@ export function useBreakpoint() {
 			})
 		}
 
-		window.addEventListener("resize", handleResize)
+		// @dev: Set actual window size after hydration
 		handleResize()
+		window.addEventListener("resize", handleResize)
 
 		return () => window.removeEventListener("resize", handleResize)
 	}, [])
 
-	const isMobile = windowSize.width < breakpoints.lg
-	const isTablet = windowSize.width >= breakpoints.md && windowSize.width < breakpoints.lg
-	const isDesktop = windowSize.width >= breakpoints.lg
+	// @dev: Always return desktop view during SSR to prevent hydration mismatch
+	const isMobile = isHydrated ? windowSize.width < breakpoints.lg : false
+	const isTablet = isHydrated ? (windowSize.width >= breakpoints.md && windowSize.width < breakpoints.lg) : false
+	const isDesktop = isHydrated ? windowSize.width >= breakpoints.lg : true
 
 	const isAbove = (breakpoint: keyof typeof breakpoints) => {
-		return windowSize.width >= breakpoints[breakpoint]
+		return isHydrated ? windowSize.width >= breakpoints[breakpoint] : true
 	}
 
 	const isBelow = (breakpoint: keyof typeof breakpoints) => {
-		return windowSize.width < breakpoints[breakpoint]
+		return isHydrated ? windowSize.width < breakpoints[breakpoint] : false
 	}
 
 	return {
@@ -50,5 +63,6 @@ export function useBreakpoint() {
 		isBelow,
 		width: windowSize.width,
 		height: windowSize.height,
+		isHydrated,
 	}
 }

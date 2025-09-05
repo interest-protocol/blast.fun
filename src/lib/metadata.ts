@@ -10,19 +10,23 @@ export function constructMetadata({
         apple: '/apple-touch-icon.png'
     },
     noIndex = false,
+    openGraph,
+    twitter
 }: {
     title?: string;
     description?: string;
     image?: string;
     icons?: Metadata['icons'];
     noIndex?: boolean;
+    openGraph?: Metadata['openGraph'];
+    twitter?: Metadata['twitter'];
 } = {}): Metadata {
     return {
         title,
         description,
         applicationName: siteConfig.name,
         publisher: siteConfig.name,
-        openGraph: {
+        openGraph: openGraph || {
             type: 'website',
             url: siteConfig.url,
             title,
@@ -31,24 +35,24 @@ export function constructMetadata({
             images: [
                 {
                     url: image,
-                    width: 150,
-                    height: 150,
+                    width: 1200,
+                    height: 630,
                     type: 'image/png'
                 }
             ]
         },
-        twitter: {
+        twitter: twitter || {
             card: 'summary_large_image',
             title,
             description,
             images: [{
                 url: image,
                 width: 1200,
-                height: 600,
+                height: 630,
                 type: 'image/png',
                 alt: title
             }],
-            creator: siteConfig.links.twitter
+            creator: '@blastdotfun'
         },
         icons,
         metadataBase: new URL(BASE_DOMAIN),

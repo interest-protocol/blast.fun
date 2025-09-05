@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 import { constructMetadata } from "@/lib/metadata"
+import { cacheDataUri } from "@/lib/image-cache"
 import { TokenModule } from "./_components/token-module"
 import { fetchTokenByCoinType } from "@/lib/fetch-token-by-cointype"
 import { formatNumberWithSuffix } from "@/utils/format"
@@ -19,10 +20,46 @@ export async function generateMetadata({
 	}
 
 	const symbol = tokenData.metadata?.symbol || "UNKNOWN"
+	const name = tokenData.metadata?.name || symbol
 	const marketCap = tokenData.market?.marketCap || 0
 	const formattedMcap = formatNumberWithSuffix(marketCap)
+	const priceChange = tokenData.market?.priceChange24h || 0
+	const iconUrl = tokenData.metadata?.icon_url || ""
 
-	return constructMetadata({ title: `${symbol} $${formattedMcap}` })
+	const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL 
+		? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+		: 'http://localhost:3000'
+	
+	// @dev: Pass token data as parameters, cache data URIs to avoid URL length issues
+	const processedImageUrl = cacheDataUri(iconUrl)
+	const ogImageUrl = `${baseUrl}/api/og?${new URLSearchParams({
+		name: name,
+		image: processedImageUrl,
+		marketCap: `$${formattedMcap}`,
+	}).toString()}`
+
+	return constructMetadata({ 
+		title: `${symbol} $${formattedMcap}`,
+		description: `Trade ${name} (${symbol}) on BLAST.FUN - Market Cap: $${formattedMcap}`,
+		image: ogImageUrl,
+		openGraph: {
+			title: `${name} (${symbol}) | BLAST.FUN`,
+			description: `Trade ${name} on BLAST.FUN - Market Cap: $${formattedMcap}`,
+			images: [{
+				url: ogImageUrl,
+				width: 1200,
+				height: 630,
+				alt: `${name} (${symbol})`,
+				type: 'image/png'
+			}],
+		},
+		twitter: {
+			card: 'summary_large_image',
+			title: `${name} (${symbol}) | BLAST.FUN`,
+			description: `Trade ${name} on BLAST.FUN - Market Cap: $${formattedMcap}`,
+			images: [ogImageUrl],
+		}
+	})
 }
 
 export default async function TokenPage({

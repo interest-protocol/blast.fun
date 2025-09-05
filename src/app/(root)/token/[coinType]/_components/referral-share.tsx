@@ -23,12 +23,12 @@ export function ReferralShare({ pool }: ReferralShareProps) {
     const [isInitializing, setIsInitializing] = useState(false)
 
     const tokenPageUrl = refCode
-        ? `${window.location.origin}/token/${pool.coinType}?ref=${refCode}`
-        : `${window.location.origin}/token/${pool.coinType}`
+        ? `${typeof window !== "undefined" ? window.location.origin : ""}/token/${pool.coinType}?ref=${refCode}`
+        : `${typeof window !== "undefined" ? window.location.origin : ""}/token/${pool.coinType}`
 
     const terminalUrl = refCode
-        ? `${window.location.origin}/api/twitter/embed/${pool.coinType}?ref=${refCode}`
-        : `${window.location.origin}/api/twitter/embed/${pool.coinType}`
+        ? `${typeof window !== "undefined" ? window.location.origin : ""}/api/twitter/embed/${pool.coinType}?ref=${refCode}`
+        : `${typeof window !== "undefined" ? window.location.origin : ""}/api/twitter/embed/${pool.coinType}`
 
     const loadReferralCode = useCallback(async () => {
         const code = await getReferralCode()
@@ -54,15 +54,19 @@ export function ReferralShare({ pool }: ReferralShareProps) {
     }
 
     const handleCopyLink = async () => {
-        await navigator.clipboard.writeText(tokenPageUrl)
-        toast.success('Referral link copied to clipboard!')
+        if (typeof navigator !== "undefined" && navigator.clipboard) {
+            await navigator.clipboard.writeText(tokenPageUrl)
+            toast.success('Referral link copied to clipboard!')
+        }
     }
 
     const handleShareTerminal = () => {
         const metadata = pool.metadata
         const shareText = `Come check out $${metadata?.symbol || "???"} on @blastdotfun! You can even trade directly from X.`
         const twitterUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(terminalUrl)}`
-        window.open(twitterUrl, "_blank", "noopener,noreferrer")
+        if (typeof window !== "undefined") {
+            window.open(twitterUrl, "_blank", "noopener,noreferrer")
+        }
     }
 
     if (!isConnected) {
