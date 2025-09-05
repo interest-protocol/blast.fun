@@ -230,6 +230,81 @@ export const TokenListFilters = memo(function TokenListFilters({
 						</div>
 					</div>
 
+					{/* Sort Selection */}
+					<div>
+						<Label className="font-mono text-xs uppercase tracking-wider text-foreground/60">
+							Sort By
+						</Label>
+						<div className="grid grid-cols-2 gap-1 bg-muted rounded-lg border p-1 mt-2">
+							<button
+								className={cn(
+									"py-2 px-3 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
+									sortBy === 'marketCap'
+										? "bg-background shadow-sm text-foreground"
+										: "hover:text-foreground text-muted-foreground"
+								)}
+								onClick={() => setSortBy('marketCap')}
+							>
+								MARKET CAP
+							</button>
+							<button
+								className={cn(
+									"py-2 px-3 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
+									sortBy === 'volume'
+										? "bg-background shadow-sm text-foreground"
+										: "hover:text-foreground text-muted-foreground"
+								)}
+								onClick={() => setSortBy('volume')}
+							>
+								VOLUME
+							</button>
+							<button
+								className={cn(
+									"py-2 px-3 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
+									sortBy === 'holders'
+										? "bg-background shadow-sm text-foreground"
+										: "hover:text-foreground text-muted-foreground"
+								)}
+								onClick={() => setSortBy('holders')}
+							>
+								HOLDERS
+							</button>
+							<button
+								className={cn(
+									"py-2 px-3 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
+									sortBy === 'date'
+										? "bg-background shadow-sm text-foreground"
+										: "hover:text-foreground text-muted-foreground"
+								)}
+								onClick={() => setSortBy('date')}
+							>
+								DATE
+							</button>
+							<button
+								className={cn(
+									"py-2 px-3 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
+									sortBy === 'age'
+										? "bg-background shadow-sm text-foreground"
+										: "hover:text-foreground text-muted-foreground"
+								)}
+								onClick={() => setSortBy('age')}
+							>
+								AGE
+							</button>
+							<button
+								className={cn(
+									"py-2 px-3 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
+									sortBy === 'liquidity'
+										? "bg-background shadow-sm text-foreground"
+										: "hover:text-foreground text-muted-foreground"
+								)}
+								onClick={() => setSortBy('liquidity')}
+							>
+								LIQUIDITY
+							</button>
+						</div>
+					</div>
+
 					{/* Bonding Progress */}
 					{tabType !== 'bonded' && (
 						<div>
