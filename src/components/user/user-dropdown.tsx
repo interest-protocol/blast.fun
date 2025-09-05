@@ -1,7 +1,7 @@
 "use client"
 
 import { formatAddress } from "@mysten/sui/utils"
-import { LogOut, Unplug, Wallet, Wrench } from "lucide-react"
+import { LogOut, Unplug, Wallet, Wrench, Lock } from "lucide-react"
 import { useState } from "react"
 import { useApp } from "@/context/app.context"
 import { useTwitter } from "@/context/twitter.context"
@@ -98,6 +98,14 @@ export function UserDropdown() {
 								>
 									<Wrench className="w-4 h-4 text-muted-foreground" />
 									<span className="text-sm font-medium">Tools</span>
+								</Link>
+								<Link 
+									href="/vesting" 
+									className="w-full p-2 flex items-center gap-2 hover:bg-muted rounded-lg transition-colors"
+									onClick={() => setOpen(false)}
+								>
+									<Lock className="w-4 h-4 text-muted-foreground" />
+									<span className="text-sm font-medium">Vesting</span>
 								</Link>
 							</div>
 

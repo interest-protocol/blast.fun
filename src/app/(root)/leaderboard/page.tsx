@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useSuiNSNames } from "@/hooks/use-suins"
 
 export default function LeaderboardPage() {
-	const [timeRange, setTimeRange] = useState<TimeRange>('1d')
+	const [timeRange, setTimeRange] = useState<TimeRange>('24h')
 	const { data, loading, error, sortBy, sortOrder, handleSort } = useLeaderboard({ timeRange })
 
 	const traderAddresses = useMemo(() => {
@@ -33,11 +33,11 @@ export default function LeaderboardPage() {
 			{/* Controls Section */}
 			<div className="flex justify-start mb-3">
 				<div className="p-0.5 bg-card/50 backdrop-blur-sm border border-border/50 rounded-md flex items-center">
-					{(['1d', '1w', '1m'] as const).map((range) => (
+					{(['24h', '7d', '14d', 'all'] as const).map((range) => (
 						<button
 							key={range}
 							onClick={() => setTimeRange(range)}
-							disabled={loading || range !== '1d'}
+							disabled={loading}
 							className={cn(
 								"px-3 py-1 text-xs font-mono uppercase transition-all rounded",
 								"disabled:opacity-50 disabled:cursor-not-allowed",
@@ -45,11 +45,16 @@ export default function LeaderboardPage() {
 									? "bg-destructive/80 backdrop-blur-sm text-destructive-foreground"
 									: "text-muted-foreground hover:text-foreground hover:bg-muted/50"
 							)}
-							title={range !== '1d' ? 'Coming soon - data collection in progress' : undefined}
+							title={
+								range === '14d' ? 'Current reward cycle' : 
+								range === 'all' ? 'All time since Sep 1' : 
+								undefined
+							}
 						>
-							{range === '1d' && '24H'}
-							{range === '1w' && '7D'}
-							{range === '1m' && '30D'}
+							{range === '24h' && '24H'}
+							{range === '7d' && '7D'}
+							{range === '14d' && 'CYCLE'}
+							{range === 'all' && 'ALL'}
 						</button>
 					))}
 				</div>
