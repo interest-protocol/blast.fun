@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { apolloClient } from "@/lib/apollo-client"
 import { prisma } from "@/lib/prisma"
 import { fetchCreatorsBatch } from "@/lib/fetch-creators-batch"
-import { GET_COIN_POOL_BASIC } from "@/graphql/pools"
+import { GET_POOLS_BATCH } from "@/graphql/pools"
 
 export const revalidate = 1
 
@@ -35,27 +35,26 @@ export async function GET(request: Request) {
 
 		if (coinTypes.length > 0) {
 			try {
-				const poolPromises = coinTypes.map((coinType: string) =>
-					apolloClient.query({
-						query: GET_COIN_POOL_BASIC,
-						variables: { type: coinType },
-						fetchPolicy: "no-cache",
-						errorPolicy: "ignore"
-					}).catch(err => {
-						console.error(`Failed to fetch pool for ${coinType}:`, err)
-						return { data: { coinPool: null } }
-					})
-				)
-
-				const poolResults = await Promise.all(poolPromises)
+				// @dev: batch fetch all pools in a single query
+				const poolsResult = await apolloClient.query({
+					query: GET_POOLS_BATCH,
+					variables: { coinTypes },
+					fetchPolicy: "no-cache",
+					errorPolicy: "ignore"
+				}).catch(err => {
+					console.error(`Failed to fetch pools batch:`, err)
+					return { data: { pools: { pools: [] } } }
+				})
 
 				// lookup map
 				const poolMap = new Map()
-				poolResults.forEach((result, index) => {
-					if (result.data?.coinPool) {
-						poolMap.set(coinTypes[index], result.data.coinPool)
-					}
-				})
+				if (poolsResult.data?.pools?.pools) {
+					poolsResult.data.pools.pools.forEach((pool: any) => {
+						if (pool) {
+							poolMap.set(pool.coinType, pool)
+						}
+					})
+				}
 
 				// @dev: fetch protection settings for protected tokens
 				const poolIds = Array.from(poolMap.values())
