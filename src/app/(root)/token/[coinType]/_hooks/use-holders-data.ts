@@ -21,7 +21,11 @@ export function useHoldersData(coinType: string) {
 	const { data, isLoading, error } = useQuery<HoldersResponse>({
 		queryKey: ["holders", coinType],
 		queryFn: async () => {
-			const response = await fetch(`/api/coin/holders/${encodeURIComponent(coinType)}`)
+			const response = await fetch(`/api/coin/holders/${encodeURIComponent(coinType)}`, {
+				headers: {
+					'cloudflare-cache': '15'
+				}
+			})
 			if (!response.ok) {
 				throw new Error("Failed to fetch holders")
 			}
