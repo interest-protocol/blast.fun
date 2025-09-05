@@ -4,29 +4,44 @@ export async function GET(request: NextRequest) {
 	try {
 		const searchParams = request.nextUrl.searchParams
 		const sortOn = searchParams.get('sortOn') || 'volume'
-		const timeRange = searchParams.get('timeRange') || '1d'
+		const timeRange = searchParams.get('timeRange') || '24h'
 		
 		const now = Date.now()
 		let startTime: number
+		let endTime: number = now
+		
+		// @dev: reward cycles - 14 day periods starting Sep 1st
+		const PROGRAM_START = new Date('2025-09-01T00:00:00Z').getTime()
+		const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000
+		
+		// @dev: calculate current cycle
+		const cycleNumber = Math.floor((now - PROGRAM_START) / TWO_WEEKS_MS)
+		const currentCycleStart = PROGRAM_START + (cycleNumber * TWO_WEEKS_MS)
+		
 		switch(timeRange) {
-			case '1d':
-				startTime = now - 24 * 60 * 60 * 1000
+			case '24h':
+				startTime = now - (24 * 60 * 60 * 1000)
 				break
-			case '1w':
-				startTime = now - 7 * 24 * 60 * 60 * 1000
+			case '7d':
+				startTime = now - (7 * 24 * 60 * 60 * 1000)
 				break
-			case '1m':
-				startTime = now - 30 * 24 * 60 * 60 * 1000
+			case '14d':
+				// @dev: show current reward cycle
+				startTime = currentCycleStart
+				break
+			case 'all':
+				// @dev: show all time from program start
+				startTime = PROGRAM_START
 				break
 			default:
-				startTime = now - 24 * 60 * 60 * 1000
+				startTime = now - (24 * 60 * 60 * 1000)
 		}
 
 		const { nexaServerClient } = await import('@/lib/nexa-server')
 		const data = await nexaServerClient.getLeaderboard({
 			sortOn: sortOn as 'volume' | 'trades',
 			startTime,
-			endTime: now
+			endTime
 		})
 		
 		return NextResponse.json(data)

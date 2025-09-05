@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react"
 import { LeaderboardEntry } from "@/types/leaderboard"
 
-export type TimeRange = '1d' | '1w' | '1m'
+export type TimeRange = '24h' | '7d' | '14d' | 'all'
 export type SortBy = 'volume' | 'trades'
 export type SortOrder = 'asc' | 'desc'
 
@@ -9,7 +9,7 @@ interface UseLeaderboardOptions {
 	timeRange?: TimeRange
 }
 
-export function useLeaderboard({ timeRange = '1d' }: UseLeaderboardOptions = {}) {
+export function useLeaderboard({ timeRange = '24h' }: UseLeaderboardOptions = {}) {
 	const [rawData, setRawData] = useState<LeaderboardEntry[]>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
@@ -23,8 +23,8 @@ export function useLeaderboard({ timeRange = '1d' }: UseLeaderboardOptions = {})
 			
 			try {
 				const params = new URLSearchParams({
-					timeRange,
-					sortOn: 'volume' // @dev: Always fetch by volume from API, we'll sort client-side
+					sortOn: 'volume', // @dev: Always fetch by volume from API, we'll sort client-side
+					timeRange
 				})
 				
 				const response = await fetch(`/api/leaderboard?${params}`)
