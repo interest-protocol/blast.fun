@@ -84,3 +84,20 @@ export const GET_POOL_BONDING_PROGRESS = gql`
 		}
 	}
 `
+
+export const GET_POOLS_BATCH = gql`
+	query GetPoolsBatch($coinTypes: [String]!) {
+		pools(page: 1, pageSize: 50, filters: { coinTypes: $coinTypes }) {
+			pools {
+				poolId
+				coinType
+				creatorAddress
+				metadata
+				bondingCurve
+				migrated
+				publicKey
+				burnTax
+			}
+		}
+	}
+`
