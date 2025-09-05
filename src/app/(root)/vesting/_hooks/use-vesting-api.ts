@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import toast from "react-hot-toast"
 import { useApp } from "@/context/app.context"
-import { VestingApi, type VestingPosition as ApiVestingPosition } from "@/lib/getVesting"
+import { VestingApi, type VestingPosition as ApiVestingPosition, type CoinMetadata } from "@/lib/getVesting"
 import { VestingPosition } from "../vesting.utils"
 import { useVestingSDK } from "./use-vesting-sdk"
 
@@ -55,17 +55,25 @@ export function useVestingApi() {
 				}
 			})
 
-			const claimableResults = await Promise.all(claimablePromises)
-
-			// @dev: hardcode decimals to 9 for now
-			const decimals = 9
+			// Run claimablePromises and metadata fetch in parallel
+			const uniqueCoinTypes = [...new Set(formattedPositions.map(p => p.coinType))]
+			const [claimableResults, metadataResults]: [any[], CoinMetadata[]] = await Promise.all([
+				Promise.all(claimablePromises),
+				VestingApi.getCoinMetadata(uniqueCoinTypes)
+			])
+			// @dev: Create a map of coinType to decimals for quick lookup
+			const decimalsMap: Record<string, number> = {}
+			metadataResults.forEach(metadata => {
+				decimalsMap[metadata.type] = metadata.decimals
+			})
 			
-			// @dev: Update positions with calculated claimable amounts
+			// @dev: Update positions with calculated claimable amounts using correct decimals
 			const positionsWithClaimable = formattedPositions.map(position => {
 				const claimableData = claimableResults.find(result => result.id === position.id)
+				const decimals = decimalsMap[position.coinType] || 9 // fallback to 9 if not found
 				return {
 					...position,
-					claimableAmount: (parseFloat(claimableData?.claimableAmount || "0") / 10 ** decimals).toFixed(2).toString()
+					claimableAmount: (parseFloat(claimableData?.claimableAmount || "0") / 10 ** decimals).toFixed(decimals > 6 ? 6 : decimals).toString()
 				}
 			})
 
