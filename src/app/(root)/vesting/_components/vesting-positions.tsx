@@ -13,7 +13,6 @@ import { useVestingApi } from "../_hooks/use-vesting-api"
 import { formatDuration, VestingPosition } from "../vesting.utils"
 import { formatAmount } from "@/utils/format"
 import { useTransaction } from "@/hooks/sui/use-transaction"
-import { Transaction } from "@mysten/sui/transactions"
 import toast from "react-hot-toast"
 import { useVestingSDK } from "../_hooks/use-vesting-sdk"
 import { suiClient } from "@/lib/sui-client"
@@ -78,8 +77,6 @@ export function VestingPositions({ shouldRefresh, onRefreshed }: VestingPosition
 
 		const currentTime = Date.now()
 		const isFullyVested = currentTime >= position.endTime
-		const claimableAmount = parseFloat(position.claimableAmount)
-		const hasClaimableTokens = claimableAmount > 0
 
 		setClaimingId(position.id)
 		try {
@@ -155,7 +152,7 @@ export function VestingPositions({ shouldRefresh, onRefreshed }: VestingPosition
 						<Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
 						<h3 className="text-lg font-semibold mb-2">No Vesting Positions</h3>
 						<p className="text-muted-foreground">
-							You don't have any active vesting positions yet.
+							You don&apos;t have any active vesting positions yet.
 						</p>
 					</div>
 				</CardContent>
