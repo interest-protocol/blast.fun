@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
 		
 		const now = Date.now()
 		let startTime: number
-		let endTime: number = now
+		const endTime: number = now
 		
 		// @dev: reward cycles - 14 day periods starting Sep 1st
 		const PROGRAM_START = new Date('2025-09-01T00:00:00Z').getTime()
