@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Loader2, AlertCircle, Clock, TrendingUp, Unlock } from "lucide-react"
 import { TokenAvatar } from "@/components/tokens/token-avatar"
 import { useVestingApi } from "../_hooks/use-vesting-api"
-import { formatDuration, calculateClaimableAmount } from "../vesting.utils"
+import { formatDuration } from "../vesting.utils"
 import { formatAmount } from "@/utils/format"
 import { useTransaction } from "@/hooks/sui/use-transaction"
 import { Transaction } from "@mysten/sui/transactions"
@@ -26,7 +26,7 @@ interface VestingPositionsProps {
 
 export function VestingPositions({ shouldRefresh, onRefreshed }: VestingPositionsProps) {
 	const { address, setIsConnectDialogOpen } = useApp()
-	const { positions, isLoading, refetch } = useVestingApi()
+	const { positions, isLoading, refetch, loadMore, hasMore, isLoadingMore } = useVestingApi()
 	const [claimingId, setClaimingId] = useState<string | null>(null)
 	const { executeTransaction } = useTransaction()
 	const vestingSdk = useVestingSDK()
@@ -39,6 +39,7 @@ export function VestingPositions({ shouldRefresh, onRefreshed }: VestingPosition
 			onRefreshed?.()
 		}
 	}, [shouldRefresh, refetch, onRefreshed])
+
 
 	// @dev: Fetch metadata for all unique coin types
 	useEffect(() => {
@@ -98,11 +99,6 @@ export function VestingPositions({ shouldRefresh, onRefreshed }: VestingPosition
 	const handleDestroy = async (positionId: string) => {
 		if (!address) {
 			setIsConnectDialogOpen(true)
-			return
-		}
-
-		// @dev: Confirm action
-		if (!confirm("Are you sure you want to destroy this vesting position? This will return all remaining tokens.")) {
 			return
 		}
 
@@ -178,7 +174,8 @@ export function VestingPositions({ shouldRefresh, onRefreshed }: VestingPosition
 					100,
 					((currentTime - position.startTime) / position.duration) * 100
 				)
-				const claimableAmount = calculateClaimableAmount(position, currentTime)
+				const claimableAmount = position.claimableAmount
+				
 				const isFullyUnlocked = currentTime >= position.endTime
 				const hasStarted = currentTime >= position.startTime
 				const metadata = tokenMetadata[position.coinType]
@@ -236,7 +233,7 @@ export function VestingPositions({ shouldRefresh, onRefreshed }: VestingPosition
 								<div>
 									<p className="text-muted-foreground mb-1">Claimable Now</p>
 									<p className="font-medium text-green-600">
-										{formatAmount(claimableAmount, 0)}
+										{formatAmount(parseFloat(claimableAmount) - parseFloat(position.claimedAmount), 0)}
 										{metadata?.symbol && ` ${metadata.symbol}`}
 									</p>
 								</div>
@@ -258,6 +255,7 @@ export function VestingPositions({ shouldRefresh, onRefreshed }: VestingPosition
 									onClick={() => handleClaim(position.id)}
 									disabled={
 										claimingId === position.id ||
+										!claimableAmount ||
 										claimableAmount === "0" ||
 										!hasStarted
 									}
@@ -271,7 +269,7 @@ export function VestingPositions({ shouldRefresh, onRefreshed }: VestingPosition
 									) : (
 										<>
 											<TrendingUp className="mr-2 h-4 w-4" />
-											Claim {formatAmount(claimableAmount, 0)}
+											Claim {formatAmount(parseFloat(claimableAmount) - parseFloat(position.claimedAmount), 0)}
 											{metadata?.symbol && ` ${metadata.symbol}`}
 										</>
 									)}
@@ -290,6 +288,27 @@ export function VestingPositions({ shouldRefresh, onRefreshed }: VestingPosition
 					</Card>
 				)
 			})}
+			
+			{/* Load More Button */}
+			{hasMore && (
+				<div className="flex justify-center pt-6">
+					<Button
+						onClick={loadMore}
+						disabled={isLoadingMore}
+						variant="outline"
+						size="lg"
+					>
+						{isLoadingMore ? (
+							<>
+								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+								Loading more...
+							</>
+						) : (
+							"Load More"
+						)}
+					</Button>
+				</div>
+			)}
 		</div>
 	)
 }

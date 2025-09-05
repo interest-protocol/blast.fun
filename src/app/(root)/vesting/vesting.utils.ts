@@ -12,21 +12,6 @@ export interface VestingPosition {
 	claimableAmount: string
 }
 
-export const calculateClaimableAmount = (
-	position: VestingPosition,
-	currentTime: number
-): string => {
-	if (currentTime < position.startTime) return "0"
-	if (currentTime >= position.endTime) {
-		return (BigInt(position.lockedAmount) - BigInt(position.claimedAmount)).toString()
-	}
-
-	const elapsed = currentTime - position.startTime
-	const totalVested = (BigInt(position.lockedAmount) * BigInt(elapsed)) / BigInt(position.duration)
-	const claimable = parseFloat(totalVested.toString()) - parseFloat(position.claimedAmount)
-	
-	return claimable > 0n ? claimable.toString() : "0"
-}
 
 export const formatDuration = (ms: number): string => {
 	const days = Math.floor(ms / (1000 * 60 * 60 * 24))
