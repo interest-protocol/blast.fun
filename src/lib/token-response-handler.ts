@@ -137,7 +137,6 @@ export async function enhanceTokensWithTimeout(
 
 		return { tokens: enhancedTokens, isEnhanced: true }
 	} catch (error) {
-		console.log("Enhancement failed or timed out:", error.message || error)
 		return { tokens: basicTokens, isEnhanced: false }
 	}
 }
