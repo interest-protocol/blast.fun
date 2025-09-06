@@ -56,8 +56,17 @@ export const TokenListFilters = memo(function TokenListFilters({
 			} catch (error) {
 				console.error('Failed to parse saved settings:', error)
 			}
+		} else {
+			// @dev: Apply default settings on initial load
+			const defaultSettings: TokenListSettings = {
+				sortBy: defaultSort,
+				filters: {
+					tabType: defaultTab,
+				}
+			}
+			onSettingsChange(defaultSettings)
 		}
-	}, [columnId])
+	}, [columnId, defaultSort, defaultTab, onSettingsChange])
 
 	const handleSetBondingProgressMin = (value: number | undefined) => {
 		setFilters(prev => ({ ...prev, bondingProgressMin: value }))
