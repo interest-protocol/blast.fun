@@ -11,7 +11,7 @@ async function sleep(ms: number): Promise<void> {
 /**
  * Fetch SuiNS with retry logic for rate limiting
  */
-export async function fetchSuiNSWithRetry(address: string, maxRetries = 3): Promise<string | null> {
+async function fetchSuiNSWithRetry(address: string, maxRetries = 3): Promise<string | null> {
 	let lastError: any = null
 	
 	for (let attempt = 0; attempt < maxRetries; attempt++) {
@@ -20,10 +20,6 @@ export async function fetchSuiNSWithRetry(address: string, maxRetries = 3): Prom
 				address: address,
 				format: "dot",
 			})
-			const blacklisted = ["the0rder.sui"]
-			if(blacklisted.includes(result.data?.[0])) {
-				return null
-			}
 			return result.data?.[0] || null
 		} catch (error: any) {
 			lastError = error
