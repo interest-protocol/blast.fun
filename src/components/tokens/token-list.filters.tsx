@@ -180,14 +180,14 @@ export const TokenListFilters = memo(function TokenListFilters({
 					<Settings2 className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
 				</Button>
 			</DialogTrigger>
-			<DialogContent className="sm:max-w-[450px] p-6 rounded-xl border-2 bg-background shadow-2xl">
-				<DialogHeader className="pb-4">
+			<DialogContent className="sm:max-w-[450px] max-h-[80vh] p-0 rounded-xl border-2 bg-background shadow-2xl overflow-hidden flex flex-col">
+				<DialogHeader className="pb-4 px-6 pt-6 flex-shrink-0">
 					<DialogTitle className="font-mono text-base uppercase tracking-wider text-foreground/80">
 						Token Filters
 					</DialogTitle>
 				</DialogHeader>
 
-				<div className="space-y-5">
+				<div className="space-y-5 px-6 pb-6 overflow-y-auto flex-1">
 					{/* Tab Selection */}
 					<div>
 						<Label className="font-mono text-xs uppercase tracking-wider text-foreground/60">
@@ -401,22 +401,23 @@ export const TokenListFilters = memo(function TokenListFilters({
 						</div>
 					</div>
 
-					{/* Action Buttons */}
-					<div className="flex gap-2 pt-2">
-						<Button
-							variant="outline"
-							onClick={handleReset}
-							className="flex-1 font-mono text-xs uppercase tracking-wider"
-						>
-							RESET
-						</Button>
-						<Button
-							onClick={handleApply}
-							className="flex-1 font-mono text-xs uppercase tracking-wider"
-						>
-							APPLY
-						</Button>
-					</div>
+				</div>
+
+				{/* Action Buttons - Always visible */}
+				<div className="flex gap-2 p-6 pt-4 border-t flex-shrink-0">
+					<Button
+						variant="outline"
+						onClick={handleReset}
+						className="flex-1 font-mono text-xs uppercase tracking-wider"
+					>
+						RESET
+					</Button>
+					<Button
+						onClick={handleApply}
+						className="flex-1 font-mono text-xs uppercase tracking-wider"
+					>
+						APPLY
+					</Button>
 				</div>
 			</DialogContent>
 		</Dialog>
