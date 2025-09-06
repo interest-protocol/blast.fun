@@ -4,11 +4,12 @@ import { useState, useEffect } from "react"
 import { useTheme } from "next-themes"
 import Image from "next/image"
 import Link from "next/link"
-import { Activity, Users } from "lucide-react"
+import { Activity, Users, Lock } from "lucide-react"
 import { cn } from "@/utils"
 import { Token } from "@/types/token"
 import { TradesTab } from "./tabs/trades-tab"
 import { HoldersTab } from "./tabs/holders-tab"
+import { VestingTab } from "./tabs/vesting-tab"
 import { useHoldersData } from "../_hooks/use-holders-data"
 
 interface TokenTabsProps {
@@ -36,11 +37,18 @@ const tabs: Tab[] = [
 		icon: Users,
 		component: HoldersTab
 	},
+	{
+		id: "vesting",
+		label: "Vesting",
+		icon: Lock,
+		component: VestingTab
+	},
 ]
 
 export function TokenTabs({ pool, className }: TokenTabsProps) {
 	const [activeTab, setActiveTab] = useState("trades")
 	const [holdersActiveTab, setHoldersActiveTab] = useState<"holders" | "projects">("holders")
+	const [tradesActiveTab, setTradesActiveTab] = useState<"trades" | "vesting">("trades")
 	const { resolvedTheme } = useTheme()
 	const [isSplitView, setIsSplitView] = useState(false)
 	const { hasProjects } = useHoldersData(pool.coinType)
@@ -63,20 +71,44 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 	if (isSplitView) {
 		return (
 			<div className={cn("flex h-full", className)}>
-				{/* Left side - Always Trades (70% width) */}
+				{/* Left side - Trades/Vesting (70% width) */}
 				<div className="flex w-[70%] flex-col border-r">
 					<div className="border-b">
 						<div className="flex items-center justify-between p-2">
 							<div className="flex items-center gap-1">
-								<div className="flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
+								<button
+									onClick={() => setTradesActiveTab("trades")}
+									className={cn(
+										"flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
+										tradesActiveTab === "trades"
+											? "bg-primary/10 text-primary border border-primary/20"
+											: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+									)}
+								>
 									<Activity className="h-3.5 w-3.5" />
 									<span>Trades</span>
-								</div>
+								</button>
+								<button
+									onClick={() => setTradesActiveTab("vesting")}
+									className={cn(
+										"flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
+										tradesActiveTab === "vesting"
+											? "bg-primary/10 text-primary border border-primary/20"
+											: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+									)}
+								>
+									<Lock className="h-3.5 w-3.5" />
+									<span>Vesting</span>
+								</button>
 							</div>
 						</div>
 					</div>
 					<div className="flex-1 overflow-hidden">
-						<TradesTab pool={pool} className="h-full" />
+						{tradesActiveTab === "trades" ? (
+							<TradesTab pool={pool} className="h-full" />
+						) : (
+							<VestingTab pool={pool} className="h-full" />
+						)}
 					</div>
 				</div>
 

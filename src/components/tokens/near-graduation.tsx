@@ -69,11 +69,7 @@ export const NearGraduation = memo(function NearGraduation({
 					return bMarketCap - aMarketCap
 				})
 			case "date":
-				return tokens.sort((a, b) => {
-					const aDate = new Date(a.lastTradeAt || a.createdAt).getTime()
-					const bDate = new Date(b.lastTradeAt || b.createdAt).getTime()
-					return bDate - aDate
-				})
+				return tokens.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
 			case "volume":
 				return tokens.sort((a, b) => {
 					const aVolume = (a.market?.volume24h || (a as any).volume24h || 0)
@@ -86,13 +82,33 @@ export const NearGraduation = memo(function NearGraduation({
 					const bHolders = (b.market?.holdersCount || (b as any).holdersCount || 0)
 					return bHolders - aHolders
 				})
-			case "age":
-				return tokens.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))
+			case "lastTrade":
+				return tokens.sort((a, b) => {
+					const aTimestamp = a.lastTradeAt 
+						? (typeof a.lastTradeAt === 'string' ? new Date(a.lastTradeAt).getTime() : a.lastTradeAt)
+						: 0
+					const bTimestamp = b.lastTradeAt 
+						? (typeof b.lastTradeAt === 'string' ? new Date(b.lastTradeAt).getTime() : b.lastTradeAt)
+						: 0
+					return bTimestamp - aTimestamp
+				})
 			case "liquidity":
 				return tokens.sort((a, b) => {
 					const aLiquidity = (a.market?.liquidity || (a as any).liquidity || 0)
 					const bLiquidity = (b.market?.liquidity || (b as any).liquidity || 0)
 					return bLiquidity - aLiquidity
+				})
+			case "devHoldings":
+				return tokens.sort((a, b) => {
+					const aDevHoldings = (a.market?.devHoldings || (a as any).devHoldings || 0)
+					const bDevHoldings = (b.market?.devHoldings || (b as any).devHoldings || 0)
+					return aDevHoldings - bDevHoldings // Lower is better for dev holdings
+				})
+			case "top10Holdings":
+				return tokens.sort((a, b) => {
+					const aTop10Holdings = (a.market?.top10Holdings || (a as any).top10Holdings || 0)
+					const bTop10Holdings = (b.market?.top10Holdings || (b as any).top10Holdings || 0)
+					return aTop10Holdings - bTop10Holdings // Lower is better for top10 holdings
 				})
 			default:
 				return tokens
