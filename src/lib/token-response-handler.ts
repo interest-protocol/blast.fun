@@ -95,12 +95,8 @@ export async function enhanceTokensWithTimeout(
 			}
 		}
 
-		// @dev: Try to get creator data with separate timeout
-		const creatorDataMap = await Promise.race([
-			fetchCreatorsBatch(tokens, poolMap),
-			// @dev: remove racing for now
-			new Promise((resolve) => setTimeout(() => resolve(new Map()), creatorTimeout * 1000))
-		]) as Map<string, any>
+		// @dev: get creator data
+		const creatorDataMap = await fetchCreatorsBatch(tokens, poolMap) as Map<string, any>
 
 		// @dev: Build enhanced tokens
 		const enhancedTokens = tokens.map((token: any) => {
