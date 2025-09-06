@@ -28,7 +28,9 @@ import { VestingTimeline } from "./vesting-timeline"
 import { format } from "date-fns"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { cn } from "@/utils"
+import BigNumber from "bignumber.js"
 
 interface CreateVestingProps {
 	onVestingCreated?: () => void
@@ -53,6 +55,10 @@ export function CreateVesting({ onVestingCreated }: CreateVestingProps) {
 	// @dev: Date mode states
 	const [vestingStartDate, setVestingStartDate] = useState<Date | undefined>()
 	const [vestingEndDate, setVestingEndDate] = useState<Date | undefined>()
+	
+	// @dev: Custom percentage dialog states
+	const [customPercentageOpen, setCustomPercentageOpen] = useState(false)
+	const [customPercentageValue, setCustomPercentageValue] = useState<string>("")
 	
 	// @dev: Sync between duration and date modes
 	useEffect(() => {
@@ -272,6 +278,29 @@ export function CreateVesting({ onVestingCreated }: CreateVestingProps) {
 
 	const usdValue = calculateUsdValue()
 
+	// @dev: Handle percentage selection
+	const handlePercentageClick = (percentage: number) => {
+		if (!selectedCoinData) return
+		// @dev: Use raw balance and convert to human-readable format
+		const decimals = selectedCoinData.decimals || 9
+		const rawBalance = new BigNumber(selectedCoinData.balance.toString())
+		const humanReadableBalance = rawBalance.shiftedBy(-decimals)
+		const amountToSet = humanReadableBalance.multipliedBy(percentage).dividedBy(100)
+		setAmount(amountToSet.decimalPlaces(9).toFixed())
+	}
+
+	// @dev: Handle custom percentage
+	const handleCustomPercentage = () => {
+		const percentage = parseFloat(customPercentageValue)
+		if (isNaN(percentage) || percentage <= 0 || percentage > 100) {
+			toast.error("Please enter a valid percentage between 1-100")
+			return
+		}
+		handlePercentageClick(percentage)
+		setCustomPercentageOpen(false)
+		setCustomPercentageValue("")
+	}
+
 	return (
 		<Card>
 			<CardHeader>
@@ -309,7 +338,7 @@ export function CreateVesting({ onVestingCreated }: CreateVestingProps) {
 												/>
 												<span>{selectedCoinData.symbol || "Unknown"}</span>
 												<span className="text-muted-foreground ml-auto">
-													Balance: {maxAmount}
+													Balance: {formatAmountWithSuffix(selectedCoinData.balance, selectedCoinData.decimals)}
 													{selectedCoinData.value && selectedCoinData.value > 0 && (
 														<span className="text-xs"> (${selectedCoinData.value.toFixed(2)})</span>
 													)}
@@ -344,25 +373,107 @@ export function CreateVesting({ onVestingCreated }: CreateVestingProps) {
 						{/* Amount */}
 						<div className="space-y-2">
 							<Label htmlFor="amount">Amount to Vest</Label>
-							<div className="relative">
-								<Input
-									id="amount"
-									type="number"
-									placeholder="0.0"
-									value={amount}
-									onChange={(e) => setAmount(e.target.value)}
-									step="0.000000001"
-									min="0"
-								/>
+							<Input
+								id="amount"
+								type="number"
+								placeholder="0.0"
+								value={amount}
+								onChange={(e) => setAmount(e.target.value)}
+								step="0.000000001"
+								min="0"
+							/>
+							
+							{/* Percentage Options */}
+							<div className="flex gap-2">
 								<Button
 									type="button"
-									variant="ghost"
+									variant="outline"
 									size="sm"
-									className="absolute right-2 top-1/2 -translate-y-1/2 h-7 px-2"
-									onClick={() => setAmount(maxAmount || "0")}
+									className="flex-1"
+									onClick={() => handlePercentageClick(50)}
+									disabled={!selectedCoinData}
 								>
-									MAX
+									50%
 								</Button>
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									className="flex-1"
+									onClick={() => handlePercentageClick(75)}
+									disabled={!selectedCoinData}
+								>
+									75%
+								</Button>
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									className="flex-1"
+									onClick={() => handlePercentageClick(100)}
+									disabled={!selectedCoinData}
+								>
+									100%
+								</Button>
+								
+								<Dialog open={customPercentageOpen} onOpenChange={setCustomPercentageOpen}>
+									<DialogTrigger asChild>
+										<Button
+											type="button"
+											variant="outline"
+											size="sm"
+											className="flex-1"
+											disabled={!selectedCoinData}
+										>
+											Custom
+										</Button>
+									</DialogTrigger>
+									<DialogContent className="sm:max-w-md">
+										<DialogHeader>
+											<DialogTitle>Custom Percentage</DialogTitle>
+											<DialogDescription>
+												Enter a custom percentage of your balance to vest
+											</DialogDescription>
+										</DialogHeader>
+										<div className="space-y-4">
+											<div className="space-y-2">
+												<Label>Percentage</Label>
+												<div className="relative">
+													<Input
+														type="number"
+														placeholder="0"
+														value={customPercentageValue}
+														onChange={(e) => setCustomPercentageValue(e.target.value)}
+														min="0.01"
+														max="100"
+														step="0.01"
+														className="pr-8"
+													/>
+													<span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+														%
+													</span>
+												</div>
+												<p className="text-xs text-muted-foreground">
+													Enter a value between 0.01% and 100%
+												</p>
+											</div>
+										</div>
+										<DialogFooter>
+											<Button
+												variant="outline"
+												onClick={() => {
+													setCustomPercentageOpen(false)
+													setCustomPercentageValue("")
+												}}
+											>
+												Cancel
+											</Button>
+											<Button onClick={handleCustomPercentage}>
+												Apply
+											</Button>
+										</DialogFooter>
+									</DialogContent>
+								</Dialog>
 							</div>
 							<div className="space-y-1">
 								<p className="text-sm text-muted-foreground">

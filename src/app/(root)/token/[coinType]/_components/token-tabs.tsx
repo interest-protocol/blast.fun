@@ -4,11 +4,12 @@ import { useState, useEffect } from "react"
 import { useTheme } from "next-themes"
 import Image from "next/image"
 import Link from "next/link"
-import { Activity, Users } from "lucide-react"
+import { Activity, Users, Lock } from "lucide-react"
 import { cn } from "@/utils"
 import { Token } from "@/types/token"
 import { TradesTab } from "./tabs/trades-tab"
 import { HoldersTab } from "./tabs/holders-tab"
+import { VestingTab } from "./tabs/vesting-tab"
 import { useHoldersData } from "../_hooks/use-holders-data"
 
 interface TokenTabsProps {
@@ -35,6 +36,12 @@ const tabs: Tab[] = [
 		label: "Holders",
 		icon: Users,
 		component: HoldersTab
+	},
+	{
+		id: "vesting",
+		label: "Vesting",
+		icon: Lock,
+		component: VestingTab
 	},
 ]
 

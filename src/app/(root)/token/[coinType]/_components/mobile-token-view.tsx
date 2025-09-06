@@ -2,11 +2,12 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { ChartCandlestick, DollarSign, Activity, Home, Users } from "lucide-react"
+import { ChartCandlestick, DollarSign, Activity, Home, Users, Lock } from "lucide-react"
 import { cn } from "@/utils"
 import { TradeTerminal } from "./trade-terminal"
 import { NexaChart } from "@/components/shared/nexa-chart"
 import { TradesTab } from "./tabs/trades-tab"
+import { VestingTab } from "./tabs/vesting-tab"
 import { HoldersTab } from "./tabs/holders-tab"
 import { useHoldersData } from "../_hooks/use-holders-data"
 import { HolderDetails } from "./holder-details"
@@ -33,7 +34,7 @@ export default function MobileTokenView({
 	realtimeMarketCap?: number | null;
 }) {
 	const [activeTab, setActiveTab] = useState("chart")
-	const [activitySubTab, setActivitySubTab] = useState<"trades" | "holders" | "projects">("trades")
+	const [activitySubTab, setActivitySubTab] = useState<"trades" | "holders" | "projects" | "vesting">("trades")
 	const router = useRouter()
 	const { hasProjects } = useHoldersData(pool.coinType)
 
@@ -81,13 +82,13 @@ export default function MobileTokenView({
 
 				{activeTab === "activity" && (
 					<div className="h-full relative flex flex-col">
-						{/* @dev: Sub-tabs for Trades, Holders, and Projects (if available) */}
+						{/* @dev: Sub-tabs for Trades, Holders, Projects, and Vesting (scrollable) */}
 						<div className="border-b bg-background/95 backdrop-blur-sm sticky top-0 z-10">
-							<div className="flex items-center gap-1 p-2">
+							<div className="flex items-center gap-1 p-2 overflow-x-auto">
 								<button
 									onClick={() => setActivitySubTab("trades")}
 									className={cn(
-										"flex items-center gap-1 px-2 py-1.5 rounded-md font-mono text-[10px] uppercase tracking-wider transition-all flex-1",
+										"flex items-center gap-1 px-2 py-1.5 rounded-md font-mono text-[10px] uppercase tracking-wider transition-all flex-none min-w-fit",
 										activitySubTab === "trades"
 											? "bg-primary/10 text-primary border border-primary/20"
 											: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
@@ -99,7 +100,7 @@ export default function MobileTokenView({
 								<button
 									onClick={() => setActivitySubTab("holders")}
 									className={cn(
-										"flex items-center gap-1 px-2 py-1.5 rounded-md font-mono text-[10px] uppercase tracking-wider transition-all flex-1",
+										"flex items-center gap-1 px-2 py-1.5 rounded-md font-mono text-[10px] uppercase tracking-wider transition-all flex-none min-w-fit",
 										activitySubTab === "holders"
 											? "bg-primary/10 text-primary border border-primary/20"
 											: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
@@ -112,7 +113,7 @@ export default function MobileTokenView({
 									<button
 										onClick={() => setActivitySubTab("projects")}
 										className={cn(
-											"flex items-center gap-1 px-2 py-1.5 rounded-md font-mono text-[10px] uppercase tracking-wider transition-all flex-1",
+											"flex items-center gap-1 px-2 py-1.5 rounded-md font-mono text-[10px] uppercase tracking-wider transition-all flex-none min-w-fit",
 											activitySubTab === "projects"
 												? "bg-primary/10 text-primary border border-primary/20"
 												: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
@@ -122,14 +123,30 @@ export default function MobileTokenView({
 										<span>Projects</span>
 									</button>
 								)}
+								<button
+									onClick={() => setActivitySubTab("vesting")}
+									className={cn(
+										"flex items-center gap-1 px-2 py-1.5 rounded-md font-mono text-[10px] uppercase tracking-wider transition-all flex-none min-w-fit",
+										activitySubTab === "vesting"
+											? "bg-primary/10 text-primary border border-primary/20"
+											: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+									)}
+								>
+									<Lock className="h-3 w-3" />
+									<span>Vesting</span>
+								</button>
 							</div>
 						</div>
 
 						{/* @dev: Content based on selected sub-tab */}
 						<div className="flex-1 overflow-hidden">
-							{activitySubTab === "trades" ? (
+							{activitySubTab === "trades" && (
 								<TradesTab pool={pool} className="h-full" />
-							) : (
+							)}
+							{activitySubTab === "vesting" && (
+								<VestingTab pool={pool} className="h-full" />
+							)}
+							{(activitySubTab === "holders" || activitySubTab === "projects") && (
 								<HoldersTab 
 									pool={pool} 
 									className="h-full" 

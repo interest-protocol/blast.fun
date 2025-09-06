@@ -65,6 +65,39 @@ export class VestingApi {
 		return response.json()
 	}
 
+	static async getAllVestingsByCoinType(
+		coinType: string
+	): Promise<VestingByCoinResponse> {
+		const limit = 50
+		let offset = 0
+		let allData: VestingPosition[] = []
+		
+		// @dev: Fetch first page to get stats and total count
+		const firstResponse = await this.getVestingsByCoinType(coinType, { limit, offset })
+		allData = [...firstResponse.data]
+		const stats = firstResponse.stats
+		const total = firstResponse.total
+		
+		// @dev: If there are more pages, fetch them all
+		while (allData.length < total && firstResponse.totalPages > 1) {
+			offset += limit
+			const response = await this.getVestingsByCoinType(coinType, { limit, offset })
+			allData = [...allData, ...response.data]
+			
+			// @dev: Break if no more data returned to prevent infinite loops
+			if (response.data.length === 0) {
+				break
+			}
+		}
+		
+		return {
+			stats,
+			total,
+			totalPages: Math.ceil(total / limit),
+			data: allData
+		}
+	}
+
 	static async getVestingsByUser(
 		address: string,
 		params: VestingApiParams = {}

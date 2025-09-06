@@ -168,7 +168,7 @@ export function VestingPositions({ shouldRefresh, onRefreshed }: VestingPosition
 			{positions.map((position) => {
 				const progress = position.isDestroyed 
 					? 100 
-					: Math.min(100, ((currentTime - position.startTime) / position.duration) * 100)
+					: Math.max(0, Math.min(100, ((currentTime - position.startTime) / position.duration) * 100))
 				const claimableAmount = position.claimableAmount
 				
 				const isFullyUnlocked = currentTime >= position.endTime
