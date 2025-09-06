@@ -1,13 +1,12 @@
 "use client"
 
-import { use, useEffect, useState } from "react"
-import { useToken } from "@/hooks/pump/use-token"
-import { XCardTrading } from "./_components/x-card-trading"
-import { SplashLoader } from "@/components/shared/splash-loader"
-import { EmbedHeader } from "./_components/embed-header"
 import { useSearchParams } from "next/navigation"
-import { useReferrals } from "@/hooks/use-referrals"
+import { use, useEffect, useState } from "react"
 import { Logo } from "@/components/ui/logo"
+import { useToken } from "@/hooks/pump/use-token"
+import { useReferrals } from "@/hooks/use-referrals"
+import { EmbedHeader } from "./_components/embed-header"
+import { XCardTrading } from "./_components/x-card-trading"
 
 export default function XCardPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id: coinType } = use(params)
@@ -20,7 +19,7 @@ export default function XCardPage({ params }: { params: Promise<{ id: string }> 
 
 	useEffect(() => {
 		if (refCode) {
-			checkReferralCode(refCode).then(wallet => {
+			checkReferralCode(refCode).then((wallet) => {
 				if (wallet) {
 					setReferrerWallet(wallet)
 				}
@@ -31,7 +30,7 @@ export default function XCardPage({ params }: { params: Promise<{ id: string }> 
 	useEffect(() => {
 		// Check if we're not in an iframe after a small delay
 		const checkIframe = setTimeout(() => {
-			if (typeof window !== 'undefined' && window.self === window.top) {
+			if (typeof window !== "undefined" && window.self === window.top) {
 				setIsRedirecting(true)
 				// Redirect to main token page
 				const tokenUrl = refCode ? `/token/${coinType}?ref=${refCode}` : `/token/${coinType}`
@@ -44,10 +43,10 @@ export default function XCardPage({ params }: { params: Promise<{ id: string }> 
 
 	if (isLoading || isRedirecting) {
 		return (
-			<div className="bg-background h-screen flex items-center justify-center">
+			<div className="flex h-screen items-center justify-center bg-background">
 				<div className="text-center">
-					<Logo className="w-16 h-16 mx-auto mb-4 animate-pulse" />
-					<p className="font-mono text-sm uppercase tracking-wider text-foreground/60">
+					<Logo className="mx-auto mb-4 h-16 w-16 animate-pulse" />
+					<p className="font-mono text-foreground/60 text-sm uppercase tracking-wider">
 						{isRedirecting ? "REDIRECTING..." : "LOADING..."}
 					</p>
 				</div>
@@ -57,20 +56,20 @@ export default function XCardPage({ params }: { params: Promise<{ id: string }> 
 
 	if (error || !pool) {
 		return (
-			<div className="bg-background flex flex-col">
+			<div className="flex flex-col bg-background">
 				<EmbedHeader />
-				<div className="flex-1 flex items-center justify-center p-4">
-					<div className="text-center max-w-sm">
-						<Logo className="w-12 h-12 mx-auto mb-4 text-foreground/20" />
-						<h1 className="font-mono text-lg uppercase tracking-wider text-foreground/80 mb-2">
+				<div className="flex flex-1 items-center justify-center p-4">
+					<div className="max-w-sm text-center">
+						<Logo className="mx-auto mb-4 h-12 w-12 text-foreground/20" />
+						<h1 className="mb-2 font-mono text-foreground/80 text-lg uppercase tracking-wider">
 							TOKEN::NOT_FOUND
 						</h1>
-						<p className="font-mono text-xs uppercase text-muted-foreground mb-4">
+						<p className="mb-4 font-mono text-muted-foreground text-xs uppercase">
 							The token you&apos;re looking for doesn&apos;t exist or has disappeared!
 						</p>
 						<button
 							onClick={() => window.open(`${window.location.origin}`, "_blank")}
-							className="mt-6 px-4 py-2 font-mono text-xs uppercase tracking-wider border border-foreground/20 rounded hover:bg-foreground/10 transition-colors"
+							className="mt-6 rounded border border-foreground/20 px-4 py-2 font-mono text-xs uppercase tracking-wider transition-colors hover:bg-foreground/10"
 						>
 							BROWSE::TOKENS
 						</button>
@@ -81,7 +80,7 @@ export default function XCardPage({ params }: { params: Promise<{ id: string }> 
 	}
 
 	return (
-		<div className="flex flex-col h-screen overflow-hidden">
+		<div className="flex h-screen flex-col overflow-hidden">
 			<EmbedHeader />
 			<div className="flex-1 overflow-hidden">
 				<XCardTrading pool={pool} referrerWallet={referrerWallet} refCode={refCode} />

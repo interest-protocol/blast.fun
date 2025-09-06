@@ -1,18 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { needsTermsUpdate } from "@/utils/version"
 
 const TERMS_VERSION_KEY = "blast-terms-version"
@@ -28,18 +21,18 @@ export function TermsPrivacyDialog() {
 
 	useEffect(() => {
 		// Get current path from window if pathname is not available
-		const currentPath = pathname || (typeof window !== 'undefined' ? window.location.pathname : '')
-		
+		const currentPath = pathname || (typeof window !== "undefined" ? window.location.pathname : "")
+
 		// Don't show dialog on specific pages
-		const excludedPaths = ['/term-of-service', '/privacy-policy']
-		
+		const excludedPaths = ["/term-of-service", "/privacy-policy"]
+
 		if (excludedPaths.includes(currentPath)) {
 			return
 		}
 
 		// Check if user has accepted the current version of terms
 		const acceptedVersion = localStorage.getItem(TERMS_VERSION_KEY)
-		
+
 		// Use semantic version comparison
 		if (needsTermsUpdate(acceptedVersion, CURRENT_TERMS_VERSION)) {
 			setOpen(true)
@@ -59,71 +52,62 @@ export function TermsPrivacyDialog() {
 			<DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
 				<DialogHeader>
 					<DialogTitle>{isUpdate ? "Terms Updated" : "Welcome to Blast"}</DialogTitle>
-					<DialogDescription className="pt-3 space-y-3">
+					<DialogDescription className="space-y-3 pt-3">
 						{isUpdate ? (
 							<>
 								<p>
-									Our Terms of Service and Privacy Policy have been updated. 
-									Please review and accept the new terms to continue using Blast.
+									Our Terms of Service and Privacy Policy have been updated. Please review and accept the
+									new terms to continue using Blast.
 								</p>
-								<p className="text-sm text-muted-foreground">
-									Version: {CURRENT_TERMS_VERSION}
-								</p>
+								<p className="text-muted-foreground text-sm">Version: {CURRENT_TERMS_VERSION}</p>
 							</>
 						) : (
 							<>
-								<p>
-									Before you continue, please review and accept our Terms of Service and Privacy Policy.
-								</p>
+								<p>Before you continue, please review and accept our Terms of Service and Privacy Policy.</p>
 								<p className="text-sm">
-									These documents outline important information about your rights and responsibilities 
-									when using the Blast platform.
+									These documents outline important information about your rights and responsibilities when
+									using the Blast platform.
 								</p>
 							</>
 						)}
 					</DialogDescription>
 				</DialogHeader>
-				
-				<div className="py-4 space-y-4">
+
+				<div className="space-y-4 py-4">
 					<div className="flex gap-2">
-						<Link 
-							href="/term-of-service" 
+						<Link
+							href="/term-of-service"
 							target="_blank"
-							className="flex-1 text-center px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-md transition-colors text-sm font-medium"
+							className="flex-1 rounded-md bg-secondary px-4 py-2 text-center font-medium text-sm transition-colors hover:bg-secondary/80"
 						>
 							Terms of Service
 						</Link>
-						<Link 
-							href="/privacy-policy" 
+						<Link
+							href="/privacy-policy"
 							target="_blank"
-							className="flex-1 text-center px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-md transition-colors text-sm font-medium"
+							className="flex-1 rounded-md bg-secondary px-4 py-2 text-center font-medium text-sm transition-colors hover:bg-secondary/80"
 						>
 							Privacy Policy
 						</Link>
 					</div>
-					
+
 					<div className="flex items-start space-x-2">
-						<Checkbox 
+						<Checkbox
 							id="terms-agreement"
 							checked={agreed}
 							onCheckedChange={(checked) => setAgreed(checked as boolean)}
 						/>
-						<label 
-							htmlFor="terms-agreement" 
-							className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer select-none"
+						<label
+							htmlFor="terms-agreement"
+							className="cursor-pointer select-none text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
 						>
 							I have read and agree to the Terms of Service and Privacy Policy
 						</label>
 					</div>
 				</div>
-				
+
 				<DialogFooter>
-					<Button 
-						onClick={handleAccept}
-						disabled={!agreed}
-						className="w-full"
-						size="lg"
-					>
+					<Button onClick={handleAccept} disabled={!agreed} className="w-full" size="lg">
 						Ready to Blast 🚀
 					</Button>
 				</DialogFooter>

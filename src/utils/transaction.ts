@@ -76,7 +76,7 @@ export const waitForTx = async (digest: string, options: WaitForTxOptions = {}):
 			})
 
 			if (tx) return tx
-		} catch (error) { }
+		} catch (error) {}
 
 		await new Promise((resolve) => setTimeout(resolve, pollInterval))
 	}

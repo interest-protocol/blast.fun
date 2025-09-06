@@ -1,25 +1,21 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
+import { NexaChart } from "@/components/shared/nexa-chart"
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
+import { DEFAULT_TOKEN_DECIMALS, TOTAL_POOL_SUPPLY } from "@/constants"
+import { useBreakpoint } from "@/hooks/use-breakpoint"
 import tokenPriceSocket from "@/lib/websocket/token-price"
+import { useTokenTabs } from "@/stores/token-tabs"
 import type { Token } from "@/types/token"
+import { formatNumberWithSuffix } from "@/utils/format"
+import { BondingProgress } from "./bonding-progress"
+import { HolderDetails } from "./holder-details"
+import MobileTokenView from "./mobile-token-view"
+import { ReferralShare } from "./referral-share"
 import { TokenInfo } from "./token-info"
 import { TokenTabs } from "./token-tabs"
 import { TradeTerminal } from "./trade-terminal"
-import { BondingProgress } from "./bonding-progress"
-import { ReferralShare } from "./referral-share"
-import { HolderDetails } from "./holder-details"
-import MobileTokenView from "./mobile-token-view"
-import { NexaChart } from "@/components/shared/nexa-chart"
-import {
-	ResizablePanelGroup,
-	ResizablePanel,
-	ResizableHandle,
-} from "@/components/ui/resizable"
-import { useBreakpoint } from "@/hooks/use-breakpoint"
-import { TOTAL_POOL_SUPPLY, DEFAULT_TOKEN_DECIMALS } from "@/constants"
-import { formatNumberWithSuffix } from "@/utils/format"
-import { useTokenTabs } from "@/stores/token-tabs"
 
 interface TokenModuleProps {
 	pool: Token
@@ -47,28 +43,23 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 	}, [pool.pool?.poolId, pool.metadata, pool.market?.bondingProgress, pool.coinType, addTab])
 
 	useEffect(() => {
-		const subscriptionId = pool.pool?.migrated && pool.pool?.mostLiquidPoolId
-			? pool.pool?.mostLiquidPoolId
-			: pool.pool?.innerState
+		const subscriptionId =
+			pool.pool?.migrated && pool.pool?.mostLiquidPoolId ? pool.pool?.mostLiquidPoolId : pool.pool?.innerState
 
 		if (!subscriptionId) return
 
-		tokenPriceSocket.subscribeToTokenPrice(
-			subscriptionId,
-			'direct',
-			(data: { price: number; suiPrice: number }) => {
-				const newPrice = data.price * data.suiPrice
-				setPrice(newPrice)
+		tokenPriceSocket.subscribeToTokenPrice(subscriptionId, "direct", (data: { price: number; suiPrice: number }) => {
+			const newPrice = data.price * data.suiPrice
+			setPrice(newPrice)
 
-				const decimals = pool.metadata?.decimals || DEFAULT_TOKEN_DECIMALS
-				const totalSupply = Number(TOTAL_POOL_SUPPLY) / Math.pow(10, decimals)
-				const calculatedMarketCap = newPrice * totalSupply
-				setMarketCap(calculatedMarketCap)
-			}
-		)
+			const decimals = pool.metadata?.decimals || DEFAULT_TOKEN_DECIMALS
+			const totalSupply = Number(TOTAL_POOL_SUPPLY) / Math.pow(10, decimals)
+			const calculatedMarketCap = newPrice * totalSupply
+			setMarketCap(calculatedMarketCap)
+		})
 
 		return () => {
-			tokenPriceSocket.unsubscribeFromTokenPrice(subscriptionId, 'direct')
+			tokenPriceSocket.unsubscribeFromTokenPrice(subscriptionId, "direct")
 		}
 	}, [pool.pool?.innerState, pool.pool?.mostLiquidPoolId, pool.pool?.migrated, pool.metadata?.decimals])
 
@@ -82,24 +73,14 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 	}, [marketCap, pool.metadata?.symbol])
 
 	if (isMobile) {
-		return (
-			<MobileTokenView 
-				pool={pool} 
-				referral={referral} 
-				realtimePrice={price}
-				realtimeMarketCap={marketCap}
-			/>
-		)
+		return <MobileTokenView pool={pool} referral={referral} realtimePrice={price} realtimeMarketCap={marketCap} />
 	}
 
 	return (
-		<div className="w-full h-full flex">
-			<div className="flex-1 flex flex-col">
+		<div className="flex h-full w-full">
+			<div className="flex flex-1 flex-col">
 				{/* Chart and Tabs */}
-				<ResizablePanelGroup
-					direction="vertical"
-					className="flex-1"
-				>
+				<ResizablePanelGroup direction="vertical" className="flex-1">
 					<ResizablePanel defaultSize={60} minSize={30}>
 						<NexaChart pool={pool} />
 					</ResizablePanel>
@@ -113,12 +94,10 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 			</div>
 
 			{/* Right-side column */}
-			<div className="w-[400px] border-l flex flex-col h-full overflow-y-auto">
+			<div className="flex h-full w-[400px] flex-col overflow-y-auto border-l">
 				<TokenInfo pool={pool} realtimePrice={price} realtimeMarketCap={marketCap} />
 
-				{!pool.pool?.migrated && (
-					<BondingProgress pool={pool} />
-				)}
+				{!pool.pool?.migrated && <BondingProgress pool={pool} />}
 
 				<TradeTerminal pool={pool} referral={referral} />
 				<HolderDetails pool={pool} />

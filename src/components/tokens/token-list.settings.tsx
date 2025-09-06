@@ -1,21 +1,12 @@
 "use client"
 
-import { memo, useState, useEffect } from "react"
 import { Settings2 } from "lucide-react"
+import { memo, useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from "@/components/ui/dialog"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Separator } from "@/components/ui/separator"
-import { Logo } from "@/components/ui/logo"
 
 export type SortOption = "marketCap" | "date" | "volume" | "holders" | "bondingCurve"
 
@@ -53,7 +44,7 @@ export const TokenListSettingsDialog = memo(function TokenListSettingsDialog({
 	columnId,
 	onSettingsChange,
 	defaultSort = "date",
-	availableSortOptions = DEFAULT_SORT_OPTIONS
+	availableSortOptions = DEFAULT_SORT_OPTIONS,
 }: TokenListSettingsProps) {
 	const [open, setOpen] = useState(false)
 	const [sortBy, setSortBy] = useState<SortOption>(defaultSort)
@@ -79,12 +70,12 @@ export const TokenListSettingsDialog = memo(function TokenListSettingsDialog({
 		}
 		// @dev: don't call onSettingsChange for defaults - parent should handle initial state
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [columnId])
+	}, [columnId, onSettingsChange])
 
 	const handleSave = () => {
 		const settings: TokenListSettings = {
 			sortBy,
-			socialFilters
+			socialFilters,
 		}
 
 		const storageKey = `${STORAGE_KEY_PREFIX}${columnId}`
@@ -102,7 +93,7 @@ export const TokenListSettingsDialog = memo(function TokenListSettingsDialog({
 				requireWebsite: false,
 				requireTwitter: false,
 				requireTelegram: false,
-			}
+			},
 		}
 
 		setSortBy(defaultSort)
@@ -120,30 +111,28 @@ export const TokenListSettingsDialog = memo(function TokenListSettingsDialog({
 				<Button
 					variant="ghost"
 					size="sm"
-					className="h-7 w-7 p-0 hover:bg-primary/10 transition-colors"
+					className="h-7 w-7 p-0 transition-colors hover:bg-primary/10"
 					aria-label="Token list settings"
 				>
-					<Settings2 className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+					<Settings2 className="h-4 w-4 text-muted-foreground transition-colors hover:text-foreground" />
 				</Button>
 			</DialogTrigger>
-			<DialogContent className="sm:max-w-[425px] border-2 bg-background/95 backdrop-blur-sm">
+			<DialogContent className="border-2 bg-background/95 backdrop-blur-sm sm:max-w-[425px]">
 				<DialogHeader className="border-b pb-3">
-					<DialogTitle className="text-lg font-mono uppercase tracking-wider">
-						LIST::SETTINGS
-					</DialogTitle>
+					<DialogTitle className="font-mono text-lg uppercase tracking-wider">LIST::SETTINGS</DialogTitle>
 				</DialogHeader>
 
-				<div className="space-y-5 mt-4">
+				<div className="mt-4 space-y-5">
 					{/* Sorting Section */}
 					<div className="space-y-3">
 						<div className="border-b pb-2">
-							<h3 className="font-mono text-xs uppercase tracking-wider text-foreground/80">
+							<h3 className="font-mono text-foreground/80 text-xs uppercase tracking-wider">
 								SORT::PARAMETERS
 							</h3>
 						</div>
 						<RadioGroup value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
 							{availableSortOptions.map((option) => (
-								<div key={option.value} className="flex items-center space-x-3 group">
+								<div key={option.value} className="group flex items-center space-x-3">
 									<RadioGroupItem
 										value={option.value}
 										id={option.value}
@@ -151,7 +140,7 @@ export const TokenListSettingsDialog = memo(function TokenListSettingsDialog({
 									/>
 									<Label
 										htmlFor={option.value}
-										className="font-mono text-xs uppercase tracking-wider cursor-pointer text-muted-foreground group-hover:text-foreground/80 transition-colors"
+										className="cursor-pointer font-mono text-muted-foreground text-xs uppercase tracking-wider transition-colors group-hover:text-foreground/80"
 									>
 										{option.label}
 									</Label>
@@ -163,57 +152,57 @@ export const TokenListSettingsDialog = memo(function TokenListSettingsDialog({
 					{/* Social Filters Section */}
 					<div className="space-y-3">
 						<div className="border-b pb-2">
-							<h3 className="font-mono text-xs uppercase tracking-wider text-foreground/80">
+							<h3 className="font-mono text-foreground/80 text-xs uppercase tracking-wider">
 								SOCIAL::FILTERS
 							</h3>
 						</div>
 						<div className="space-y-3">
-							<div className="flex items-center space-x-3 group">
+							<div className="group flex items-center space-x-3">
 								<Checkbox
 									id="website"
 									checked={socialFilters.requireWebsite}
 									onCheckedChange={(checked) =>
-										setSocialFilters(prev => ({ ...prev, requireWebsite: !!checked }))
+										setSocialFilters((prev) => ({ ...prev, requireWebsite: !!checked }))
 									}
 									className="border-muted-foreground/50 data-[state=checked]:border-primary data-[state=checked]:bg-primary/10"
 								/>
 								<Label
 									htmlFor="website"
-									className="font-mono text-xs uppercase tracking-wider cursor-pointer text-muted-foreground group-hover:text-foreground/80 transition-colors"
+									className="cursor-pointer font-mono text-muted-foreground text-xs uppercase tracking-wider transition-colors group-hover:text-foreground/80"
 								>
 									WEBSITE::LINK
 								</Label>
 							</div>
 
-							<div className="flex items-center space-x-3 group">
+							<div className="group flex items-center space-x-3">
 								<Checkbox
 									id="twitter"
 									checked={socialFilters.requireTwitter}
 									onCheckedChange={(checked) =>
-										setSocialFilters(prev => ({ ...prev, requireTwitter: !!checked }))
+										setSocialFilters((prev) => ({ ...prev, requireTwitter: !!checked }))
 									}
 									className="border-muted-foreground/50 data-[state=checked]:border-primary data-[state=checked]:bg-primary/10"
 								/>
 								<Label
 									htmlFor="twitter"
-									className="font-mono text-xs uppercase tracking-wider cursor-pointer text-muted-foreground group-hover:text-foreground/80 transition-colors"
+									className="cursor-pointer font-mono text-muted-foreground text-xs uppercase tracking-wider transition-colors group-hover:text-foreground/80"
 								>
 									TWITTER::X
 								</Label>
 							</div>
 
-							<div className="flex items-center space-x-3 group">
+							<div className="group flex items-center space-x-3">
 								<Checkbox
 									id="telegram"
 									checked={socialFilters.requireTelegram}
 									onCheckedChange={(checked) =>
-										setSocialFilters(prev => ({ ...prev, requireTelegram: !!checked }))
+										setSocialFilters((prev) => ({ ...prev, requireTelegram: !!checked }))
 									}
 									className="border-muted-foreground/50 data-[state=checked]:border-primary data-[state=checked]:bg-primary/10"
 								/>
 								<Label
 									htmlFor="telegram"
-									className="font-mono text-xs uppercase tracking-wider cursor-pointer text-muted-foreground group-hover:text-foreground/80 transition-colors"
+									className="cursor-pointer font-mono text-muted-foreground text-xs uppercase tracking-wider transition-colors group-hover:text-foreground/80"
 								>
 									TELEGRAM::CHANNEL
 								</Label>
@@ -222,13 +211,13 @@ export const TokenListSettingsDialog = memo(function TokenListSettingsDialog({
 					</div>
 				</div>
 
-				<div className="border-t pt-4 mt-5">
-					<div className="flex justify-between items-center">
+				<div className="mt-5 border-t pt-4">
+					<div className="flex items-center justify-between">
 						<Button
 							variant="ghost"
 							onClick={handleReset}
 							size="sm"
-							className="font-mono text-xs uppercase tracking-wider text-destructive/80 hover:text-destructive hover:bg-destructive/10 transition-all"
+							className="font-mono text-destructive/80 text-xs uppercase tracking-wider transition-all hover:bg-destructive/10 hover:text-destructive"
 						>
 							RESET::DEFAULTS
 						</Button>
@@ -237,14 +226,14 @@ export const TokenListSettingsDialog = memo(function TokenListSettingsDialog({
 								variant="outline"
 								onClick={() => setOpen(false)}
 								size="sm"
-								className="font-mono text-xs uppercase tracking-wider border-muted-foreground/30 text-muted-foreground hover:text-foreground hover:bg-muted/30 hover:border-muted-foreground/50 transition-all"
+								className="border-muted-foreground/30 font-mono text-muted-foreground text-xs uppercase tracking-wider transition-all hover:border-muted-foreground/50 hover:bg-muted/30 hover:text-foreground"
 							>
 								CANCEL
 							</Button>
 							<Button
 								onClick={handleSave}
 								size="sm"
-								className="font-mono text-xs uppercase tracking-wider bg-primary/80 hover:bg-primary text-primary-foreground hover:shadow-lg hover:shadow-primary/20 border border-primary transition-all"
+								className="border border-primary bg-primary/80 font-mono text-primary-foreground text-xs uppercase tracking-wider transition-all hover:bg-primary hover:shadow-lg hover:shadow-primary/20"
 							>
 								SAVE::CONFIG
 							</Button>

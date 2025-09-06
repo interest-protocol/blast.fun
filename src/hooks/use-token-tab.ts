@@ -8,9 +8,10 @@ export function useTokenTab(pool: Token | null | undefined) {
 	useEffect(() => {
 		if (!pool) return
 
-		const bondingCurve = typeof pool.pool?.bondingCurve === "number" 
-			? pool.pool.bondingCurve 
-			: parseFloat(pool.pool?.bondingCurve || "0") || 0
+		const bondingCurve =
+			typeof pool.pool?.bondingCurve === "number"
+				? pool.pool.bondingCurve
+				: parseFloat(pool.pool?.bondingCurve || "0") || 0
 
 		addTab({
 			poolId: pool.pool?.poolId || pool.id,

@@ -1,5 +1,5 @@
-import { suiClient } from "@/lib/sui-client"
 import { redisGet, redisSetEx } from "@/lib/redis/client"
+import { suiClient } from "@/lib/sui-client"
 
 /**
  * Get SuiNS name for a single address
@@ -24,7 +24,6 @@ export async function getSuiNSName(address: string): Promise<string | null> {
 		// @dev: Cache the result for 1 hour
 		await redisSetEx(cacheKey, 3600, name || "null")
 		return name
-
 	} catch (error) {
 		console.warn(`Failed to fetch SuiNS name for ${address}:`, error)
 		return null

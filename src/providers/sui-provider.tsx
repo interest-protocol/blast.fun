@@ -1,12 +1,12 @@
 "use client"
 
-import { ReactNode } from "react"
 import { SuiClientProvider, WalletProvider } from "@mysten/dapp-kit"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { Network } from "@/types/network"
-import { env } from "@/env"
+import { ReactNode } from "react"
 import { AppContextProvider } from "@/context/app.context"
+import { env } from "@/env"
 import useNetworkConfig from "@/hooks/use-network-config"
+import { Network } from "@/types/network"
 
 import "@mysten/dapp-kit/dist/index.css"
 

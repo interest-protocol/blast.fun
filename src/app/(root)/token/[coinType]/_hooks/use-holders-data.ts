@@ -1,5 +1,5 @@
-import { useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
+import { useMemo } from "react"
 import { PROJECT_WALLETS } from "@/constants/project-wallets"
 
 interface CoinHolder {
@@ -31,11 +31,11 @@ export function useHoldersData(coinType: string) {
 		refetchInterval: 15000,
 		staleTime: 10000,
 	})
-	
+
 	const projectHolders = useMemo(() => {
 		if (!data?.holders) return []
-		return data.holders.filter(holder => PROJECT_WALLETS[holder.account])
+		return data.holders.filter((holder) => PROJECT_WALLETS[holder.account])
 	}, [data?.holders])
-	
+
 	return { data, isLoading, error, hasProjects: projectHolders.length > 0 }
 }

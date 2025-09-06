@@ -1,4 +1,4 @@
-import { ApolloClient, InMemoryCache, ApolloLink } from "@apollo/client"
+import { ApolloClient, ApolloLink, InMemoryCache } from "@apollo/client"
 import { onError } from "@apollo/client/link/error"
 import { createHttpLink } from "@apollo/client/link/http"
 import { env } from "@/env"
@@ -7,7 +7,7 @@ const httpLink = createHttpLink({
 	uri: env.NEXT_PUBLIC_GRAPHQL_API_URL,
 	fetch: async (uri, options) => {
 		const response = await fetch(uri, options)
-		
+
 		if (!response.ok) {
 			const clonedResponse = response.clone()
 			try {
@@ -23,15 +23,15 @@ const httpLink = createHttpLink({
 						} catch {
 							return errorBody
 						}
-					})()
+					})(),
 				})
 			} catch (err) {
 				console.error("Failed to read error response body:", err)
 			}
 		}
-		
+
 		return response
-	}
+	},
 })
 
 const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) => {
@@ -43,7 +43,7 @@ const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) 
 				path,
 				extensions,
 				operation: operation.operationName,
-				variables: operation.variables
+				variables: operation.variables,
 			})
 		})
 	}
@@ -54,7 +54,7 @@ const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) 
 			name: networkError.name,
 			stack: networkError.stack,
 			operation: operation.operationName,
-			variables: operation.variables
+			variables: operation.variables,
 		})
 	}
 })

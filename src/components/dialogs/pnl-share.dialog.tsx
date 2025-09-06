@@ -1,18 +1,13 @@
 "use client"
 
-import { useRef } from "react"
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Loader2, Copy, Download } from "lucide-react"
-import toast from "react-hot-toast"
 import * as htmlToImage from "html-to-image"
-import type { Token } from "@/types/token"
+import { Copy, Download, Loader2 } from "lucide-react"
+import { useRef } from "react"
+import toast from "react-hot-toast"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useUserHoldings } from "@/hooks/use-user-holdings"
+import type { Token } from "@/types/token"
 import { formatNumberWithSuffix, formatSmallPrice } from "@/utils/format"
 
 interface PnlDialogProps {
@@ -44,7 +39,7 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 			const blob = await htmlToImage.toBlob(cardRef.current, {
 				quality: 1,
 				pixelRatio: 2,
-				cacheBust: true
+				cacheBust: true,
 			})
 
 			if (!blob) {
@@ -59,7 +54,7 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 		} catch (err: any) {
 			console.error("Failed to copy:", err)
 			// Better error message for debugging
-			if (err?.message?.includes('trim')) {
+			if (err?.message?.includes("trim")) {
 				toast.error("Image generation failed. Please try again.")
 			} else {
 				toast.error(err?.message || "Failed to copy the image")
@@ -77,7 +72,7 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 			const dataUrl = await htmlToImage.toPng(cardRef.current, {
 				quality: 1,
 				pixelRatio: 2,
-				cacheBust: true
+				cacheBust: true,
 			})
 
 			if (!dataUrl) {
@@ -86,7 +81,7 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 			}
 
 			const link = document.createElement("a")
-			link.download = `pnl-${symbol || 'token'}.png`
+			link.download = `pnl-${symbol || "token"}.png`
 			link.href = dataUrl
 			link.click()
 
@@ -94,7 +89,7 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 		} catch (err: any) {
 			console.error("Failed to download:", err)
 			// Better error message for debugging
-			if (err?.message?.includes('trim')) {
+			if (err?.message?.includes("trim")) {
 				toast.error("Image generation failed. Please try again.")
 			} else {
 				toast.error(err?.message || "Failed to download the image")
@@ -102,21 +97,20 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 		}
 	}
 
-
 	return (
 		<Dialog open={isOpen} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-[450px] p-4">
+			<DialogContent className="p-4 sm:max-w-[450px]">
 				<DialogHeader>
 					<DialogTitle className="font-mono uppercase">Share PNL</DialogTitle>
 				</DialogHeader>
 
 				<div className="flex flex-col items-center space-y-4">
 					{isLoading ? (
-						<div className="flex items-center justify-center h-[200px]">
+						<div className="flex h-[200px] items-center justify-center">
 							<Loader2 className="h-8 w-8 animate-spin" />
 						</div>
 					) : error ? (
-						<div className="text-center text-muted-foreground h-[200px] flex items-center justify-center">
+						<div className="flex h-[200px] items-center justify-center text-center text-muted-foreground">
 							<div className="text-sm">{error.message || "Failed to load PNL data"}</div>
 						</div>
 					) : (
@@ -129,7 +123,7 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 									height: "200px",
 									maxWidth: "100%",
 									backgroundColor: "#000000",
-									position: "relative"
+									position: "relative",
 								}}
 							>
 								{/* Background Image */}
@@ -142,7 +136,7 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 										height: "100%",
 										objectFit: "cover",
 										objectPosition: "center top",
-										pointerEvents: "none"
+										pointerEvents: "none",
 									}}
 								/>
 
@@ -162,8 +156,8 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 													/>
 												) : (
 													<div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
-														<span className="text-xl font-bold">
-															{symbol?.[0]?.toUpperCase() || '?'}
+														<span className="font-bold text-xl">
+															{symbol?.[0]?.toUpperCase() || "?"}
 														</span>
 													</div>
 												)}
@@ -171,14 +165,19 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 
 											{/* Token Name and PNL */}
 											<div>
-												<div className="text-sm font-bold text-gray-300">
-													{name || 'Unknown'} ({symbol || '?'})
+												<div className="font-bold text-gray-300 text-sm">
+													{name || "Unknown"} ({symbol || "?"})
 												</div>
-												<div className={`text-xl font-bold ${isProfit ? 'text-green-500' : 'text-red-500'}`}>
-													{isProfit ? '+' : '-'}${formatNumberWithSuffix(pnlAmount || 0)}
+												<div
+													className={`font-bold text-xl ${isProfit ? "text-green-500" : "text-red-500"}`}
+												>
+													{isProfit ? "+" : "-"}${formatNumberWithSuffix(pnlAmount || 0)}
 												</div>
-												<div className={`text-sm font-semibold ${isProfit ? 'text-green-400' : 'text-red-400'}`}>
-													{isProfit ? '↑' : '↓'}{(pnlPercentage || 0).toFixed(1)}%
+												<div
+													className={`font-semibold text-sm ${isProfit ? "text-green-400" : "text-red-400"}`}
+												>
+													{isProfit ? "↑" : "↓"}
+													{(pnlPercentage || 0).toFixed(1)}%
 												</div>
 											</div>
 										</div>
@@ -187,21 +186,27 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 									{/* Bottom Stats */}
 									<div className="flex flex-row gap-8 text-xs">
 										<div>
-											<div className="text-muted-foreground uppercase text-[10px] tracking-wider">entry</div>
+											<div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+												entry
+											</div>
 											<div className="font-bold text-sm text-white">
-												${pnlData?.entryPrice ? formatSmallPrice(pnlData.entryPrice) : '0.00'}
+												${pnlData?.entryPrice ? formatSmallPrice(pnlData.entryPrice) : "0.00"}
 											</div>
 										</div>
 										<div>
-											<div className="text-muted-foreground uppercase text-[10px] tracking-wider">sold</div>
+											<div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+												sold
+											</div>
 											<div className="font-bold text-sm text-white">
-												${pnlData?.sold ? formatNumberWithSuffix(pnlData.sold) : '0'}
+												${pnlData?.sold ? formatNumberWithSuffix(pnlData.sold) : "0"}
 											</div>
 										</div>
 										<div>
-											<div className="text-muted-foreground uppercase text-[10px] tracking-wider">holding</div>
+											<div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+												holding
+											</div>
 											<div className="font-bold text-sm text-white">
-												${pnlData?.holding ? formatNumberWithSuffix(pnlData.holding) : '0'}
+												${pnlData?.holding ? formatNumberWithSuffix(pnlData.holding) : "0"}
 											</div>
 										</div>
 									</div>
@@ -209,21 +214,13 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 							</div>
 
 							{/* Action Buttons */}
-							<div className="flex gap-2 w-full">
-								<Button
-									onClick={handleCopy}
-									variant="outline"
-									className="flex-1"
-								>
-									<Copy className="h-4 w-4 mr-2" />
+							<div className="flex w-full gap-2">
+								<Button onClick={handleCopy} variant="outline" className="flex-1">
+									<Copy className="mr-2 h-4 w-4" />
 									Copy
 								</Button>
-								<Button
-									onClick={handleDownload}
-									variant="outline"
-									className="flex-1"
-								>
-									<Download className="h-4 w-4 mr-2" />
+								<Button onClick={handleDownload} variant="outline" className="flex-1">
+									<Download className="mr-2 h-4 w-4" />
 									Download
 								</Button>
 							</div>

@@ -30,7 +30,7 @@ export function useUserHoldings(pool: Token, address?: string | null) {
 					entryPrice: 0,
 					currentPrice: 0,
 					balance: 0,
-					hasPosition: false
+					hasPosition: false,
 				}
 			}
 
@@ -47,7 +47,7 @@ export function useUserHoldings(pool: Token, address?: string | null) {
 						entryPrice: 0,
 						currentPrice: 0,
 						balance: 0,
-						hasPosition: false
+						hasPosition: false,
 					}
 				}
 
@@ -73,7 +73,7 @@ export function useUserHoldings(pool: Token, address?: string | null) {
 					entryPrice: entryPrice || 0,
 					currentPrice: currentPrice || 0,
 					balance: stats.currentHolding || 0,
-					hasPosition: true
+					hasPosition: true,
 				}
 			} catch (err) {
 				console.error("Error fetching user holdings:", err)
@@ -86,11 +86,11 @@ export function useUserHoldings(pool: Token, address?: string | null) {
 					entryPrice: 0,
 					currentPrice: 0,
 					balance: 0,
-					hasPosition: false
+					hasPosition: false,
 				}
 			}
 		},
 		refetchInterval: 15000,
-		enabled: !!coinType && !!address
+		enabled: !!coinType && !!address,
 	})
 }

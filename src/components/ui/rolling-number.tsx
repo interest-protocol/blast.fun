@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useRef, memo } from "react"
+import { memo, useEffect, useRef, useState } from "react"
 import { cn } from "@/utils"
 
 interface RollingDigitProps {
@@ -42,12 +42,10 @@ const RollingDigit = memo(({ digit, previousDigit, delay }: RollingDigitProps) =
 					isAnimating && "-translate-y-[1em]"
 				)}
 			>
-				<span className="flex items-center justify-center h-[1em]">
+				<span className="flex h-[1em] items-center justify-center">
 					{isAnimating ? previousDigit : currentDigit}
 				</span>
-				<span className="flex items-center justify-center h-[1em]">
-					{currentDigit}
-				</span>
+				<span className="flex h-[1em] items-center justify-center">{currentDigit}</span>
 			</span>
 		</span>
 	)
@@ -60,17 +58,17 @@ interface RollingNumberProps {
 	formatFn?: (value: number) => string
 	className?: string
 	staggerDelay?: number
-	direction?: 'ltr' | 'rtl'
+	direction?: "ltr" | "rtl"
 	prefix?: string
 }
 
 export function RollingNumber({
 	value,
-	formatFn = (v) => v > 0.01 ? v.toFixed(4) : v.toFixed(8),
+	formatFn = (v) => (v > 0.01 ? v.toFixed(4) : v.toFixed(8)),
 	className,
 	staggerDelay = 30,
-	direction = 'rtl',
-	prefix
+	direction = "rtl",
+	prefix,
 }: RollingNumberProps) {
 	const [digits, setDigits] = useState<string[]>([])
 	const [previousDigits, setPreviousDigits] = useState<string[]>([])
@@ -78,7 +76,7 @@ export function RollingNumber({
 
 	useEffect(() => {
 		const formatted = formatFn(value)
-		const newDigits = formatted.split('')
+		const newDigits = formatted.split("")
 
 		// first render; set the digits without animation
 		if (previousValueRef.current === "") {
@@ -88,7 +86,7 @@ export function RollingNumber({
 			return
 		}
 
-		const oldDigits = previousValueRef.current.split('')
+		const oldDigits = previousValueRef.current.split("")
 
 		// no need to pad, just use the arrays as is
 		setPreviousDigits(oldDigits)
@@ -110,7 +108,7 @@ export function RollingNumber({
 		if (firstChanged === -1) return 0
 
 		// stagger from the first changed digit
-		if (direction === 'rtl') {
+		if (direction === "rtl") {
 			// right to left
 			const distanceFromEnd = digits.length - 1 - index
 			const distanceFromFirstChanged = digits.length - 1 - firstChanged

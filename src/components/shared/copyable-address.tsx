@@ -2,10 +2,9 @@
 
 import { formatAddress } from "@mysten/sui/utils"
 import { Check, Copy } from "lucide-react"
-import { useResolveSuiNSName } from "@mysten/dapp-kit"
+import { getWalletLabel } from "@/constants/wallet-labels"
 import { useClipboard } from "@/hooks/use-clipboard"
 import { cn } from "@/utils"
-import { getWalletLabel } from "@/constants/wallet-labels"
 
 interface CopyableAddressProps {
 	address: string
@@ -32,13 +31,7 @@ export function CopyableAddress({ address, showFull = false, showLabel = true, c
 			)}
 			onClick={() => copy(address)}
 		>
-			<span className={cn(
-				"text-xs font-mono",
-				label && "uppercase",
-				"hover:cursor-default"
-			)}>
-				{displayName}
-			</span>
+			<span className={cn("font-mono text-xs", label && "uppercase", "hover:cursor-default")}>{displayName}</span>
 
 			{copied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
 		</div>

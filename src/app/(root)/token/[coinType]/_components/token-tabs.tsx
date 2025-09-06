@@ -1,15 +1,15 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useTheme } from "next-themes"
+import { Activity, Users } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { Activity, Users } from "lucide-react"
-import { cn } from "@/utils"
+import { useTheme } from "next-themes"
+import { useEffect, useState } from "react"
 import { Token } from "@/types/token"
-import { TradesTab } from "./tabs/trades-tab"
-import { HoldersTab } from "./tabs/holders-tab"
+import { cn } from "@/utils"
 import { useHoldersData } from "../_hooks/use-holders-data"
+import { HoldersTab } from "./tabs/holders-tab"
+import { TradesTab } from "./tabs/trades-tab"
 
 interface TokenTabsProps {
 	pool: Token
@@ -28,13 +28,13 @@ const tabs: Tab[] = [
 		id: "trades",
 		label: "Trades",
 		icon: Activity,
-		component: TradesTab
+		component: TradesTab,
 	},
 	{
 		id: "holders",
 		label: "Holders",
 		icon: Users,
-		component: HoldersTab
+		component: HoldersTab,
 	},
 ]
 
@@ -57,7 +57,7 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 		return () => window.removeEventListener("resize", checkScreenSize)
 	}, [])
 
-	const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || TradesTab
+	const ActiveComponent = tabs.find((tab) => tab.id === activeTab)?.component || TradesTab
 
 	// @dev: Split view for xl and 2xl screens
 	if (isSplitView) {
@@ -68,7 +68,7 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 					<div className="border-b">
 						<div className="flex items-center justify-between p-2">
 							<div className="flex items-center gap-1">
-								<div className="flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
+								<div className="flex items-center gap-1.5 rounded-md border border-primary/20 bg-primary/10 px-3 py-1.5 font-mono text-primary text-xs uppercase tracking-wider">
 									<Activity className="h-3.5 w-3.5" />
 									<span>Trades</span>
 								</div>
@@ -88,10 +88,10 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 								<button
 									onClick={() => setHoldersActiveTab("holders")}
 									className={cn(
-										"flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
+										"flex items-center gap-1.5 rounded-md px-3 py-1.5 font-mono text-xs uppercase tracking-wider transition-all",
 										holdersActiveTab === "holders"
-											? "bg-primary/10 text-primary border border-primary/20"
-											: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+											? "border border-primary/20 bg-primary/10 text-primary"
+											: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
 									)}
 								>
 									<Users className="h-3.5 w-3.5" />
@@ -101,10 +101,10 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 									<button
 										onClick={() => setHoldersActiveTab("projects")}
 										className={cn(
-											"flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
+											"flex items-center gap-1.5 rounded-md px-3 py-1.5 font-mono text-xs uppercase tracking-wider transition-all",
 											holdersActiveTab === "projects"
-												? "bg-primary/10 text-primary border border-primary/20"
-												: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+												? "border border-primary/20 bg-primary/10 text-primary"
+												: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
 										)}
 									>
 										<Users className="h-3.5 w-3.5" />
@@ -117,18 +117,16 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 								href="https://nexa.xyz"
 								target="_blank"
 								rel="noopener noreferrer"
-								className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors group pr-2"
+								className="group inline-flex items-center gap-1 pr-2 text-muted-foreground transition-colors hover:text-foreground"
 							>
-								<span className="font-mono text-[10px] font-semibold uppercase tracking-wider">
-									DATA BY
-								</span>
+								<span className="font-mono font-semibold text-[10px] uppercase tracking-wider">DATA BY</span>
 								<Image
 									src="/logo/nexa.svg"
 									alt="Nexa"
 									width={40}
 									height={10}
 									className={cn(
-										"h-2.5 w-auto opacity-70 group-hover:opacity-100 transition-opacity",
+										"h-2.5 w-auto opacity-70 transition-opacity group-hover:opacity-100",
 										resolvedTheme === "light" && "invert"
 									)}
 									priority
@@ -138,9 +136,9 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 						</div>
 					</div>
 					<div className="flex-1 overflow-hidden">
-						<HoldersTab 
-							pool={pool} 
-							className="h-full" 
+						<HoldersTab
+							pool={pool}
+							className="h-full"
 							activeTab={holdersActiveTab}
 							onTabChange={setHoldersActiveTab}
 						/>
@@ -152,7 +150,7 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 
 	// @dev: Standard tab view for smaller screens
 	return (
-		<div className={cn("flex flex-col h-full", className)}>
+		<div className={cn("flex h-full flex-col", className)}>
 			{/* Tabs Selector */}
 			<div className="border-b">
 				<div className="flex items-center justify-between p-2">
@@ -170,16 +168,14 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 												setHoldersActiveTab("holders")
 											}}
 											className={cn(
-												"flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
+												"flex items-center gap-1.5 rounded-md px-3 py-1.5 font-mono text-xs uppercase tracking-wider transition-all",
 												isActive && holdersActiveTab === "holders"
-													? "bg-primary/10 text-primary border border-primary/20"
-													: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+													? "border border-primary/20 bg-primary/10 text-primary"
+													: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
 											)}
 										>
 											<Icon className="h-3.5 w-3.5" />
-											<span className="hidden sm:inline">
-												{tab.label}
-											</span>
+											<span className="hidden sm:inline">{tab.label}</span>
 										</button>
 										{hasProjects && (
 											<button
@@ -188,16 +184,14 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 													setHoldersActiveTab("projects")
 												}}
 												className={cn(
-													"flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
+													"flex items-center gap-1.5 rounded-md px-3 py-1.5 font-mono text-xs uppercase tracking-wider transition-all",
 													isActive && holdersActiveTab === "projects"
-														? "bg-primary/10 text-primary border border-primary/20"
-														: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+														? "border border-primary/20 bg-primary/10 text-primary"
+														: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
 												)}
 											>
 												<Users className="h-3.5 w-3.5" />
-												<span className="hidden sm:inline">
-													Projects
-												</span>
+												<span className="hidden sm:inline">Projects</span>
 											</button>
 										)}
 									</div>
@@ -209,16 +203,14 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 									key={tab.id}
 									onClick={() => setActiveTab(tab.id)}
 									className={cn(
-										"flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
+										"flex items-center gap-1.5 rounded-md px-3 py-1.5 font-mono text-xs uppercase tracking-wider transition-all",
 										isActive
-											? "bg-primary/10 text-primary border border-primary/20"
-											: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+											? "border border-primary/20 bg-primary/10 text-primary"
+											: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
 									)}
 								>
 									<Icon className="h-3.5 w-3.5" />
-									<span className="hidden sm:inline">
-										{tab.label}
-									</span>
+									<span className="hidden sm:inline">{tab.label}</span>
 								</button>
 							)
 						})}
@@ -228,18 +220,16 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 						href="https://nexa.xyz"
 						target="_blank"
 						rel="noopener noreferrer"
-						className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors group pr-2"
+						className="group inline-flex items-center gap-1 pr-2 text-muted-foreground transition-colors hover:text-foreground"
 					>
-						<span className="font-mono text-[10px] font-semibold uppercase tracking-wider">
-							DATA BY
-						</span>
+						<span className="font-mono font-semibold text-[10px] uppercase tracking-wider">DATA BY</span>
 						<Image
 							src="/logo/nexa.svg"
 							alt="Nexa"
 							width={40}
 							height={10}
 							className={cn(
-								"h-2.5 w-auto opacity-70 group-hover:opacity-100 transition-opacity",
+								"h-2.5 w-auto opacity-70 transition-opacity group-hover:opacity-100",
 								resolvedTheme === "light" && "invert"
 							)}
 							priority
@@ -252,9 +242,9 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 			{/* Tab Content */}
 			<div className="flex-1 overflow-hidden">
 				{activeTab === "holders" ? (
-					<HoldersTab 
-						pool={pool} 
-						className="h-full" 
+					<HoldersTab
+						pool={pool}
+						className="h-full"
 						activeTab={holdersActiveTab}
 						onTabChange={setHoldersActiveTab}
 					/>

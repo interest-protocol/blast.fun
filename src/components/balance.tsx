@@ -1,6 +1,6 @@
 import useBalance from "@/hooks/sui/use-balance"
-import { Button } from "./ui/button"
 import { cn } from "@/utils"
+import { Button } from "./ui/button"
 
 interface BalanceProps {
 	className?: string
@@ -17,7 +17,7 @@ const Balance = ({ className }: BalanceProps) => {
 		<Button
 			variant="outline"
 			className={cn(
-				"rounded-xl px-2 !border-destructive/50 !bg-destructive/10 text-destructive [&>svg]:text-current hover:text-destructive/80",
+				"!border-destructive/50 !bg-destructive/10 rounded-xl px-2 text-destructive hover:text-destructive/80 [&>svg]:text-current",
 				className
 			)}
 		>

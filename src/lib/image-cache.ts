@@ -2,12 +2,12 @@
 const imageCache = new Map<string, string>()
 
 export function cacheDataUri(dataUri: string): string {
-	if (!dataUri.startsWith('data:image/')) {
+	if (!dataUri.startsWith("data:image/")) {
 		return dataUri // Return original if not a data URI
 	}
-	
+
 	// Create a simple hash from the data URI
-	const hash = Buffer.from(dataUri.slice(0, 100)).toString('base64').slice(0, 8)
+	const hash = Buffer.from(dataUri.slice(0, 100)).toString("base64").slice(0, 8)
 	imageCache.set(hash, dataUri)
 	return hash
 }

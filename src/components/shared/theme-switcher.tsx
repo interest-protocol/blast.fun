@@ -16,7 +16,7 @@ export const ThemeSwitcher = () => {
 			size="icon"
 			variant="outline"
 			onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-			className="rounded-xl ease-in-out duration-300 transition-all"
+			className="rounded-xl transition-all duration-300 ease-in-out"
 		>
 			{theme === "light" ? <Moon className="h-6 w-6" /> : <Sun className="h-6 w-6" />}
 		</Button>

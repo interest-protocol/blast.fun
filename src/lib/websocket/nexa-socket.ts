@@ -1,8 +1,8 @@
-import type { Socket } from 'socket.io-client'
-import { io } from 'socket.io-client'
-import type { TradeData } from '@/types/trade'
+import type { Socket } from "socket.io-client"
+import { io } from "socket.io-client"
+import type { TradeData } from "@/types/trade"
 
-const URL = 'https://socket.insidex.trade'
+const URL = "https://socket.insidex.trade"
 
 type PriceCallback = (price: number) => void
 type TradeCallback = (trade: TradeData) => void
@@ -18,7 +18,7 @@ class NexaSocket {
 
 	private connect() {
 		if (this.socket || this.isConnecting) {
-			console.log('Socket already exists or is connecting')
+			console.log("Socket already exists or is connecting")
 			return
 		}
 
@@ -28,10 +28,10 @@ class NexaSocket {
 			reconnection: true,
 			reconnectionDelay: 1000,
 			reconnectionDelayMax: 5000,
-			reconnectionAttempts: 5
+			reconnectionAttempts: 5,
 		})
 
-		this.socket.on('connect', () => {
+		this.socket.on("connect", () => {
 			this.isConnecting = false
 			this.resubscribeAll()
 		})
@@ -42,12 +42,12 @@ class NexaSocket {
 
 		// resubscribe to all active subscriptions
 		for (const [key, callbacks] of this.activeSubscriptions.entries()) {
-			if (key.startsWith('price-') && callbacks.size > 0) {
-				const [, pool, direction] = key.split('-')
-				this.socket.emit('subscribe-price', { pool, direction })
-			} else if (key.startsWith('trades-') && callbacks.size > 0) {
-				const coin = key.replace('trades-', '')
-				this.socket.emit('subscribe-trades', { coin })
+			if (key.startsWith("price-") && callbacks.size > 0) {
+				const [, pool, direction] = key.split("-")
+				this.socket.emit("subscribe-price", { pool, direction })
+			} else if (key.startsWith("trades-") && callbacks.size > 0) {
+				const coin = key.replace("trades-", "")
+				this.socket.emit("subscribe-trades", { coin })
 			}
 		}
 	}
@@ -61,18 +61,14 @@ class NexaSocket {
 		}
 	}
 
-	public subscribeToTokenPrice(
-		pool: string,
-		direction: string,
-		callback: (price: number) => void
-	): () => void {
+	public subscribeToTokenPrice(pool: string, direction: string, callback: (price: number) => void): () => void {
 		const key = `price-${pool}-${direction}`
 
 		if (!this.activeSubscriptions.has(key)) {
 			this.activeSubscriptions.set(key, new Set())
 
 			if (this.socket?.connected) {
-				this.socket.emit('subscribe-price', { pool, direction })
+				this.socket.emit("subscribe-price", { pool, direction })
 			}
 
 			this.socket?.on(key, (data: { price: number; suiPrice: number; coinPrice: number }) => {
@@ -80,11 +76,11 @@ class NexaSocket {
 				if (callbacks) {
 					const price = data.coinPrice
 
-					callbacks.forEach(cb => {
+					callbacks.forEach((cb) => {
 						try {
-							(cb as PriceCallback)(price)
+							;(cb as PriceCallback)(price)
 						} catch (error) {
-							console.error('Price callback error:', error)
+							console.error("Price callback error:", error)
 						}
 					})
 				}
@@ -93,7 +89,7 @@ class NexaSocket {
 			console.log(`Adding additional callback for price: ${pool}-${direction}`)
 		}
 
-		this.activeSubscriptions.get(key)!.add(callback)
+		this.activeSubscriptions.get(key)?.add(callback)
 
 		return () => {
 			const callbacks = this.activeSubscriptions.get(key)
@@ -105,7 +101,7 @@ class NexaSocket {
 					this.activeSubscriptions.delete(key)
 
 					if (this.socket) {
-						this.socket.emit('unsubscribe-price', { pool, direction })
+						this.socket.emit("unsubscribe-price", { pool, direction })
 						this.socket.off(key)
 					}
 				}
@@ -113,27 +109,24 @@ class NexaSocket {
 		}
 	}
 
-	public subscribeToCoinTrades(
-		coin: string,
-		callback: (trade: TradeData) => void
-	): () => void {
+	public subscribeToCoinTrades(coin: string, callback: (trade: TradeData) => void): () => void {
 		const key = `trades-${coin}`
 
 		if (!this.activeSubscriptions.has(key)) {
 			this.activeSubscriptions.set(key, new Set())
 
 			if (this.socket?.connected) {
-				this.socket.emit('subscribe-trades', { coin })
+				this.socket.emit("subscribe-trades", { coin })
 			}
 
 			this.socket?.on(key, (trade: TradeData) => {
 				const callbacks = this.activeSubscriptions.get(key)
 				if (callbacks) {
-					callbacks.forEach(cb => {
+					callbacks.forEach((cb) => {
 						try {
-							(cb as TradeCallback)(trade)
+							;(cb as TradeCallback)(trade)
 						} catch (error) {
-							console.error('Trade callback error:', error)
+							console.error("Trade callback error:", error)
 						}
 					})
 				}
@@ -142,7 +135,7 @@ class NexaSocket {
 			console.log(`Adding additional callback for trades: ${coin}`)
 		}
 
-		this.activeSubscriptions.get(key)!.add(callback)
+		this.activeSubscriptions.get(key)?.add(callback)
 
 		return () => {
 			const callbacks = this.activeSubscriptions.get(key)
@@ -154,7 +147,7 @@ class NexaSocket {
 					this.activeSubscriptions.delete(key)
 
 					if (this.socket) {
-						this.socket.emit('unsubscribe-trades', { coin })
+						this.socket.emit("unsubscribe-trades", { coin })
 						this.socket.off(key)
 					}
 				}
@@ -175,8 +168,8 @@ const getNexaSocket = () => {
 const nexaSocket = getNexaSocket()
 export default nexaSocket
 
-if (typeof window !== 'undefined') {
-	window.addEventListener('beforeunload', () => {
+if (typeof window !== "undefined") {
+	window.addEventListener("beforeunload", () => {
 		nexaSocket.disconnect()
 	})
 }

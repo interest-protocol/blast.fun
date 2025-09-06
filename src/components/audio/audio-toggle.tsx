@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { Volume2, VolumeX } from "lucide-react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { AudioDialog } from "./audio-dialog"
-import { audioManager, type AudioSettings } from "@/lib/audio-manager"
 import { useMounted } from "@/hooks/use-mounted"
+import { type AudioSettings, audioManager } from "@/lib/audio-manager"
+import { AudioDialog } from "./audio-dialog"
 
 export function AudioToggle() {
 	const [open, setOpen] = useState(false)
@@ -21,7 +21,7 @@ export function AudioToggle() {
 		return () => {
 			unsubscribe()
 		}
-	}, []);
+	}, [])
 
 	if (!isMounted) return null
 
@@ -31,13 +31,9 @@ export function AudioToggle() {
 				size="icon"
 				variant="outline"
 				onClick={() => setOpen(true)}
-				className="rounded-xl ease-in-out duration-300 transition-all"
+				className="rounded-xl transition-all duration-300 ease-in-out"
 			>
-				{settings.enabled ? (
-					<Volume2 className="h-6 w-6" />
-				) : (
-					<VolumeX className="h-6 w-6" />
-				)}
+				{settings.enabled ? <Volume2 className="h-6 w-6" /> : <VolumeX className="h-6 w-6" />}
 			</Button>
 			<AudioDialog open={open} onOpenChange={setOpen} />
 		</>

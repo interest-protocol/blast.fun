@@ -1,5 +1,4 @@
-import type { TokenMarketData } from "@/types/token"
-import type { TokenMetadata } from "@/types/token"
+import type { TokenMarketData, TokenMetadata } from "@/types/token"
 
 const NEXA_API_BASE = "https://spot.api.sui-prod.bluefin.io/internal-api/insidex"
 
@@ -30,7 +29,7 @@ class NexaClient {
 	}
 
 	private async fetch(endpoint: string, options?: NexaRequestOptions) {
-		const url = endpoint.startsWith('http') ? endpoint : `${this.baseUrl}${endpoint}`
+		const url = endpoint.startsWith("http") ? endpoint : `${this.baseUrl}${endpoint}`
 
 		const response = await fetch(url, {
 			...options,
@@ -58,7 +57,7 @@ class NexaClient {
 			})
 
 			const text = await response.text()
-			if (!text || text.trim() === '') return null
+			if (!text || text.trim() === "") return null
 
 			try {
 				return JSON.parse(text) as TokenMetadata
@@ -66,20 +65,20 @@ class NexaClient {
 				return null
 			}
 		} catch (error) {
-			console.error('Error fetching coin metadata:', error)
+			console.error("Error fetching coin metadata:", error)
 			return null
 		}
 	}
 
 	async getBatchCoinMetadata(coinTypes: string[]) {
 		try {
-			const coinTypesString = coinTypes.join(',')
+			const coinTypesString = coinTypes.join(",")
 			const response = await this.fetch(`/coins/multiple/coin-metadata?coins=${encodeURIComponent(coinTypesString)}`, {
 				revalidate: 300,
 			})
 
 			const text = await response.text()
-			if (!text || text.trim() === '') return {}
+			if (!text || text.trim() === "") return {}
 
 			try {
 				return JSON.parse(text)
@@ -87,7 +86,7 @@ class NexaClient {
 				return {}
 			}
 		} catch (error) {
-			console.error('Error fetching batch coin metadata:', error)
+			console.error("Error fetching batch coin metadata:", error)
 			return {}
 		}
 	}
@@ -99,7 +98,7 @@ class NexaClient {
 			})
 
 			const text = await response.text()
-			if (!text || text.trim() === '') return null
+			if (!text || text.trim() === "") return null
 
 			try {
 				return JSON.parse(text) as TokenMarketData
@@ -107,20 +106,20 @@ class NexaClient {
 				return null
 			}
 		} catch (error) {
-			console.error('Error fetching market data:', error)
+			console.error("Error fetching market data:", error)
 			return null
 		}
 	}
 
 	async getBatchMarketData(coinTypes: string[]) {
 		try {
-			const coinTypesString = coinTypes.join(',')
+			const coinTypesString = coinTypes.join(",")
 			const response = await this.fetch(`/coins/multiple/market-data?coins=${coinTypesString}`, {
 				revalidate: 5,
 			})
 
 			const text = await response.text()
-			if (!text || text.trim() === '') return []
+			if (!text || text.trim() === "") return []
 
 			try {
 				return JSON.parse(text)
@@ -128,7 +127,7 @@ class NexaClient {
 				return []
 			}
 		} catch (error) {
-			console.error('Error fetching batch market data:', error)
+			console.error("Error fetching batch market data:", error)
 			return []
 		}
 	}
@@ -140,7 +139,7 @@ class NexaClient {
 			})
 
 			const text = await response.text()
-			if (!text || text.trim() === '') return { holders: [], total: 0 }
+			if (!text || text.trim() === "") return { holders: [], total: 0 }
 
 			try {
 				return JSON.parse(text)
@@ -148,7 +147,7 @@ class NexaClient {
 				return { holders: [], total: 0 }
 			}
 		} catch (error) {
-			console.error('Error fetching holders:', error)
+			console.error("Error fetching holders:", error)
 			return { holders: [], total: 0 }
 		}
 	}
@@ -160,7 +159,7 @@ class NexaClient {
 			})
 
 			const text = await response.text()
-			if (!text || text.trim() === '') return { trades: [], total: 0 }
+			if (!text || text.trim() === "") return { trades: [], total: 0 }
 
 			try {
 				return JSON.parse(text)
@@ -168,7 +167,7 @@ class NexaClient {
 				return { trades: [], total: 0 }
 			}
 		} catch (error) {
-			console.error('Error fetching trades:', error)
+			console.error("Error fetching trades:", error)
 			return { trades: [], total: 0 }
 		}
 	}
@@ -180,7 +179,7 @@ class NexaClient {
 			})
 
 			const text = await response.text()
-			if (!text || text.trim() === '') return null
+			if (!text || text.trim() === "") return null
 
 			try {
 				return JSON.parse(text)
@@ -188,7 +187,7 @@ class NexaClient {
 				return null
 			}
 		} catch (error) {
-			console.error('Error fetching portfolio:', error)
+			console.error("Error fetching portfolio:", error)
 			return null
 		}
 	}
@@ -202,7 +201,7 @@ class NexaClient {
 			})
 
 			const text = await response.text()
-			if (!text || text.trim() === '') return []
+			if (!text || text.trim() === "") return []
 
 			try {
 				return JSON.parse(text)
@@ -210,7 +209,7 @@ class NexaClient {
 				return []
 			}
 		} catch (error) {
-			console.error('Error searching tokens:', error)
+			console.error("Error searching tokens:", error)
 			return []
 		}
 	}
@@ -222,7 +221,7 @@ class NexaClient {
 			})
 
 			const text = await response.text()
-			if (!text || text.trim() === '') return null
+			if (!text || text.trim() === "") return null
 
 			try {
 				return JSON.parse(text) as MarketStats
@@ -230,7 +229,7 @@ class NexaClient {
 				return null
 			}
 		} catch (error) {
-			console.error('Error fetching market stats:', error)
+			console.error("Error fetching market stats:", error)
 			return null
 		}
 	}

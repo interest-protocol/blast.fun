@@ -1,9 +1,9 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { TwitterUser } from "@/context/twitter.context"
 import { getFxtwitterProfileImage } from "@/lib/twitter"
 import { cn } from "@/utils"
-import { useEffect, useState } from "react"
 
 interface UserAvatarProps {
 	user: TwitterUser

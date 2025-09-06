@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
-import { apolloClient } from "@/lib/apollo-client"
-import { prisma } from "@/lib/prisma"
-import { fetchCreatorsBatch } from "@/lib/fetch-creators-batch"
 import { GET_COIN_POOL_BASIC } from "@/graphql/pools"
+import { apolloClient } from "@/lib/apollo-client"
+import { fetchCreatorsBatch } from "@/lib/fetch-creators-batch"
+import { prisma } from "@/lib/prisma"
 
 export const revalidate = 1
 
@@ -20,9 +20,9 @@ export async function GET(request: Request) {
 			`https://spot.api.sui-prod.bluefin.io/internal-api/insidex/memezone/about-to-bond?platforms=xpump&${params}`,
 			{
 				headers: {
-					"Accept": "application/json"
+					Accept: "application/json",
 				},
-				next: { revalidate: 1 }
+				next: { revalidate: 1 },
 			}
 		)
 
@@ -36,15 +36,17 @@ export async function GET(request: Request) {
 		if (coinTypes.length > 0) {
 			try {
 				const poolPromises = coinTypes.map((coinType: string) =>
-					apolloClient.query({
-						query: GET_COIN_POOL_BASIC,
-						variables: { type: coinType },
-						fetchPolicy: "no-cache",
-						errorPolicy: "ignore"
-					}).catch(err => {
-						console.error(`Failed to fetch pool for ${coinType}:`, err)
-						return { data: { coinPool: null } }
-					})
+					apolloClient
+						.query({
+							query: GET_COIN_POOL_BASIC,
+							variables: { type: coinType },
+							fetchPolicy: "no-cache",
+							errorPolicy: "ignore",
+						})
+						.catch((err) => {
+							console.error(`Failed to fetch pool for ${coinType}:`, err)
+							return { data: { coinPool: null } }
+						})
 				)
 
 				const poolResults = await Promise.all(poolPromises)
@@ -67,9 +69,9 @@ export async function GET(request: Request) {
 					try {
 						const protectionSettings = await prisma.tokenProtectionSettings.findMany({
 							where: { poolId: { in: poolIds } },
-							select: { poolId: true, settings: true }
+							select: { poolId: true, settings: true },
 						})
-						protectionSettings.forEach(setting => {
+						protectionSettings.forEach((setting) => {
 							protectionSettingsMap.set(setting.poolId, setting.settings)
 						})
 					} catch (error) {
@@ -91,7 +93,7 @@ export async function GET(request: Request) {
 							name: token.name,
 							symbol: token.symbol,
 							description: token.description,
-							icon_url: token.iconUrl || token.icon_url
+							icon_url: token.iconUrl || token.icon_url,
 						},
 						marketCap: token.marketCap || 0,
 						holdersCount: token.holdersCount || 0,
@@ -100,41 +102,38 @@ export async function GET(request: Request) {
 						sellVolume: token.sellVolume || 0,
 						liquidity: token.liquidity || 0,
 						price: token.price || 0,
-						bondingCurve: pool?.bondingCurve || ((token.bondingProgress || 0) * 100),
-						bondingProgress: pool?.migrated ? 100 : ((token.bondingProgress || 0) * 100),
+						bondingCurve: pool?.bondingCurve || (token.bondingProgress || 0) * 100,
+						bondingProgress: pool?.migrated ? 100 : (token.bondingProgress || 0) * 100,
 						migrated: pool?.migrated || false,
 						isProtected: !!pool?.publicKey,
 						burnTax: pool?.burnTax,
 						protectionSettings: pool?.publicKey ? protectionSettingsMap.get(pool.poolId) : undefined,
-						creatorData
+						creatorData,
 					}
 				})
 
 				return NextResponse.json(enhancedTokens, {
 					headers: {
-						"Cache-Control": "public, s-maxage=1, stale-while-revalidate=59"
-					}
+						"Cache-Control": "public, s-maxage=1, stale-while-revalidate=59",
+					},
 				})
 			} catch (graphqlError) {
 				console.error("GraphQL error:", graphqlError)
 				return NextResponse.json(tokens, {
 					headers: {
-						"Cache-Control": "public, s-maxage=1, stale-while-revalidate=59"
-					}
+						"Cache-Control": "public, s-maxage=1, stale-while-revalidate=59",
+					},
 				})
 			}
 		}
 
 		return NextResponse.json(tokens, {
 			headers: {
-				"Cache-Control": "public, s-maxage=1, stale-while-revalidate=59"
-			}
+				"Cache-Control": "public, s-maxage=1, stale-while-revalidate=59",
+			},
 		})
 	} catch (error) {
 		console.error("API error:", error)
-		return NextResponse.json(
-			{ error: "Failed to fetch tokens" },
-			{ status: 500 }
-		)
+		return NextResponse.json({ error: "Failed to fetch tokens" }, { status: 500 })
 	}
 }

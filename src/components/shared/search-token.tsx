@@ -1,22 +1,17 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
-import { Search, Loader2 } from "lucide-react"
-import { useDebouncedCallback } from "use-debounce"
 import { useQuery } from "@apollo/client"
+import { Loader2, Search } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useCallback, useEffect, useState } from "react"
 import toast from "react-hot-toast"
-import {
-	CommandDialog,
-	CommandEmpty,
-	CommandItem,
-	CommandList,
-} from "@/components/ui/command"
-import { Button } from "@/components/ui/button"
-import { nexaClient } from "@/lib/nexa"
+import { useDebouncedCallback } from "use-debounce"
 import { TokenAvatar } from "@/components/tokens/token-avatar"
-import { formatNumberWithSuffix } from "@/utils/format"
+import { Button } from "@/components/ui/button"
+import { CommandDialog, CommandEmpty, CommandItem, CommandList } from "@/components/ui/command"
 import { GET_POOL_BY_COIN_TYPE } from "@/graphql/pools"
+import { nexaClient } from "@/lib/nexa"
+import { formatNumberWithSuffix } from "@/utils/format"
 
 interface SearchResult {
 	type: "coin"
@@ -63,7 +58,7 @@ export function SearchToken() {
 			console.error("Error fetching poolId:", error)
 			toast.error("Something went wrong. Please try again later.")
 			setSelectedCoinType(null)
-		}
+		},
 	})
 
 	const handleSearch = useDebouncedCallback(async (searchQuery: string) => {
@@ -96,11 +91,11 @@ export function SearchToken() {
 		<>
 			<Button
 				variant="outline"
-				className="rounded-xl px-2 h-9 hover:bg-accent/50 transition-all duration-300"
+				className="h-9 rounded-xl px-2 transition-all duration-300 hover:bg-accent/50"
 				onClick={() => setOpen(true)}
 			>
 				<Search className="h-4 w-4 text-muted-foreground" />
-				<span className="text-muted-foreground font-semibold text-sm hidden md:inline-block">
+				<span className="hidden font-semibold text-muted-foreground text-sm md:inline-block">
 					Search for tokens...
 				</span>
 			</Button>
@@ -114,7 +109,7 @@ export function SearchToken() {
 						setSearchResults([])
 					}
 				}}
-				className="flex max-w-md flex-col gap-0 overflow-hidden p-0 rounded-xl shadow-xl"
+				className="flex max-w-md flex-col gap-0 overflow-hidden rounded-xl p-0 shadow-xl"
 				showCloseButton={false}
 			>
 				<div className="flex items-center border-b px-3">
@@ -137,26 +132,28 @@ export function SearchToken() {
 						<CommandItem
 							key={result.coinType}
 							onSelect={() => handleSelect(result.coinType)}
-							className="flex rounded-lg items-center gap-3 px-4 py-3 cursor-pointer"
+							className="flex cursor-pointer items-center gap-3 rounded-lg px-4 py-3"
 						>
 							<TokenAvatar
 								iconUrl={result.icon || result.coinMetadata?.iconUrl || result.coinMetadata?.icon_url}
 								symbol={result.symbol}
 								name={result.name}
-								className="w-10 h-10 rounded-lg"
+								className="h-10 w-10 rounded-lg"
 							/>
-							<div className="flex flex-col flex-1">
+							<div className="flex flex-1 flex-col">
 								<div className="flex items-center gap-2">
-									<span className="font-mono font-bold text-sm uppercase tracking-wider text-foreground/90">
+									<span className="font-bold font-mono text-foreground/90 text-sm uppercase tracking-wider">
 										{result.symbol}
 									</span>
-									<span className="text-xs text-muted-foreground truncate">{result.name}</span>
+									<span className="truncate text-muted-foreground text-xs">{result.name}</span>
 								</div>
 								{(result.mc || result.sellVolumeStats1d || result.buyVolumeStats1d) && (
-									<div className="flex items-center gap-3 text-xs font-mono">
+									<div className="flex items-center gap-3 font-mono text-xs">
 										{result.mc && (
 											<div className="flex items-center gap-1">
-												<span className="text-muted-foreground/60 uppercase tracking-wider text-[10px]">MC</span>
+												<span className="text-[10px] text-muted-foreground/60 uppercase tracking-wider">
+													MC
+												</span>
 												<span className="font-semibold text-green-500/90">
 													${formatNumberWithSuffix(result.mc)}
 												</span>
@@ -164,11 +161,14 @@ export function SearchToken() {
 										)}
 										{(result.sellVolumeStats1d || result.buyVolumeStats1d) && (
 											<div className="flex items-center gap-1">
-												<span className="text-muted-foreground/60 uppercase tracking-wider text-[10px]">VOL</span>
+												<span className="text-[10px] text-muted-foreground/60 uppercase tracking-wider">
+													VOL
+												</span>
 												<span className="font-semibold text-purple-500/90">
-													${formatNumberWithSuffix(
+													$
+													{formatNumberWithSuffix(
 														(result.sellVolumeStats1d?.volumeUsd || 0) +
-														(result.buyVolumeStats1d?.volumeUsd || 0)
+															(result.buyVolumeStats1d?.volumeUsd || 0)
 													)}
 												</span>
 											</div>

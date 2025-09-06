@@ -1,24 +1,24 @@
 import type { SiteConfig } from "@/types/app"
 
 export const BASE_DOMAIN = (() => {
-    switch (process.env.NEXT_PUBLIC_VERCEL_ENV) {
-        case "production":
-            return "https://blast.fun";
-        case "preview":
-            return "https://staging.blast.fun";
-        default:
-            return "http://localhost:3000";
-    }
-})();
+	switch (process.env.NEXT_PUBLIC_VERCEL_ENV) {
+		case "production":
+			return "https://blast.fun"
+		case "preview":
+			return "https://staging.blast.fun"
+		default:
+			return "http://localhost:3000"
+	}
+})()
 
 export const siteConfig: SiteConfig = {
-    name: 'BLAST.FUN',
-    description: 'Launch, trade and explore everything memecoins on blast.fun',
-    url: 'https://blast.fun',
-    image: `${BASE_DOMAIN}/logo/blast-bg.png`,
-    links: {
-        twitter: "https://twitter.com/blastdotfun"
-    }
+	name: "BLAST.FUN",
+	description: "Launch, trade and explore everything memecoins on blast.fun",
+	url: "https://blast.fun",
+	image: `${BASE_DOMAIN}/logo/blast-bg.png`,
+	links: {
+		twitter: "https://twitter.com/blastdotfun",
+	},
 }
 
 // misc

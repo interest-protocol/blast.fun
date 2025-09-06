@@ -14,7 +14,7 @@ export function useDocumentTitle(options: UseDocumentTitleOptions = {}) {
 		if (symbol && marketCap) {
 			const formattedMarketCap = formatMarketCap
 				? formatMarketCap(marketCap)
-				: typeof marketCap === 'number'
+				: typeof marketCap === "number"
 					? `$${marketCap.toLocaleString()}`
 					: marketCap
 

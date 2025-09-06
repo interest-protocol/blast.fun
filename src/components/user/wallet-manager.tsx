@@ -1,10 +1,9 @@
 "use client"
 
-import { formatAddress } from "@mysten/sui/utils"
 import { useResolveSuiNSName } from "@mysten/dapp-kit"
-import { Wallet, Check, Copy, CheckCircle2 } from "lucide-react"
+import { formatAddress } from "@mysten/sui/utils"
+import { Check, CheckCircle2, Copy, Wallet } from "lucide-react"
 import { useApp } from "@/context/app.context"
-import { useState } from "react"
 import { useClipboard } from "@/hooks/use-clipboard"
 
 interface WalletAccountItemProps {
@@ -16,43 +15,30 @@ interface WalletAccountItemProps {
 function WalletAccountItem({ account, isActive, onSelect }: WalletAccountItemProps) {
 	const { data: domain } = useResolveSuiNSName(account.address)
 	const { copy, copied } = useClipboard()
-	
+
 	// Show the address directly - either SuiNS domain or formatted address
 	const displayAddress = domain || formatAddress(account.address)
-	
+
 	const handleCopy = (e: React.MouseEvent) => {
 		e.stopPropagation()
 		copy(account.address)
 	}
-	
+
 	return (
-		<div
-			className="w-full p-2 flex items-center justify-between hover:bg-muted rounded-lg transition-colors group"
-		>
-			<button
-				className="flex items-center gap-2 flex-1"
-				onClick={onSelect}
-			>
-				<Wallet className="w-4 h-4 text-muted-foreground" />
-				<span className="text-sm">
-					{displayAddress}
-				</span>
+		<div className="group flex w-full items-center justify-between rounded-lg p-2 transition-colors hover:bg-muted">
+			<button className="flex flex-1 items-center gap-2" onClick={onSelect}>
+				<Wallet className="h-4 w-4 text-muted-foreground" />
+				<span className="text-sm">{displayAddress}</span>
 			</button>
 			<div className="flex items-center gap-1">
-				<button
-					type="button"
-					onClick={handleCopy}
-					className="p-1 hover:bg-background rounded transition-all"
-				>
+				<button type="button" onClick={handleCopy} className="rounded p-1 transition-all hover:bg-background">
 					{copied ? (
-						<CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+						<CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
 					) : (
-						<Copy className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
+						<Copy className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
 					)}
 				</button>
-				{isActive && (
-					<Check className="w-4 h-4 text-primary" />
-				)}
+				{isActive && <Check className="h-4 w-4 text-primary" />}
 			</div>
 		</div>
 	)
@@ -60,14 +46,14 @@ function WalletAccountItem({ account, isActive, onSelect }: WalletAccountItemPro
 
 export function WalletManager() {
 	const { accounts, currentAccount, switchAccount } = useApp()
-	
+
 	return (
 		<div className="space-y-3">
 			<div className="mb-2">
-				<h3 className="text-sm font-semibold">Connected Wallets</h3>
+				<h3 className="font-semibold text-sm">Connected Wallets</h3>
 			</div>
-			
-			<div className="space-y-2 max-h-[50vh] overflow-y-auto">
+
+			<div className="max-h-[50vh] space-y-2 overflow-y-auto">
 				{accounts.map((account) => (
 					<WalletAccountItem
 						key={account.address}
@@ -81,11 +67,9 @@ export function WalletManager() {
 					/>
 				))}
 			</div>
-			
+
 			{accounts.length === 0 && (
-				<div className="text-center py-6 text-muted-foreground text-sm">
-					No wallets connected
-				</div>
+				<div className="py-6 text-center text-muted-foreground text-sm">No wallets connected</div>
 			)}
 		</div>
 	)

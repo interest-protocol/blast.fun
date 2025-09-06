@@ -1,6 +1,6 @@
-import { Aftermath } from "aftermath-ts-sdk"
 import { Transaction } from "@mysten/sui/transactions"
 import { SUI_TYPE_ARG } from "@mysten/sui/utils"
+import { Aftermath } from "aftermath-ts-sdk"
 import { env } from "@/env"
 
 let aftermathInstance: Aftermath | null = null
@@ -26,12 +26,7 @@ export interface SwapParams extends SwapQuoteParams {
 	referrer?: string
 }
 
-export async function getSwapQuote({
-	coinInType,
-	coinOutType,
-	amountIn,
-	slippagePercentage = 1,
-}: SwapQuoteParams) {
+export async function getSwapQuote({ coinInType, coinOutType, amountIn, slippagePercentage = 1 }: SwapQuoteParams) {
 	try {
 		const af = await getAftermath()
 		const router = af.Router()
@@ -80,8 +75,8 @@ export async function executeSwap({
 			referrer,
 			externalFee: {
 				recipient: env.NEXT_PUBLIC_FEE_ADDRESS,
-				feePercentage: 0.01
-			}
+				feePercentage: 0.01,
+			},
 		})
 
 		if (!route) {
@@ -148,8 +143,8 @@ export async function sellMigratedToken({
 			referrer,
 			externalFee: {
 				recipient: env.NEXT_PUBLIC_FEE_ADDRESS,
-				feePercentage: 0.01
-			}
+				feePercentage: 0.01,
+			},
 		})
 
 		if (!route) {

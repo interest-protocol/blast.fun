@@ -1,15 +1,13 @@
 import { prisma } from "@/lib/prisma"
-import { formatAmountWithSuffix } from "@/utils/format"
-import { redisGet, redisSetEx, CACHE_TTL, CACHE_PREFIX } from "@/lib/redis/client"
+import { CACHE_PREFIX, CACHE_TTL, redisGet, redisSetEx } from "@/lib/redis/client"
 import type { TokenCreator } from "@/types/token"
+import { formatAmountWithSuffix } from "@/utils/format"
 
-export async function fetchCreatorData(
-	params: {
-		creatorAddressOrHandle?: string
-		poolId?: string
-		twitterHandle?: string | null
-	}
-): Promise<TokenCreator> {
+export async function fetchCreatorData(params: {
+	creatorAddressOrHandle?: string
+	poolId?: string
+	twitterHandle?: string | null
+}): Promise<TokenCreator> {
 	try {
 		let creatorAddress: string | undefined
 		let finalTwitterHandle = params.twitterHandle
@@ -21,12 +19,12 @@ export async function fetchCreatorData(
 			// First try to find by poolId
 			const tokenLaunch = await prisma.tokenLaunches.findFirst({
 				where: { poolObjectId: params.poolId },
-				select: { 
+				select: {
 					creatorAddress: true,
 					hideIdentity: true,
 					twitterUserId: true,
-					twitterUsername: true
-				}
+					twitterUsername: true,
+				},
 			})
 
 			if (tokenLaunch) {
@@ -41,17 +39,17 @@ export async function fetchCreatorData(
 			}
 		} else if (params.creatorAddressOrHandle) {
 			creatorAddress = params.creatorAddressOrHandle
-			
-			// @dev: if twitterHandle is provided and matches creatorAddressOrHandle, 
+
+			// @dev: if twitterHandle is provided and matches creatorAddressOrHandle,
 			// we need to find the actual creator address
 			if (params.twitterHandle && params.creatorAddressOrHandle === params.twitterHandle) {
 				const tokenLaunch = await prisma.tokenLaunches.findFirst({
 					where: { twitterUsername: params.twitterHandle },
-					select: { 
+					select: {
 						creatorAddress: true,
 						hideIdentity: true,
-						twitterUserId: true
-					}
+						twitterUserId: true,
+					},
 				})
 
 				if (tokenLaunch) {
@@ -82,20 +80,20 @@ export async function fetchCreatorData(
 		const launchCount = tokenLaunches.length
 
 		// check if any launch has hideIdentity set to true
-		hideIdentity = tokenLaunches.some(launch => launch.hideIdentity)
+		hideIdentity = tokenLaunches.some((launch) => launch.hideIdentity)
 
 		// get twitter handle and id if not hiding identity
 		finalTwitterHandle = hideIdentity ? null : finalTwitterHandle
 		finalTwitterId = hideIdentity ? null : finalTwitterId
 		if (!hideIdentity && tokenLaunches.length > 0) {
 			if (!finalTwitterHandle) {
-				const launchWithTwitter = tokenLaunches.find(l => l.twitterUsername)
+				const launchWithTwitter = tokenLaunches.find((l) => l.twitterUsername)
 				if (launchWithTwitter) {
 					finalTwitterHandle = launchWithTwitter.twitterUsername
 				}
 			}
 			if (!finalTwitterId) {
-				const launchWithTwitterId = tokenLaunches.find(l => l.twitterUserId)
+				const launchWithTwitterId = tokenLaunches.find((l) => l.twitterUserId)
 				if (launchWithTwitterId) {
 					finalTwitterId = launchWithTwitterId.twitterUserId
 				}
@@ -126,9 +124,7 @@ export async function fetchCreatorData(
 		if (finalTwitterHandle) {
 			// Fetch trusted followers from GiveRep
 			try {
-				const res = await fetch(
-					`https://giverep.com/api/trust-count/user-count/${finalTwitterHandle}`
-				)
+				const res = await fetch(`https://giverep.com/api/trust-count/user-count/${finalTwitterHandle}`)
 
 				if (res.ok) {
 					const giveRepData = await res.json()
@@ -142,9 +138,7 @@ export async function fetchCreatorData(
 
 			// Use fxtwitter as the primary and only source for follower count
 			try {
-				const fxTwitterResponse = await fetch(
-					`https://api.fxtwitter.com/${finalTwitterHandle}`
-				)
+				const fxTwitterResponse = await fetch(`https://api.fxtwitter.com/${finalTwitterHandle}`)
 
 				if (fxTwitterResponse.ok) {
 					const fxTwitterData = await fxTwitterResponse.json()
@@ -198,22 +192,16 @@ export async function fetchCreatorData(
 			trustedFollowers: hideIdentity
 				? bandValue(trustedFollowerCount, trustedFollowerThresholds)
 				: formatFollowerCount(trustedFollowerCount),
-			followers: hideIdentity
-				? bandValue(followerCount, followerThresholds)
-				: formatFollowerCount(followerCount),
+			followers: hideIdentity ? bandValue(followerCount, followerThresholds) : formatFollowerCount(followerCount),
 			twitterHandle: finalTwitterHandle,
 			twitterId: finalTwitterId,
-			hideIdentity
+			hideIdentity,
 		}
 
 		// Only cache if we have non-zero follower count
 		// This ensures we don't cache failed API calls or users with genuinely 0 followers
 		if (creatorData.followers !== "0") {
-			await redisSetEx(
-				cacheKey,
-				CACHE_TTL.CREATOR_DATA,
-				JSON.stringify(creatorData)
-			)
+			await redisSetEx(cacheKey, CACHE_TTL.CREATOR_DATA, JSON.stringify(creatorData))
 		}
 
 		return creatorData
@@ -226,7 +214,7 @@ export async function fetchCreatorData(
 			followers: "0",
 			twitterHandle: null,
 			twitterId: null,
-			hideIdentity: false
+			hideIdentity: false,
 		}
 	}
 }

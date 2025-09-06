@@ -23,10 +23,16 @@ function bandValue(count: number, thresholds: number[]): string {
 }
 
 export async function fetchCreatorsBatch(tokens: any[], poolMap: Map<string, any>) {
-	const creatorAddresses = [...new Set(tokens.map((token: any) => {
-		const pool = poolMap.get(token.coinType)
-		return pool?.creatorAddress || token.dev
-	}).filter(Boolean))]
+	const creatorAddresses = [
+		...new Set(
+			tokens
+				.map((token: any) => {
+					const pool = poolMap.get(token.coinType)
+					return pool?.creatorAddress || token.dev
+				})
+				.filter(Boolean)
+		),
+	]
 
 	if (creatorAddresses.length === 0) {
 		return new Map()
@@ -36,21 +42,21 @@ export async function fetchCreatorsBatch(tokens: any[], poolMap: Map<string, any
 		where: {
 			OR: [
 				{ creatorAddress: { in: creatorAddresses } },
-				{ poolObjectId: { in: tokens.map((t: any) => poolMap.get(t.coinType)?.poolId || t.id).filter(Boolean) } }
-			]
+				{ poolObjectId: { in: tokens.map((t: any) => poolMap.get(t.coinType)?.poolId || t.id).filter(Boolean) } },
+			],
 		},
 		select: {
 			poolObjectId: true,
 			creatorAddress: true,
 			twitterUsername: true,
 			twitterUserId: true,
-			hideIdentity: true
-		}
+			hideIdentity: true,
+		},
 	})
 
 	// lookup maps
 	const launchesByCreator = new Map<string, any[]>()
-	tokenLaunches.forEach(launch => {
+	tokenLaunches.forEach((launch) => {
 		const existing = launchesByCreator.get(launch.creatorAddress) || []
 		existing.push(launch)
 		launchesByCreator.set(launch.creatorAddress, existing)
@@ -60,7 +66,7 @@ export async function fetchCreatorsBatch(tokens: any[], poolMap: Map<string, any
 	for (const address of creatorAddresses) {
 		const launches = launchesByCreator.get(address) || []
 		const launchCount = launches.length
-		const hideIdentity = launches.some(l => l.hideIdentity)
+		const hideIdentity = launches.some((l) => l.hideIdentity)
 
 		let twitterHandle = null
 		let twitterId = null
@@ -71,7 +77,7 @@ export async function fetchCreatorsBatch(tokens: any[], poolMap: Map<string, any
 
 		// @dev: always try to get twitter handle from launches if available
 		if (launches.length > 0) {
-			const launchWithTwitter = launches.find(l => l.twitterUsername)
+			const launchWithTwitter = launches.find((l) => l.twitterUsername)
 			if (launchWithTwitter) {
 				twitterHandle = launchWithTwitter.twitterUsername
 				twitterId = launchWithTwitter.twitterUserId
@@ -80,7 +86,7 @@ export async function fetchCreatorsBatch(tokens: any[], poolMap: Map<string, any
 				try {
 					const [giveRepRes, fxTwitterRes] = await Promise.all([
 						fetch(`https://giverep.com/api/trust-count/user-count/${twitterHandle}`),
-						fetch(`https://api.fxtwitter.com/${twitterHandle}`)
+						fetch(`https://api.fxtwitter.com/${twitterHandle}`),
 					])
 
 					if (giveRepRes.ok) {
@@ -129,7 +135,7 @@ export async function fetchCreatorsBatch(tokens: any[], poolMap: Map<string, any
 			followers,
 			trustedFollowers,
 			twitterHandle: hideIdentity ? null : twitterHandle,
-			twitterId: hideIdentity ? null : twitterId
+			twitterId: hideIdentity ? null : twitterId,
 		})
 	}
 

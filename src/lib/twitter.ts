@@ -16,12 +16,12 @@ export async function getFxtwitterProfileImage(username: string): Promise<string
 		}
 		const data = await response.json()
 		if (data?.user?.avatar_url) {
-			const fullResUrl = data.user.avatar_url.replace('_normal', '')
+			const fullResUrl = data.user.avatar_url.replace("_normal", "")
 			return fullResUrl
 		}
 		return null
 	} catch (error) {
-		console.error('Failed to fetch profile image from fxtwitter:', error)
+		console.error("Failed to fetch profile image from fxtwitter:", error)
 		return null
 	}
 }
@@ -36,17 +36,17 @@ export async function getFxtwitterUserInfo(username: string): Promise<TwitterUse
 		const data = await response.json()
 		if (data?.user) {
 			return {
-				id: data.user.id || '',
+				id: data.user.id || "",
 				username: data.user.screen_name || username,
-				name: data.user.name || '',
-				profile_image_url: data.user.avatar_url ? data.user.avatar_url.replace('_normal', '') : null,
+				name: data.user.name || "",
+				profile_image_url: data.user.avatar_url ? data.user.avatar_url.replace("_normal", "") : null,
 				followers: data.user.followers || 0,
-				following: data.user.following || 0
+				following: data.user.following || 0,
 			}
 		}
 		return null
 	} catch (error) {
-		console.error('Failed to fetch user info from fxtwitter:', error)
+		console.error("Failed to fetch user info from fxtwitter:", error)
 		return null
 	}
 }

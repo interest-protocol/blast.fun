@@ -1,6 +1,6 @@
 "use client"
 
-import { useQuery, useInfiniteQuery } from "@tanstack/react-query"
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
 import { nexaClient } from "@/lib/nexa"
 import type { Holder } from "@/types/holder"
 
@@ -11,12 +11,7 @@ interface UseHoldersWithPortfolioOptions {
 	enabled?: boolean
 }
 
-export function useHoldersWithPortfolio({
-	coinType,
-	limit = 10,
-	skip = 0,
-	enabled = true
-}: UseHoldersWithPortfolioOptions) {
+export function useHoldersWithPortfolio({ coinType, limit = 10, skip = 0, enabled = true }: UseHoldersWithPortfolioOptions) {
 	return useQuery({
 		queryKey: ["holders-with-portfolio", coinType, limit, skip],
 		queryFn: async () => {
@@ -29,9 +24,7 @@ export function useHoldersWithPortfolio({
 				holdersData.map(async (holder: any, index: number) => {
 					try {
 						const portfolio = await nexaClient.getPortfolio(holder.user, 0)
-						const coinBalance = portfolio?.balances?.find(
-							(b: any) => b.coinType === coinType
-						)
+						const coinBalance = portfolio?.balances?.find((b: any) => b.coinType === coinType)
 
 						const marketStats = coinBalance?.marketStats || {
 							amountBought: 0,
@@ -41,7 +34,7 @@ export function useHoldersWithPortfolio({
 							usdBought: 0,
 							usdSold: 0,
 							currentHolding: holder.balance,
-							pnl: 0
+							pnl: 0,
 						}
 
 						return {
@@ -54,7 +47,7 @@ export function useHoldersWithPortfolio({
 							marketStats,
 							averageEntryPrice: coinBalance?.averageEntryPrice || 0,
 							unrealizedPnl: coinBalance?.unrealizedPnl || 0,
-							realizedPnl: marketStats.pnl || 0
+							realizedPnl: marketStats.pnl || 0,
 						} as Holder
 					} catch (error) {
 						console.warn(`Failed to fetch portfolio for ${holder.user}:`, error)
@@ -68,7 +61,7 @@ export function useHoldersWithPortfolio({
 							marketStats: undefined,
 							averageEntryPrice: 0,
 							unrealizedPnl: 0,
-							realizedPnl: 0
+							realizedPnl: 0,
 						}
 					}
 				})
@@ -86,8 +79,8 @@ export function useHoldersWithPortfolio({
 export function useInfiniteHoldersWithPortfolio({
 	coinType,
 	limit = 10,
-	enabled = true
-}: Omit<UseHoldersWithPortfolioOptions, 'skip'>) {
+	enabled = true,
+}: Omit<UseHoldersWithPortfolioOptions, "skip">) {
 	return useInfiniteQuery({
 		queryKey: ["infinite-holders-with-portfolio", coinType, limit],
 		queryFn: async ({ pageParam = 0 }) => {
@@ -100,9 +93,7 @@ export function useInfiniteHoldersWithPortfolio({
 				holdersData.map(async (holder: any, index: number) => {
 					try {
 						const portfolio = await nexaClient.getPortfolio(holder.user, 0)
-						const coinBalance = portfolio?.balances?.find(
-							(b: any) => b.coinType === coinType
-						)
+						const coinBalance = portfolio?.balances?.find((b: any) => b.coinType === coinType)
 
 						const marketStats = coinBalance?.marketStats || {
 							amountBought: 0,
@@ -112,7 +103,7 @@ export function useInfiniteHoldersWithPortfolio({
 							usdBought: 0,
 							usdSold: 0,
 							currentHolding: holder.balance,
-							pnl: 0
+							pnl: 0,
 						}
 
 						return {
@@ -125,7 +116,7 @@ export function useInfiniteHoldersWithPortfolio({
 							marketStats,
 							averageEntryPrice: coinBalance?.averageEntryPrice || 0,
 							unrealizedPnl: coinBalance?.unrealizedPnl || 0,
-							realizedPnl: marketStats.pnl || 0
+							realizedPnl: marketStats.pnl || 0,
 						} as Holder
 					} catch (error) {
 						console.warn(`Failed to fetch portfolio for ${holder.user}:`, error)
@@ -139,7 +130,7 @@ export function useInfiniteHoldersWithPortfolio({
 							marketStats: undefined,
 							averageEntryPrice: 0,
 							unrealizedPnl: 0,
-							realizedPnl: 0
+							realizedPnl: 0,
 						}
 					}
 				})
@@ -154,6 +145,6 @@ export function useInfiniteHoldersWithPortfolio({
 		enabled: !!coinType && enabled,
 		staleTime: 30000,
 		refetchOnWindowFocus: false,
-		initialPageParam: 0
+		initialPageParam: 0,
 	})
 }

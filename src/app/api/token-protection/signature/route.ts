@@ -1,22 +1,22 @@
-import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
-import { MIST_PER_SUI, normalizeSuiAddress, toHex } from "@mysten/sui/utils"
 import { bcs } from "@mysten/sui/bcs"
-import { getServerKeypair } from "@/lib/server-keypair"
-import { getNextNonceFromPool } from "@/lib/pump/get-nonce"
+import { MIST_PER_SUI, normalizeSuiAddress, toHex } from "@mysten/sui/utils"
+import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
+import { prisma } from "@/lib/prisma"
+import { getNextNonceFromPool } from "@/lib/pump/get-nonce"
+import { getServerKeypair } from "@/lib/server-keypair"
 
 export async function POST(request: NextRequest) {
 	try {
 		const body = await request.json()
 		const { poolId, amount, walletAddress } = body
-		
+
 		// Get authenticated user from session
 		const session = await auth()
 		const twitterId = session?.user?.twitterId || null
 		const twitterUsername = session?.user?.username || null
 
-		console.log(session?.user);
+		console.log(session?.user)
 
 		if (!poolId || !amount || !walletAddress) {
 			return NextResponse.json({ message: "Missing required fields" }, { status: 400 })
@@ -42,37 +42,46 @@ export async function POST(request: NextRequest) {
 
 		// check if Twitter is required but user is not authenticated
 		if (settings.requireTwitter && !session?.user) {
-			return NextResponse.json({
-				message: "X authentication is required for this token. Please log in with X to continue.",
-				requiresTwitter: true
-			}, { status: 401 })
+			return NextResponse.json(
+				{
+					message: "X authentication is required for this token. Please log in with X to continue.",
+					requiresTwitter: true,
+				},
+				{ status: 401 }
+			)
 		}
-		
+
 		// check if Twitter is required but session doesn't have Twitter ID
 		if (settings.requireTwitter && !twitterId) {
-			return NextResponse.json({
-				message: "X authentication session is invalid. Please log in again.",
-				requiresTwitter: true
-			}, { status: 403 })
+			return NextResponse.json(
+				{
+					message: "X authentication session is invalid. Please log in again.",
+					requiresTwitter: true,
+				},
+				{ status: 403 }
+			)
 		}
 
 		// Check minimum follower count requirement if set
 		if (settings.minFollowerCount && Number(settings.minFollowerCount) > 0 && twitterUsername) {
 			try {
 				const fxTwitterResponse = await fetch(`https://api.fxtwitter.com/${twitterUsername}`)
-				
+
 				if (fxTwitterResponse.ok) {
 					const fxTwitterData = await fxTwitterResponse.json()
 					const followerCount = fxTwitterData?.user?.followers || 0
 					const requiredFollowers = Number(settings.minFollowerCount)
-					
+
 					if (followerCount < requiredFollowers) {
-						return NextResponse.json({
-							message: `Your X account needs at least ${requiredFollowers} followers to buy this token. You currently have ${followerCount} followers.`,
-							error: "INSUFFICIENT_FOLLOWERS",
-							currentFollowers: followerCount,
-							requiredFollowers: requiredFollowers
-						}, { status: 403 })
+						return NextResponse.json(
+							{
+								message: `Your X account needs at least ${requiredFollowers} followers to buy this token. You currently have ${followerCount} followers.`,
+								error: "INSUFFICIENT_FOLLOWERS",
+								currentFollowers: followerCount,
+								requiredFollowers: requiredFollowers,
+							},
+							{ status: 403 }
+						)
 					}
 				} else {
 					console.error(`Failed to fetch follower count for @${twitterUsername}`)
@@ -90,15 +99,18 @@ export async function POST(request: NextRequest) {
 			const existingRelation = await prisma.twitterAccountUserBuyRelation.findFirst({
 				where: {
 					twitterUserId: twitterId,
-					poolId: poolId
-				}
+					poolId: poolId,
+				},
 			})
 
 			if (existingRelation && existingRelation.address !== walletAddress) {
-				return NextResponse.json({
-					message: `This X account is already bound to a different wallet address for this pool. You must use wallet ${existingRelation.address.slice(0, 6)}...${existingRelation.address.slice(-4)} to buy this token.`,
-					error: "TWITTER_ACCOUNT_BOUND_TO_DIFFERENT_ADDRESS"
-				}, { status: 403 })
+				return NextResponse.json(
+					{
+						message: `This X account is already bound to a different wallet address for this pool. You must use wallet ${existingRelation.address.slice(0, 6)}...${existingRelation.address.slice(-4)} to buy this token.`,
+						error: "TWITTER_ACCOUNT_BOUND_TO_DIFFERENT_ADDRESS",
+					},
+					{ status: 403 }
+				)
 			}
 
 			// If no existing relation, create one to bind this Twitter account to this address for this pool
@@ -110,11 +122,13 @@ export async function POST(request: NextRequest) {
 						twitterUsername: twitterUsername || "",
 						poolId: poolId,
 						address: walletAddress,
-						purchases: [{
-							timestamp: new Date().toISOString(),
-							amount: amountInMist.toString()
-						}]
-					}
+						purchases: [
+							{
+								timestamp: new Date().toISOString(),
+								amount: amountInMist.toString(),
+							},
+						],
+					},
 				})
 			} else {
 				// Update existing relation with new purchase
@@ -122,19 +136,19 @@ export async function POST(request: NextRequest) {
 				const purchases = existingRelation.purchases as Array<{ timestamp: string; amount: string }>
 				purchases.push({
 					timestamp: new Date().toISOString(),
-					amount: amountInMist.toString()
+					amount: amountInMist.toString(),
 				})
-				
+
 				await prisma.twitterAccountUserBuyRelation.update({
 					where: { id: existingRelation.id },
-					data: { purchases }
+					data: { purchases },
 				})
 			}
 		}
 
 		try {
 			const keyPair = getServerKeypair()
-			const MessageStruct = bcs.struct('Message', {
+			const MessageStruct = bcs.struct("Message", {
 				pool: bcs.Address,
 				amount: bcs.U64,
 				nonce: bcs.U64,
@@ -143,7 +157,7 @@ export async function POST(request: NextRequest) {
 
 			const currentNonce = await getNextNonceFromPool({
 				poolId,
-				address: walletAddress
+				address: walletAddress,
 			})
 
 			const amountInMist = BigInt(Math.floor(parseFloat(amount) * Number(MIST_PER_SUI)))
@@ -162,16 +176,10 @@ export async function POST(request: NextRequest) {
 			})
 		} catch (signError) {
 			console.error("Signature generation error:", signError)
-			return NextResponse.json(
-				{ message: "Failed to generate signature" },
-				{ status: 500 }
-			)
+			return NextResponse.json({ message: "Failed to generate signature" }, { status: 500 })
 		}
 	} catch (error) {
 		console.error("Protected token signature error:", error)
-		return NextResponse.json(
-			{ message: "Internal server error" },
-			{ status: 500 }
-		)
+		return NextResponse.json({ message: "Internal server error" }, { status: 500 })
 	}
 }

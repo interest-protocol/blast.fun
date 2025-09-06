@@ -21,10 +21,10 @@ export function AuthenticationDialog() {
 				</Button>
 			</DialogTrigger>
 
-			<DialogContent className="flex max-w-md flex-col gap-0 overflow-hidden p-0 rounded-xl border-border/50 shadow-xl">
+			<DialogContent className="flex max-w-md flex-col gap-0 overflow-hidden rounded-xl border-border/50 p-0 shadow-xl">
 				<div className="flex w-full flex-col gap-4 p-6">
 					<DialogHeader className="text-center">
-						<DialogTitle className="text-xl font-bold">Connect to BLAST.FUN</DialogTitle>
+						<DialogTitle className="font-bold text-xl">Connect to BLAST.FUN</DialogTitle>
 						<DialogDescription className="text-sm">
 							Connect with one of the available wallet providers or create a new wallet.
 						</DialogDescription>

@@ -1,15 +1,15 @@
 "use client"
 
+import { ChartLine, ExternalLink, TrendingUp } from "lucide-react"
 import { useState } from "react"
-import { ExternalLink, TrendingUp, ChartLine } from "lucide-react"
-import type { Token } from "@/types/token"
+import { NexaChart } from "@/components/shared/nexa-chart"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { TradingPanel } from "./trading-panel"
-import { NexaChart } from "@/components/shared/nexa-chart"
 import { useMarketData } from "@/hooks/use-market-data"
-import { formatNumberWithSuffix, formatAmountWithSuffix } from "@/utils/format"
+import type { Token } from "@/types/token"
 import { cn } from "@/utils"
+import { formatAmountWithSuffix, formatNumberWithSuffix } from "@/utils/format"
+import { TradingPanel } from "./trading-panel"
 
 interface XCardTradingProps {
 	pool: Token
@@ -28,41 +28,39 @@ export function XCardTrading({ pool, referrerWallet, refCode }: XCardTradingProp
 	const holdersCount = marketData?.holdersCount || 0
 
 	return (
-		<div className="flex flex-col h-full bg-background">
+		<div className="flex h-full flex-col bg-background">
 			{activeTab === "trade" && (
-				<div className="border-b border-border">
+				<div className="border-border border-b">
 					<div className="grid grid-cols-4 divide-x divide-border">
 						<div className="p-3 text-center">
-							<p className="font-mono text-[10px] uppercase text-muted-foreground mb-1">Market Cap</p>
-							<p className="font-mono text-sm font-bold text-green-500">
+							<p className="mb-1 font-mono text-[10px] text-muted-foreground uppercase">Market Cap</p>
+							<p className="font-bold font-mono text-green-500 text-sm">
 								${formatNumberWithSuffix(marketCap)}
 							</p>
 						</div>
 						<div className="p-3 text-center">
-							<p className="font-mono text-[10px] uppercase text-muted-foreground mb-1">Liquidity</p>
-							<p className="font-mono text-sm font-bold text-blue-500">
-								{marketData ? `$${formatNumberWithSuffix(totalLiquidity)}` : `${formatAmountWithSuffix(pool.pool?.quoteBalance || "0")} SUI`}
+							<p className="mb-1 font-mono text-[10px] text-muted-foreground uppercase">Liquidity</p>
+							<p className="font-bold font-mono text-blue-500 text-sm">
+								{marketData
+									? `$${formatNumberWithSuffix(totalLiquidity)}`
+									: `${formatAmountWithSuffix(pool.pool?.quoteBalance || "0")} SUI`}
 							</p>
 						</div>
 						<div className="p-3 text-center">
-							<p className="font-mono text-[10px] uppercase text-muted-foreground mb-1">Progress</p>
-							<div className="flex items-center gap-1.5 justify-center">
-								<div className="w-12 h-1.5 bg-muted rounded-full overflow-hidden">
+							<p className="mb-1 font-mono text-[10px] text-muted-foreground uppercase">Progress</p>
+							<div className="flex items-center justify-center gap-1.5">
+								<div className="h-1.5 w-12 overflow-hidden rounded-full bg-muted">
 									<div
 										className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all"
 										style={{ width: `${bondingProgress}%` }}
 									/>
 								</div>
-								<p className="font-mono text-sm font-bold text-purple-500">
-									{bondingProgress.toFixed(0)}%
-								</p>
+								<p className="font-bold font-mono text-purple-500 text-sm">{bondingProgress.toFixed(0)}%</p>
 							</div>
 						</div>
 						<div className="p-3 text-center">
-							<p className="font-mono text-[10px] uppercase text-muted-foreground mb-1">Holders</p>
-							<p className="font-mono text-sm font-bold text-orange-500">
-								{holdersCount}
-							</p>
+							<p className="mb-1 font-mono text-[10px] text-muted-foreground uppercase">Holders</p>
+							<p className="font-bold font-mono text-orange-500 text-sm">{holdersCount}</p>
 						</div>
 					</div>
 				</div>
@@ -74,37 +72,37 @@ export function XCardTrading({ pool, referrerWallet, refCode }: XCardTradingProp
 					<TradingPanel pool={pool} referrerWallet={referrerWallet} refCode={refCode} />
 				) : (
 					<div className="h-full">
-						<NexaChart pool={pool} className="w-full h-full" />
+						<NexaChart pool={pool} className="h-full w-full" />
 					</div>
 				)}
 			</div>
 
 			{/* Footer */}
-			<div className="border-t border-border">
-				<div className="p-3 space-y-3">
+			<div className="border-border border-t">
+				<div className="space-y-3 p-3">
 					<div className="flex gap-2">
 						<button
 							onClick={() => setActiveTab("trade")}
 							className={cn(
-								"flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-mono text-xs uppercase transition-all",
+								"flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 font-mono text-xs uppercase transition-all",
 								activeTab === "trade"
 									? "bg-primary text-primary-foreground shadow-sm"
 									: "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
 							)}
 						>
-							<TrendingUp className="w-3.5 h-3.5" />
+							<TrendingUp className="h-3.5 w-3.5" />
 							Trade
 						</button>
 						<button
 							onClick={() => setActiveTab("chart")}
 							className={cn(
-								"flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-mono text-xs uppercase transition-all",
+								"flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 font-mono text-xs uppercase transition-all",
 								activeTab === "chart"
 									? "bg-primary text-primary-foreground shadow-sm"
 									: "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
 							)}
 						>
-							<ChartLine className="w-3.5 h-3.5" />
+							<ChartLine className="h-3.5 w-3.5" />
 							Chart
 						</button>
 					</div>
@@ -112,25 +110,21 @@ export function XCardTrading({ pool, referrerWallet, refCode }: XCardTradingProp
 					{/* Token Info */}
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-2.5">
-							<Avatar className="w-9 h-9 rounded-lg border-2">
+							<Avatar className="h-9 w-9 rounded-lg border-2">
 								<AvatarImage src={metadata?.icon_url || ""} alt={metadata?.symbol} />
-								<AvatarFallback className="font-mono rounded-none text-xs uppercase">
+								<AvatarFallback className="rounded-none font-mono text-xs uppercase">
 									{metadata?.symbol?.slice(0, 2) || "??"}
 								</AvatarFallback>
 							</Avatar>
 							<div className="flex flex-col">
-								<h1 className="font-mono text-xs font-bold uppercase">
-									{metadata?.name || "[UNNAMED]"}
-								</h1>
-								<p className="font-mono text-[10px] text-muted-foreground">
-									{metadata?.symbol || "[???]"}
-								</p>
+								<h1 className="font-bold font-mono text-xs uppercase">{metadata?.name || "[UNNAMED]"}</h1>
+								<p className="font-mono text-[10px] text-muted-foreground">{metadata?.symbol || "[???]"}</p>
 							</div>
 						</div>
 						<Button
 							variant="outline"
 							size="sm"
-							className="font-mono text-xs h-7"
+							className="h-7 font-mono text-xs"
 							onClick={() => {
 								const url = refCode
 									? `${window.location.origin}/token/${pool.coinType}?ref=${refCode}`
@@ -138,7 +132,7 @@ export function XCardTrading({ pool, referrerWallet, refCode }: XCardTradingProp
 								window.open(url, "_blank")
 							}}
 						>
-							<ExternalLink className="w-3 h-3 mr-1" />
+							<ExternalLink className="mr-1 h-3 w-3" />
 							VIEW ON BLAST
 						</Button>
 					</div>

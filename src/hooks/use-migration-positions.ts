@@ -1,9 +1,8 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
-import { useApp } from "@/context/app.context"
-import { useCurrentAccount, useSignAndExecuteTransaction } from "@mysten/dapp-kit"
+import { useCallback, useEffect, useState } from "react"
 import toast from "react-hot-toast"
+import { useApp } from "@/context/app.context"
 import { migratorSdk } from "@/lib/pump"
 import { useTransaction } from "./sui/use-transaction"
 
@@ -35,7 +34,7 @@ export function useMigrationPositions() {
 				return
 			}
 
-			const positions: Position[] = res.positions.map(p => ({
+			const positions: Position[] = res.positions.map((p) => ({
 				id: p.objectId,
 				memeCoinType: p.memeCoinType,
 				blueFinPoolId: p.blueFinPoolId,
@@ -51,33 +50,36 @@ export function useMigrationPositions() {
 		}
 	}, [address])
 
-	const collectFees = useCallback(async (positionId: string) => {
-		if (!wallet || !address) {
-			toast.error("Please connect your wallet")
-			return
-		}
+	const collectFees = useCallback(
+		async (positionId: string) => {
+			if (!wallet || !address) {
+				toast.error("Please connect your wallet")
+				return
+			}
 
-		const position = positions.find(p => p.id === positionId)
-		if (!position) {
-			toast.error("Position not found")
-			return
-		}
+			const position = positions.find((p) => p.id === positionId)
+			if (!position) {
+				toast.error("Position not found")
+				return
+			}
 
-		try {
-			const { tx, suiCoin } = migratorSdk.collectFee({
-				bluefinPool: position.blueFinPoolId,
-				memeCoinType: position.memeCoinType,
-				positionOwner: position.id,
-			})
+			try {
+				const { tx, suiCoin } = migratorSdk.collectFee({
+					bluefinPool: position.blueFinPoolId,
+					memeCoinType: position.memeCoinType,
+					positionOwner: position.id,
+				})
 
-			tx.transferObjects([suiCoin], tx.pure.address(address))
+				tx.transferObjects([suiCoin], tx.pure.address(address))
 
-			await executeTransaction(tx)
-		} catch (err) {
-			console.error("Error creating transaction:", err)
-			toast.error("Failed to create transaction")
-		}
-	}, [wallet, address, positions, fetchPositions])
+				await executeTransaction(tx)
+			} catch (err) {
+				console.error("Error creating transaction:", err)
+				toast.error("Failed to create transaction")
+			}
+		},
+		[wallet, address, positions, executeTransaction]
+	)
 
 	useEffect(() => {
 		if (address) {

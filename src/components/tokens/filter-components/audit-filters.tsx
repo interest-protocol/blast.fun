@@ -1,6 +1,5 @@
-import React from 'react'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 interface AuditFiltersProps {
 	createdAtMin?: number
@@ -38,7 +37,7 @@ export function AuditFilters(props: AuditFiltersProps) {
 		holdersCountMin,
 		holdersCountMax,
 		setHoldersCountMin,
-		setHoldersCountMax
+		setHoldersCountMax,
 	} = props
 
 	const handleSetCreatedAtMin = (value: number | undefined) => {
@@ -96,28 +95,20 @@ export function AuditFilters(props: AuditFiltersProps) {
 	return (
 		<div className="space-y-4">
 			<div>
-				<Label className="font-mono text-xs uppercase tracking-wider text-foreground/60">
+				<Label className="font-mono text-foreground/60 text-xs uppercase tracking-wider">
 					TOKEN AGE <span className="text-muted-foreground/40">(MINS)</span>
 				</Label>
-				<div className="flex gap-2 mt-2">
+				<div className="mt-2 flex gap-2">
 					<Input
 						type="number"
-						value={
-							createdAtMin
-								? Math.round((Date.now() - createdAtMin) / (1000 * 60))
-								: ''
-						}
+						value={createdAtMin ? Math.round((Date.now() - createdAtMin) / (1000 * 60)) : ""}
 						placeholder="[MIN]"
 						onChange={(e) => handleSetCreatedAtMin(e.target.value ? Number(e.target.value) : undefined)}
 						className="font-mono focus:border-primary/50"
 					/>
 					<Input
 						type="number"
-						value={
-							createdAtMax
-								? Math.round((Date.now() - createdAtMax) / (1000 * 60))
-								: ''
-						}
+						value={createdAtMax ? Math.round((Date.now() - createdAtMax) / (1000 * 60)) : ""}
 						placeholder="[MAX]"
 						onChange={(e) => handleSetCreatedAtMax(e.target.value ? Number(e.target.value) : undefined)}
 						className="font-mono focus:border-primary/50"
@@ -126,20 +117,20 @@ export function AuditFilters(props: AuditFiltersProps) {
 			</div>
 
 			<div>
-				<Label className="font-mono text-xs uppercase tracking-wider text-foreground/60">
+				<Label className="font-mono text-foreground/60 text-xs uppercase tracking-wider">
 					TOP10 HOLDINGS <span className="text-muted-foreground/40">(%)</span>
 				</Label>
-				<div className="flex gap-2 mt-2">
+				<div className="mt-2 flex gap-2">
 					<Input
 						type="number"
-						value={top10HoldingsMin ? top10HoldingsMin * 100 : ''}
+						value={top10HoldingsMin ? top10HoldingsMin * 100 : ""}
 						placeholder="[MIN]"
 						onChange={(e) => handleSetTop10HoldingsMin(e.target.value ? Number(e.target.value) : undefined)}
 						className="font-mono focus:border-primary/50"
 					/>
 					<Input
 						type="number"
-						value={top10HoldingsMax ? top10HoldingsMax * 100 : ''}
+						value={top10HoldingsMax ? top10HoldingsMax * 100 : ""}
 						placeholder="[MAX]"
 						onChange={(e) => handleSetTop10HoldingsMax(e.target.value ? Number(e.target.value) : undefined)}
 						className="font-mono focus:border-primary/50"
@@ -148,20 +139,20 @@ export function AuditFilters(props: AuditFiltersProps) {
 			</div>
 
 			<div>
-				<Label className="font-mono text-xs uppercase tracking-wider text-foreground/60">
+				<Label className="font-mono text-foreground/60 text-xs uppercase tracking-wider">
 					DEV HOLDINGS <span className="text-muted-foreground/40">(%)</span>
 				</Label>
-				<div className="flex gap-2 mt-2">
+				<div className="mt-2 flex gap-2">
 					<Input
 						type="number"
-						value={devHoldingsMin ? devHoldingsMin * 100 : ''}
+						value={devHoldingsMin ? devHoldingsMin * 100 : ""}
 						placeholder="[MIN]"
 						onChange={(e) => handleSetDevHoldingsMin(e.target.value ? Number(e.target.value) : undefined)}
 						className="font-mono focus:border-primary/50"
 					/>
 					<Input
 						type="number"
-						value={devHoldingsMax ? devHoldingsMax * 100 : ''}
+						value={devHoldingsMax ? devHoldingsMax * 100 : ""}
 						placeholder="[MAX]"
 						onChange={(e) => handleSetDevHoldingsMax(e.target.value ? Number(e.target.value) : undefined)}
 						className="font-mono focus:border-primary/50"
@@ -170,20 +161,18 @@ export function AuditFilters(props: AuditFiltersProps) {
 			</div>
 
 			<div>
-				<Label className="font-mono text-xs uppercase tracking-wider text-foreground/60">
-					HOLDERS COUNT
-				</Label>
-				<div className="flex gap-2 mt-2">
+				<Label className="font-mono text-foreground/60 text-xs uppercase tracking-wider">HOLDERS COUNT</Label>
+				<div className="mt-2 flex gap-2">
 					<Input
 						type="number"
-						value={holdersCountMin || ''}
+						value={holdersCountMin || ""}
 						placeholder="[MIN]"
 						onChange={(e) => setHoldersCountMin(e.target.value ? Number(e.target.value) : undefined)}
 						className="font-mono focus:border-primary/50"
 					/>
 					<Input
 						type="number"
-						value={holdersCountMax || ''}
+						value={holdersCountMax || ""}
 						placeholder="[MAX]"
 						onChange={(e) => setHoldersCountMax(e.target.value ? Number(e.target.value) : undefined)}
 						className="font-mono focus:border-primary/50"

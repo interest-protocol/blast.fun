@@ -119,19 +119,19 @@ export interface TokenFilters {
 	hasTelegram?: boolean
 	hasDiscord?: boolean
 
-	tabType?: 'newly-created' | 'about-to-bond' | 'bonded'
+	tabType?: "newly-created" | "about-to-bond" | "bonded"
 }
 
 export type TokenSortOption =
-	| 'marketCap'
-	| 'date'
-	| 'volume'
-	| 'holders'
-	| 'bondingProgress'
-	| 'age'
-	| 'liquidity'
-	| 'devHoldings'
-	| 'top10Holdings'
+	| "marketCap"
+	| "date"
+	| "volume"
+	| "holders"
+	| "bondingProgress"
+	| "age"
+	| "liquidity"
+	| "devHoldings"
+	| "top10Holdings"
 
 export interface TokenListSettings {
 	sortBy: TokenSortOption

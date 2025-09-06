@@ -1,6 +1,6 @@
 "use client"
 
-import { ShieldCheck, Eye, UserCheck, Percent, Flame } from "lucide-react"
+import { Eye, Flame, Percent, ShieldCheck, UserCheck } from "lucide-react"
 import { BsTwitterX } from "react-icons/bs"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import type { TokenProtectionSettings } from "@/hooks/use-token-protection"
@@ -12,12 +12,7 @@ interface ProtectionBadgesProps {
 	burnTax?: number
 }
 
-export function ProtectionBadges({ 
-	protectionSettings, 
-	isProtected,
-	size = "sm",
-	burnTax
-}: ProtectionBadgesProps) {
+export function ProtectionBadges({ protectionSettings, isProtected, size = "sm", burnTax }: ProtectionBadgesProps) {
 	if (!protectionSettings && !isProtected && (burnTax === undefined || burnTax === null || burnTax <= 0)) return null
 
 	const iconSize = size === "sm" ? "w-3 h-3" : size === "md" ? "w-3.5 h-3.5" : "w-4 h-4"
@@ -28,13 +23,13 @@ export function ProtectionBadges({
 			{(protectionSettings?.sniperProtection || isProtected) && (
 				<Tooltip>
 					<TooltipTrigger asChild>
-						<div className={`rounded-md flex items-center justify-center bg-green-500/20 ${padding}`}>
+						<div className={`flex items-center justify-center rounded-md bg-green-500/20 ${padding}`}>
 							<ShieldCheck className={`${iconSize} text-green-500`} />
 						</div>
 					</TooltipTrigger>
-					<TooltipContent className="bg-background border border-border">
-						<div className="text-xs font-mono space-y-1">
-							<p className="font-bold uppercase text-green-400">SNIPER::PROTECTED</p>
+					<TooltipContent className="border border-border bg-background">
+						<div className="space-y-1 font-mono text-xs">
+							<p className="font-bold text-green-400 uppercase">SNIPER::PROTECTED</p>
 							<p className="text-muted-foreground">Anti-bot protections active</p>
 						</div>
 					</TooltipContent>
@@ -44,13 +39,13 @@ export function ProtectionBadges({
 			{protectionSettings?.requireTwitter && (
 				<Tooltip>
 					<TooltipTrigger asChild>
-						<div className={`rounded-md flex items-center justify-center bg-muted-foreground/10 ${padding}`}>
+						<div className={`flex items-center justify-center rounded-md bg-muted-foreground/10 ${padding}`}>
 							<BsTwitterX className={`${iconSize} text-muted-foreground`} />
 						</div>
 					</TooltipTrigger>
-					<TooltipContent className="bg-background border border-border">
-						<div className="text-xs font-mono space-y-1">
-							<p className="font-bold uppercase text-blue-400">X::REQUIRED</p>
+					<TooltipContent className="border border-border bg-background">
+						<div className="space-y-1 font-mono text-xs">
+							<p className="font-bold text-blue-400 uppercase">X::REQUIRED</p>
 							<p className="text-muted-foreground">Must connect X account</p>
 						</div>
 					</TooltipContent>
@@ -60,13 +55,13 @@ export function ProtectionBadges({
 			{protectionSettings?.minFollowerCount && Number(protectionSettings.minFollowerCount) > 0 && (
 				<Tooltip>
 					<TooltipTrigger asChild>
-						<div className={`rounded-md flex items-center justify-center bg-purple-500/20 ${padding}`}>
+						<div className={`flex items-center justify-center rounded-md bg-purple-500/20 ${padding}`}>
 							<UserCheck className={`${iconSize} text-purple-400`} />
 						</div>
 					</TooltipTrigger>
-					<TooltipContent className="bg-background border border-border">
-						<div className="text-xs font-mono space-y-1">
-							<p className="font-bold uppercase text-purple-400">FOLLOWER::MIN</p>
+					<TooltipContent className="border border-border bg-background">
+						<div className="space-y-1 font-mono text-xs">
+							<p className="font-bold text-purple-400 uppercase">FOLLOWER::MIN</p>
 							<p className="text-muted-foreground">{protectionSettings.minFollowerCount}+ followers</p>
 						</div>
 					</TooltipContent>
@@ -76,13 +71,13 @@ export function ProtectionBadges({
 			{protectionSettings?.maxHoldingPercent && Number(protectionSettings.maxHoldingPercent) > 0 && (
 				<Tooltip>
 					<TooltipTrigger asChild>
-						<div className={`rounded-md flex items-center justify-center bg-orange-500/20 ${padding}`}>
+						<div className={`flex items-center justify-center rounded-md bg-orange-500/20 ${padding}`}>
 							<Percent className={`${iconSize} text-orange-400`} />
 						</div>
 					</TooltipTrigger>
-					<TooltipContent className="bg-background border border-border">
-						<div className="text-xs font-mono space-y-1">
-							<p className="font-bold uppercase text-orange-400">MAX::HOLDING</p>
+					<TooltipContent className="border border-border bg-background">
+						<div className="space-y-1 font-mono text-xs">
+							<p className="font-bold text-orange-400 uppercase">MAX::HOLDING</p>
 							<p className="text-muted-foreground">Max {protectionSettings.maxHoldingPercent}% per wallet</p>
 						</div>
 					</TooltipContent>
@@ -92,13 +87,13 @@ export function ProtectionBadges({
 			{protectionSettings?.revealTraderIdentity && (
 				<Tooltip>
 					<TooltipTrigger asChild>
-						<div className={`rounded-md flex items-center justify-center bg-cyan-500/20 ${padding}`}>
+						<div className={`flex items-center justify-center rounded-md bg-cyan-500/20 ${padding}`}>
 							<Eye className={`${iconSize} text-cyan-400`} />
 						</div>
 					</TooltipTrigger>
-					<TooltipContent className="bg-background border border-border">
-						<div className="text-xs font-mono space-y-1">
-							<p className="font-bold uppercase text-cyan-400">IDENTITY::VISIBLE</p>
+					<TooltipContent className="border border-border bg-background">
+						<div className="space-y-1 font-mono text-xs">
+							<p className="font-bold text-cyan-400 uppercase">IDENTITY::VISIBLE</p>
 							<p className="text-muted-foreground">X usernames shown</p>
 						</div>
 					</TooltipContent>
@@ -108,13 +103,13 @@ export function ProtectionBadges({
 			{burnTax !== undefined && burnTax > 0 && (
 				<Tooltip>
 					<TooltipTrigger asChild>
-						<div className={`rounded-md flex items-center justify-center bg-orange-500/20 ${padding}`}>
+						<div className={`flex items-center justify-center rounded-md bg-orange-500/20 ${padding}`}>
 							<Flame className={`${iconSize} text-orange-500`} />
 						</div>
 					</TooltipTrigger>
-					<TooltipContent className="bg-background border border-border">
-						<div className="text-xs font-mono space-y-1">
-							<p className="font-bold uppercase text-orange-500">BURN::TAX</p>
+					<TooltipContent className="border border-border bg-background">
+						<div className="space-y-1 font-mono text-xs">
+							<p className="font-bold text-orange-500 uppercase">BURN::TAX</p>
 							<p className="text-muted-foreground">
 								Increases as bonding curve progresses, max {(burnTax / 100).toFixed(1)}%
 							</p>

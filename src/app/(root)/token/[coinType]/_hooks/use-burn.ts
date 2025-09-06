@@ -1,11 +1,11 @@
 "use client"
 
+import { coinWithBalance } from "@mysten/sui/transactions"
+import BigNumber from "bignumber.js"
 import { useState } from "react"
 import { useApp } from "@/context/app.context"
 import { useTransaction } from "@/hooks/sui/use-transaction"
-import { coinWithBalance } from "@mysten/sui/transactions"
 import { pumpSdk } from "@/lib/pump"
-import BigNumber from "bignumber.js"
 import type { Token } from "@/types/token"
 
 interface UseBurnParams {
@@ -55,7 +55,7 @@ export function useBurn({ pool, decimals, actualBalance, onSuccess }: UseBurnPar
 			})
 
 			const result = await executeTransaction(tx)
-			
+
 			if (onSuccess) {
 				onSuccess()
 			}

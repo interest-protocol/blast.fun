@@ -1,18 +1,14 @@
 "use client"
 
-import { memo, useState, useCallback, useMemo } from "react"
-import { TokenCard } from "./token-card"
-import { TokenCardSkeleton } from "./token-card.skeleton"
-import { Logo } from "@/components/ui/logo"
+import { memo, useCallback, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { TokenListSettingsDialog, type TokenListSettings } from "./token-list.settings"
-import { 
-	useLatestTokens, 
-	useAboutToBondTokens, 
-	useBondedTokens
-} from "@/hooks/use-tokens"
+import { Logo } from "@/components/ui/logo"
+import { useAboutToBondTokens, useBondedTokens, useLatestTokens } from "@/hooks/use-tokens"
 import type { TokenFilters } from "@/types/token"
 import { cn } from "@/utils"
+import { TokenCard } from "./token-card"
+import { TokenCardSkeleton } from "./token-card.skeleton"
+import { type TokenListSettings, TokenListSettingsDialog } from "./token-list.settings"
 
 type TabType = "new" | "graduating" | "graduated"
 
@@ -26,24 +22,24 @@ const TABS: TabData[] = [
 	{
 		key: "new",
 		label: "NEW",
-		pollInterval: 10000
+		pollInterval: 10000,
 	},
 	{
 		key: "graduating",
 		label: "SOON™",
-		pollInterval: 10000
+		pollInterval: 10000,
 	},
 	{
 		key: "graduated",
 		label: "GRAD",
-		pollInterval: 30000
-	}
+		pollInterval: 30000,
+	},
 ]
 
 const TabContent = memo(function TabContent({
 	tab,
 	isActive,
-	settings
+	settings,
 }: {
 	tab: TabData
 	isActive: boolean
@@ -52,32 +48,29 @@ const TabContent = memo(function TabContent({
 	// @dev: Build filter params based on settings
 	const filterParams = useMemo<TokenFilters | undefined>(() => {
 		const params: TokenFilters = {}
-		
+
 		return Object.keys(params).length > 0 ? params : undefined
-	}, [tab.key])
+	}, [])
 
 	// @dev: aall all hooks unconditionally to satisfy React rules
 	const latestTokensQuery = useLatestTokens(filterParams, {
 		enabled: isActive && tab.key === "new",
-		refetchInterval: isActive && tab.key === "new" ? tab.pollInterval : undefined
+		refetchInterval: isActive && tab.key === "new" ? tab.pollInterval : undefined,
 	})
 
 	const aboutToBondQuery = useAboutToBondTokens(filterParams, {
 		enabled: isActive && tab.key === "graduating",
-		refetchInterval: isActive && tab.key === "graduating" ? tab.pollInterval : undefined
+		refetchInterval: isActive && tab.key === "graduating" ? tab.pollInterval : undefined,
 	})
 
 	const bondedTokensQuery = useBondedTokens(filterParams, {
 		enabled: isActive && tab.key === "graduated",
-		refetchInterval: isActive && tab.key === "graduated" ? tab.pollInterval : undefined
+		refetchInterval: isActive && tab.key === "graduated" ? tab.pollInterval : undefined,
 	})
 
 	// @dev: select the active query result based on current tab
-	const { data, isLoading, error } = tab.key === "new" 
-		? latestTokensQuery
-		: tab.key === "graduating"
-		? aboutToBondQuery
-		: bondedTokensQuery
+	const { data, isLoading, error } =
+		tab.key === "new" ? latestTokensQuery : tab.key === "graduating" ? aboutToBondQuery : bondedTokensQuery
 
 	const sortedTokens = useMemo(() => {
 		if (!data || data.length === 0) return []
@@ -141,10 +134,8 @@ const TabContent = memo(function TabContent({
 	if (error) {
 		return (
 			<div className="p-8 text-center">
-				<Logo className="w-8 h-8 mx-auto text-destructive mb-2" />
-				<p className="font-mono text-xs uppercase text-destructive">
-					ERROR::LOADING::TOKENS
-				</p>
+				<Logo className="mx-auto mb-2 h-8 w-8 text-destructive" />
+				<p className="font-mono text-destructive text-xs uppercase">ERROR::LOADING::TOKENS</p>
 			</div>
 		)
 	}
@@ -162,10 +153,8 @@ const TabContent = memo(function TabContent({
 	if (sortedTokens.length === 0) {
 		return (
 			<div className="p-8 text-center">
-				<Logo className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-				<p className="font-mono text-xs uppercase text-muted-foreground">
-					NO::TOKENS::FOUND
-				</p>
+				<Logo className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
+				<p className="font-mono text-muted-foreground text-xs uppercase">NO::TOKENS::FOUND</p>
 			</div>
 		)
 	}
@@ -173,10 +162,7 @@ const TabContent = memo(function TabContent({
 	return (
 		<div className="space-y-2 p-4">
 			{sortedTokens.map((pool) => (
-				<TokenCard 
-					key={pool.coinType} 
-					pool={pool} 
-				/>
+				<TokenCard key={pool.coinType} pool={pool} />
 			))}
 		</div>
 	)
@@ -190,45 +176,39 @@ export const MobileTokenList = memo(function MobileTokenList() {
 			requireWebsite: false,
 			requireTwitter: false,
 			requireTelegram: false,
-		}
+		},
 	})
 
 	const handleTabChange = useCallback((tab: TabType) => {
 		setActiveTab(tab)
 		const defaultSort = tab === "graduating" ? "bondingCurve" : tab === "graduated" ? "marketCap" : "date"
-		setSettings(prev => ({ ...prev, sortBy: defaultSort }))
+		setSettings((prev) => ({ ...prev, sortBy: defaultSort }))
 	}, [])
 
 	const getSortOptions = useCallback((tab: TabType) => {
-		const baseOptions: Array<{ value: TokenListSettings["sortBy"], label: string }> = [
+		const baseOptions: Array<{ value: TokenListSettings["sortBy"]; label: string }> = [
 			{ value: "marketCap", label: "MARKET::CAP" },
 			{ value: "volume", label: "VOLUME::24H" },
 			{ value: "holders", label: "HOLDER::COUNT" },
 		]
 
 		if (tab === "new") {
-			return [
-				{ value: "date" as const, label: "CREATION::TIME" },
-				...baseOptions
-			]
+			return [{ value: "date" as const, label: "CREATION::TIME" }, ...baseOptions]
 		} else if (tab === "graduating") {
 			return [
 				{ value: "bondingCurve" as const, label: "BONDING::PROGRESS" },
 				{ value: "date" as const, label: "RECENT::TRADES" },
-				...baseOptions
+				...baseOptions,
 			]
 		} else {
-			return [
-				{ value: "date" as const, label: "RECENT::TRADES" },
-				...baseOptions
-			]
+			return [{ value: "date" as const, label: "RECENT::TRADES" }, ...baseOptions]
 		}
 	}, [])
 
 	return (
-		<div className="h-full flex flex-col">
+		<div className="flex h-full flex-col">
 			{/* @dev: Tab Header */}
-			<div className="flex items-center justify-between px-4 py-2 border-b border-white/10">
+			<div className="flex items-center justify-between border-white/10 border-b px-4 py-2">
 				<div className="flex gap-1">
 					{TABS.map((tab) => (
 						<Button
@@ -238,16 +218,14 @@ export const MobileTokenList = memo(function MobileTokenList() {
 							onClick={() => handleTabChange(tab.key)}
 							className={cn(
 								"font-mono text-xs uppercase transition-all",
-								activeTab === tab.key
-									? "text-primary"
-									: "text-muted-foreground hover:text-white"
+								activeTab === tab.key ? "text-primary" : "text-muted-foreground hover:text-white"
 							)}
 						>
 							{tab.label}
 						</Button>
 					))}
 				</div>
-				
+
 				<TokenListSettingsDialog
 					columnId={`mobile-${activeTab}`}
 					onSettingsChange={setSettings}
@@ -259,12 +237,7 @@ export const MobileTokenList = memo(function MobileTokenList() {
 			{/* @dev: Content */}
 			<div className="flex-1 overflow-y-auto">
 				{TABS.map((tab) => (
-					<TabContent 
-						key={tab.key}
-						tab={tab}
-						isActive={activeTab === tab.key}
-						settings={settings}
-					/>
+					<TabContent key={tab.key} tab={tab} isActive={activeTab === tab.key} settings={settings} />
 				))}
 			</div>
 		</div>

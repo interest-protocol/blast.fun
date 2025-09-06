@@ -39,7 +39,7 @@ function AlertDescription({ className, ...props }: React.ComponentProps<"div">) 
 		<div
 			data-slot="alert-description"
 			className={cn(
-				"text-primary col-start-2 grid justify-items-start gap-1 text-sm [&_p]:leading-relaxed",
+				"col-start-2 grid justify-items-start gap-1 text-primary text-sm [&_p]:leading-relaxed",
 				className
 			)}
 			{...props}

@@ -1,6 +1,14 @@
 "use client"
 
-import { useConnectWallet, useCurrentAccount, useDisconnectWallet, useResolveSuiNSName, useAccounts, useSwitchAccount, useCurrentWallet } from "@mysten/dapp-kit"
+import {
+	useAccounts,
+	useConnectWallet,
+	useCurrentAccount,
+	useCurrentWallet,
+	useDisconnectWallet,
+	useResolveSuiNSName,
+	useSwitchAccount,
+} from "@mysten/dapp-kit"
 import { formatAddress } from "@mysten/sui/utils"
 import type { WalletAccount, WalletWithRequiredFeatures } from "@mysten/wallet-standard"
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react"
@@ -10,7 +18,7 @@ interface AppContextValue {
 	wallet: WalletAccount | null
 	address: string | null
 	domain: string | null
-	
+
 	// Multi-wallet support
 	accounts: readonly WalletAccount[]
 	currentAccount: WalletAccount | null
@@ -77,16 +85,19 @@ export function AppContextProvider({ children }: { children: ReactNode }) {
 		}
 	}, [disconnectMutation])
 
-	const switchAccount = useCallback(async (account: WalletAccount) => {
-		try {
-			switchAccountMutation({ account })
-			toast.success(`Switched to ${account.label || formatAddress(account.address)}...`)
-		} catch (error) {
-			console.error("Failed to switch account:", error)
-			toast.error("Failed to switch account")
-			throw error
-		}
-	}, [switchAccountMutation])
+	const switchAccount = useCallback(
+		async (account: WalletAccount) => {
+			try {
+				switchAccountMutation({ account })
+				toast.success(`Switched to ${account.label || formatAddress(account.address)}...`)
+			} catch (error) {
+				console.error("Failed to switch account:", error)
+				toast.error("Failed to switch account")
+				throw error
+			}
+		},
+		[switchAccountMutation]
+	)
 
 	// auto close dialog after connection
 	useEffect(() => {
@@ -100,7 +111,7 @@ export function AppContextProvider({ children }: { children: ReactNode }) {
 			wallet: currentAccount,
 			address,
 			domain,
-			
+
 			// Multi-wallet support
 			accounts,
 			currentAccount,
@@ -116,7 +127,19 @@ export function AppContextProvider({ children }: { children: ReactNode }) {
 			connect,
 			disconnect,
 		}),
-		[currentAccount, address, domain, accounts, currentWalletName, switchAccount, isConnected, isConnecting, isConnectDialogOpen, connect, disconnect]
+		[
+			currentAccount,
+			address,
+			domain,
+			accounts,
+			currentWalletName,
+			switchAccount,
+			isConnected,
+			isConnecting,
+			isConnectDialogOpen,
+			connect,
+			disconnect,
+		]
 	)
 
 	return <AppContext.Provider value={value}>{children}</AppContext.Provider>

@@ -1,21 +1,21 @@
 "use client"
 
-import { X, XCircle, ChevronLeft, ChevronRight } from "lucide-react"
-import { useRouter, usePathname } from "next/navigation"
-import { useTokenTabs, type TokenTab } from "@/stores/token-tabs"
-import { cn } from "@/utils"
-import { TokenAvatar } from "../tokens/token-avatar"
+import { ChevronLeft, ChevronRight, X, XCircle } from "lucide-react"
+import { usePathname, useRouter } from "next/navigation"
+import { memo, useCallback, useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { useBreakpoint } from "@/hooks/use-breakpoint"
 import { useBondingProgress } from "@/hooks/use-bonding-progress"
-import { useRef, useState, useEffect, useCallback, memo } from "react"
+import { useBreakpoint } from "@/hooks/use-breakpoint"
+import { type TokenTab, useTokenTabs } from "@/stores/token-tabs"
+import { cn } from "@/utils"
+import { TokenAvatar } from "../tokens/token-avatar"
 
 const TokenTabItem = memo(function TokenTabItem({
 	tab,
 	isActive,
 	onTabClick,
-	onCloseTab
+	onCloseTab,
 }: {
 	tab: TokenTab
 	isActive: boolean
@@ -23,17 +23,15 @@ const TokenTabItem = memo(function TokenTabItem({
 	onCloseTab: (e: React.MouseEvent, poolId: string) => void
 }) {
 	const { updateTab } = useTokenTabs()
-	
+
 	// @dev: pass undefined to the hook to prevent fetching if we bonded.
 	const isAlreadyComplete = tab.bondingCurve >= 100
-	const { data: bondingData } = useBondingProgress(
-		isAlreadyComplete ? undefined : tab.coinType
-	)
-	
+	const { data: bondingData } = useBondingProgress(isAlreadyComplete ? undefined : tab.coinType)
+
 	// @dev: prio bonding progress from API or just fallback to stale tab data
 	const progress = bondingData?.progress ?? tab.bondingCurve ?? 0
 	const isComplete = progress >= 100
-	
+
 	// @dev: update tab data when bonding occurs
 	useEffect(() => {
 		if (bondingData?.progress && bondingData.progress !== tab.bondingCurve) {
@@ -45,45 +43,46 @@ const TokenTabItem = memo(function TokenTabItem({
 		onTabClick(tab.poolId)
 	}, [onTabClick, tab.poolId])
 
-	const handleClose = useCallback((e: React.MouseEvent) => {
-		e.stopPropagation()
-		onCloseTab(e, tab.poolId)
-	}, [onCloseTab, tab.poolId])
+	const handleClose = useCallback(
+		(e: React.MouseEvent) => {
+			e.stopPropagation()
+			onCloseTab(e, tab.poolId)
+		},
+		[onCloseTab, tab.poolId]
+	)
 
 	return (
-		<div className="relative group flex-shrink-0">
+		<div className="group relative flex-shrink-0">
 			<Button
 				variant={isActive ? "outline" : "ghost"}
 				size="sm"
 				onClick={handleClick}
 				className={cn(
-					"relative h-8 rounded-md py-1 pr-8 pl-2 min-w-[120px] max-w-[180px] font-normal flex-shrink-0 justify-start",
+					"relative h-8 min-w-[120px] max-w-[180px] flex-shrink-0 justify-start rounded-md py-1 pr-8 pl-2 font-normal",
 					isActive && "!border-destructive/50 !bg-destructive/10 hover:!bg-destructive/15"
 				)}
 			>
-				<div className="flex items-center gap-2 min-w-0 w-full justify-start">
+				<div className="flex w-full min-w-0 items-center justify-start gap-2">
 					<TokenAvatar
 						iconUrl={tab.iconUrl || undefined}
 						symbol={tab.symbol}
 						name={tab.name}
-						className="relative w-5 h-5 rounded border border-border/20 group-hover:border-primary/30 transition-all duration-300 flex-shrink-0"
+						className="relative h-5 w-5 flex-shrink-0 rounded border border-border/20 transition-all duration-300 group-hover:border-primary/30"
 					/>
 
-					<div className="flex flex-col items-start min-w-0 flex-1 gap-0.5">
-						<span className="text-xs font-medium truncate w-full leading-tight text-left">
-							{tab.symbol}
-						</span>
+					<div className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
+						<span className="w-full truncate text-left font-medium text-xs leading-tight">{tab.symbol}</span>
 
 						<div className="relative w-full">
 							<Progress
 								value={Math.min(progress, 100)}
 								className={cn(
-									"h-1 w-full bg-muted/50 rounded-full",
-									"[&>div]:transition-all [&>div]:duration-500 [&>div]:rounded-full",
+									"h-1 w-full rounded-full bg-muted/50",
+									"[&>div]:rounded-full [&>div]:transition-all [&>div]:duration-500",
 									isComplete
 										? "[&>div]:bg-gradient-to-r [&>div]:from-yellow-400 [&>div]:to-amber-400"
 										: progress >= 85
-											? "[&>div]:bg-gradient-to-r [&>div]:from-green-500 [&>div]:to-emerald-500 [&>div]:animate-pulse"
+											? "[&>div]:animate-pulse [&>div]:bg-gradient-to-r [&>div]:from-green-500 [&>div]:to-emerald-500"
 											: "[&>div]:bg-gradient-to-r [&>div]:from-primary/60 [&>div]:to-primary"
 								)}
 							/>
@@ -91,17 +90,17 @@ const TokenTabItem = memo(function TokenTabItem({
 					</div>
 				</div>
 			</Button>
-			
+
 			<button
 				onClick={handleClose}
 				className={cn(
-					"absolute right-1 top-1/2 -translate-y-1/2 z-10",
-					"opacity-0 group-hover:opacity-100 transition-opacity duration-200",
-					"hover:text-destructive p-0.5 rounded flex-shrink-0",
+					"-translate-y-1/2 absolute top-1/2 right-1 z-10",
+					"opacity-0 transition-opacity duration-200 group-hover:opacity-100",
+					"flex-shrink-0 rounded p-0.5 hover:text-destructive",
 					"hover:bg-destructive/10"
 				)}
 			>
-				<X className="w-3 h-3" />
+				<X className="h-3 w-3" />
 			</button>
 		</div>
 	)
@@ -128,35 +127,41 @@ export const TokenTabsHeader = memo(function TokenTabsHeader() {
 		checkScrollButtons()
 		const container = scrollContainerRef.current
 		if (container) {
-			container.addEventListener('scroll', checkScrollButtons)
-			window.addEventListener('resize', checkScrollButtons)
+			container.addEventListener("scroll", checkScrollButtons)
+			window.addEventListener("resize", checkScrollButtons)
 
 			return () => {
-				container.removeEventListener('scroll', checkScrollButtons)
-				window.removeEventListener('resize', checkScrollButtons)
+				container.removeEventListener("scroll", checkScrollButtons)
+				window.removeEventListener("resize", checkScrollButtons)
 			}
 		}
-	}, [tabs.length, checkScrollButtons])
+	}, [checkScrollButtons])
 
-	const handleTabClick = useCallback((poolId: string) => {
-		router.push(`/token/${poolId}`)
-	}, [router])
+	const handleTabClick = useCallback(
+		(poolId: string) => {
+			router.push(`/token/${poolId}`)
+		},
+		[router]
+	)
 
-	const handleCloseTab = useCallback((e: React.MouseEvent, poolId: string) => {
-		e.stopPropagation()
-		removeTab(poolId)
+	const handleCloseTab = useCallback(
+		(e: React.MouseEvent, poolId: string) => {
+			e.stopPropagation()
+			removeTab(poolId)
 
-		if (pathname === `/token/${poolId}`) {
-			const remainingTabs = tabs.filter(t => t.poolId !== poolId)
-			if (remainingTabs.length > 0) {
-				const currentIndex = tabs.findIndex(t => t.poolId === poolId)
-				const nextIndex = Math.min(currentIndex, remainingTabs.length - 1)
-				router.push(`/token/${remainingTabs[nextIndex].poolId}`)
-			} else {
-				router.push("/")
+			if (pathname === `/token/${poolId}`) {
+				const remainingTabs = tabs.filter((t) => t.poolId !== poolId)
+				if (remainingTabs.length > 0) {
+					const currentIndex = tabs.findIndex((t) => t.poolId === poolId)
+					const nextIndex = Math.min(currentIndex, remainingTabs.length - 1)
+					router.push(`/token/${remainingTabs[nextIndex].poolId}`)
+				} else {
+					router.push("/")
+				}
 			}
-		}
-	}, [pathname, tabs, removeTab, router])
+		},
+		[pathname, tabs, removeTab, router]
+	)
 
 	const handleCloseAll = useCallback(() => {
 		removeAllTabs()
@@ -176,12 +181,12 @@ export const TokenTabsHeader = memo(function TokenTabsHeader() {
 			if (currentScroll <= scrollAmount) {
 				container.scrollTo({
 					left: 0,
-					behavior: 'smooth'
+					behavior: "smooth",
 				})
 			} else {
 				container.scrollBy({
 					left: -scrollAmount,
-					behavior: 'smooth'
+					behavior: "smooth",
 				})
 			}
 		}
@@ -201,28 +206,31 @@ export const TokenTabsHeader = memo(function TokenTabsHeader() {
 			if (currentScroll >= maxScroll - scrollAmount) {
 				container.scrollTo({
 					left: maxScroll,
-					behavior: 'smooth'
+					behavior: "smooth",
 				})
 			} else {
 				container.scrollBy({
 					left: scrollAmount,
-					behavior: 'smooth'
+					behavior: "smooth",
 				})
 			}
 		}
 	}, [])
 
-	const isTabActive = useCallback((poolId: string) => {
-		return pathname === `/token/${poolId}`
-	}, [pathname])
+	const isTabActive = useCallback(
+		(poolId: string) => {
+			return pathname === `/token/${poolId}`
+		},
+		[pathname]
+	)
 
 	if (tabs.length === 0 || isMobile) {
 		return null
 	}
 
 	return (
-		<div className="border-b border-border bg-background/50 backdrop-blur-sm">
-			<div className="flex items-center py-1.5 px-4 gap-1">
+		<div className="border-border border-b bg-background/50 backdrop-blur-sm">
+			<div className="flex items-center gap-1 px-4 py-1.5">
 				{canScrollLeft && (
 					<Button
 						variant="ghost"
@@ -234,14 +242,14 @@ export const TokenTabsHeader = memo(function TokenTabsHeader() {
 					</Button>
 				)}
 
-				<div className="relative flex-1 min-w-0">
+				<div className="relative min-w-0 flex-1">
 					<div
 						ref={scrollContainerRef}
-						className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth"
+						className="no-scrollbar flex items-center gap-1 overflow-x-auto scroll-smooth"
 						style={{
-							scrollbarWidth: 'none',
-							msOverflowStyle: 'none',
-							WebkitOverflowScrolling: 'touch'
+							scrollbarWidth: "none",
+							msOverflowStyle: "none",
+							WebkitOverflowScrolling: "touch",
 						}}
 					>
 						{tabs.map((tab) => (
@@ -256,10 +264,10 @@ export const TokenTabsHeader = memo(function TokenTabsHeader() {
 					</div>
 
 					{canScrollLeft && (
-						<div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background via-background/70 to-transparent pointer-events-none z-10" />
+						<div className="pointer-events-none absolute top-0 bottom-0 left-0 z-10 w-12 bg-gradient-to-r from-background via-background/70 to-transparent" />
 					)}
 					{canScrollRight && (
-						<div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background via-background/70 to-transparent pointer-events-none z-10" />
+						<div className="pointer-events-none absolute top-0 right-0 bottom-0 z-10 w-12 bg-gradient-to-l from-background via-background/70 to-transparent" />
 					)}
 				</div>
 
@@ -279,7 +287,7 @@ export const TokenTabsHeader = memo(function TokenTabsHeader() {
 						variant="ghost"
 						size="icon"
 						onClick={handleCloseAll}
-						className="h-6 w-6 flex-shrink-0 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+						className="h-6 w-6 flex-shrink-0 rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
 					>
 						<XCircle className="h-3.5 w-3.5" />
 					</Button>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 
 const breakpoints = {
 	sm: 640,
@@ -44,7 +44,7 @@ export function useBreakpoint() {
 
 	// @dev: Always return desktop view during SSR to prevent hydration mismatch
 	const isMobile = isHydrated ? windowSize.width < breakpoints.lg : false
-	const isTablet = isHydrated ? (windowSize.width >= breakpoints.md && windowSize.width < breakpoints.lg) : false
+	const isTablet = isHydrated ? windowSize.width >= breakpoints.md && windowSize.width < breakpoints.lg : false
 	const isDesktop = isHydrated ? windowSize.width >= breakpoints.lg : true
 
 	const isAbove = (breakpoint: keyof typeof breakpoints) => {

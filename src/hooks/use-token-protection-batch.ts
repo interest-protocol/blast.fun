@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { TokenProtectionSettings } from "./use-token-protection"
 
 interface CachedProtectionData {
@@ -31,7 +31,7 @@ export function useTokenProtectionBatch(pools: Array<{ poolId: string }>) {
 			// @dev: Check cache first for all pools
 			for (const pool of pools) {
 				const cached = protectionCache.get(pool.poolId)
-				if (cached && (now - cached.timestamp) < CACHE_TTL) {
+				if (cached && now - cached.timestamp < CACHE_TTL) {
 					results.set(pool.poolId, cached.settings)
 				} else {
 					poolsToFetch.push(pool.poolId)
@@ -54,7 +54,7 @@ export function useTokenProtectionBatch(pools: Array<{ poolId: string }>) {
 									// @dev: Update cache
 									protectionCache.set(poolId, {
 										settings,
-										timestamp: now
+										timestamp: now,
 									})
 									return { poolId, settings }
 								}

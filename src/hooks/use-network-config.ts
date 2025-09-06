@@ -9,7 +9,7 @@ const useNetworkConfig = () => {
 		},
 		[Network.TESTNET]: {
 			url: getFullnodeUrl(Network.TESTNET),
-		}
+		},
 	})
 }
 

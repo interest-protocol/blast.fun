@@ -1,17 +1,17 @@
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions"
-import { MIST_PER_SUI, fromHex } from "@mysten/sui/utils"
-import { useState, useEffect } from "react"
+import { fromHex, MIST_PER_SUI } from "@mysten/sui/utils"
 import BigNumber from "bignumber.js"
+import { useEffect, useState } from "react"
+import { TOTAL_POOL_SUPPLY } from "@/constants"
 import { useApp } from "@/context/app.context"
+import { useTwitter } from "@/context/twitter.context"
 import { useTransaction } from "@/hooks/sui/use-transaction"
+import { buyMigratedToken, getBuyQuote, getSellQuote, sellMigratedToken } from "@/lib/aftermath"
 import { playSound } from "@/lib/audio"
+import { fetchCoinBalance } from "@/lib/fetch-portfolio"
 import { pumpSdk } from "@/lib/pump"
-import { buyMigratedToken, sellMigratedToken, getBuyQuote, getSellQuote } from "@/lib/aftermath"
 import type { Token } from "@/types/token"
 import { formatMistToSui } from "@/utils/format"
-import { useTwitter } from "@/context/twitter.context"
-import { TOTAL_POOL_SUPPLY } from "@/constants"
-import { fetchCoinBalance } from "@/lib/fetch-portfolio"
 
 const SLIPPAGE_TOLERANCE_ERROR = "Error: Slippage tolerance exceeded. Transaction reverted."
 
@@ -105,7 +105,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 		// }
 
 		if (!isMigrated && (pool.pool?.canMigrate || (pool.pool?.bondingCurve || 0) >= 100)) {
-			setError('TOKEN::MIGRATING')
+			setError("TOKEN::MIGRATING")
 			return
 		}
 
@@ -161,7 +161,9 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 								const percentageAfter = (totalBalanceAfterHuman / totalSupplyHuman) * 100
 
 								if (percentageAfter > settings.maxHoldingPercent) {
-									setError(`MAX::HOLDING_EXCEEDED - This purchase would give you ${percentageAfter.toFixed(2)}% of total supply, exceeding the ${settings.maxHoldingPercent}% limit`)
+									setError(
+										`MAX::HOLDING_EXCEEDED - This purchase would give you ${percentageAfter.toFixed(2)}% of total supply, exceeding the ${settings.maxHoldingPercent}% limit`
+									)
 									return
 								}
 							}
@@ -191,7 +193,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 					quoteCoin,
 					minAmountOut,
 					referrer: referrerWallet ?? undefined,
-					signature: signatureData ? fromHex(signatureData.signature) : undefined
+					signature: signatureData ? fromHex(signatureData.signature) : undefined,
 				})
 
 				pumpTx.transferObjects([memeCoin], address)
@@ -206,7 +208,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 			}
 		} catch (err) {
 			let errorMessage = err instanceof Error ? err.message : "UNKNOWN_ERROR"
-			if(errorMessage.includes("MoveAbort") && errorMessage.includes(", 3)")) {
+			if (errorMessage.includes("MoveAbort") && errorMessage.includes(", 3)")) {
 				errorMessage = SLIPPAGE_TOLERANCE_ERROR
 			}
 			setError(errorMessage)
@@ -251,7 +253,9 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 				// If selling exact balance, use the actual balance directly
 				amountInSmallestUnit = actualBalanceBigInt
 			} else if (amountInSmallestUnit > actualBalanceBigInt) {
-				setError(`You don't have enough for this. You only have ${actualBalanceInDisplayUnit.toFixed()} ${pool.metadata?.symbol || "TOKEN"}`)
+				setError(
+					`You don't have enough for this. You only have ${actualBalanceInDisplayUnit.toFixed()} ${pool.metadata?.symbol || "TOKEN"}`
+				)
 				return
 			}
 		}
@@ -305,7 +309,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 					pool: pool.pool?.poolId || pool.id,
 					memeCoin,
 					minAmountOut,
-					referrer: referrerWallet ?? undefined
+					referrer: referrerWallet ?? undefined,
 				})
 
 				dumpTx.transferObjects([quoteCoin], address)
@@ -318,7 +322,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 			}
 		} catch (err) {
 			let errorMessage = err instanceof Error ? err.message : "UNKNOWN_ERROR"
-			if(errorMessage.includes("MoveAbort") && errorMessage.includes(", 3)")) {
+			if (errorMessage.includes("MoveAbort") && errorMessage.includes(", 3)")) {
 				errorMessage = SLIPPAGE_TOLERANCE_ERROR
 			}
 			setError(errorMessage)

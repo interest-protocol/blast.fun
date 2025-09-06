@@ -1,38 +1,36 @@
 "use client"
 
-import { memo, useCallback, useState, useMemo } from "react"
-import { TokenCard } from "./token-card"
-import { TokenListLayout } from "./token-list.layout"
-import { TokenCardSkeleton } from "./token-card.skeleton"
+import { memo, useCallback, useMemo, useState } from "react"
 import { Logo } from "@/components/ui/logo"
-import { TokenListFilters } from "./token-list-filters"
 import { useBondedTokens } from "@/hooks/use-tokens"
-import type { TokenListSettings, TokenFilters } from "@/types/token"
+import type { TokenFilters, TokenListSettings } from "@/types/token"
+import { TokenCard } from "./token-card"
+import { TokenCardSkeleton } from "./token-card.skeleton"
+import { TokenListLayout } from "./token-list.layout"
+import { TokenListFilters } from "./token-list-filters"
 
 interface GraduatedCompleteProps {
 	pollInterval?: number
 }
 
-export const GraduatedComplete = memo(function GraduatedComplete({
-	pollInterval = 30000
-}: GraduatedCompleteProps) {
+export const GraduatedComplete = memo(function GraduatedComplete({ pollInterval = 30000 }: GraduatedCompleteProps) {
 	const [settings, setSettings] = useState<TokenListSettings>({
 		sortBy: "marketCap",
 		filters: {
-			tabType: 'bonded'
-		}
+			tabType: "bonded",
+		},
 	})
 
 	// @dev: Build filter params for bonded tokens
 	const filterParams = useMemo<TokenFilters>(() => {
 		return {
 			...settings.filters,
-			tabType: 'bonded'
+			tabType: "bonded",
 		}
 	}, [settings.filters])
 
 	const { data, isLoading, error } = useBondedTokens(filterParams, {
-		refetchInterval: pollInterval
+		refetchInterval: pollInterval,
 	})
 
 	const filteredAndSortedTokens = useMemo(() => {
@@ -45,11 +43,11 @@ export const GraduatedComplete = memo(function GraduatedComplete({
 			tokens = tokens.filter((token) => {
 				const metadata = token.metadata || token
 				if (!metadata) return false
-				
-				if (settings.filters.hasWebsite && (!metadata.Website || metadata.Website === '')) return false
-				if (settings.filters.hasTwitter && (!metadata.X || metadata.X === '')) return false
-				if (settings.filters.hasTelegram && (!metadata.Telegram || metadata.Telegram === '')) return false
-				
+
+				if (settings.filters.hasWebsite && (!metadata.Website || metadata.Website === "")) return false
+				if (settings.filters.hasTwitter && (!metadata.X || metadata.X === "")) return false
+				if (settings.filters.hasTelegram && (!metadata.Telegram || metadata.Telegram === "")) return false
+
 				return true
 			})
 		}
@@ -81,37 +79,26 @@ export const GraduatedComplete = memo(function GraduatedComplete({
 		if (error) {
 			return (
 				<div className="p-8 text-center">
-					<Logo className="w-8 h-8 mx-auto text-destructive mb-2" />
-					<p className="font-mono text-xs uppercase text-destructive">
-						ERROR::LOADING::GRADUATED
-					</p>
+					<Logo className="mx-auto mb-2 h-8 w-8 text-destructive" />
+					<p className="font-mono text-destructive text-xs uppercase">ERROR::LOADING::GRADUATED</p>
 				</div>
 			)
 		}
 
 		if (isLoading) {
-			return [...Array(8)].map((_, i) => (
-				<TokenCardSkeleton key={i} />
-			))
+			return [...Array(8)].map((_, i) => <TokenCardSkeleton key={i} />)
 		}
 
 		if (filteredAndSortedTokens.length === 0 && !isLoading) {
 			return (
 				<div className="p-8 text-center">
-					<Logo className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-					<p className="font-mono text-xs uppercase text-muted-foreground">
-						NO::GRADUATED::TOKENS
-					</p>
+					<Logo className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
+					<p className="font-mono text-muted-foreground text-xs uppercase">NO::GRADUATED::TOKENS</p>
 				</div>
 			)
 		}
 
-		return filteredAndSortedTokens.map((pool) => (
-			<TokenCard 
-				key={pool.coinType} 
-				pool={pool} 
-			/>
-		))
+		return filteredAndSortedTokens.map((pool) => <TokenCard key={pool.coinType} pool={pool} />)
 	}, [filteredAndSortedTokens, isLoading, error])
 
 	return (

@@ -1,14 +1,13 @@
 "use client"
 
-import { useState } from "react"
-import { Card } from "@/components/ui/card"
-import type { PortfolioResponse } from "@/types/portfolio"
-import { formatNumber, formatPrice, formatTokenAmount } from "@/lib/format"
-import { TrendingUp, TrendingDown } from "lucide-react"
-import { cn } from "@/utils"
-import { useRouter } from "next/navigation"
+import { TrendingDown, TrendingUp } from "lucide-react"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 import { Switch } from "@/components/ui/switch"
+import { formatNumber, formatPrice, formatTokenAmount } from "@/lib/format"
+import type { PortfolioResponse } from "@/types/portfolio"
+import { cn } from "@/utils"
 
 interface PortfolioTableProps {
 	portfolio: PortfolioResponse
@@ -34,7 +33,7 @@ export function PortfolioTable({ portfolio, hideSmallBalance, onHideSmallBalance
 	}
 
 	const filteredBalances = hideSmallBalance
-		? portfolio.balances.filter(balance => balance.value >= 1)
+		? portfolio.balances.filter((balance) => balance.value >= 1)
 		: portfolio.balances
 
 	const sortedBalances = [...filteredBalances].sort((a, b) => {
@@ -61,44 +60,40 @@ export function PortfolioTable({ portfolio, hideSmallBalance, onHideSmallBalance
 	})
 
 	return (
-		<div className="overflow-hidden border rounded-xl bg-card/50 backdrop-blur-sm">
+		<div className="overflow-hidden rounded-xl border bg-card/50 backdrop-blur-sm">
 			<div className="overflow-x-auto">
 				<table className="w-full">
-					<thead className="border-b border-border bg-muted/30">
+					<thead className="border-border border-b bg-muted/30">
 						<tr>
 							<th
-								className="px-3 md:px-6 py-4 text-left cursor-pointer hover:bg-muted/50 transition-colors"
+								className="cursor-pointer px-3 py-4 text-left transition-colors hover:bg-muted/50 md:px-6"
 								onClick={() => handleSort("name")}
 							>
-								<span className="font-mono text-xs uppercase text-muted-foreground inline-flex items-center gap-1">
+								<span className="inline-flex items-center gap-1 font-mono text-muted-foreground text-xs uppercase">
 									<span>Token</span>
 									{sortField === "name" && <span>{sortOrder === "asc" ? "↑" : "↓"}</span>}
 								</span>
 							</th>
 							<th
-								className="px-3 md:px-6 py-4 text-right cursor-pointer hover:bg-muted/50 transition-colors"
+								className="cursor-pointer px-3 py-4 text-right transition-colors hover:bg-muted/50 md:px-6"
 								onClick={() => handleSort("value")}
 							>
-								<span className="font-mono text-xs uppercase text-muted-foreground inline-flex items-center justify-end gap-1">
+								<span className="inline-flex items-center justify-end gap-1 font-mono text-muted-foreground text-xs uppercase">
 									<span>Balance</span>
 									{sortField === "value" && <span>{sortOrder === "asc" ? "↑" : "↓"}</span>}
 								</span>
 							</th>
-							<th className="hidden md:table-cell px-6 py-4 text-right">
-								<span className="font-mono text-xs uppercase text-muted-foreground">
-									Avg Entry
-								</span>
+							<th className="hidden px-6 py-4 text-right md:table-cell">
+								<span className="font-mono text-muted-foreground text-xs uppercase">Avg Entry</span>
 							</th>
-							<th className="hidden md:table-cell px-6 py-4 text-right">
-								<span className="font-mono text-xs uppercase text-muted-foreground">
-									Current Price
-								</span>
+							<th className="hidden px-6 py-4 text-right md:table-cell">
+								<span className="font-mono text-muted-foreground text-xs uppercase">Current Price</span>
 							</th>
 							<th
-								className="px-3 md:px-6 py-4 text-right cursor-pointer hover:bg-muted/50 transition-colors"
+								className="cursor-pointer px-3 py-4 text-right transition-colors hover:bg-muted/50 md:px-6"
 								onClick={() => handleSort("pnl")}
 							>
-								<span className="font-mono text-xs uppercase text-muted-foreground inline-flex items-center justify-end gap-1">
+								<span className="inline-flex items-center justify-end gap-1 font-mono text-muted-foreground text-xs uppercase">
 									<span>PNL</span>
 									{sortField === "pnl" && <span>{sortOrder === "asc" ? "↑" : "↓"}</span>}
 								</span>
@@ -113,60 +108,56 @@ export function PortfolioTable({ portfolio, hideSmallBalance, onHideSmallBalance
 							return (
 								<tr
 									key={item.coinType}
-									className="hover:bg-muted/20 transition-colors cursor-pointer"
+									className="cursor-pointer transition-colors hover:bg-muted/20"
 									onClick={() => {
 										if (item.coinMetadata?.poolId) {
 											router.push(`/token/${item.coinMetadata.poolId}`)
 										}
 									}}
 								>
-									<td className="px-3 md:px-6 py-4">
+									<td className="px-3 py-4 md:px-6">
 										<div className="flex items-center gap-2 md:gap-3">
 											{(item.coinMetadata?.iconUrl || item.coinMetadata?.icon_url) && (
-												<div className="relative w-8 h-8">
+												<div className="relative h-8 w-8">
 													<Image
 														src={item.coinMetadata.iconUrl || item.coinMetadata.icon_url || ""}
 														alt={item.coinMetadata.symbol || ""}
 														fill
 														className="rounded-full object-cover"
 														onError={(e) => {
-															e.currentTarget.style.display = 'none'
+															e.currentTarget.style.display = "none"
 														}}
 														unoptimized={true}
 													/>
 												</div>
 											)}
 											<div>
-												<p className="font-mono font-semibold uppercase text-foreground/80">
+												<p className="font-mono font-semibold text-foreground/80 uppercase">
 													{item.coinMetadata?.symbol || "[UNKNOWN]"}
 												</p>
-												<p className="font-mono text-xs text-muted-foreground/60">
+												<p className="font-mono text-muted-foreground/60 text-xs">
 													{item.coinMetadata?.name || "[UNNAMED TOKEN]"}
 												</p>
 											</div>
 										</div>
 									</td>
-									<td className="px-3 md:px-6 py-4 text-right">
+									<td className="px-3 py-4 text-right md:px-6">
 										<div className="flex flex-col items-end">
-											<p className="font-mono font-semibold text-sm md:text-base text-foreground/80">
+											<p className="font-mono font-semibold text-foreground/80 text-sm md:text-base">
 												{formatTokenAmount(item.balance, item.coinMetadata?.decimals || 9)}
 											</p>
-											<p className="font-mono text-xs text-muted-foreground/60">
+											<p className="font-mono text-muted-foreground/60 text-xs">
 												${formatNumber(item.value)}
 											</p>
 										</div>
 									</td>
-									<td className="hidden md:table-cell px-6 py-4 text-right">
-										<p className="font-mono text-sm">
-											{formatPrice(item.averageEntryPrice)}
-										</p>
+									<td className="hidden px-6 py-4 text-right md:table-cell">
+										<p className="font-mono text-sm">{formatPrice(item.averageEntryPrice)}</p>
 									</td>
-									<td className="hidden md:table-cell px-6 py-4 text-right">
-										<p className="font-mono text-sm">
-											{formatPrice(item.price)}
-										</p>
+									<td className="hidden px-6 py-4 text-right md:table-cell">
+										<p className="font-mono text-sm">{formatPrice(item.price)}</p>
 									</td>
-									<td className="px-3 md:px-6 py-4 text-right">
+									<td className="px-3 py-4 text-right md:px-6">
 										<div className="flex flex-col items-end gap-1">
 											<div className="flex items-center gap-1">
 												{isProfitable ? (
@@ -174,18 +165,23 @@ export function PortfolioTable({ portfolio, hideSmallBalance, onHideSmallBalance
 												) : (
 													<TrendingDown className="h-4 w-4 text-destructive" />
 												)}
-												<p className={cn(
-													"font-mono font-semibold",
-													isProfitable ? "text-green-500" : "text-destructive"
-												)}>
+												<p
+													className={cn(
+														"font-mono font-semibold",
+														isProfitable ? "text-green-500" : "text-destructive"
+													)}
+												>
 													${formatNumber(Math.abs(item.unrealizedPnl))}
 												</p>
 											</div>
-											<p className={cn(
-												"font-mono text-xs",
-												isProfitable ? "text-green-500" : "text-destructive"
-											)}>
-												{isProfitable ? "+" : ""}{pnlPercentage.toFixed(2)}%
+											<p
+												className={cn(
+													"font-mono text-xs",
+													isProfitable ? "text-green-500" : "text-destructive"
+												)}
+											>
+												{isProfitable ? "+" : ""}
+												{pnlPercentage.toFixed(2)}%
 											</p>
 										</div>
 									</td>
@@ -195,21 +191,17 @@ export function PortfolioTable({ portfolio, hideSmallBalance, onHideSmallBalance
 					</tbody>
 				</table>
 			</div>
-			<div className="flex items-center justify-between p-4 border-t-2 border-border bg-background/30">
+			<div className="flex items-center justify-between border-border border-t-2 bg-background/30 p-4">
 				<div className="flex items-center gap-2">
-					<Switch
-						id="hide-small-balance"
-						checked={hideSmallBalance}
-						onCheckedChange={onHideSmallBalanceChange}
-					/>
+					<Switch id="hide-small-balance" checked={hideSmallBalance} onCheckedChange={onHideSmallBalanceChange} />
 					<label
 						htmlFor="hide-small-balance"
-						className="font-mono text-xs uppercase tracking-wider text-muted-foreground cursor-pointer"
+						className="cursor-pointer font-mono text-muted-foreground text-xs uppercase tracking-wider"
 					>
 						HIDE SMALL BALANCES [&lt; $1]
 					</label>
 				</div>
-				<div className="font-mono text-xs uppercase tracking-wider text-muted-foreground/60">
+				<div className="font-mono text-muted-foreground/60 text-xs uppercase tracking-wider">
 					SHOWING {sortedBalances.length} OF {portfolio.balances.length} TOKENS
 				</div>
 			</div>

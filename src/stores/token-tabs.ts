@@ -37,9 +37,7 @@ export const useTokenTabs = create<TokenTabsStore>()(
 
 			updateTab: (poolId, updates) =>
 				set((state) => ({
-					tabs: state.tabs.map((tab) =>
-						tab.poolId === poolId ? { ...tab, ...updates } : tab
-					),
+					tabs: state.tabs.map((tab) => (tab.poolId === poolId ? { ...tab, ...updates } : tab)),
 				})),
 
 			removeTab: (poolId) =>

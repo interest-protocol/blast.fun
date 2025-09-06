@@ -5,8 +5,8 @@ export interface BondingProgressData {
 }
 
 export async function getBondingProgress(coinType: string): Promise<BondingProgressData> {
-  	const response = await fetch(`/api/tokens/${coinType}/bonding-progress`)
-  
+	const response = await fetch(`/api/tokens/${coinType}/bonding-progress`)
+
 	if (!response.ok) {
 		throw new Error(`Failed to fetch bonding progress: ${response.status}`)
 	}

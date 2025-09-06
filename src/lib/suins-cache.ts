@@ -85,7 +85,7 @@ export class SuiNSCache {
 			sessionStorage.setItem(key, name === null ? "null" : name)
 		} catch (error) {
 			// @dev: Silently fail if storage is full or unavailable
-			console.warn('Failed to cache SuiNS name:', error)
+			console.warn("Failed to cache SuiNS name:", error)
 		}
 	}
 

@@ -1,28 +1,28 @@
 "use client"
 
-import React, { useState, useEffect, useMemo, useCallback } from "react"
-import { Loader2, Settings2, Wallet, Activity, Pencil, Check, X, Rocket, AlertTriangle, Flame } from "lucide-react"
+import { MIST_PER_SUI } from "@mysten/sui/utils"
+import BigNumber from "bignumber.js"
+import { Activity, AlertTriangle, Check, Flame, Loader2, Pencil, Rocket, Settings2, Wallet, X } from "lucide-react"
 import Image from "next/image"
-import { Button } from "@/components/ui/button"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { BsTwitterX } from "react-icons/bs"
 import { TokenAvatar } from "@/components/tokens/token-avatar"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 import { useApp } from "@/context/app.context"
 import { useTwitter } from "@/context/twitter.context"
+import { usePortfolio } from "@/hooks/nexa/use-portfolio"
 import { useTrading } from "@/hooks/pump/use-trading"
 import { useTokenBalance } from "@/hooks/sui/use-token-balance"
-import { usePortfolio } from "@/hooks/nexa/use-portfolio"
 import { useTokenProtection } from "@/hooks/use-token-protection"
+import { getBuyQuote, getSellQuote } from "@/lib/aftermath"
+import { pumpSdk } from "@/lib/pump"
 import { usePresetStore } from "@/stores/preset-store"
 import type { Token } from "@/types/token"
 import { cn } from "@/utils"
 import { formatNumberWithSuffix } from "@/utils/format"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { TradeSettings } from "./trade-settings"
-import { MIST_PER_SUI } from "@mysten/sui/utils"
-import { pumpSdk } from "@/lib/pump"
-import { getBuyQuote, getSellQuote } from "@/lib/aftermath"
-import BigNumber from "bignumber.js"
-import { BsTwitterX } from "react-icons/bs"
 import { useBurn } from "../_hooks/use-burn"
+import { TradeSettings } from "./trade-settings"
 
 interface TradeTerminalProps {
 	pool: Token
@@ -42,13 +42,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	const [tempQuickBuyAmounts, setTempQuickBuyAmounts] = useState<number[]>([])
 	const [tempQuickSellPercentages, setTempQuickSellPercentages] = useState<number[]>([])
 
-	const {
-		slippage,
-		quickBuyAmounts,
-		quickSellPercentages,
-		setQuickBuyAmounts,
-		setQuickSellPercentages,
-	} = usePresetStore()
+	const { slippage, quickBuyAmounts, quickSellPercentages, setQuickBuyAmounts, setQuickSellPercentages } = usePresetStore()
 
 	const { balance: tokenBalance } = useTokenBalance(pool.coinType)
 	const { balance: actualBalance, refetch: refetchPortfolio } = usePortfolio(pool.coinType)
@@ -62,7 +56,6 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	const balanceInDisplayUnit = effectiveBalance ? Number(effectiveBalance) / Math.pow(10, decimals) : 0
 	const hasBalance = balanceInDisplayUnit > 0
 	const suiBalanceInDisplayUnit = suiBalance ? Number(suiBalance) / Number(MIST_PER_SUI) : 0
-
 
 	// Precise balance calculation for MAX button using BigNumber
 	const balanceInDisplayUnitPrecise = useMemo(() => {
@@ -96,79 +89,92 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	}, [quickBuyAmounts, quickSellPercentages])
 
 	// state for quote from bonding curve
-	const [quote, setQuote] = useState<{ memeAmountOut?: bigint; memeAmountIn?: bigint; suiAmountOut?: bigint; coinAmountOut?: bigint; burnFee?: bigint } | null>(null)
+	const [quote, setQuote] = useState<{
+		memeAmountOut?: bigint
+		memeAmountIn?: bigint
+		suiAmountOut?: bigint
+		coinAmountOut?: bigint
+		burnFee?: bigint
+	} | null>(null)
 	const [isLoadingQuote, setIsLoadingQuote] = useState(false)
 	const [isRefreshingQuote, setIsRefreshingQuote] = useState(false)
 
-	const fetchQuote = useCallback(async (isRefresh = false) => {
-		if (!amount || parseFloat(amount) === 0 || !pool.pool?.poolId || tradeType === "burn") {
-			setQuote(null)
-			return
-		}
-
-		if (isRefresh) {
-			setIsRefreshingQuote(true)
-		} else {
-			setIsLoadingQuote(true)
-		}
-
-		try {
-			const isMigrated = pool.pool?.migrated === true
-
-			if (tradeType === "buy") {
-				// convert SUI amount to MIST for the quote
-				const amountBN = new BigNumber(amount)
-				const mistPerSuiBN = new BigNumber(MIST_PER_SUI.toString())
-				const amountInMist = BigInt(amountBN.multipliedBy(mistPerSuiBN).integerValue(BigNumber.ROUND_DOWN).toString())
-
-				if (isMigrated) {
-					const quoteResult = await getBuyQuote(pool.coinType, amountInMist, slippage)
-					setQuote({
-						memeAmountOut: quoteResult.amountOut,
-						suiAmountOut: amountInMist, // Amount being spent
-						coinAmountOut: quoteResult.amountOut // Tokens received
-					})
-				} else {
-					const quoteResult = await pumpSdk.quotePump({
-						pool: pool.pool?.poolId,
-						amount: amountInMist,
-					})
-					setQuote(quoteResult)
-				}
-			} else {
-				// for sell, convert token amount to smallest unit
-				const amountBN = new BigNumber(amount)
-				const tokenInSmallestUnit = BigInt(amountBN.multipliedBy(Math.pow(10, decimals)).integerValue(BigNumber.ROUND_DOWN).toString())
-
-				if (isMigrated) {
-					const quoteResult = await getSellQuote(pool.coinType, tokenInSmallestUnit, slippage)
-					setQuote({
-						memeAmountIn: tokenInSmallestUnit,
-						suiAmountOut: quoteResult.amountOut,
-						coinAmountOut: quoteResult.amountOut
-					})
-				} else {
-					// use pump SDK for bonding curve tokens
-					const quoteResult = await pumpSdk.quoteDump({
-						pool: pool.pool?.poolId,
-						amount: tokenInSmallestUnit,
-					})
-					setQuote({
-						memeAmountIn: tokenInSmallestUnit,
-						suiAmountOut: quoteResult.quoteAmountOut,
-						coinAmountOut: quoteResult.quoteAmountOut,
-						burnFee: quoteResult.burnFee
-					})
-				}
+	const fetchQuote = useCallback(
+		async (isRefresh = false) => {
+			if (!amount || parseFloat(amount) === 0 || !pool.pool?.poolId || tradeType === "burn") {
+				setQuote(null)
+				return
 			}
-		} catch (error) {
-			console.error("Failed to fetch quote:", error)
-			setQuote(null)
-		} finally {
-			setIsLoadingQuote(false)
-			setIsRefreshingQuote(false)
-		}
-	}, [amount, tradeType, pool.pool?.poolId, pool.coinType, pool.pool?.migrated, decimals, slippage])
+
+			if (isRefresh) {
+				setIsRefreshingQuote(true)
+			} else {
+				setIsLoadingQuote(true)
+			}
+
+			try {
+				const isMigrated = pool.pool?.migrated === true
+
+				if (tradeType === "buy") {
+					// convert SUI amount to MIST for the quote
+					const amountBN = new BigNumber(amount)
+					const mistPerSuiBN = new BigNumber(MIST_PER_SUI.toString())
+					const amountInMist = BigInt(
+						amountBN.multipliedBy(mistPerSuiBN).integerValue(BigNumber.ROUND_DOWN).toString()
+					)
+
+					if (isMigrated) {
+						const quoteResult = await getBuyQuote(pool.coinType, amountInMist, slippage)
+						setQuote({
+							memeAmountOut: quoteResult.amountOut,
+							suiAmountOut: amountInMist, // Amount being spent
+							coinAmountOut: quoteResult.amountOut, // Tokens received
+						})
+					} else {
+						const quoteResult = await pumpSdk.quotePump({
+							pool: pool.pool?.poolId,
+							amount: amountInMist,
+						})
+						setQuote(quoteResult)
+					}
+				} else {
+					// for sell, convert token amount to smallest unit
+					const amountBN = new BigNumber(amount)
+					const tokenInSmallestUnit = BigInt(
+						amountBN.multipliedBy(Math.pow(10, decimals)).integerValue(BigNumber.ROUND_DOWN).toString()
+					)
+
+					if (isMigrated) {
+						const quoteResult = await getSellQuote(pool.coinType, tokenInSmallestUnit, slippage)
+						setQuote({
+							memeAmountIn: tokenInSmallestUnit,
+							suiAmountOut: quoteResult.amountOut,
+							coinAmountOut: quoteResult.amountOut,
+						})
+					} else {
+						// use pump SDK for bonding curve tokens
+						const quoteResult = await pumpSdk.quoteDump({
+							pool: pool.pool?.poolId,
+							amount: tokenInSmallestUnit,
+						})
+						setQuote({
+							memeAmountIn: tokenInSmallestUnit,
+							suiAmountOut: quoteResult.quoteAmountOut,
+							coinAmountOut: quoteResult.quoteAmountOut,
+							burnFee: quoteResult.burnFee,
+						})
+					}
+				}
+			} catch (error) {
+				console.error("Failed to fetch quote:", error)
+				setQuote(null)
+			} finally {
+				setIsLoadingQuote(false)
+				setIsRefreshingQuote(false)
+			}
+		},
+		[amount, tradeType, pool.pool?.poolId, pool.coinType, pool.pool?.migrated, decimals, slippage]
+	)
 
 	// initial quote fetch when amount changes
 	useEffect(() => {
@@ -206,10 +212,10 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	// @dev: Calculate burn percentage for display
 	const burnPercentage = useMemo(() => {
 		if (!quote || !quote.burnFee || !quote.memeAmountIn || tradeType !== "sell") return 0
-		
+
 		const burnAmount = Number(quote.burnFee)
 		const totalAmount = Number(quote.memeAmountIn)
-		
+
 		if (totalAmount === 0) return 0
 		return (burnAmount / totalAmount) * 100
 	}, [quote, tradeType])
@@ -223,14 +229,14 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 		} else {
 			return (calculateOutputAmount * suiPrice).toFixed(2)
 		}
-	}, [amount, tradeType, suiPrice, calculateOutputAmount])
+	}, [amount, tradeType, calculateOutputAmount])
 
 	// fetch referrer wallet if referral code exists
 	useEffect(() => {
 		if (referral) {
 			fetch(`/api/referrals?refCode=${referral}`)
-				.then(res => res.json())
-				.then(data => {
+				.then((res) => res.json())
+				.then((data) => {
 					if (data.wallet) {
 						setReferrerWallet(data.wallet)
 					}
@@ -249,7 +255,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	const {
 		burn,
 		isProcessing: isBurning,
-		error: burnError
+		error: burnError,
 	} = useBurn({
 		pool,
 		decimals,
@@ -257,7 +263,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 		onSuccess: async () => {
 			await refetchPortfolio()
 			setAmount("")
-		}
+		},
 	})
 
 	const handleQuickAmount = (value: number) => {
@@ -336,40 +342,38 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 
 	if (!isConnected) {
 		return (
-			<div className="p-4 border-b border-border">
-				<div className="text-center space-y-2">
-					<Wallet className="w-8 h-8 text-muted-foreground mx-auto" />
-					<p className="font-mono text-xs text-muted-foreground">
-						Connect wallet to trade
-					</p>
+			<div className="border-border border-b p-4">
+				<div className="space-y-2 text-center">
+					<Wallet className="mx-auto h-8 w-8 text-muted-foreground" />
+					<p className="font-mono text-muted-foreground text-xs">Connect wallet to trade</p>
 				</div>
 			</div>
 		)
 	}
 
 	return (
-		<div className="relative border-b border-border">
+		<div className="relative border-border border-b">
 			{isMigrating && (
-				<div className="absolute inset-0 bg-background/95 backdrop-blur-sm z-10 flex items-center justify-center p-4 select-none">
+				<div className="absolute inset-0 z-10 flex select-none items-center justify-center bg-background/95 p-4 backdrop-blur-sm">
 					{/* background glow */}
 					<div className="absolute inset-0">
-						<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-yellow-400/10 rounded-full blur-3xl animate-pulse" />
+						<div className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-64 w-64 animate-pulse rounded-full bg-yellow-400/10 blur-3xl" />
 					</div>
 
-					<div className="relative text-center space-y-4">
-						<div className="relative mx-auto w-20 h-20">
-							<div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full blur-2xl animate-pulse opacity-50" />
+					<div className="relative space-y-4 text-center">
+						<div className="relative mx-auto h-20 w-20">
+							<div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-r from-yellow-400 to-orange-400 opacity-50 blur-2xl" />
 							<div className="absolute inset-0 flex items-center justify-center">
-								<Rocket className="w-16 h-16 text-yellow-400/80 animate-pulse" />
+								<Rocket className="h-16 w-16 animate-pulse text-yellow-400/80" />
 							</div>
 						</div>
 
 						<div className="space-y-2">
-							<p className="font-mono text-sm font-bold uppercase tracking-wider text-yellow-400/80">
+							<p className="font-bold font-mono text-sm text-yellow-400/80 uppercase tracking-wider">
 								MIGRATION::IN_PROGRESS
 							</p>
 
-							<p className="font-mono text-xs text-muted-foreground/70 max-w-xs mx-auto">
+							<p className="mx-auto max-w-xs font-mono text-muted-foreground/70 text-xs">
 								TOKEN_IS_MIGRATING::PLEASE_WAIT
 							</p>
 						</div>
@@ -377,19 +381,16 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 				</div>
 			)}
 
-			<div className="p-3 space-y-3">
+			<div className="space-y-3 p-3">
 				{/* Buy/Sell/Burn Tabs */}
-				<div className={cn(
-					"grid gap-1 p-1 bg-muted/30 rounded-lg",
-					hasBalance ? "grid-cols-3" : "grid-cols-2"
-				)}>
+				<div className={cn("grid gap-1 rounded-lg bg-muted/30 p-1", hasBalance ? "grid-cols-3" : "grid-cols-2")}>
 					<button
 						onClick={() => setTradeType("buy")}
 						className={cn(
-							"py-2 rounded-md font-mono text-xs uppercase transition-all",
+							"rounded-md py-2 font-mono text-xs uppercase transition-all",
 							tradeType === "buy"
-								? "bg-green-500/20 text-green-500 border border-green-500/50"
-								: "hover:bg-muted/50 text-muted-foreground"
+								? "border border-green-500/50 bg-green-500/20 text-green-500"
+								: "text-muted-foreground hover:bg-muted/50"
 						)}
 					>
 						Buy
@@ -398,11 +399,11 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 						onClick={() => setTradeType("sell")}
 						disabled={!hasBalance}
 						className={cn(
-							"py-2 rounded-md font-mono text-xs uppercase transition-all",
+							"rounded-md py-2 font-mono text-xs uppercase transition-all",
 							tradeType === "sell"
-								? "bg-red-500/20 text-red-500 border border-red-500/50"
-								: "hover:bg-muted/50 text-muted-foreground",
-							!hasBalance && "opacity-50 cursor-not-allowed"
+								? "border border-red-500/50 bg-red-500/20 text-red-500"
+								: "text-muted-foreground hover:bg-muted/50",
+							!hasBalance && "cursor-not-allowed opacity-50"
 						)}
 					>
 						Sell
@@ -411,10 +412,10 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 						<button
 							onClick={() => setTradeType("burn")}
 							className={cn(
-								"py-2 rounded-md font-mono text-xs uppercase transition-all",
+								"rounded-md py-2 font-mono text-xs uppercase transition-all",
 								tradeType === "burn"
-									? "bg-orange-500/20 text-orange-500 border border-orange-500/50"
-									: "hover:bg-muted/50 text-muted-foreground"
+									? "border border-orange-500/50 bg-orange-500/20 text-orange-500"
+									: "text-muted-foreground hover:bg-muted/50"
 							)}
 						>
 							Burn
@@ -423,23 +424,20 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 				</div>
 
 				{/* Input Section with Balance */}
-				<div className="border border-border/50 rounded-lg p-3 space-y-2 bg-muted/5">
+				<div className="space-y-2 rounded-lg border border-border/50 bg-muted/5 p-3">
 					{/* Balance Header */}
-					<div className="flex justify-between items-center text-xs">
+					<div className="flex items-center justify-between text-xs">
 						<div className="flex items-center gap-1.5 text-muted-foreground">
 							<Wallet className="h-3.5 w-3.5" />
 							<span>Balance</span>
 						</div>
 						<div className="flex items-center gap-2">
-							<span className="text-foreground font-mono">
+							<span className="font-mono text-foreground">
 								{tradeType === "buy"
 									? formatNumberWithSuffix(suiBalanceInDisplayUnit)
-									: formatNumberWithSuffix(balanceInDisplayUnit)
-								}
+									: formatNumberWithSuffix(balanceInDisplayUnit)}
 							</span>
-							<span className="text-muted-foreground">
-								{tradeType === "buy" ? "SUI" : metadata?.symbol}
-							</span>
+							<span className="text-muted-foreground">{tradeType === "buy" ? "SUI" : metadata?.symbol}</span>
 							<button
 								onClick={() => {
 									if (tradeType === "buy") {
@@ -455,7 +453,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 										}
 									}
 								}}
-								className="text-blue-400 hover:text-blue-300 font-medium text-xs transition-colors"
+								className="font-medium text-blue-400 text-xs transition-colors hover:text-blue-300"
 								disabled={isProcessing || (tradeType === "sell" && !hasBalance)}
 							>
 								MAX
@@ -471,18 +469,18 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 								placeholder="0.00"
 								value={amount}
 								onChange={(e) => setAmount(e.target.value)}
-								className="flex-1 bg-transparent text-2xl font-medium outline-none placeholder:text-muted-foreground/50 text-foreground min-w-0"
+								className="min-w-0 flex-1 bg-transparent font-medium text-2xl text-foreground outline-none placeholder:text-muted-foreground/50"
 								disabled={isProcessing}
 								inputMode="decimal"
 							/>
-							<div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-muted/20 rounded-md border border-border/50 shrink-0">
+							<div className="flex shrink-0 items-center gap-1.5 rounded-md border border-border/50 bg-muted/20 px-2.5 py-1.5">
 								{tradeType === "buy" ? (
 									<Image
 										src="/logo/sui-logo.svg"
 										alt="SUI"
 										width={18}
 										height={18}
-										className="rounded-full shrink-0"
+										className="shrink-0 rounded-full"
 										unoptimized={true}
 									/>
 								) : (
@@ -490,21 +488,19 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 										iconUrl={metadata?.icon_url}
 										symbol={metadata?.symbol}
 										name={metadata?.name}
-										className="w-[18px] h-[18px] rounded-full shrink-0"
+										className="h-[18px] w-[18px] shrink-0 rounded-full"
 										fallbackClassName="text-xs"
 										enableHover={false}
 									/>
 								)}
-								<span className="text-sm font-medium whitespace-nowrap">
+								<span className="whitespace-nowrap font-medium text-sm">
 									{tradeType === "buy" ? "SUI" : metadata?.symbol}
 								</span>
 							</div>
 						</div>
 
 						{/* Price Display */}
-						<span className="text-xs text-muted-foreground">
-							≈ ${usdValue} USD
-						</span>
+						<span className="text-muted-foreground text-xs">≈ ${usdValue} USD</span>
 					</div>
 				</div>
 
@@ -513,65 +509,63 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 					<div className="flex gap-1.5">
 						{tradeType === "buy" ? (
 							<>
-								{editingQuickBuy ? (
-									tempQuickBuyAmounts.map((suiAmount, index) => (
-										<input
-											key={index}
-											type="number"
-											value={suiAmount}
-											onChange={(e) => {
-												const newAmounts = [...tempQuickBuyAmounts]
-												newAmounts[index] = parseFloat(e.target.value) || 0
-												setTempQuickBuyAmounts(newAmounts)
-											}}
-											onKeyDown={(e) => {
-												if (e.key === 'Enter') {
-													handleSaveQuickBuyAmounts()
-												}
-												if (e.key === 'Escape') {
-													setTempQuickBuyAmounts(quickBuyAmounts)
-													setEditingQuickBuy(false)
-												}
-											}}
-											className="flex-1 h-9 text-xs text-center rounded-md border border-border bg-background focus:border-primary focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-											step="0.01"
-											min="0"
-											style={{ minWidth: 0 }}
-										/>
-									))
-								) : (
-									quickBuyAmounts.map((suiAmount: number, index: number) => (
-										<button
-											key={index}
-											className={cn(
-												"flex-1 py-2 px-3 rounded-lg flex justify-center items-center",
-												"border border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20",
-												"transition-all duration-200",
-												"group",
-												(isProcessing || isMigrating) && "opacity-50 cursor-not-allowed"
-											)}
-											onClick={() => handleQuickAmount(suiAmount)}
-											disabled={isProcessing || isMigrating}
-											style={{ minWidth: 0 }}
-										>
-											<span className="text-xs font-semibold text-blue-400 group-hover:text-blue-300 whitespace-nowrap">
-												{suiAmount} SUI
-											</span>
-										</button>
-									))
-								)}
+								{editingQuickBuy
+									? tempQuickBuyAmounts.map((suiAmount, index) => (
+											<input
+												key={index}
+												type="number"
+												value={suiAmount}
+												onChange={(e) => {
+													const newAmounts = [...tempQuickBuyAmounts]
+													newAmounts[index] = parseFloat(e.target.value) || 0
+													setTempQuickBuyAmounts(newAmounts)
+												}}
+												onKeyDown={(e) => {
+													if (e.key === "Enter") {
+														handleSaveQuickBuyAmounts()
+													}
+													if (e.key === "Escape") {
+														setTempQuickBuyAmounts(quickBuyAmounts)
+														setEditingQuickBuy(false)
+													}
+												}}
+												className="h-9 flex-1 rounded-md border border-border bg-background text-center text-xs [appearance:textfield] focus:border-primary focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+												step="0.01"
+												min="0"
+												style={{ minWidth: 0 }}
+											/>
+										))
+									: quickBuyAmounts.map((suiAmount: number, index: number) => (
+											<button
+												key={index}
+												className={cn(
+													"flex flex-1 items-center justify-center rounded-lg px-3 py-2",
+													"border border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20",
+													"transition-all duration-200",
+													"group",
+													(isProcessing || isMigrating) && "cursor-not-allowed opacity-50"
+												)}
+												onClick={() => handleQuickAmount(suiAmount)}
+												disabled={isProcessing || isMigrating}
+												style={{ minWidth: 0 }}
+											>
+												<span className="whitespace-nowrap font-semibold text-blue-400 text-xs group-hover:text-blue-300">
+													{suiAmount} SUI
+												</span>
+											</button>
+										))}
 
 								{editingQuickBuy ? (
 									<div className="flex gap-1">
 										<button
-											className="h-9 w-9 flex items-center justify-center rounded-lg border border-green-500/50 bg-green-500/10 hover:bg-green-500/20 transition-colors"
+											className="flex h-9 w-9 items-center justify-center rounded-lg border border-green-500/50 bg-green-500/10 transition-colors hover:bg-green-500/20"
 											title="Save changes"
 											onClick={handleSaveQuickBuyAmounts}
 										>
 											<Check className="h-3.5 w-3.5 text-green-500" />
 										</button>
 										<button
-											className="h-9 w-9 flex items-center justify-center rounded-lg border border-destructive/50 bg-destructive/10 hover:bg-destructive/20 transition-colors"
+											className="flex h-9 w-9 items-center justify-center rounded-lg border border-destructive/50 bg-destructive/10 transition-colors hover:bg-destructive/20"
 											title="Cancel"
 											onClick={() => {
 												setTempQuickBuyAmounts(quickBuyAmounts)
@@ -583,7 +577,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 									</div>
 								) : (
 									<button
-										className="h-9 w-9 flex items-center justify-center rounded-lg border border-border bg-background hover:bg-muted/50 transition-colors"
+										className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-background transition-colors hover:bg-muted/50"
 										title="Edit quick buy amounts"
 										onClick={() => setEditingQuickBuy(true)}
 									>
@@ -593,67 +587,68 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 							</>
 						) : (
 							<>
-								{editingQuickSell ? (
-									tempQuickSellPercentages.map((percentage: number, index: number) => (
-										<div key={index} className="relative flex-1" style={{ minWidth: 0 }}>
-											<input
-												type="number"
-												value={percentage}
-												onChange={(e) => {
-													const newPercentages = [...tempQuickSellPercentages]
-													newPercentages[index] = parseFloat(e.target.value) || 0
-													setTempQuickSellPercentages(newPercentages)
-												}}
-												onKeyDown={(e) => {
-													if (e.key === 'Enter') {
-														handleSaveQuickSellPercentages()
-													}
-													if (e.key === 'Escape') {
-														setTempQuickSellPercentages(quickSellPercentages)
-														setEditingQuickSell(false)
-													}
-												}}
-												className="w-full h-9 text-xs text-center rounded-md border border-border bg-background focus:border-primary focus:outline-none pr-4 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-												step="1"
-												min="1"
-												max="100"
-											/>
-											<span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">%</span>
-										</div>
-									))
-								) : (
-									quickSellPercentages.map((percentage: number, index: number) => (
-										<button
-											key={index}
-											className={cn(
-												"flex-1 py-2 px-3 rounded-lg flex justify-center items-center",
-												"border border-orange-500/30 bg-orange-500/10 hover:bg-orange-500/20",
-												"transition-all duration-200",
-												"group",
-												(!hasBalance || isProcessing || isMigrating) && "opacity-50 cursor-not-allowed"
-											)}
-											onClick={() => handleQuickAmount(percentage)}
-											disabled={isProcessing || !hasBalance || isMigrating}
-											style={{ minWidth: 0 }}
-										>
-											<span className="text-xs font-semibold text-orange-400 group-hover:text-orange-300 whitespace-nowrap">
-												{percentage}%
-											</span>
-										</button>
-									))
-								)}
+								{editingQuickSell
+									? tempQuickSellPercentages.map((percentage: number, index: number) => (
+											<div key={index} className="relative flex-1" style={{ minWidth: 0 }}>
+												<input
+													type="number"
+													value={percentage}
+													onChange={(e) => {
+														const newPercentages = [...tempQuickSellPercentages]
+														newPercentages[index] = parseFloat(e.target.value) || 0
+														setTempQuickSellPercentages(newPercentages)
+													}}
+													onKeyDown={(e) => {
+														if (e.key === "Enter") {
+															handleSaveQuickSellPercentages()
+														}
+														if (e.key === "Escape") {
+															setTempQuickSellPercentages(quickSellPercentages)
+															setEditingQuickSell(false)
+														}
+													}}
+													className="h-9 w-full rounded-md border border-border bg-background pr-4 text-center text-xs [appearance:textfield] focus:border-primary focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+													step="1"
+													min="1"
+													max="100"
+												/>
+												<span className="-translate-y-1/2 pointer-events-none absolute top-1/2 right-1.5 text-muted-foreground text-xs">
+													%
+												</span>
+											</div>
+										))
+									: quickSellPercentages.map((percentage: number, index: number) => (
+											<button
+												key={index}
+												className={cn(
+													"flex flex-1 items-center justify-center rounded-lg px-3 py-2",
+													"border border-orange-500/30 bg-orange-500/10 hover:bg-orange-500/20",
+													"transition-all duration-200",
+													"group",
+													(!hasBalance || isProcessing || isMigrating) &&
+														"cursor-not-allowed opacity-50"
+												)}
+												onClick={() => handleQuickAmount(percentage)}
+												disabled={isProcessing || !hasBalance || isMigrating}
+												style={{ minWidth: 0 }}
+											>
+												<span className="whitespace-nowrap font-semibold text-orange-400 text-xs group-hover:text-orange-300">
+													{percentage}%
+												</span>
+											</button>
+										))}
 
 								{editingQuickSell ? (
 									<div className="flex gap-1">
 										<button
-											className="h-9 w-9 flex items-center justify-center rounded-lg border border-green-500/50 bg-green-500/10 hover:bg-green-500/20 transition-colors"
+											className="flex h-9 w-9 items-center justify-center rounded-lg border border-green-500/50 bg-green-500/10 transition-colors hover:bg-green-500/20"
 											title="Save changes"
 											onClick={handleSaveQuickSellPercentages}
 										>
 											<Check className="h-3.5 w-3.5 text-green-500" />
 										</button>
 										<button
-											className="h-9 w-9 flex items-center justify-center rounded-lg border border-destructive/50 bg-destructive/10 hover:bg-destructive/20 transition-colors"
+											className="flex h-9 w-9 items-center justify-center rounded-lg border border-destructive/50 bg-destructive/10 transition-colors hover:bg-destructive/20"
 											title="Cancel"
 											onClick={() => {
 												setTempQuickSellPercentages(quickSellPercentages)
@@ -665,7 +660,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 									</div>
 								) : (
 									<button
-										className="h-9 w-9 flex items-center justify-center rounded-lg border border-border bg-background hover:bg-muted/50 transition-colors"
+										className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-background transition-colors hover:bg-muted/50"
 										title="Edit quick sell percentages"
 										onClick={() => setEditingQuickSell(true)}
 									>
@@ -678,8 +673,8 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 				</div>
 
 				{/* Settings Status Bar */}
-				<div className="flex items-center justify-between p-2 rounded-lg bg-muted/10 border border-border/50">
-					<div className="flex items-center gap-3 text-[10px] font-mono uppercase">
+				<div className="flex items-center justify-between rounded-lg border border-border/50 bg-muted/10 p-2">
+					<div className="flex items-center gap-3 font-mono text-[10px] uppercase">
 						<div className="flex items-center gap-1">
 							<Activity className="h-3 w-3 text-yellow-500" />
 							<span>Slippage: {slippage}%</span>
@@ -687,7 +682,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 					</div>
 
 					<button
-						className="p-1 rounded border border-border hover:border-primary/50 transition-colors"
+						className="rounded border border-border p-1 transition-colors hover:border-primary/50"
 						onClick={() => setSettingsOpen(true)}
 					>
 						<Settings2 className="h-3 w-3" />
@@ -696,18 +691,19 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 
 				{/* X Identity Reveal Warning - Only for bonding curve tokens */}
 				{["buy", "sell"].includes(tradeType) && protectionSettings?.revealTraderIdentity && !pool.pool?.migrated && (
-					<div className="flex items-center gap-2 p-3 rounded-lg border border-yellow-500/30 bg-yellow-500/5">
-						<AlertTriangle className="h-4 w-4 text-yellow-500 shrink-0" />
-						<span className="text-xs text-yellow-500 font-medium">
+					<div className="flex items-center gap-2 rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3">
+						<AlertTriangle className="h-4 w-4 shrink-0 text-yellow-500" />
+						<span className="font-medium text-xs text-yellow-500">
 							This {tradeType} will reveal your X (Twitter) username in trade history table.
 						</span>
 					</div>
 				)}
 
 				{/* Error */}
-				{((tradeType !== "burn" && error && !error.includes("AUTHENTICATED WITH X")) || (tradeType === "burn" && burnError)) && (
-					<Alert className="py-1.5 border-destructive/50 bg-destructive/10">
-						<AlertDescription className="font-mono text-[10px] uppercase text-destructive">
+				{((tradeType !== "burn" && error && !error.includes("AUTHENTICATED WITH X")) ||
+					(tradeType === "burn" && burnError)) && (
+					<Alert className="border-destructive/50 bg-destructive/10 py-1.5">
+						<AlertDescription className="font-mono text-[10px] text-destructive uppercase">
 							{tradeType === "burn" ? burnError : error}
 						</AlertDescription>
 					</Alert>
@@ -715,23 +711,19 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 
 				{/* Trade/Burn Button or X Connect Button */}
 				{protectionSettings?.requireTwitter && !isTwitterLoggedIn && tradeType !== "burn" ? (
-					<Button
-						variant="outline"
-						className="w-full h-10 font-mono text-xs uppercase"
-						onClick={twitterLogin}
-					>
-						<BsTwitterX className="h-4 w-4 mr-2" />
+					<Button variant="outline" className="h-10 w-full font-mono text-xs uppercase" onClick={twitterLogin}>
+						<BsTwitterX className="mr-2 h-4 w-4" />
 						Connect X to Trade
 					</Button>
 				) : (
 					<Button
 						className={cn(
-							"w-full h-10 font-mono text-xs uppercase",
+							"h-10 w-full font-mono text-xs uppercase",
 							tradeType === "buy"
-								? "bg-green-400/50 hover:bg-green-500/90 text-foreground"
+								? "bg-green-400/50 text-foreground hover:bg-green-500/90"
 								: tradeType === "sell"
-									? "bg-destructive/80 hover:bg-destructive text-foreground"
-									: "bg-orange-500/80 hover:bg-orange-600 text-foreground",
+									? "bg-destructive/80 text-foreground hover:bg-destructive"
+									: "bg-orange-500/80 text-foreground hover:bg-orange-600",
 							(isMigrating || !amount || isProcessing || isBurning) && "opacity-50"
 						)}
 						onClick={handleTrade}
@@ -745,33 +737,44 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 							((tradeType === "sell" || tradeType === "burn") && parseFloat(amount) > balanceInDisplayUnit)
 						}
 					>
-						{(isProcessing || isBurning) ? (
+						{isProcessing || isBurning ? (
 							<>
-								<Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
+								<Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
 								{tradeType === "burn" ? "Burning..." : "Processing..."}
 							</>
 						) : isRefreshingQuote && tradeType !== "burn" ? (
 							<>
-								<Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
+								<Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
 								Getting quotes...
 							</>
 						) : (
 							<>
-								{tradeType === "buy"
-									? isLoadingQuote ? `Calculating...` : `Buy ${formatNumberWithSuffix(calculateOutputAmount)} ${metadata?.symbol}`
-									: tradeType === "sell"
-										? isLoadingQuote ? `Calculating...` : (
-											<>
-												Sell {formatNumberWithSuffix(parseFloat(amount) || 0)} {metadata?.symbol} for {formatNumberWithSuffix(calculateOutputAmount)} SUI
-												{burnPercentage > 0 && !pool.pool?.migrated && (
-													<span className="ml-1 text-xs opacity-80">
-														({burnPercentage.toFixed(1)}% burn)
-													</span>
-												)}
-											</>
-										)
-										: (<><Flame className="h-3.5 w-3.5 mr-1 inline" />Burn {formatNumberWithSuffix(parseFloat(amount) || 0)} {metadata?.symbol}</>)
-								}
+								{tradeType === "buy" ? (
+									isLoadingQuote ? (
+										`Calculating...`
+									) : (
+										`Buy ${formatNumberWithSuffix(calculateOutputAmount)} ${metadata?.symbol}`
+									)
+								) : tradeType === "sell" ? (
+									isLoadingQuote ? (
+										`Calculating...`
+									) : (
+										<>
+											Sell {formatNumberWithSuffix(parseFloat(amount) || 0)} {metadata?.symbol} for{" "}
+											{formatNumberWithSuffix(calculateOutputAmount)} SUI
+											{burnPercentage > 0 && !pool.pool?.migrated && (
+												<span className="ml-1 text-xs opacity-80">
+													({burnPercentage.toFixed(1)}% burn)
+												</span>
+											)}
+										</>
+									)
+								) : (
+									<>
+										<Flame className="mr-1 inline h-3.5 w-3.5" />
+										Burn {formatNumberWithSuffix(parseFloat(amount) || 0)} {metadata?.symbol}
+									</>
+								)}
 							</>
 						)}
 					</Button>
@@ -779,10 +782,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 			</div>
 
 			{/* Trade Settings Dialog */}
-			<TradeSettings
-				open={settingsOpen}
-				onOpenChange={setSettingsOpen}
-			/>
+			<TradeSettings open={settingsOpen} onOpenChange={setSettingsOpen} />
 		</div>
 	)
 }

@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { cn } from "@/utils"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
+import { cn } from "@/utils"
 
 interface TokenAvatarProps {
 	iconUrl?: string
@@ -28,7 +28,7 @@ export function TokenAvatar({
 	const renderFallback = () => (
 		<div
 			className={cn(
-				"flex items-center justify-center shadow-md bg-card border border-dashed text-foreground/80 font-mono font-bold",
+				"flex items-center justify-center border border-dashed bg-card font-bold font-mono text-foreground/80 shadow-md",
 				className,
 				fallbackClassName
 			)}
@@ -42,10 +42,7 @@ export function TokenAvatar({
 			<img
 				src={iconUrl}
 				alt={symbol || name || "Token"}
-				className={cn(
-					"shadow-md object-cover",
-					className
-				)}
+				className={cn("object-cover shadow-md", className)}
 				onError={() => setImageError(true)}
 			/>
 			{preloadHover && <link rel="preload" as="image" href={iconUrl} />}
@@ -63,29 +60,20 @@ export function TokenAvatar({
 	return (
 		<HoverCard openDelay={200} closeDelay={100}>
 			<HoverCardTrigger asChild>
-				<div 
-					className="cursor-pointer"
-					onMouseEnter={() => setPreloadHover(true)}
-				>
+				<div className="cursor-pointer" onMouseEnter={() => setPreloadHover(true)}>
 					{renderImage()}
 				</div>
 			</HoverCardTrigger>
-			<HoverCardContent 
-				className="p-1.5 bg-background/95 backdrop-blur-sm border-2 w-auto"
-				side="top"
-				sideOffset={5}
-			>
+			<HoverCardContent className="w-auto border-2 bg-background/95 p-1.5 backdrop-blur-sm" side="top" sideOffset={5}>
 				<div className="relative">
 					<img
 						src={iconUrl}
 						alt={symbol || name || "Token"}
-						className="rounded-md object-cover w-[150px] h-[150px]"
+						className="h-[150px] w-[150px] rounded-md object-cover"
 					/>
 					{symbol && (
-						<div className="absolute bottom-1 left-1 right-1 bg-black/60 backdrop-blur-sm rounded px-2 py-1">
-							<p className="text-white text-xs font-mono font-bold text-center truncate">
-								{symbol}
-							</p>
+						<div className="absolute right-1 bottom-1 left-1 rounded bg-black/60 px-2 py-1 backdrop-blur-sm">
+							<p className="truncate text-center font-bold font-mono text-white text-xs">{symbol}</p>
 						</div>
 					)}
 				</div>

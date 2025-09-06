@@ -1,18 +1,17 @@
 "use client"
 
-import { useState } from "react"
+import { Activity, ChartCandlestick, DollarSign, Home, Users } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { ChartCandlestick, DollarSign, Activity, Home, Users } from "lucide-react"
-import { cn } from "@/utils"
-import { TradeTerminal } from "./trade-terminal"
+import { useState } from "react"
 import { NexaChart } from "@/components/shared/nexa-chart"
-import { TradesTab } from "./tabs/trades-tab"
-import { HoldersTab } from "./tabs/holders-tab"
+import type { Token } from "@/types/token"
+import { cn } from "@/utils"
 import { useHoldersData } from "../_hooks/use-holders-data"
 import { HolderDetails } from "./holder-details"
-import { MobileMarketStats } from "./mobile-market-stats"
+import { HoldersTab } from "./tabs/holders-tab"
+import { TradesTab } from "./tabs/trades-tab"
 import { TokenInfo } from "./token-info"
-import type { Token } from "@/types/token"
+import { TradeTerminal } from "./trade-terminal"
 
 interface MobileTab {
 	id: string
@@ -21,16 +20,16 @@ interface MobileTab {
 	action?: () => void
 }
 
-export default function MobileTokenView({ 
-	pool, 
-	referral, 
-	realtimePrice, 
-	realtimeMarketCap 
-}: { 
-	pool: Token; 
-	referral?: string;
-	realtimePrice?: number | null;
-	realtimeMarketCap?: number | null;
+export default function MobileTokenView({
+	pool,
+	referral,
+	realtimePrice,
+	realtimeMarketCap,
+}: {
+	pool: Token
+	referral?: string
+	realtimePrice?: number | null
+	realtimeMarketCap?: number | null
 }) {
 	const [activeTab, setActiveTab] = useState("chart")
 	const [activitySubTab, setActivitySubTab] = useState<"trades" | "holders" | "projects">("trades")
@@ -53,23 +52,19 @@ export default function MobileTokenView({
 	}
 
 	return (
-		<div className="flex flex-col h-full lg:hidden">
+		<div className="flex h-full flex-col lg:hidden">
 			{/* Show HolderDetails for non-trade tabs */}
-			{activeTab !== "trade" && (
-				<HolderDetails pool={pool} />
-			)}
+			{activeTab !== "trade" && <HolderDetails pool={pool} />}
 
 			<div className="flex-1 overflow-hidden">
-				{activeTab === "chart" && (
-					<NexaChart pool={pool} className="w-full h-full" />
-				)}
+				{activeTab === "chart" && <NexaChart pool={pool} className="h-full w-full" />}
 
 				{activeTab === "trade" && (
 					<div className="h-full overflow-y-auto">
-						<div className="border-b border-border">
-							<TokenInfo 
-								pool={pool} 
-								realtimePrice={realtimePrice || null} 
+						<div className="border-border border-b">
+							<TokenInfo
+								pool={pool}
+								realtimePrice={realtimePrice || null}
 								realtimeMarketCap={realtimeMarketCap || null}
 							/>
 						</div>
@@ -78,17 +73,17 @@ export default function MobileTokenView({
 				)}
 
 				{activeTab === "activity" && (
-					<div className="h-full relative flex flex-col">
+					<div className="relative flex h-full flex-col">
 						{/* @dev: Sub-tabs for Trades, Holders, and Projects (if available) */}
-						<div className="border-b bg-background/95 backdrop-blur-sm sticky top-0 z-10">
+						<div className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur-sm">
 							<div className="flex items-center gap-1 p-2">
 								<button
 									onClick={() => setActivitySubTab("trades")}
 									className={cn(
-										"flex items-center gap-1 px-2 py-1.5 rounded-md font-mono text-[10px] uppercase tracking-wider transition-all flex-1",
+										"flex flex-1 items-center gap-1 rounded-md px-2 py-1.5 font-mono text-[10px] uppercase tracking-wider transition-all",
 										activitySubTab === "trades"
-											? "bg-primary/10 text-primary border border-primary/20"
-											: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+											? "border border-primary/20 bg-primary/10 text-primary"
+											: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
 									)}
 								>
 									<Activity className="h-3 w-3" />
@@ -97,10 +92,10 @@ export default function MobileTokenView({
 								<button
 									onClick={() => setActivitySubTab("holders")}
 									className={cn(
-										"flex items-center gap-1 px-2 py-1.5 rounded-md font-mono text-[10px] uppercase tracking-wider transition-all flex-1",
+										"flex flex-1 items-center gap-1 rounded-md px-2 py-1.5 font-mono text-[10px] uppercase tracking-wider transition-all",
 										activitySubTab === "holders"
-											? "bg-primary/10 text-primary border border-primary/20"
-											: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+											? "border border-primary/20 bg-primary/10 text-primary"
+											: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
 									)}
 								>
 									<Users className="h-3 w-3" />
@@ -110,10 +105,10 @@ export default function MobileTokenView({
 									<button
 										onClick={() => setActivitySubTab("projects")}
 										className={cn(
-											"flex items-center gap-1 px-2 py-1.5 rounded-md font-mono text-[10px] uppercase tracking-wider transition-all flex-1",
+											"flex flex-1 items-center gap-1 rounded-md px-2 py-1.5 font-mono text-[10px] uppercase tracking-wider transition-all",
 											activitySubTab === "projects"
-												? "bg-primary/10 text-primary border border-primary/20"
-												: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+												? "border border-primary/20 bg-primary/10 text-primary"
+												: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
 										)}
 									>
 										<Users className="h-3 w-3" />
@@ -128,9 +123,9 @@ export default function MobileTokenView({
 							{activitySubTab === "trades" ? (
 								<TradesTab pool={pool} className="h-full" />
 							) : (
-								<HoldersTab 
-									pool={pool} 
-									className="h-full" 
+								<HoldersTab
+									pool={pool}
+									className="h-full"
 									activeTab={activitySubTab === "projects" ? "projects" : "holders"}
 								/>
 							)}
@@ -140,8 +135,8 @@ export default function MobileTokenView({
 			</div>
 
 			{/* Bottom Navigation */}
-			<div className="bg-background/95 backdrop-blur-xl border-t border-border/50">
-				<div className="flex items-center justify-around h-16">
+			<div className="border-border/50 border-t bg-background/95 backdrop-blur-xl">
+				<div className="flex h-16 items-center justify-around">
 					{mobileTabs.map((tab) => {
 						const Icon = tab.icon
 						const isActive = activeTab === tab.id
@@ -152,20 +147,20 @@ export default function MobileTokenView({
 								key={tab.id}
 								onClick={() => handleTabClick(tab)}
 								className={cn(
-									"flex flex-col items-center justify-center gap-1 py-2 px-4 min-w-0 flex-1",
+									"flex min-w-0 flex-1 flex-col items-center justify-center gap-1 px-4 py-2",
 									"transition-all duration-200"
 								)}
 							>
 								<Icon
 									className={cn(
 										"h-5 w-5 transition-all",
-										!isHome && isActive ? "text-destructive scale-110" : "text-muted-foreground"
+										!isHome && isActive ? "scale-110 text-destructive" : "text-muted-foreground"
 									)}
 								/>
 								<span
 									className={cn(
-										"text-[10px] font-mono uppercase tracking-wider",
-										!isHome && isActive ? "text-destructive font-semibold" : "text-muted-foreground"
+										"font-mono text-[10px] uppercase tracking-wider",
+										!isHome && isActive ? "font-semibold text-destructive" : "text-muted-foreground"
 									)}
 								>
 									{tab.label}

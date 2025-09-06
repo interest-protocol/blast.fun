@@ -1,4 +1,4 @@
-import { Compass, Trophy, LucideIcon, Rocket } from "lucide-react"
+import { Compass, LucideIcon, Rocket, Trophy } from "lucide-react"
 
 export interface NavItem {
 	label: string

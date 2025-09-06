@@ -1,21 +1,21 @@
 import "@/app/globals.css"
 import "@/app/animations.css"
 
+import { GoogleAnalytics } from "@next/third-parties/google"
 import type { Metadata } from "next"
-import { GoogleAnalytics } from '@next/third-parties/google'
 import { SessionProvider } from "next-auth/react"
 import { Toaster } from "react-hot-toast"
+import { TermsPrivacyDialog } from "@/components/dialogs/terms-privacy-dialog"
+import { TooltipProvider } from "@/components/ui/tooltip"
 // import { ReactScan } from "@/components/utils/react-scan"
 import { TailwindIndicator } from "@/components/utils/tailwind-indicator"
+import { siteConfig } from "@/constants"
 import { TwitterAuthProvider } from "@/context/twitter.context"
 import { geistMono, geistSans } from "@/fonts"
 import { ApolloProvider } from "@/providers/apollo-provider"
 import SuiProvider from "@/providers/sui-provider"
 import { ThemeProvider } from "@/providers/theme-provider"
 import { cn } from "@/utils"
-import { TooltipProvider } from "@/components/ui/tooltip"
-import { siteConfig } from "@/constants"
-import { TermsPrivacyDialog } from "@/components/dialogs/terms-privacy-dialog"
 
 export const metadata: Metadata = {
 	title: {
@@ -35,23 +35,23 @@ export const metadata: Metadata = {
 				width: 1200,
 				height: 630,
 				alt: siteConfig.name,
-				type: 'image/png',
+				type: "image/png",
 			},
 		],
-		locale: 'en_US',
-		type: 'website',
+		locale: "en_US",
+		type: "website",
 	},
 	twitter: {
-		card: 'summary_large_image',
+		card: "summary_large_image",
 		title: siteConfig.name,
 		description: siteConfig.description,
 		images: [`${siteConfig.url}/api/og`],
-		creator: '@blastdotfun',
+		creator: "@blastdotfun",
 	},
 	icons: {
-		icon: '/favicon.ico',
-		shortcut: '/favicon-16x16.png',
-		apple: '/apple-touch-icon.png',
+		icon: "/favicon.ico",
+		shortcut: "/favicon-16x16.png",
+		apple: "/apple-touch-icon.png",
 	},
 }
 
@@ -94,9 +94,7 @@ export default function RootLayout({
 				</ThemeProvider>
 			</body>
 
-			{process.env.NEXT_PUBLIC_VERCEL_ENV === "production" && (
-				<GoogleAnalytics gaId="G-LFECSPQX7J" />
-			)}
+			{process.env.NEXT_PUBLIC_VERCEL_ENV === "production" && <GoogleAnalytics gaId="G-LFECSPQX7J" />}
 		</html>
 	)
 }

@@ -1,5 +1,4 @@
 import { Transaction } from "@mysten/sui/transactions"
-import { MIST_PER_SUI } from "@mysten/sui/utils"
 import { useApp } from "@/context/app.context"
 import { useTransaction } from "@/hooks/sui/use-transaction"
 import { playSound } from "@/lib/audio"

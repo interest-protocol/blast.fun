@@ -1,6 +1,6 @@
-import { type ReactNode, createElement } from "react"
 import { MIST_PER_SUI } from "@mysten/sui/utils"
 import BigNumber from "bignumber.js"
+import { createElement, type ReactNode } from "react"
 
 export const formatAmount = (amount: string | number | bigint | undefined) => {
 	if (amount == null) {
@@ -94,16 +94,16 @@ export const formatSmallPrice = (value: number | undefined): ReactNode => {
 				const digits = significantPart.substring(0, 4)
 
 				return createElement(
-					'span',
+					"span",
 					null,
-					'0.0',
-					createElement('sub', { style: { fontSize: '0.75em' } }, zeros),
+					"0.0",
+					createElement("sub", { style: { fontSize: "0.75em" } }, zeros),
 					digits
 				)
 			}
 		}
 
-		return value.toFixed(4).replace(/\.?0+$/, '')
+		return value.toFixed(4).replace(/\.?0+$/, "")
 	}
 
 	return formatNumberWithSuffix(value)

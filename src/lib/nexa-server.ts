@@ -1,7 +1,6 @@
 import { env } from "@/env"
-import type { TokenMarketData } from "@/types/token"
-import type { TokenMetadata } from "@/types/token"
 import type { LeaderboardEntry } from "@/types/leaderboard"
+import type { TokenMarketData, TokenMetadata } from "@/types/token"
 
 const NEXA_SERVER_API_BASE = "https://spot.api.sui-prod.bluefin.io/external-api/insidex"
 
@@ -19,7 +18,7 @@ class NexaServerClient {
 	}
 
 	private async fetch(endpoint: string, options?: NexaServerRequestOptions) {
-		const url = endpoint.startsWith('http') ? endpoint : `${this.baseUrl}${endpoint}`
+		const url = endpoint.startsWith("http") ? endpoint : `${this.baseUrl}${endpoint}`
 
 		const response = await fetch(url, {
 			...options,
@@ -44,7 +43,7 @@ class NexaServerClient {
 
 	async getMarketData(coinType: string): Promise<TokenMarketData> {
 		const response = await this.fetch(`/coins/${coinType}/market-data`)
-		return await response.json() as TokenMarketData
+		return (await response.json()) as TokenMarketData
 	}
 
 	async getCoinMetadata(coinType: string): Promise<TokenMetadata> {
@@ -52,7 +51,7 @@ class NexaServerClient {
 			revalidate: 43200, // 12 hours
 		})
 
-		return await response.json() as TokenMetadata
+		return (await response.json()) as TokenMetadata
 	}
 
 	async getPortfolio(address: string) {
@@ -64,24 +63,24 @@ class NexaServerClient {
 	}
 
 	async getLeaderboard(params?: {
-		sortOn?: 'volume' | 'trades'
+		sortOn?: "volume" | "trades"
 		startTime?: number
 		endTime?: number
 	}): Promise<LeaderboardEntry[]> {
 		const searchParams = new URLSearchParams()
-		
-		if (params?.sortOn) searchParams.append('sortOn', params.sortOn)
-		if (params?.startTime) searchParams.append('startTime', params.startTime.toString())
-		if (params?.endTime) searchParams.append('endTime', params.endTime.toString())
-		
+
+		if (params?.sortOn) searchParams.append("sortOn", params.sortOn)
+		if (params?.startTime) searchParams.append("startTime", params.startTime.toString())
+		if (params?.endTime) searchParams.append("endTime", params.endTime.toString())
+
 		const queryString = searchParams.toString()
-		const endpoint = queryString ? `/blast-fun/leaderboard?${queryString}` : '/blast-fun/leaderboard'
-		
+		const endpoint = queryString ? `/blast-fun/leaderboard?${queryString}` : "/blast-fun/leaderboard"
+
 		const response = await this.fetch(endpoint, {
 			revalidate: 60, // Cache for 1 minute
 		})
 
-		return await response.json() as LeaderboardEntry[]
+		return (await response.json()) as LeaderboardEntry[]
 	}
 }
 

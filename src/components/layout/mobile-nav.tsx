@@ -3,8 +3,8 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { navigationItems } from "@/constants/navigation"
-import { cn } from "@/utils"
 import { useCustomNavigation } from "@/hooks/use-custom-navigation"
+import { cn } from "@/utils"
 
 export function MobileNavigation() {
 	const pathname = usePathname()
@@ -15,39 +15,37 @@ export function MobileNavigation() {
 	}
 
 	return (
-		<div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border/50">
-			<nav className="flex justify-evenly items-center w-full h-16 px-2">
-				{navigationItems.filter(item => item.label !== "TOOLS").map((item) => {
-					const isActive = pathname === item.href
-					const Icon = item.icon
+		<div className="fixed right-0 bottom-0 left-0 z-50 border-border/50 border-t bg-background/95 backdrop-blur-xl lg:hidden">
+			<nav className="flex h-16 w-full items-center justify-evenly px-2">
+				{navigationItems
+					.filter((item) => item.label !== "TOOLS")
+					.map((item) => {
+						const isActive = pathname === item.href
+						const Icon = item.icon
 
-					return (
-						<Link
-							key={item.href}
-							href={item.href}
-							className="group flex flex-col justify-center items-center gap-1 py-2 px-4 min-w-0 relative"
-						>
-							<Icon
-								className={cn(
-									"h-5 w-5 transition-all duration-300",
-									isActive 
-										? "text-primary" 
-										: "text-muted-foreground/60 group-active:scale-95"
-								)}
-							/>
-							<span
-								className={cn(
-									"text-[10px] font-mono uppercase tracking-wider transition-all duration-300",
-									isActive 
-										? "text-primary/90 font-semibold" 
-										: "text-muted-foreground/60"
-								)}
+						return (
+							<Link
+								key={item.href}
+								href={item.href}
+								className="group relative flex min-w-0 flex-col items-center justify-center gap-1 px-4 py-2"
 							>
-								{item.label}
-							</span>
-						</Link>
-					)
-				})}
+								<Icon
+									className={cn(
+										"h-5 w-5 transition-all duration-300",
+										isActive ? "text-primary" : "text-muted-foreground/60 group-active:scale-95"
+									)}
+								/>
+								<span
+									className={cn(
+										"font-mono text-[10px] uppercase tracking-wider transition-all duration-300",
+										isActive ? "font-semibold text-primary/90" : "text-muted-foreground/60"
+									)}
+								>
+									{item.label}
+								</span>
+							</Link>
+						)
+					})}
 			</nav>
 		</div>
 	)

@@ -1,11 +1,11 @@
 "use server"
 
-import { apolloClient } from "@/lib/apollo-client"
 import { CONFIG_KEYS } from "@interest-protocol/memez-fun-sdk"
-import { redisGet, redisSetEx, CACHE_PREFIX, CACHE_TTL } from "@/lib/redis/client"
+import { GET_POOL_BY_COIN_TYPE } from "@/graphql/pools"
+import { apolloClient } from "@/lib/apollo-client"
 import { fetchCreatorData } from "@/lib/fetch-creator-data"
 import { nexaServerClient } from "@/lib/nexa-server"
-import { GET_POOL_BY_COIN_TYPE } from "@/graphql/pools"
+import { CACHE_PREFIX, CACHE_TTL, redisGet, redisSetEx } from "@/lib/redis/client"
 import type { Token } from "@/types/token"
 
 export async function fetchTokenByCoinType(coinType: string): Promise<Token | null> {
@@ -16,10 +16,10 @@ export async function fetchTokenByCoinType(coinType: string): Promise<Token | nu
 			variables: { type: decodedCoinType },
 			context: {
 				headers: {
-					"config-key": CONFIG_KEYS.mainnet.XPUMP
-				}
+					"config-key": CONFIG_KEYS.mainnet.XPUMP,
+				},
 			},
-			fetchPolicy: "network-only"
+			fetchPolicy: "network-only",
 		})
 
 		if (!data?.coinPool) {
@@ -27,11 +27,11 @@ export async function fetchTokenByCoinType(coinType: string): Promise<Token | nu
 		}
 
 		const pool = data.coinPool
-		
+
 		// @dev: fetch market data from Nexa to get metadata and market info
 		let marketData: any = null
 		let metadata: any = pool.metadata || {}
-		
+
 		try {
 			marketData = await nexaServerClient.getMarketData(pool.coinType)
 			if ((marketData as any).coinMetadata) {
@@ -40,27 +40,26 @@ export async function fetchTokenByCoinType(coinType: string): Promise<Token | nu
 		} catch (error) {
 			console.error("Failed to fetch market data from Nexa:", error)
 		}
-		
+
 		// @dev: Fallback to pool metadata if Nexa doesn't have icon
 		if (!metadata.icon_url && !metadata.iconUrl && pool.metadata) {
 			metadata = {
 				...metadata,
 				icon_url: pool.metadata.icon_url || pool.metadata.iconUrl,
-				iconUrl: pool.metadata.iconUrl || pool.metadata.icon_url
+				iconUrl: pool.metadata.iconUrl || pool.metadata.icon_url,
 			}
 		}
-		
+
 		// @dev: find most liquid pool for migrated tokens
 		let mostLiquidPoolId = (marketData as any)?.mostLiquidPoolId
 		if (pool.migrated && (marketData as any)?.pools && Array.isArray((marketData as any).pools)) {
 			const pools = (marketData as any).pools
-			const mostLiquid = pools.reduce((max: any, p: any) => 
-				(p.liqUsd > (max?.liqUsd || 0)) ? p : max, null)
+			const mostLiquid = pools.reduce((max: any, p: any) => (p.liqUsd > (max?.liqUsd || 0) ? p : max), null)
 			if (mostLiquid?.pool) {
 				mostLiquidPoolId = mostLiquid.pool
 			}
 		}
-		
+
 		// @dev: construct token object with data from gql + nexa
 		const processedPool: Token = {
 			id: pool.poolId,
@@ -76,13 +75,13 @@ export async function fetchTokenByCoinType(coinType: string): Promise<Token | nu
 				Website: pool.metadata?.Website,
 				X: pool.metadata?.X,
 				Telegram: pool.metadata?.Telegram,
-				Discord: pool.metadata?.Discord
+				Discord: pool.metadata?.Discord,
 			},
 			creator: {
 				address: pool.creatorAddress || "",
 				launchCount: 0,
 				trustedFollowers: "0",
-				followers: "0"
+				followers: "0",
 			},
 			market: {
 				marketCap: (marketData as any)?.marketCap || 0,
@@ -95,7 +94,7 @@ export async function fetchTokenByCoinType(coinType: string): Promise<Token | nu
 				price5MinsAgo: (marketData as any)?.price5MinsAgo,
 				price1HrAgo: (marketData as any)?.price1HrAgo,
 				price4HrAgo: (marketData as any)?.price4HrAgo,
-				price1DayAgo: (marketData as any)?.price1DayAgo
+				price1DayAgo: (marketData as any)?.price1DayAgo,
 			},
 			pool: {
 				poolId: pool.poolId,
@@ -114,18 +113,18 @@ export async function fetchTokenByCoinType(coinType: string): Promise<Token | nu
 				isProtected: !!pool.publicKey,
 				publicKey: pool.publicKey,
 				burnTax: pool.burnTax,
-				mostLiquidPoolId: mostLiquidPoolId
+				mostLiquidPoolId: mostLiquidPoolId,
 			},
 			createdAt: pool.createdAt || Date.now(),
 			lastTradeAt: pool.lastTradeAt || new Date().toISOString(),
-			nsfw: pool.nsfw
+			nsfw: pool.nsfw,
 		}
 
 		// @dev: fetch creator data if we have a creator address
 		if (pool.creatorAddress) {
 			const creatorCacheKey = `${CACHE_PREFIX.CREATOR_DATA}${pool.creatorAddress}`
 			const cachedCreatorData = await redisGet(creatorCacheKey)
-			
+
 			if (cachedCreatorData) {
 				try {
 					processedPool.creator = JSON.parse(cachedCreatorData)
@@ -136,7 +135,7 @@ export async function fetchTokenByCoinType(coinType: string): Promise<Token | nu
 				try {
 					const creatorData = await fetchCreatorData({
 						creatorAddressOrHandle: pool.creatorAddress,
-						poolId: pool.poolId
+						poolId: pool.poolId,
 					})
 					if (creatorData) {
 						processedPool.creator = creatorData

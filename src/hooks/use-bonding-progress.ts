@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { getBondingProgress, type BondingProgressData } from "@/lib/get-bonding-progress"
+import { type BondingProgressData, getBondingProgress } from "@/lib/get-bonding-progress"
 
 export function useBondingProgress(coinType: string | undefined) {
 	const { data, isLoading, error } = useQuery<BondingProgressData>({

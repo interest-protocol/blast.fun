@@ -6,21 +6,14 @@ export async function POST(request: NextRequest) {
 	try {
 		// @dev: Get authenticated user from session
 		const session = await auth()
-		
+
 		if (!session?.user) {
 			return NextResponse.json({ error: "Unauthorized - Please login first" }, { status: 401 })
 		}
 
 		const body = await request.json()
 
-		const {
-			poolObjectId,
-			creatorAddress,
-			hideIdentity,
-			tokenTxHash,
-			poolTxHash,
-			protectionSettings
-		} = body
+		const { poolObjectId, creatorAddress, hideIdentity, tokenTxHash, poolTxHash, protectionSettings } = body
 
 		// @dev: Use session data instead of request body for user info
 		const twitterUserId = session.user.twitterId

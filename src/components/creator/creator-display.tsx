@@ -13,88 +13,75 @@ interface CreatorDisplayProps extends React.HTMLAttributes<HTMLElement> {
 	asLink?: boolean
 }
 
-export const CreatorDisplay = forwardRef<
-	HTMLButtonElement | HTMLAnchorElement,
-	CreatorDisplayProps
->(({
-	twitterHandle,
-	twitterId,
-	walletAddress,
-	className = "",
-	onClick,
-	asLink = true,
-	...props
-}, ref) => {
-	const { data: resolvedDomain } = useResolveSuiNSName(
-		!twitterHandle && walletAddress ? walletAddress : null
-	)
+export const CreatorDisplay = forwardRef<HTMLButtonElement | HTMLAnchorElement, CreatorDisplayProps>(
+	({ twitterHandle, twitterId, walletAddress, className = "", onClick, asLink = true, ...props }, ref) => {
+		const { data: resolvedDomain } = useResolveSuiNSName(!twitterHandle && walletAddress ? walletAddress : null)
 
-	const displayData = useMemo(() => {
-		// priority: handle > resolved domain > wallet address
-		if (twitterHandle) {
-			// @dev: Use twitterId for stable link if available, fallback to handle
-			const href = twitterId 
-				? `https://x.com/i/user/${twitterId}`
-				: `https://x.com/${twitterHandle}`
-			
-			return {
-				display: `@${twitterHandle}`,
-				href,
-				type: 'twitter' as const
+		const displayData = useMemo(() => {
+			// priority: handle > resolved domain > wallet address
+			if (twitterHandle) {
+				// @dev: Use twitterId for stable link if available, fallback to handle
+				const href = twitterId ? `https://x.com/i/user/${twitterId}` : `https://x.com/${twitterHandle}`
+
+				return {
+					display: `@${twitterHandle}`,
+					href,
+					type: "twitter" as const,
+				}
 			}
-		}
 
-		if (resolvedDomain) {
+			if (resolvedDomain) {
+				return {
+					display: resolvedDomain,
+					href: null,
+					type: "domain" as const,
+				}
+			}
+
 			return {
-				display: resolvedDomain,
+				display: formatAddress(walletAddress || ""),
 				href: null,
-				type: 'domain' as const
+				type: "wallet" as const,
+			}
+		}, [twitterHandle, twitterId, resolvedDomain, walletAddress])
+
+		const handleClick = (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
+			if (onClick) {
+				onClick(e)
+			} else if (displayData.href) {
+				e.stopPropagation()
+				e.preventDefault()
+				window.open(displayData.href, "_blank", "noopener,noreferrer")
 			}
 		}
 
-		return {
-			display: formatAddress(walletAddress || ""),
-			href: null,
-			type: 'wallet' as const
+		if (asLink && displayData.href) {
+			return (
+				<a
+					ref={ref as React.Ref<HTMLAnchorElement>}
+					href={displayData.href}
+					target="_blank"
+					rel="noopener noreferrer"
+					onClick={handleClick}
+					className={`hover:underline ${className}`}
+					{...props}
+				>
+					{displayData.display}
+				</a>
+			)
 		}
-	}, [twitterHandle, twitterId, resolvedDomain, walletAddress])
 
-	const handleClick = (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
-		if (onClick) {
-			onClick(e)
-		} else if (displayData.href) {
-			e.stopPropagation()
-			e.preventDefault()
-			window.open(displayData.href, "_blank", "noopener,noreferrer")
-		}
-	}
-
-	if (asLink && displayData.href) {
 		return (
-			<a
-				ref={ref as React.Ref<HTMLAnchorElement>}
-				href={displayData.href}
-				target="_blank"
-				rel="noopener noreferrer"
+			<button
+				ref={ref as React.Ref<HTMLButtonElement>}
 				onClick={handleClick}
-				className={`hover:underline ${className}`}
+				className={`${displayData.type === "twitter" ? "hover:underline" : ""} ${className}`}
 				{...props}
 			>
 				{displayData.display}
-			</a>
+			</button>
 		)
 	}
-
-	return (
-		<button
-			ref={ref as React.Ref<HTMLButtonElement>}
-			onClick={handleClick}
-			className={`${displayData.type === 'twitter' ? 'hover:underline' : ''} ${className}`}
-			{...props}
-		>
-			{displayData.display}
-		</button>
-	)
-})
+)
 
 CreatorDisplay.displayName = "CreatorDisplay"

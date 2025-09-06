@@ -1,26 +1,20 @@
 "use client"
 
+import { coinWithBalance } from "@mysten/sui/transactions"
+import BigNumber from "bignumber.js"
+import { CheckCircle, Flame, Loader2 } from "lucide-react"
 import { useState } from "react"
-import { Flame, Loader2, CheckCircle } from "lucide-react"
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { useApp } from "@/context/app.context"
+import { usePortfolio } from "@/hooks/nexa/use-portfolio"
+import { useTokenBalance } from "@/hooks/sui/use-token-balance"
+import { useTransaction } from "@/hooks/sui/use-transaction"
+import { pumpSdk } from "@/lib/pump"
 import type { Token } from "@/types/token"
 import { formatNumberWithSuffix } from "@/utils/format"
-import { useTokenBalance } from "@/hooks/sui/use-token-balance"
-import { usePortfolio } from "@/hooks/nexa/use-portfolio"
-import { useApp } from "@/context/app.context"
-import { useTransaction } from "@/hooks/sui/use-transaction"
-import { coinWithBalance } from "@mysten/sui/transactions"
-import { pumpSdk } from "@/lib/pump"
-import BigNumber from "bignumber.js"
 
 interface BurnDialogProps {
 	open: boolean
@@ -92,7 +86,9 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
 		}
 
 		if (parseFloat(amount) > balanceInDisplayUnit) {
-			setError(`Insufficient balance. You only have ${formatNumberWithSuffix(balanceInDisplayUnit)} ${metadata?.symbol}`)
+			setError(
+				`Insufficient balance. You only have ${formatNumberWithSuffix(balanceInDisplayUnit)} ${metadata?.symbol}`
+			)
 			return
 		}
 
@@ -169,8 +165,8 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
 
 				<div className="space-y-4">
 					{/* Balance Display */}
-					<div className="p-3 rounded-lg bg-muted/50 space-y-1">
-						<div className="flex justify-between items-center text-sm">
+					<div className="space-y-1 rounded-lg bg-muted/50 p-3">
+						<div className="flex items-center justify-between text-sm">
 							<span className="text-muted-foreground">Your Balance</span>
 							<span className="font-mono">
 								{formatNumberWithSuffix(balanceInDisplayUnit)} {metadata?.symbol}
@@ -181,10 +177,10 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
 					{/* Amount Input */}
 					<div className="space-y-2">
 						<div className="flex items-center justify-between">
-							<label className="text-sm font-medium">Amount to Burn</label>
+							<label className="font-medium text-sm">Amount to Burn</label>
 							<button
 								onClick={() => setAmount(balanceInDisplayUnitPrecise)}
-								className="text-xs text-blue-400 hover:text-blue-300 font-medium transition-colors"
+								className="font-medium text-blue-400 text-xs transition-colors hover:text-blue-300"
 								disabled={isProcessing}
 							>
 								MAX
@@ -220,9 +216,7 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
 					{success && (
 						<Alert className="border-green-500/50 bg-green-500/10">
 							<CheckCircle className="h-4 w-4 text-green-500" />
-							<AlertDescription className="text-xs text-green-500">
-								{success}
-							</AlertDescription>
+							<AlertDescription className="text-green-500 text-xs">{success}</AlertDescription>
 						</Alert>
 					)}
 
@@ -231,7 +225,8 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
 						<Alert className="border-orange-500/50 bg-orange-500/10">
 							<Flame className="h-4 w-4 text-orange-500" />
 							<AlertDescription className="text-xs">
-								Burning tokens permanently removes them from circulation. This will reduce the total supply and cannot be reversed.
+								Burning tokens permanently removes them from circulation. This will reduce the total supply
+								and cannot be reversed.
 							</AlertDescription>
 						</Alert>
 					)}
@@ -239,9 +234,7 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
 					{/* Error Message */}
 					{error && (
 						<Alert className="border-destructive/50 bg-destructive/10">
-							<AlertDescription className="text-xs text-destructive">
-								{error}
-							</AlertDescription>
+							<AlertDescription className="text-destructive text-xs">{error}</AlertDescription>
 						</Alert>
 					)}
 
@@ -258,16 +251,16 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
 						<Button
 							onClick={handleBurn}
 							disabled={isProcessing || !amount || parseFloat(amount) <= 0}
-							className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
+							className="flex-1 bg-orange-500 text-white hover:bg-orange-600"
 						>
 							{isProcessing ? (
 								<>
-									<Loader2 className="h-4 w-4 animate-spin mr-2" />
+									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 									Burning...
 								</>
 							) : (
 								<>
-									<Flame className="h-4 w-4 mr-2" />
+									<Flame className="mr-2 h-4 w-4" />
 									Burn Tokens
 								</>
 							)}

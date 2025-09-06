@@ -19,9 +19,7 @@ export function usePortfolio(coinType?: string) {
 	})
 
 	// find specific coin balance if coinType is provided
-	const coinBalance = coinType && data?.balances
-		? data.balances.find(b => b.coinType === coinType)
-		: null
+	const coinBalance = coinType && data?.balances ? data.balances.find((b) => b.coinType === coinType) : null
 
 	return {
 		portfolio: data,

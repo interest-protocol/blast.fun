@@ -1,30 +1,26 @@
-import { BASE_DOMAIN } from "@/constants"
-import { env } from "@/env"
 import { NextRequest, NextResponse } from "next/server"
+import { BASE_DOMAIN } from "@/constants"
 
-export async function GET(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    const { id } = await params
-    const searchParams = request.nextUrl.searchParams
-    const refCode = searchParams.get("ref")
-    const appUrl = new URL(BASE_DOMAIN)
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+	const { id } = await params
+	const searchParams = request.nextUrl.searchParams
+	const refCode = searchParams.get("ref")
+	const appUrl = new URL(BASE_DOMAIN)
 
-    // Get user agent to detect Twitter/social media bots
-    const userAgent = request.headers.get("user-agent") || ""
-    const isBot = /bot|crawler|spider|twitter|facebook|whatsapp|telegram|discord|slack/i.test(userAgent)
+	// Get user agent to detect Twitter/social media bots
+	const userAgent = request.headers.get("user-agent") || ""
+	const isBot = /bot|crawler|spider|twitter|facebook|whatsapp|telegram|discord|slack/i.test(userAgent)
 
-    // build URLs
-    const xCardUrl = refCode ? `${appUrl}/x-card/${id}?ref=${refCode}` : `${appUrl}/x-card/${id}`
-    const tokenUrl = refCode ? `${appUrl}/token/${id}?ref=${refCode}` : `${appUrl}/token/${id}`
+	// build URLs
+	const xCardUrl = refCode ? `${appUrl}/x-card/${id}?ref=${refCode}` : `${appUrl}/x-card/${id}`
+	const tokenUrl = refCode ? `${appUrl}/token/${id}?ref=${refCode}` : `${appUrl}/token/${id}`
 
-    // If not a bot, redirect to the actual token page
-    if (!isBot) {
-        return NextResponse.redirect(tokenUrl, { status: 302 })
-    }
+	// If not a bot, redirect to the actual token page
+	if (!isBot) {
+		return NextResponse.redirect(tokenUrl, { status: 302 })
+	}
 
-    const html = `<!DOCTYPE html>
+	const html = `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
@@ -84,10 +80,10 @@ export async function GET(
 </body>
 </html>`
 
-    return new NextResponse(html, {
-        headers: {
-            "Content-Type": "text/html",
-            "Cache-Control": "no-cache, no-store, must-revalidate",
-        },
-    })
+	return new NextResponse(html, {
+		headers: {
+			"Content-Type": "text/html",
+			"Cache-Control": "no-cache, no-store, must-revalidate",
+		},
+	})
 }

@@ -6,10 +6,7 @@ export async function POST(req: NextRequest) {
 		const { address } = await req.json()
 
 		if (!address) {
-			return NextResponse.json(
-				{ error: "Address is required" },
-				{ status: 400 }
-			)
+			return NextResponse.json({ error: "Address is required" }, { status: 400 })
 		}
 
 		// Use BlockVision service to fetch wallet coins
@@ -17,23 +14,17 @@ export async function POST(req: NextRequest) {
 
 		if (!result.success || !result.data) {
 			console.error("Failed to fetch wallet coins:", result.error)
-			return NextResponse.json(
-				{ error: result.error || "Failed to fetch wallet coins" },
-				{ status: 500 }
-			)
+			return NextResponse.json({ error: result.error || "Failed to fetch wallet coins" }, { status: 500 })
 		}
 
 		// Return the coins in the expected format
-		return NextResponse.json({ 
+		return NextResponse.json({
 			coins: result.data,
-			success: true 
+			success: true,
 		})
 	} catch (error) {
 		console.error("Error in wallet coins API:", error)
-		return NextResponse.json(
-			{ error: "Failed to fetch wallet coins" },
-			{ status: 500 }
-		)
+		return NextResponse.json({ error: "Failed to fetch wallet coins" }, { status: 500 })
 	}
 }
 
@@ -43,10 +34,7 @@ export async function GET(req: NextRequest) {
 	const address = searchParams.get("address")
 
 	if (!address) {
-		return NextResponse.json(
-			{ error: "Address is required" },
-			{ status: 400 }
-		)
+		return NextResponse.json({ error: "Address is required" }, { status: 400 })
 	}
 
 	// Use BlockVision service to fetch wallet coins
@@ -54,14 +42,11 @@ export async function GET(req: NextRequest) {
 
 	if (!result.success || !result.data) {
 		console.error("Failed to fetch wallet coins:", result.error)
-		return NextResponse.json(
-			{ error: result.error || "Failed to fetch wallet coins" },
-			{ status: 500 }
-		)
+		return NextResponse.json({ error: result.error || "Failed to fetch wallet coins" }, { status: 500 })
 	}
 
-	return NextResponse.json({ 
+	return NextResponse.json({
 		coins: result.data,
-		success: true 
+		success: true,
 	})
 }

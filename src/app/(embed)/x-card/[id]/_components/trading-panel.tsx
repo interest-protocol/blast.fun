@@ -1,25 +1,16 @@
 "use client"
 
-import { useState } from "react"
-import { Zap, Loader2 } from "lucide-react"
+import { Loader2, Zap } from "lucide-react"
 import Image from "next/image"
-import { useApp } from "@/context/app.context"
+import { useState } from "react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/components/ui/popover"
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipTrigger,
-} from "@/components/ui/tooltip"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { usePortfolio } from "@/hooks/nexa/use-portfolio"
 import { useTrading } from "@/hooks/pump/use-trading"
 import { useTokenBalance } from "@/hooks/sui/use-token-balance"
-import { usePortfolio } from "@/hooks/nexa/use-portfolio"
 import { useMarketData } from "@/hooks/use-market-data"
 import type { Token } from "@/types/token"
 import { cn } from "@/utils"
@@ -58,7 +49,7 @@ export function TradingPanel({ pool, referrerWallet, refCode }: TradingPanelProp
 			setAmount(value.toString())
 			await buy(value.toString(), parseFloat(slippage))
 		} else {
-			const percentage = typeof value === 'string' ? parseInt(value) : value
+			const percentage = typeof value === "string" ? parseInt(value) : value
 
 			let tokenAmountToSell: number
 			if (percentage === 100) {
@@ -89,50 +80,42 @@ export function TradingPanel({ pool, referrerWallet, refCode }: TradingPanelProp
 	}
 
 	return (
-		<div className="p-3 space-y-3">
+		<div className="space-y-3 p-3">
 			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-2">
-					<div className="font-mono text-xs font-bold uppercase">
-						Trade {metadata?.symbol}
-					</div>
+					<div className="font-bold font-mono text-xs uppercase">Trade {metadata?.symbol}</div>
 					{refCode && (
 						<Tooltip>
 							<TooltipTrigger asChild>
-								<div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-blue-400/50 bg-blue-400/10 cursor-help">
-									<div className="w-1 h-1 bg-blue-400 rounded-full" />
-									<span className="font-mono text-[10px] uppercase text-blue-400">
-										{refCode}
-									</span>
+								<div className="inline-flex cursor-help items-center gap-1 rounded border border-blue-400/50 bg-blue-400/10 px-1.5 py-0.5">
+									<div className="h-1 w-1 rounded-full bg-blue-400" />
+									<span className="font-mono text-[10px] text-blue-400 uppercase">{refCode}</span>
 								</div>
 							</TooltipTrigger>
-							<TooltipContent>
-								The owner of this referral link will earn a commission.
-							</TooltipContent>
+							<TooltipContent>The owner of this referral link will earn a commission.</TooltipContent>
 						</Tooltip>
 					)}
 				</div>
 
 				{hasBalance && (
-					<div className="font-mono text-xs text-muted-foreground">
-						Balance: <span className="text-foreground font-semibold">
-							{balanceInDisplayUnit.toFixed(2)}
-						</span>
+					<div className="font-mono text-muted-foreground text-xs">
+						Balance: <span className="font-semibold text-foreground">{balanceInDisplayUnit.toFixed(2)}</span>
 					</div>
 				)}
 			</div>
 
 			{/* Buy/Sell Tab */}
-			<div className="flex gap-1 p-0.5 bg-muted rounded-md">
+			<div className="flex gap-1 rounded-md bg-muted p-0.5">
 				<Button
 					variant={tradeType === "buy" ? "default" : "ghost"}
 					size="sm"
 					onClick={() => setTradeType("buy")}
 					className={cn(
-						"flex-1 font-mono text-xs uppercase h-7",
+						"h-7 flex-1 font-mono text-xs uppercase",
 						tradeType === "buy"
-							? "bg-green-500/80 hover:bg-green-500 text-white shadow-none"
-							: "hover:bg-transparent hover:text-foreground text-muted-foreground"
+							? "bg-green-500/80 text-white shadow-none hover:bg-green-500"
+							: "text-muted-foreground hover:bg-transparent hover:text-foreground"
 					)}
 				>
 					Buy
@@ -143,10 +126,10 @@ export function TradingPanel({ pool, referrerWallet, refCode }: TradingPanelProp
 					onClick={() => setTradeType("sell")}
 					disabled={!hasBalance}
 					className={cn(
-						"flex-1 font-mono text-xs uppercase h-7",
+						"h-7 flex-1 font-mono text-xs uppercase",
 						tradeType === "sell"
-							? "bg-destructive/80 hover:bg-destructive text-white shadow-none"
-							: "hover:bg-transparent hover:text-foreground text-muted-foreground"
+							? "bg-destructive/80 text-white shadow-none hover:bg-destructive"
+							: "text-muted-foreground hover:bg-transparent hover:text-foreground"
 					)}
 				>
 					Sell
@@ -161,19 +144,16 @@ export function TradingPanel({ pool, referrerWallet, refCode }: TradingPanelProp
 						placeholder="0.00"
 						value={amount}
 						onChange={(e) => setAmount(e.target.value)}
-						className="pr-12 h-10 font-mono"
+						className="h-10 pr-12 font-mono"
 						disabled={isProcessing}
 					/>
-					<span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono text-xs text-muted-foreground">
+					<span className="-translate-y-1/2 absolute top-1/2 right-3 font-mono text-muted-foreground text-xs">
 						{tradeType === "buy" ? "SUI" : metadata?.symbol}
 					</span>
 				</div>
 				<Popover>
 					<PopoverTrigger asChild>
-						<Button
-							variant="outline"
-							className="w-14 h-10 font-mono text-xs px-2"
-						>
+						<Button variant="outline" className="h-10 w-14 px-2 font-mono text-xs">
 							{slippage}%
 						</Button>
 					</PopoverTrigger>
@@ -184,10 +164,8 @@ export function TradingPanel({ pool, referrerWallet, refCode }: TradingPanelProp
 									key={value}
 									onClick={() => setSlippage(value)}
 									className={cn(
-										"w-full px-2 py-1.5 rounded font-mono text-xs transition-colors text-left",
-										slippage === value
-											? "bg-primary/20 text-primary"
-											: "hover:bg-accent"
+										"w-full rounded px-2 py-1.5 text-left font-mono text-xs transition-colors",
+										slippage === value ? "bg-primary/20 text-primary" : "hover:bg-accent"
 									)}
 								>
 									{value}% slippage
@@ -208,19 +186,13 @@ export function TradingPanel({ pool, referrerWallet, refCode }: TradingPanelProp
 								variant="outline"
 								size="sm"
 								className={cn(
-									"font-mono text-[10px] h-6 p-0.5",
+									"h-6 p-0.5 font-mono text-[10px]",
 									"!border-blue-400/50 !bg-blue-400/10 text-blue-400 hover:text-blue-400/80"
 								)}
 								onClick={() => handleQuickAmount(suiAmount)}
 								disabled={isProcessing}
 							>
-								<Image
-									src="/logo/sui-logo.svg"
-									alt="SUI"
-									width={10}
-									height={10}
-									className="mr-0.5"
-								/>
+								<Image src="/logo/sui-logo.svg" alt="SUI" width={10} height={10} className="mr-0.5" />
 								{suiAmount}
 							</Button>
 						))}
@@ -232,7 +204,7 @@ export function TradingPanel({ pool, referrerWallet, refCode }: TradingPanelProp
 								key={percentage}
 								variant="outline"
 								size="sm"
-								className="font-mono text-xs h-7"
+								className="h-7 font-mono text-xs"
 								onClick={() => handleQuickAmount(percentage)}
 								disabled={isProcessing || !hasBalance}
 							>
@@ -245,20 +217,18 @@ export function TradingPanel({ pool, referrerWallet, refCode }: TradingPanelProp
 
 			{/* Error */}
 			{error && (
-				<Alert className="py-1.5 border-destructive/50 bg-destructive/10">
-					<AlertDescription className="font-mono text-[10px] uppercase text-destructive">
-						{error}
-					</AlertDescription>
+				<Alert className="border-destructive/50 bg-destructive/10 py-1.5">
+					<AlertDescription className="font-mono text-[10px] text-destructive uppercase">{error}</AlertDescription>
 				</Alert>
 			)}
 
 			{/* Trade Actions */}
 			<Button
 				className={cn(
-					"w-full font-mono uppercase text-xs h-9",
+					"h-9 w-full font-mono text-xs uppercase",
 					tradeType === "buy"
-						? "bg-green-400/50 hover:bg-green-500/90 text-foreground"
-						: "bg-destructive/80 hover:bg-destructive text-foreground",
+						? "bg-green-400/50 text-foreground hover:bg-green-500/90"
+						: "bg-destructive/80 text-foreground hover:bg-destructive",
 					(!amount || isProcessing) && "opacity-50"
 				)}
 				onClick={handleTrade}
@@ -271,7 +241,7 @@ export function TradingPanel({ pool, referrerWallet, refCode }: TradingPanelProp
 					</span>
 				) : (
 					<span className="flex items-center gap-1.5">
-						<Zap className="w-3 h-3" />
+						<Zap className="h-3 w-3" />
 						{tradeType === "buy" ? "Buy" : "Sell"} {metadata?.symbol}
 					</span>
 				)}

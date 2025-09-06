@@ -16,7 +16,7 @@ export async function getRedisClient(): Promise<RedisClientType | null> {
 
 	if (isConnecting) {
 		while (isConnecting) {
-			await new Promise(resolve => setTimeout(resolve, 10))
+			await new Promise((resolve) => setTimeout(resolve, 10))
 		}
 
 		return redisClient
@@ -35,8 +35,8 @@ export async function getRedisClient(): Promise<RedisClientType | null> {
 						return false
 					}
 					return Math.min(retries * 100, 3000)
-				}
-			}
+				},
+			},
 		})
 
 		redisClient.on("error", (error) => {
@@ -55,9 +55,7 @@ export async function getRedisClient(): Promise<RedisClientType | null> {
 	}
 }
 
-export async function withRedis<T>(
-	operation: (client: RedisClientType) => Promise<T>
-): Promise<T | null> {
+export async function withRedis<T>(operation: (client: RedisClientType) => Promise<T>): Promise<T | null> {
 	const client = await getRedisClient()
 	if (!client) {
 		return null
@@ -77,11 +75,7 @@ export async function redisGet(key: string): Promise<string | null> {
 	})
 }
 
-export async function redisSet(
-	key: string,
-	value: string,
-	ttl?: number
-): Promise<boolean> {
+export async function redisSet(key: string, value: string, ttl?: number): Promise<boolean> {
 	const result = await withRedis(async (client) => {
 		if (ttl) {
 			return await client.setEx(key, ttl, value)
@@ -93,11 +87,7 @@ export async function redisSet(
 	return result === "OK"
 }
 
-export async function redisSetEx(
-	key: string,
-	ttl: number,
-	value: string
-): Promise<boolean> {
+export async function redisSetEx(key: string, ttl: number, value: string): Promise<boolean> {
 	const result = await withRedis(async (client) => {
 		return await client.setEx(key, ttl, value)
 	})

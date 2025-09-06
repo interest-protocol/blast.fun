@@ -1,7 +1,7 @@
 "use client"
 
-import { memo } from "react"
 import { Globe, Send } from "lucide-react"
+import { memo } from "react"
 import { BsTwitterX } from "react-icons/bs"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
@@ -11,11 +11,7 @@ interface TokenSocialsProps {
 	website?: string
 }
 
-export const TokenSocials = memo(function TokenSocials({
-	twitter,
-	telegram,
-	website
-}: TokenSocialsProps) {
+export const TokenSocials = memo(function TokenSocials({ twitter, telegram, website }: TokenSocialsProps) {
 	const socialLinks = [
 		{ href: twitter, icon: BsTwitterX, tooltip: "X" },
 		{ href: telegram, icon: Send, tooltip: "TELEGRAM" },
@@ -26,7 +22,7 @@ export const TokenSocials = memo(function TokenSocials({
 
 	return (
 		<>
-			<span className="text-muted-foreground/40 hidden sm:inline">·</span>
+			<span className="hidden text-muted-foreground/40 sm:inline">·</span>
 			<div className="flex items-center gap-1">
 				{socialLinks.map((link, index) => {
 					const Icon = link.icon
@@ -39,13 +35,13 @@ export const TokenSocials = memo(function TokenSocials({
 										e.preventDefault()
 										window.open(link.href, "_blank", "noopener,noreferrer")
 									}}
-									className="text-muted-foreground/60 hover:text-foreground/80 transition-all p-0.5 hover:bg-accent/20 rounded-md"
+									className="rounded-md p-0.5 text-muted-foreground/60 transition-all hover:bg-accent/20 hover:text-foreground/80"
 								>
 									<Icon className="size-3" />
 								</button>
 							</TooltipTrigger>
 							<TooltipContent>
-								<p className="text-xs font-mono uppercase">{link.tooltip}</p>
+								<p className="font-mono text-xs uppercase">{link.tooltip}</p>
 							</TooltipContent>
 						</Tooltip>
 					)

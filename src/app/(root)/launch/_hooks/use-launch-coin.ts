@@ -1,5 +1,5 @@
 import { invariant } from "@apollo/client/utilities/globals"
-import { CONFIG_KEYS, MIGRATOR_WITNESSES, Modules, PACKAGES } from "@interest-protocol/memez-fun-sdk"
+import { CONFIG_KEYS, MIGRATOR_WITNESSES } from "@interest-protocol/memez-fun-sdk"
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions"
 import {
 	formatAddress,
@@ -20,7 +20,6 @@ import {
 } from "@/constants"
 import { useApp } from "@/context/app.context"
 import { useTwitter } from "@/context/twitter.context"
-import { env } from "@/env"
 import { useTransaction } from "@/hooks/sui/use-transaction"
 import { getBytecode } from "@/lib/move-template/coin"
 import initMoveByteCodeTemplate from "@/lib/move-template/move-bytecode-template"
@@ -158,13 +157,13 @@ export function useLaunchCoin() {
 		// @dev: Convert burn tax percentage to basis points (0-60% = 0-6000 bps)
 		const burnTaxBps = formValues.burnTax ? Math.floor(parseFloat(formValues.burnTax) * 100) : 0
 
-		const tx = new Transaction();
+		const tx = new Transaction()
 		const firstPurchase = formValues.devBuyAmount
-				? coinWithBalance({
-						balance: parseFloat(formValues.devBuyAmount || "0") * 10 ** 9,
-						type: "0x2::sui::SUI",
-					})
-				: pumpSdk.zeroSuiCoin(tx)
+			? coinWithBalance({
+					balance: parseFloat(formValues.devBuyAmount || "0") * 10 ** 9,
+					type: "0x2::sui::SUI",
+				})
+			: pumpSdk.zeroSuiCoin(tx)
 
 		const { metadataCap, firstBuy } = await pumpSdk.newPoolWithFirstBuy({
 			tx,
@@ -184,7 +183,7 @@ export function useLaunchCoin() {
 		})
 
 		tx.transferObjects([firstBuy], tx.pure.address(address))
-		
+
 		if (metadataCap) {
 			tx.transferObjects([metadataCap], tx.pure.address(address))
 		}

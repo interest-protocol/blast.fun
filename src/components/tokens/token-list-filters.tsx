@@ -1,19 +1,13 @@
 "use client"
 
-import { memo, useState, useEffect } from "react"
 import { Settings2 } from "lucide-react"
+import { memo, useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import type { TokenFilters, TokenListSettings, TokenSortOption } from "@/types/token"
 import { cn } from "@/utils"
-import type { TokenFilters, TokenSortOption, TokenListSettings } from "@/types/token"
 import { AuditFilters } from "./filter-components/audit-filters"
 import { MetricsFilters } from "./filter-components/metrics-filters"
 
@@ -21,21 +15,21 @@ interface TokenListFiltersProps {
 	columnId: string
 	onSettingsChange: (settings: TokenListSettings) => void
 	defaultSort?: TokenSortOption
-	defaultTab?: 'newly-created' | 'about-to-bond' | 'bonded'
+	defaultTab?: "newly-created" | "about-to-bond" | "bonded"
 }
 
-const STORAGE_KEY_PREFIX = 'token-filters-v2-'
+const STORAGE_KEY_PREFIX = "token-filters-v2-"
 
 export const TokenListFilters = memo(function TokenListFilters({
 	columnId,
 	onSettingsChange,
-	defaultSort = 'date',
-	defaultTab = 'newly-created'
+	defaultSort = "date",
+	defaultTab = "newly-created",
 }: TokenListFiltersProps) {
 	const [open, setOpen] = useState(false)
-	const [selectedSubMenu, setSelectedSubMenu] = useState<'audit' | 'metrics'>('audit')
+	const [selectedSubMenu, setSelectedSubMenu] = useState<"audit" | "metrics">("audit")
 	const [sortBy, setSortBy] = useState<TokenSortOption>(defaultSort)
-	const [tabType, setTabType] = useState<'newly-created' | 'about-to-bond' | 'bonded'>(defaultTab)
+	const [tabType, setTabType] = useState<"newly-created" | "about-to-bond" | "bonded">(defaultTab)
 
 	const [filters, setFilters] = useState<TokenFilters>({
 		tabType: defaultTab,
@@ -54,83 +48,83 @@ export const TokenListFilters = memo(function TokenListFilters({
 				setTabType(parsed.filters.tabType || defaultTab)
 				onSettingsChange(parsed)
 			} catch (error) {
-				console.error('Failed to parse saved settings:', error)
+				console.error("Failed to parse saved settings:", error)
 			}
 		}
-	}, [columnId])
+	}, [columnId, defaultTab, onSettingsChange])
 
 	const handleSetBondingProgressMin = (value: number | undefined) => {
-		setFilters(prev => ({ ...prev, bondingProgressMin: value }))
+		setFilters((prev) => ({ ...prev, bondingProgressMin: value }))
 	}
 
 	const handleSetBondingProgressMax = (value: number | undefined) => {
-		setFilters(prev => ({ ...prev, bondingProgressMax: value }))
+		setFilters((prev) => ({ ...prev, bondingProgressMax: value }))
 	}
 
 	// @dev: Audit filter handlers
 	const handleSetCreatedAtMin = (value: number | undefined) => {
-		setFilters(prev => ({ ...prev, ageMin: value }))
+		setFilters((prev) => ({ ...prev, ageMin: value }))
 	}
 
 	const handleSetCreatedAtMax = (value: number | undefined) => {
-		setFilters(prev => ({ ...prev, ageMax: value }))
+		setFilters((prev) => ({ ...prev, ageMax: value }))
 	}
 
 	const handleSetTop10HoldingsMin = (value: number | undefined) => {
-		setFilters(prev => ({ ...prev, top10HoldingsMin: value }))
+		setFilters((prev) => ({ ...prev, top10HoldingsMin: value }))
 	}
 
 	const handleSetTop10HoldingsMax = (value: number | undefined) => {
-		setFilters(prev => ({ ...prev, top10HoldingsMax: value }))
+		setFilters((prev) => ({ ...prev, top10HoldingsMax: value }))
 	}
 
 	const handleSetDevHoldingsMin = (value: number | undefined) => {
-		setFilters(prev => ({ ...prev, devHoldingsMin: value }))
+		setFilters((prev) => ({ ...prev, devHoldingsMin: value }))
 	}
 
 	const handleSetDevHoldingsMax = (value: number | undefined) => {
-		setFilters(prev => ({ ...prev, devHoldingsMax: value }))
+		setFilters((prev) => ({ ...prev, devHoldingsMax: value }))
 	}
 
 	const handleSetHoldersCountMin = (value: number | undefined) => {
-		setFilters(prev => ({ ...prev, holdersCountMin: value }))
+		setFilters((prev) => ({ ...prev, holdersCountMin: value }))
 	}
 
 	const handleSetHoldersCountMax = (value: number | undefined) => {
-		setFilters(prev => ({ ...prev, holdersCountMax: value }))
+		setFilters((prev) => ({ ...prev, holdersCountMax: value }))
 	}
 
 	// @dev: Metrics filter handlers
 	const handleSetMarketCapMin = (value: number | undefined) => {
-		setFilters(prev => ({ ...prev, marketCapMin: value }))
+		setFilters((prev) => ({ ...prev, marketCapMin: value }))
 	}
 
 	const handleSetMarketCapMax = (value: number | undefined) => {
-		setFilters(prev => ({ ...prev, marketCapMax: value }))
+		setFilters((prev) => ({ ...prev, marketCapMax: value }))
 	}
 
 	const handleSetVolumeMin = (value: number | undefined) => {
-		setFilters(prev => ({ ...prev, volumeMin: value }))
+		setFilters((prev) => ({ ...prev, volumeMin: value }))
 	}
 
 	const handleSetVolumeMax = (value: number | undefined) => {
-		setFilters(prev => ({ ...prev, volumeMax: value }))
+		setFilters((prev) => ({ ...prev, volumeMax: value }))
 	}
 
 	const handleSetLiquidityMin = (value: number | undefined) => {
-		setFilters(prev => ({ ...prev, liquidityMin: value }))
+		setFilters((prev) => ({ ...prev, liquidityMin: value }))
 	}
 
 	const handleSetLiquidityMax = (value: number | undefined) => {
-		setFilters(prev => ({ ...prev, liquidityMax: value }))
+		setFilters((prev) => ({ ...prev, liquidityMax: value }))
 	}
 
 	const handleSetTradeCountMin = (value: number | undefined) => {
-		setFilters(prev => ({ ...prev, tradeCountMin: value }))
+		setFilters((prev) => ({ ...prev, tradeCountMin: value }))
 	}
 
 	const handleSetTradeCountMax = (value: number | undefined) => {
-		setFilters(prev => ({ ...prev, tradeCountMax: value }))
+		setFilters((prev) => ({ ...prev, tradeCountMax: value }))
 	}
 
 	const handleApply = () => {
@@ -139,7 +133,7 @@ export const TokenListFilters = memo(function TokenListFilters({
 			filters: {
 				...filters,
 				tabType,
-			}
+			},
 		}
 
 		const storageKey = `${STORAGE_KEY_PREFIX}${columnId}`
@@ -154,13 +148,13 @@ export const TokenListFilters = memo(function TokenListFilters({
 			sortBy: defaultSort,
 			filters: {
 				tabType: defaultTab,
-			}
+			},
 		}
 
 		setSortBy(defaultSort)
 		setFilters(defaultSettings.filters)
 		setTabType(defaultTab)
-		setSelectedSubMenu('audit')
+		setSelectedSubMenu("audit")
 
 		const storageKey = `${STORAGE_KEY_PREFIX}${columnId}`
 		localStorage.removeItem(storageKey)
@@ -174,15 +168,15 @@ export const TokenListFilters = memo(function TokenListFilters({
 				<Button
 					variant="ghost"
 					size="sm"
-					className="h-7 w-7 p-0 hover:bg-accent transition-colors"
+					className="h-7 w-7 p-0 transition-colors hover:bg-accent"
 					aria-label="Token list filters"
 				>
-					<Settings2 className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+					<Settings2 className="h-4 w-4 text-muted-foreground transition-colors hover:text-foreground" />
 				</Button>
 			</DialogTrigger>
-			<DialogContent className="sm:max-w-[450px] p-6 rounded-xl border-2 bg-background shadow-2xl">
+			<DialogContent className="rounded-xl border-2 bg-background p-6 shadow-2xl sm:max-w-[450px]">
 				<DialogHeader className="pb-4">
-					<DialogTitle className="font-mono text-base uppercase tracking-wider text-foreground/80">
+					<DialogTitle className="font-mono text-base text-foreground/80 uppercase tracking-wider">
 						Token Filters
 					</DialogTitle>
 				</DialogHeader>
@@ -190,40 +184,38 @@ export const TokenListFilters = memo(function TokenListFilters({
 				<div className="space-y-5">
 					{/* Tab Selection */}
 					<div>
-						<Label className="font-mono text-xs uppercase tracking-wider text-foreground/60">
-							Token Status
-						</Label>
-						<div className="flex bg-muted rounded-lg border p-1 mt-2">
+						<Label className="font-mono text-foreground/60 text-xs uppercase tracking-wider">Token Status</Label>
+						<div className="mt-2 flex rounded-lg border bg-muted p-1">
 							<button
 								className={cn(
-									"flex-1 py-2 px-3 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
-									tabType === 'newly-created'
-										? "bg-background shadow-sm text-foreground"
-										: "hover:text-foreground text-muted-foreground"
+									"flex-1 rounded-md px-3 py-2 font-mono text-xs uppercase tracking-wider transition-all",
+									tabType === "newly-created"
+										? "bg-background text-foreground shadow-sm"
+										: "text-muted-foreground hover:text-foreground"
 								)}
-								onClick={() => setTabType('newly-created')}
+								onClick={() => setTabType("newly-created")}
 							>
 								NEW
 							</button>
 							<button
 								className={cn(
-									"flex-1 py-2 px-3 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
-									tabType === 'about-to-bond'
-										? "bg-background shadow-sm text-foreground"
-										: "hover:text-foreground text-muted-foreground"
+									"flex-1 rounded-md px-3 py-2 font-mono text-xs uppercase tracking-wider transition-all",
+									tabType === "about-to-bond"
+										? "bg-background text-foreground shadow-sm"
+										: "text-muted-foreground hover:text-foreground"
 								)}
-								onClick={() => setTabType('about-to-bond')}
+								onClick={() => setTabType("about-to-bond")}
 							>
 								BONDING
 							</button>
 							<button
 								className={cn(
-									"flex-1 py-2 px-3 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
-									tabType === 'bonded'
-										? "bg-background shadow-sm text-foreground"
-										: "hover:text-foreground text-muted-foreground"
+									"flex-1 rounded-md px-3 py-2 font-mono text-xs uppercase tracking-wider transition-all",
+									tabType === "bonded"
+										? "bg-background text-foreground shadow-sm"
+										: "text-muted-foreground hover:text-foreground"
 								)}
-								onClick={() => setTabType('bonded')}
+								onClick={() => setTabType("bonded")}
 							>
 								BONDED
 							</button>
@@ -231,24 +223,28 @@ export const TokenListFilters = memo(function TokenListFilters({
 					</div>
 
 					{/* Bonding Progress */}
-					{tabType !== 'bonded' && (
+					{tabType !== "bonded" && (
 						<div>
-							<Label className="font-mono text-xs uppercase tracking-wider text-foreground/60">
+							<Label className="font-mono text-foreground/60 text-xs uppercase tracking-wider">
 								BONDING PROGRESS <span className="text-muted-foreground/40">(%)</span>
 							</Label>
-							<div className="flex gap-2 mt-2">
+							<div className="mt-2 flex gap-2">
 								<Input
 									type="number"
 									placeholder="[MIN]"
-									value={filters.bondingProgressMin || ''}
-									onChange={(e) => handleSetBondingProgressMin(e.target.value ? Number(e.target.value) : undefined)}
+									value={filters.bondingProgressMin || ""}
+									onChange={(e) =>
+										handleSetBondingProgressMin(e.target.value ? Number(e.target.value) : undefined)
+									}
 									className="font-mono focus:border-primary/50"
 								/>
 								<Input
 									type="number"
 									placeholder="[MAX]"
-									value={filters.bondingProgressMax || ''}
-									onChange={(e) => handleSetBondingProgressMax(e.target.value ? Number(e.target.value) : undefined)}
+									value={filters.bondingProgressMax || ""}
+									onChange={(e) =>
+										handleSetBondingProgressMax(e.target.value ? Number(e.target.value) : undefined)
+									}
 									className="font-mono focus:border-primary/50"
 								/>
 							</div>
@@ -257,25 +253,25 @@ export const TokenListFilters = memo(function TokenListFilters({
 
 					{/* Filter Mode Toggle */}
 					<div>
-						<div className="flex bg-muted rounded-lg border p-1 mb-4">
+						<div className="mb-4 flex rounded-lg border bg-muted p-1">
 							<button
-								onClick={() => setSelectedSubMenu('audit')}
+								onClick={() => setSelectedSubMenu("audit")}
 								className={cn(
-									"flex-1 py-2 px-3 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
-									selectedSubMenu === 'audit'
-										? "bg-background shadow-sm text-foreground"
-										: "hover:text-foreground text-muted-foreground"
+									"flex-1 rounded-md px-3 py-2 font-mono text-xs uppercase tracking-wider transition-all",
+									selectedSubMenu === "audit"
+										? "bg-background text-foreground shadow-sm"
+										: "text-muted-foreground hover:text-foreground"
 								)}
 							>
 								AUDIT
 							</button>
 							<button
-								onClick={() => setSelectedSubMenu('metrics')}
+								onClick={() => setSelectedSubMenu("metrics")}
 								className={cn(
-									"flex-1 py-2 px-3 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
-									selectedSubMenu === 'metrics'
-										? "bg-background shadow-sm text-foreground"
-										: "hover:text-foreground text-muted-foreground"
+									"flex-1 rounded-md px-3 py-2 font-mono text-xs uppercase tracking-wider transition-all",
+									selectedSubMenu === "metrics"
+										? "bg-background text-foreground shadow-sm"
+										: "text-muted-foreground hover:text-foreground"
 								)}
 							>
 								METRICS
@@ -283,8 +279,8 @@ export const TokenListFilters = memo(function TokenListFilters({
 						</div>
 
 						{/* Filter Views */}
-						<div className="rounded-lg p-4 border-2 border-dashed">
-							{selectedSubMenu === 'audit' ? (
+						<div className="rounded-lg border-2 border-dashed p-4">
+							{selectedSubMenu === "audit" ? (
 								<AuditFilters
 									createdAtMin={filters.ageMin}
 									createdAtMax={filters.ageMax}
@@ -335,10 +331,7 @@ export const TokenListFilters = memo(function TokenListFilters({
 						>
 							RESET
 						</Button>
-						<Button
-							onClick={handleApply}
-							className="flex-1 font-mono text-xs uppercase tracking-wider"
-						>
+						<Button onClick={handleApply} className="flex-1 font-mono text-xs uppercase tracking-wider">
 							APPLY
 						</Button>
 					</div>

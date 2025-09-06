@@ -1,17 +1,17 @@
 "use client"
 
 import { Loader2, ShieldCheck } from "lucide-react"
-import { useState, useCallback } from "react"
+import { useCallback, useState } from "react"
+import { ConfettiProvider } from "@/components/shared/confetti"
 import { WalletList } from "@/components/shared/wallet-list"
 import { Button } from "@/components/ui/button"
+import { Logo } from "@/components/ui/logo"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { TwitterUserAvatar } from "@/components/user/user-avatar"
 import { useApp } from "@/context/app.context"
 import { useTwitter } from "@/context/twitter.context"
 import type { TokenFormValues } from "./create-token-form"
 import CreateTokenForm from "./create-token-form"
-import { ConfettiProvider } from "@/components/shared/confetti"
-import { Logo } from "@/components/ui/logo"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 export default function LaunchContent() {
 	const { isConnected, isConnecting, connect } = useApp()
@@ -27,22 +27,22 @@ export default function LaunchContent() {
 
 	if (!isConnected) {
 		return (
-			<div className="container max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[calc(100vh-12rem)]">
+			<div className="container mx-auto flex min-h-[calc(100vh-12rem)] max-w-2xl flex-col items-center justify-center">
 				{isConnecting && (
-					<div className="fixed inset-0 bg-background/95 backdrop-blur-md z-50 flex items-center justify-center">
+					<div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-md">
 						<div className="flex flex-col items-center space-y-6">
 							<div className="relative">
-								<div className="absolute inset-0 bg-primary/20 blur-2xl animate-pulse" />
-								<Loader2 className="h-16 w-16 animate-spin text-foreground/60 relative" />
+								<div className="absolute inset-0 animate-pulse bg-primary/20 blur-2xl" />
+								<Loader2 className="relative h-16 w-16 animate-spin text-foreground/60" />
 								<div className="absolute inset-0 animate-ping">
 									<Loader2 className="h-16 w-16 text-primary opacity-10" />
 								</div>
 							</div>
-							<div className="text-center space-y-2">
-								<p className="text-sm font-mono uppercase text-foreground/80 animate-pulse tracking-wider">
+							<div className="space-y-2 text-center">
+								<p className="animate-pulse font-mono text-foreground/80 text-sm uppercase tracking-wider">
 									WALLET::CONNECTING
 								</p>
-								<p className="text-xs font-mono uppercase text-muted-foreground/60">
+								<p className="font-mono text-muted-foreground/60 text-xs uppercase">
 									ESTABLISHING_SECURE_CONNECTION...
 								</p>
 							</div>
@@ -52,17 +52,17 @@ export default function LaunchContent() {
 
 				<div className="w-full space-y-8 text-center">
 					<div className="space-y-6">
-						<h1 className="text-4xl font-bold font-mono uppercase tracking-wider text-foreground/80 sm:text-5xl">
+						<h1 className="font-bold font-mono text-4xl text-foreground/80 uppercase tracking-wider sm:text-5xl">
 							WALLET::REQUIRED
 						</h1>
-						<p className="text-sm font-mono uppercase max-w-md mx-auto text-muted-foreground">
+						<p className="mx-auto max-w-md font-mono text-muted-foreground text-sm uppercase">
 							CONNECT_WALLET_TO_LAUNCH_TOKENS
 						</p>
 					</div>
 
-					<div className="w-full max-w-md mx-auto space-y-4">
-						<div className="border-t border-foreground/10 pt-6">
-							<p className="text-xs font-mono text-muted-foreground/60 mb-6 uppercase">AVAILABLE::WALLETS</p>
+					<div className="mx-auto w-full max-w-md space-y-4">
+						<div className="border-foreground/10 border-t pt-6">
+							<p className="mb-6 font-mono text-muted-foreground/60 text-xs uppercase">AVAILABLE::WALLETS</p>
 							<WalletList onSelect={connect} isConnecting={isConnecting} />
 						</div>
 					</div>
@@ -73,22 +73,22 @@ export default function LaunchContent() {
 
 	if (!isLoggedIn) {
 		return (
-			<div className="container max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[calc(100vh-12rem)]">
+			<div className="container mx-auto flex min-h-[calc(100vh-12rem)] max-w-2xl flex-col items-center justify-center">
 				{isLoading && (
-					<div className="fixed inset-0 bg-background/95 backdrop-blur-md z-50 flex items-center justify-center">
+					<div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-md">
 						<div className="flex flex-col items-center space-y-6">
 							<div className="relative">
-								<div className="absolute inset-0 bg-primary/20 blur-2xl animate-pulse" />
-								<Loader2 className="h-16 w-16 animate-spin text-foreground/60 relative" />
+								<div className="absolute inset-0 animate-pulse bg-primary/20 blur-2xl" />
+								<Loader2 className="relative h-16 w-16 animate-spin text-foreground/60" />
 								<div className="absolute inset-0 animate-ping">
 									<Loader2 className="h-16 w-16 text-primary opacity-10" />
 								</div>
 							</div>
-							<div className="text-center space-y-2">
-								<p className="text-sm font-mono uppercase text-foreground/80 animate-pulse tracking-wider">
+							<div className="space-y-2 text-center">
+								<p className="animate-pulse font-mono text-foreground/80 text-sm uppercase tracking-wider">
 									IDENTITY::VERIFYING
 								</p>
-								<p className="text-xs font-mono uppercase text-muted-foreground/60">
+								<p className="font-mono text-muted-foreground/60 text-xs uppercase">
 									AUTHENTICATING_SOCIAL_CREDENTIALS...
 								</p>
 							</div>
@@ -98,18 +98,18 @@ export default function LaunchContent() {
 
 				<div className="w-full space-y-8 text-center">
 					<div className="space-y-6">
-						<h1 className="text-4xl font-bold font-mono uppercase tracking-wider text-foreground/80 sm:text-5xl">
+						<h1 className="font-bold font-mono text-4xl text-foreground/80 uppercase tracking-wider sm:text-5xl">
 							IDENTITY::REQUIRED
 						</h1>
-						<p className="text-sm font-mono uppercase max-w-md mx-auto text-muted-foreground">
+						<p className="mx-auto max-w-md font-mono text-muted-foreground text-sm uppercase">
 							X_AUTH_REQUIRED_FOR_TOKEN_LAUNCH
 						</p>
 					</div>
 
-					<div className="w-full max-w-md mx-auto space-y-6">
-						<div className="border-t border-foreground/10 pt-8">
+					<div className="mx-auto w-full max-w-md space-y-6">
+						<div className="border-foreground/10 border-t pt-8">
 							<Button
-								className="w-full font-mono uppercase tracking-wider py-6 text-base border-2 border-foreground/20 hover:border-primary/50 transition-all duration-300"
+								className="w-full border-2 border-foreground/20 py-6 font-mono text-base uppercase tracking-wider transition-all duration-300 hover:border-primary/50"
 								onClick={login}
 							>
 								CONNECT X
@@ -124,46 +124,44 @@ export default function LaunchContent() {
 	return (
 		<ConfettiProvider>
 			<div className="space-y-16">
-				<div className="grid lg:grid-cols-3 gap-8 items-start">
+				<div className="grid items-start gap-8 lg:grid-cols-3">
 					<div className="lg:col-span-2">
 						<div className="space-y-4">
-
 							<CreateTokenForm onFormChange={handleFormChange} />
 						</div>
 					</div>
 
 					<div className="lg:col-span-1">
-						<div className="border-2 shadow-lg rounded-xl">
-							<div className="p-4 border-b">
-								<h3 className="text-lg font-mono uppercase tracking-wider text-foreground/80">
+						<div className="rounded-xl border-2 shadow-lg">
+							<div className="border-b p-4">
+								<h3 className="font-mono text-foreground/80 text-lg uppercase tracking-wider">
 									TOKEN::PREVIEW
 								</h3>
 							</div>
 
-							<div className="p-4 space-y-4">
-
+							<div className="space-y-4 p-4">
 								{tokenData.imageUrl || tokenData.name || tokenData.symbol ? (
 									<div className="space-y-6">
 										{/* Token Display */}
 										<div className="flex items-center gap-4">
 											{tokenData.imageUrl ? (
 												<div className="relative">
-													<div className="absolute inset-0 bg-primary/20 blur-xl rounded-full" />
+													<div className="absolute inset-0 rounded-full bg-primary/20 blur-xl" />
 													<img
 														src={tokenData.imageUrl}
 														alt={tokenData.name || "Token"}
-														className="relative w-20 h-20 rounded-lg object-cover border-2"
+														className="relative h-20 w-20 rounded-lg border-2 object-cover"
 													/>
 												</div>
 											) : (
-												<div className="w-20 h-20 rounded-lg bg-foreground/5 border-2 border-dashed flex items-center justify-center">
-													<Logo className="w-8 h-8 animate-pulse" />
+												<div className="flex h-20 w-20 items-center justify-center rounded-lg border-2 border-dashed bg-foreground/5">
+													<Logo className="h-8 w-8 animate-pulse" />
 												</div>
 											)}
 
 											<div className="flex-1 space-y-1">
 												<div className="flex items-center gap-2">
-													<h3 className="text-xl font-mono font-bold tracking-tight">
+													<h3 className="font-bold font-mono text-xl tracking-tight">
 														{tokenData.name || "[UNNAMED]"}
 													</h3>
 
@@ -179,7 +177,7 @@ export default function LaunchContent() {
 													)}
 												</div>
 
-												<p className="text-lg font-mono text-primary">
+												<p className="font-mono text-lg text-primary">
 													${tokenData.symbol || "???"}
 												</p>
 											</div>
@@ -187,28 +185,28 @@ export default function LaunchContent() {
 
 										{/* Creator Info */}
 										{user && !tokenData.hideIdentity && (
-											<div className="pt-4 border-t">
-												<p className="text-xs font-mono text-muted-foreground mb-3 uppercase">
+											<div className="border-t pt-4">
+												<p className="mb-3 font-mono text-muted-foreground text-xs uppercase">
 													CREATOR::IDENTITY
 												</p>
 												<a
 													href={`https://twitter.com/${user.username}`}
 													target="_blank"
 													rel="noopener noreferrer"
-													className="flex items-center gap-3 group"
+													className="group flex items-center gap-3"
 												>
 													<div className="relative">
-														<div className="absolute inset-0 bg-primary/20 blur-md rounded-full opacity-0 group-hover:opacity-100 duration-300 ease-in-out transition-opacity" />
+														<div className="absolute inset-0 rounded-full bg-primary/20 opacity-0 blur-md transition-opacity duration-300 ease-in-out group-hover:opacity-100" />
 														<TwitterUserAvatar
 															user={user}
 															className="relative h-10 w-10 rounded-lg border-2"
 														/>
 													</div>
 													<div>
-														<p className="font-mono text-sm group-hover:text-primary duration-300 ease-in-out transition-colors">
+														<p className="font-mono text-sm transition-colors duration-300 ease-in-out group-hover:text-primary">
 															@{user.username}
 														</p>
-														<p className="font-mono text-xs text-muted-foreground">
+														<p className="font-mono text-muted-foreground text-xs">
 															VERIFIED::HUMAN
 														</p>
 													</div>
@@ -217,19 +215,19 @@ export default function LaunchContent() {
 										)}
 
 										{tokenData.hideIdentity && (
-											<div className="pt-4 border-t">
-												<p className="text-xs font-mono text-muted-foreground mb-3 uppercase">
+											<div className="border-t pt-4">
+												<p className="mb-3 font-mono text-muted-foreground text-xs uppercase">
 													CREATOR::IDENTITY
 												</p>
 												<div className="flex items-center gap-3">
-													<div className="h-10 w-10 rounded-lg bg-foreground/10 border-2 flex items-center justify-center">
+													<div className="flex h-10 w-10 items-center justify-center rounded-lg border-2 bg-foreground/10">
 														<Logo className="h-5 w-5" />
 													</div>
 													<div>
-														<p className="font-mono text-sm uppercase text-foreground/80">
+														<p className="font-mono text-foreground/80 text-sm uppercase">
 															[REDACTED]
 														</p>
-														<p className="font-mono text-xs uppercase text-muted-foreground">
+														<p className="font-mono text-muted-foreground text-xs uppercase">
 															IDENTITY::HIDDEN
 														</p>
 													</div>
@@ -238,10 +236,10 @@ export default function LaunchContent() {
 										)}
 									</div>
 								) : (
-									<div className="text-center py-8">
-										<Logo className="w-12 h-12 mx-auto mb-4 animate-bounce" />
-										<p className="font-mono text-sm uppercase text-muted-foreground">AWAITING::INPUT</p>
-										<p className="font-mono text-xs uppercase text-muted-foreground/60 mt-2">
+									<div className="py-8 text-center">
+										<Logo className="mx-auto mb-4 h-12 w-12 animate-bounce" />
+										<p className="font-mono text-muted-foreground text-sm uppercase">AWAITING::INPUT</p>
+										<p className="mt-2 font-mono text-muted-foreground/60 text-xs uppercase">
 											FILL_FORM_TO_PREVIEW
 										</p>
 									</div>

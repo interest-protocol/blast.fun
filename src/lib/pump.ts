@@ -7,10 +7,10 @@ const fullNodeUrl = getFullnodeUrl(env.NEXT_PUBLIC_DEFAULT_NETWORK)
 
 export const pumpSdk = new MemezPumpSDK({
 	network: env.NEXT_PUBLIC_DEFAULT_NETWORK as Network,
-	fullNodeUrl
+	fullNodeUrl,
 })
 
 export const migratorSdk = new XPumpMigratorSDK({
 	network: env.NEXT_PUBLIC_DEFAULT_NETWORK as Network,
-	fullNodeUrl
+	fullNodeUrl,
 })

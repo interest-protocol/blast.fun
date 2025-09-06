@@ -1,20 +1,20 @@
-import { useQuery } from "@tanstack/react-query";
-import type { TokenCreator } from "@/types/token";
+import { useQuery } from "@tanstack/react-query"
+import type { TokenCreator } from "@/types/token"
 
 export function useCreatorData(identifier: string | undefined) {
 	return useQuery<TokenCreator>({
 		queryKey: ["creator", identifier],
 		queryFn: async () => {
-			if (!identifier) throw new Error("No identifier provided");
+			if (!identifier) throw new Error("No identifier provided")
 
-			const response = await fetch(`/api/creators/${identifier}`);
+			const response = await fetch(`/api/creators/${identifier}`)
 			if (!response.ok) {
-				throw new Error("Failed to fetch creator data");
+				throw new Error("Failed to fetch creator data")
 			}
 
-			return response.json();
+			return response.json()
 		},
 		enabled: !!identifier,
 		staleTime: 5 * 60 * 1000, // 5 minutes
-	});
+	})
 }

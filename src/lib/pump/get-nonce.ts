@@ -1,7 +1,7 @@
-import { PACKAGES, Modules } from "@interest-protocol/memez-fun-sdk"
-import { Transaction } from "@mysten/sui/transactions"
+import { Modules, PACKAGES } from "@interest-protocol/memez-fun-sdk"
 import { bcs } from "@mysten/sui/bcs"
-import { normalizeSuiAddress, normalizeStructTag } from "@mysten/sui/utils"
+import { Transaction } from "@mysten/sui/transactions"
+import { normalizeStructTag, normalizeSuiAddress } from "@mysten/sui/utils"
 import { suiClient } from "@/lib/sui-client"
 import { pumpSdk } from "../pump"
 
@@ -26,27 +26,20 @@ export async function getNextNonce({
 	address,
 	curveType,
 	memeCoinType,
-	quoteCoinType
+	quoteCoinType,
 }: GetNonceArgs): Promise<bigint> {
 	const tx = new Transaction()
 	tx.moveCall({
 		package: PACKAGES[pumpSdk.network].MEMEZ_FUN.latest,
 		module: Modules.FUN,
-		function: 'next_nonce',
-		arguments: [
-			tx.object(poolId),
-			tx.pure.address(address)
-		],
-		typeArguments: [
-			normalizeStructTag(curveType),
-			normalizeStructTag(memeCoinType),
-			normalizeStructTag(quoteCoinType)
-		],
+		function: "next_nonce",
+		arguments: [tx.object(poolId), tx.pure.address(address)],
+		typeArguments: [normalizeStructTag(curveType), normalizeStructTag(memeCoinType), normalizeStructTag(quoteCoinType)],
 	})
 
 	const result = await suiClient.devInspectTransactionBlock({
 		transactionBlock: tx,
-		sender: normalizeSuiAddress(address)
+		sender: normalizeSuiAddress(address),
 	})
 
 	if (!result.results || result.results.length === 0) {
@@ -66,10 +59,7 @@ export async function getNextNonce({
 /**
  * Get the next nonce by fetching pool type information first
  */
-export async function getNextNonceFromPool({
-	poolId,
-	address
-}: GetNonceFromPoolArgs): Promise<bigint> {
+export async function getNextNonceFromPool({ poolId, address }: GetNonceFromPoolArgs): Promise<bigint> {
 	const poolData = await pumpSdk.getPumpPool(poolId)
 
 	if (!poolData) {
@@ -81,6 +71,6 @@ export async function getNextNonceFromPool({
 		address,
 		curveType: poolData.curveType,
 		memeCoinType: poolData.memeCoinType,
-		quoteCoinType: poolData.quoteCoinType
+		quoteCoinType: poolData.quoteCoinType,
 	})
 }

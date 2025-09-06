@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { redisGet, redisSetEx, CACHE_PREFIX, CACHE_TTL } from "@/lib/redis/client"
+import { CACHE_PREFIX, CACHE_TTL, redisGet, redisSetEx } from "@/lib/redis/client"
 
 interface NSFWPrediction {
 	isSafe: boolean
@@ -73,12 +73,8 @@ export async function POST(request: NextRequest) {
 		}
 
 		const isSafe = data.predictions?.isSafe ?? true
-		
-		await redisSetEx(
-			getCacheKey(imageUrl),
-			CACHE_TTL.NSFW_CHECK,
-			JSON.stringify({ isSafe })
-		)
+
+		await redisSetEx(getCacheKey(imageUrl), CACHE_TTL.NSFW_CHECK, JSON.stringify({ isSafe }))
 
 		return NextResponse.json({ isSafe })
 	} catch (error) {

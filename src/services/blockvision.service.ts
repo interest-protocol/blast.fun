@@ -1,12 +1,11 @@
 import type {
 	AccountCoinsResponse,
-	AccountCoinsResult,
-	CoinInfo,
 	CoinDetails,
 	CoinDetailsResponse,
+	CoinHolder,
+	CoinInfo,
 	DexPool,
 	DexPoolsResponse,
-	CoinHolder,
 	HoldersResponse,
 	ServiceResponse,
 	WalletCoin,
@@ -28,12 +27,7 @@ class BlockVisionService {
 		try {
 			console.log(`💰 Fetching coins for account: ${account}`)
 
-			const response = await this.makeRequest<AccountCoinsResponse>(
-				"GET",
-				"/coins",
-				{ account },
-				this.accountBaseUrl
-			)
+			const response = await this.makeRequest<AccountCoinsResponse>("GET", "/coins", { account }, this.accountBaseUrl)
 
 			if (response.code !== 200) {
 				return {
@@ -43,12 +37,12 @@ class BlockVisionService {
 			}
 
 			const result = response.result
-			
+
 			// Filter out zero balance coins and scam coins
 			const validCoins = result.coins.filter((coin: CoinInfo) => {
 				// Check multiple conditions for zero balance
 				if (!coin.balance || coin.scam) return false
-				
+
 				// Convert balance string to number and check if it's greater than 0
 				try {
 					const balanceNum = BigInt(coin.balance)
@@ -62,7 +56,7 @@ class BlockVisionService {
 			// Transform to wallet coin format
 			const walletCoins: WalletCoin[] = validCoins.map((coin) => {
 				let processedUsdValue = coin.usdValue || "0"
-				
+
 				// Handle scientific notation in USD values
 				if (processedUsdValue.includes("e")) {
 					const numValue = Number(processedUsdValue)
@@ -87,9 +81,7 @@ class BlockVisionService {
 				}
 			})
 
-			console.log(
-				`✅ Account coins fetched: ${walletCoins.length} valid coins, USD value: $${result.usdValue}`
-			)
+			console.log(`✅ Account coins fetched: ${walletCoins.length} valid coins, USD value: $${result.usdValue}`)
 
 			return {
 				success: true,
@@ -113,12 +105,7 @@ class BlockVisionService {
 		try {
 			console.log(`🪙 Fetching coin details for: ${coinType}`)
 
-			const response = await this.makeRequest<CoinDetailsResponse>(
-				"GET",
-				"/detail",
-				{ coinType },
-				this.coinBaseUrl
-			)
+			const response = await this.makeRequest<CoinDetailsResponse>("GET", "/detail", { coinType }, this.coinBaseUrl)
 
 			if (response.code !== 200) {
 				return {
@@ -127,9 +114,7 @@ class BlockVisionService {
 				}
 			}
 
-			console.log(
-				`✅ Coin details fetched: ${response.result.name} (${response.result.symbol})`
-			)
+			console.log(`✅ Coin details fetched: ${response.result.name} (${response.result.symbol})`)
 
 			return {
 				success: true,
@@ -160,9 +145,9 @@ class BlockVisionService {
 		for (let attempt = 1; attempt <= this.retryAttempts; attempt++) {
 			try {
 				const url = new URL(`${baseUrl}${endpoint}`)
-				
+
 				if (method === "GET") {
-					Object.keys(params).forEach(key => {
+					Object.keys(params).forEach((key) => {
 						url.searchParams.append(key, params[key])
 					})
 				}
@@ -170,7 +155,7 @@ class BlockVisionService {
 				const config: RequestInit = {
 					method,
 					headers: {
-						"accept": "application/json",
+						accept: "application/json",
 						"x-api-key": this.apiKey,
 						...(method === "POST" && { "Content-Type": "application/json" }),
 					},
@@ -201,12 +186,8 @@ class BlockVisionService {
 				lastError = error instanceof Error ? error : new Error("Unknown error")
 
 				if (attempt < this.retryAttempts) {
-					console.warn(
-						`🔄 Request failed, retrying ${attempt}/${this.retryAttempts}: ${lastError.message}`
-					)
-					await new Promise(resolve => 
-						setTimeout(resolve, this.retryDelay * attempt)
-					)
+					console.warn(`🔄 Request failed, retrying ${attempt}/${this.retryAttempts}: ${lastError.message}`)
+					await new Promise((resolve) => setTimeout(resolve, this.retryDelay * attempt))
 				}
 			}
 		}
@@ -217,7 +198,7 @@ class BlockVisionService {
 	/**
 	 * Get holders for a specific coin type
 	 */
-	async getCoinHolders(coinType: string, limit: number = 20): Promise<ServiceResponse<CoinHolder[]>> {
+	async getCoinHolders(coinType: string, limit = 20): Promise<ServiceResponse<CoinHolder[]>> {
 		try {
 			console.log(`👥 Fetching holders for: ${coinType}`)
 
@@ -261,12 +242,7 @@ class BlockVisionService {
 		try {
 			console.log(`🏊 Fetching DEX pools for: ${coinType}`)
 
-			const response = await this.makeRequest<DexPoolsResponse>(
-				"GET",
-				"/dex/pools",
-				{ coinType },
-				this.coinBaseUrl
-			)
+			const response = await this.makeRequest<DexPoolsResponse>("GET", "/dex/pools", { coinType }, this.coinBaseUrl)
 
 			if (response.code !== 200) {
 				return {
@@ -275,9 +251,7 @@ class BlockVisionService {
 				}
 			}
 
-			console.log(
-				`✅ DEX pools fetched: ${response.result.length} pools found`
-			)
+			console.log(`✅ DEX pools fetched: ${response.result.length} pools found`)
 
 			return {
 				success: true,
