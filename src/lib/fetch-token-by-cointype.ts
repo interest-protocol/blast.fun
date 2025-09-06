@@ -36,9 +36,25 @@ export async function fetchTokenByCoinType(coinType: string): Promise<Token | nu
 			marketData = await nexaServerClient.getMarketData(pool.coinType)
 			if ((marketData as any).coinMetadata) {
 				metadata = (marketData as any).coinMetadata
+				console.log("Nexa metadata for coin:", {
+					coinType: pool.coinType,
+					icon_url: metadata.icon_url,
+					iconUrl: metadata.iconUrl,
+					name: metadata.name,
+					symbol: metadata.symbol
+				})
 			}
 		} catch (error) {
 			console.error("Failed to fetch market data from Nexa:", error)
+		}
+		
+		// @dev: Fallback to pool metadata if Nexa doesn't have icon
+		if (!metadata.icon_url && !metadata.iconUrl && pool.metadata) {
+			metadata = {
+				...metadata,
+				icon_url: pool.metadata.icon_url || pool.metadata.iconUrl,
+				iconUrl: pool.metadata.iconUrl || pool.metadata.icon_url
+			}
 		}
 		
 		// @dev: find most liquid pool for migrated tokens
@@ -61,7 +77,7 @@ export async function fetchTokenByCoinType(coinType: string): Promise<Token | nu
 				name: metadata.name || "",
 				symbol: metadata.symbol || "",
 				description: metadata.description || "",
-				icon_url: metadata.icon_url || metadata.iconUrl || "",
+				icon_url: metadata.icon_url || metadata.iconUrl || pool.metadata?.icon_url || pool.metadata?.iconUrl || "",
 				decimals: metadata.decimals || 9,
 				supply: metadata.supply || 0,
 				Website: pool.metadata?.Website,

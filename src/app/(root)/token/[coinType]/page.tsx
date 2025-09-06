@@ -23,20 +23,38 @@ export async function generateMetadata({
 	const name = tokenData.metadata?.name || symbol
 	const marketCap = tokenData.market?.marketCap || 0
 	const formattedMcap = formatNumberWithSuffix(marketCap)
-	const priceChange = tokenData.market?.priceChange24h || 0
+	
+	// @dev: Get icon URL from metadata
 	const iconUrl = tokenData.metadata?.icon_url || ""
 
 	const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL 
 		? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-		: 'http://localhost:3000'
+		: 'http://localhost:3004'
 	
-	// @dev: Pass token data as parameters, cache data URIs to avoid URL length issues
-	const processedImageUrl = cacheDataUri(iconUrl)
-	const ogImageUrl = `${baseUrl}/api/og?${new URLSearchParams({
+	// @dev: Pass token data as parameters, only cache data URIs to avoid URL length issues
+	let processedImageUrl = ''
+	if (iconUrl) {
+		if (iconUrl.startsWith('data:image/')) {
+			// @dev: Only cache if it's a data URI that's not too large
+			const cached = cacheDataUri(iconUrl)
+			processedImageUrl = cached || ''
+		} else {
+			// @dev: Pass regular URLs directly
+			processedImageUrl = iconUrl
+		}
+	}
+	
+	const ogParams: Record<string, string> = {
 		name: name,
-		image: processedImageUrl,
 		marketCap: `$${formattedMcap}`,
-	}).toString()}`
+	}
+	
+	// @dev: Only add image if we have one
+	if (processedImageUrl) {
+		ogParams.image = processedImageUrl
+	}
+	
+	const ogImageUrl = `${baseUrl}/api/og?${new URLSearchParams(ogParams).toString()}`
 
 	return constructMetadata({ 
 		title: `${symbol} $${formattedMcap}`,
