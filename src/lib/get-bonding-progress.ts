@@ -7,7 +7,8 @@ export interface BondingProgressData {
 export async function getBondingProgress(coinType: string): Promise<BondingProgressData> {
   	const response = await fetch(`/api/tokens/${coinType}/bonding-progress`, {
 		headers: {
-			'cloudflare-cache': '30'
+			'cloudflare-cache': '30',
+			'cache-control': 'no-store'
 		}
 	})
   

@@ -50,7 +50,8 @@ export function useTokenProtectionBatch(pools: Array<{ poolId: string }>) {
 								const response = await fetch(`/api/token-protection/settings/${poolId}`,
 									{
 										headers: {
-											'cloudflare-cache': '3600'
+											'cloudflare-cache': '3600',
+											'cache-control': 'no-store'
 										}
 									}
 								)

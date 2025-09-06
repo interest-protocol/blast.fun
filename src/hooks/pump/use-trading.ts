@@ -142,7 +142,8 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 					try {
 						const response = await fetch(`/api/token-protection/settings/${pool.pool?.poolId || pool.id}`, {
 							headers: {
-								'cloudflare-cache': '3600'
+								'cloudflare-cache': '3600',
+								'cache-control': 'no-store'
 							}
 						})
 						if (response.ok) {
