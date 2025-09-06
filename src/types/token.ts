@@ -128,7 +128,7 @@ export type TokenSortOption =
 	| 'volume'
 	| 'holders'
 	| 'bondingProgress'
-	| 'age'
+	| 'lastTrade'
 	| 'liquidity'
 	| 'devHoldings'
 	| 'top10Holdings'
