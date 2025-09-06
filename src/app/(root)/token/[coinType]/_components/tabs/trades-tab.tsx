@@ -18,21 +18,13 @@ import type { TradeData, CoinTrade, UnifiedTrade } from "@/types/trade"
 import { playSound } from "@/lib/audio"
 import { RelativeAge } from "@/components/shared/relative-age"
 import { useSuiNSNames } from "@/hooks/use-suins"
+import { useTwitterRelations } from "../../_context/twitter-relations.context"
 
 interface TradesTabProps {
 	pool: Token
 	className?: string
 }
 
-interface TwitterRelation {
-	id: string
-	twitterUserId: string
-	twitterUsername: string
-	address: string
-	purchases: any
-	createdAt: string
-	updatedAt: string
-}
 
 function useRealtimeTrades(pool: Token, poolSymbol?: string) {
 	const [realtimeTrades, setRealtimeTrades] = useState<UnifiedTrade[]>([])
@@ -85,30 +77,7 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 	const TRADES_PER_PAGE = 20
 	const metadata = pool.metadata
 
-	const { data: twitterRelations } = useQuery({
-		queryKey: ["twitter-relations", pool.pool?.poolId],
-		queryFn: async () => {
-			const response = await fetch(`/api/pool/${pool.pool?.poolId}/twitter-relations`)
-			if (!response.ok) return null
-			const data = await response.json()
-			return data.relations as TwitterRelation[]
-		},
-		enabled: !!pool.pool?.poolId && pool.pool?.isProtected,
-		staleTime: 10000,
-		refetchInterval: 10000,
-		refetchOnWindowFocus: false
-	})
-
-	// Create a map of addresses to Twitter usernames
-	const addressToTwitter = useMemo(() => {
-		const map = new Map<string, string>()
-		if (twitterRelations) {
-			twitterRelations.forEach(relation => {
-				map.set(relation.address, relation.twitterUsername)
-			})
-		}
-		return map
-	}, [twitterRelations])
+	const { addressToTwitter } = useTwitterRelations()
 
 	const {
 		data,

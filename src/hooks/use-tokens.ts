@@ -32,7 +32,8 @@ async function fetchTokens(
 	const response = await fetch(url.toString(), {
 		next: { revalidate: 1 },
 		headers: {
-			"Accept": "application/json"
+			"Accept": "application/json",
+			"cloudflare-cache": "5"
 		}
 	})
 

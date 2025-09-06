@@ -20,6 +20,7 @@ import { useBreakpoint } from "@/hooks/use-breakpoint"
 import { TOTAL_POOL_SUPPLY, DEFAULT_TOKEN_DECIMALS } from "@/constants"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { useTokenTabs } from "@/stores/token-tabs"
+import { TwitterRelationsProvider } from "../_context/twitter-relations.context"
 
 interface TokenModuleProps {
 	pool: Token
@@ -81,49 +82,49 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 		}
 	}, [marketCap, pool.metadata?.symbol])
 
-	if (isMobile) {
-		return (
-			<MobileTokenView 
-				pool={pool} 
-				referral={referral} 
-				realtimePrice={price}
-				realtimeMarketCap={marketCap}
-			/>
-		)
-	}
-
 	return (
-		<div className="w-full h-full flex">
-			<div className="flex-1 flex flex-col">
-				{/* Chart and Tabs */}
-				<ResizablePanelGroup
-					direction="vertical"
-					className="flex-1"
-				>
-					<ResizablePanel defaultSize={60} minSize={30}>
-						<NexaChart pool={pool} />
-					</ResizablePanel>
+		<TwitterRelationsProvider pool={pool}>
+			{isMobile ? (
+				<MobileTokenView 
+					pool={pool} 
+					referral={referral} 
+					realtimePrice={price}
+					realtimeMarketCap={marketCap}
+				/>
+			) : (
+				<div className="w-full h-full flex">
+					<div className="flex-1 flex flex-col">
+						{/* Chart and Tabs */}
+						<ResizablePanelGroup
+							direction="vertical"
+							className="flex-1"
+						>
+							<ResizablePanel defaultSize={60} minSize={30}>
+								<NexaChart pool={pool} />
+							</ResizablePanel>
 
-					<ResizableHandle withHandle />
+							<ResizableHandle withHandle />
 
-					<ResizablePanel defaultSize={40} minSize={20}>
-						<TokenTabs pool={pool} className="h-full" />
-					</ResizablePanel>
-				</ResizablePanelGroup>
-			</div>
+							<ResizablePanel defaultSize={40} minSize={20}>
+								<TokenTabs pool={pool} className="h-full" />
+							</ResizablePanel>
+						</ResizablePanelGroup>
+					</div>
 
-			{/* Right-side column */}
-			<div className="w-[400px] border-l flex flex-col h-full overflow-y-auto">
-				<TokenInfo pool={pool} realtimePrice={price} realtimeMarketCap={marketCap} />
+					{/* Right-side column */}
+					<div className="w-[400px] border-l flex flex-col h-full overflow-y-auto">
+						<TokenInfo pool={pool} realtimePrice={price} realtimeMarketCap={marketCap} />
 
-				{!pool.pool?.migrated && (
-					<BondingProgress pool={pool} />
-				)}
+						{!pool.pool?.migrated && (
+							<BondingProgress pool={pool} />
+						)}
 
-				<TradeTerminal pool={pool} referral={referral} />
-				<HolderDetails pool={pool} />
-				<ReferralShare pool={pool} />
-			</div>
-		</div>
+						<TradeTerminal pool={pool} referral={referral} />
+						<HolderDetails pool={pool} />
+						<ReferralShare pool={pool} />
+					</div>
+				</div>
+			)}
+		</TwitterRelationsProvider>
 	)
 }

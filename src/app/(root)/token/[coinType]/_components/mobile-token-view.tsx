@@ -54,9 +54,12 @@ export default function MobileTokenView({
 
 	return (
 		<div className="flex flex-col h-full lg:hidden">
-			{/* Show HolderDetails for non-trade tabs */}
 			{activeTab !== "trade" && (
-				<HolderDetails pool={pool} />
+				<TokenInfo 
+					pool={pool} 
+					realtimePrice={realtimePrice || null} 
+					realtimeMarketCap={realtimeMarketCap || null}
+				/>
 			)}
 
 			<div className="flex-1 overflow-hidden">
@@ -66,14 +69,13 @@ export default function MobileTokenView({
 
 				{activeTab === "trade" && (
 					<div className="h-full overflow-y-auto">
-						<div className="border-b border-border">
-							<TokenInfo 
-								pool={pool} 
-								realtimePrice={realtimePrice || null} 
-								realtimeMarketCap={realtimeMarketCap || null}
-							/>
-						</div>
+						<TokenInfo 
+							pool={pool} 
+							realtimePrice={realtimePrice || null} 
+							realtimeMarketCap={realtimeMarketCap || null}
+						/>
 						<TradeTerminal pool={pool} referral={referral} />
+						<HolderDetails pool={pool} />
 					</div>
 				)}
 
