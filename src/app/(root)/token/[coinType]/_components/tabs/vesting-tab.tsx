@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { Token } from "@/types/token"
-import { Lock, User, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown } from "lucide-react"
+import { Lock, User, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useQuery } from "@tanstack/react-query"
 import { formatAddress } from "@mysten/sui/utils"
@@ -126,7 +126,7 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 			const totalAmount = balanceBN.plus(releasedBN)
 			
 			// @dev: Use SDK-calculated claimable amount, fallback to 0 if not available
-			const claimableAmount = new BigNumber((position as any).claimableAmount || "0")
+			const claimableAmount = new BigNumber((position as VestingPosition & { claimableAmount?: string }).claimableAmount || "0")
 			
 			// @dev: Total released = already claimed (released field) + currently claimable
 			const totalReleasedAmount = releasedBN.plus(claimableAmount)
