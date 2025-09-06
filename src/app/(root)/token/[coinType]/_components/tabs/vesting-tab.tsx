@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import BigNumber from "bignumber.js"
 import { useVestingSDK } from "@/app/(root)/vesting/_hooks/use-vesting-sdk"
+import { formatNumber, formatNumberWithPercentage } from "@/lib/format"
 
 interface VestingTabProps {
 	pool: Token
@@ -223,28 +224,8 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 		const numAmount = parseFloat(amount)
 		if (isNaN(numAmount)) return "0"
 		
-		let formattedAmount = ""
-		
-		// @dev: Format with suffix for large numbers
-		if (numAmount >= 1e9) {
-			formattedAmount = `${(numAmount / 1e9).toFixed(2)}B`
-		} else if (numAmount >= 1e6) {
-			formattedAmount = `${(numAmount / 1e6).toFixed(2)}M`
-		} else if (numAmount >= 1e3) {
-			formattedAmount = `${(numAmount / 1e3).toFixed(2)}K`
-		} else if (numAmount < 0.01 && numAmount > 0) {
-			formattedAmount = numAmount.toFixed(6)
-		} else {
-			formattedAmount = numAmount.toFixed(2)
-		}
-		
-		// @dev: Add percentage if requested (based on 1B total supply)
-		if (showPercentage) {
-			const percentage = ((numAmount / 1e9) * 100).toFixed(2)
-			formattedAmount += ` (${percentage}%)`
-		}
-		
-		return formattedAmount
+		// @dev: Use format utilities instead of custom formatting
+		return showPercentage ? formatNumberWithPercentage(numAmount) : formatNumber(numAmount)
 	}
 
 	const formatRemainingTime = (endTime: number) => {

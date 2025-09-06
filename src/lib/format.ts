@@ -71,3 +71,9 @@ export function formatTokenAmount(amount: string, decimals: number = 9): string 
 		return value.toFixed(4)
 	}
 }
+
+export function formatNumberWithPercentage(value: number, totalSupply = 1000000000): string {
+	const formatted = formatNumber(value)
+	const percentage = ((value / totalSupply) * 100).toFixed(2)
+	return `${formatted} (${percentage}%)`
+}

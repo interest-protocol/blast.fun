@@ -72,7 +72,7 @@ export async function fetchCreatorsBatch(tokens: any[], poolMap: Map<string, any
 		// @dev: always try to get twitter handle from launches if available
 		if (launches.length > 0) {
 			const launchWithTwitter = launches.find(l => l.twitterUsername)
-			if (launchWithTwitter) {
+			if (launchWithTwitter && launchWithTwitter.twitterUsername) {
 				twitterHandle = launchWithTwitter.twitterUsername
 				twitterId = launchWithTwitter.twitterUserId
 
