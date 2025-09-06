@@ -218,23 +218,33 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 		}
 	}
 
-	const formatVestingAmount = (amount: string) => {
+	const formatVestingAmount = (amount: string, showPercentage?: boolean) => {
 		// @dev: Amount is already in human-readable format from API, no need to apply decimals
 		const numAmount = parseFloat(amount)
 		if (isNaN(numAmount)) return "0"
 		
+		let formattedAmount = ""
+		
 		// @dev: Format with suffix for large numbers
 		if (numAmount >= 1e9) {
-			return `${(numAmount / 1e9).toFixed(2)}B`
+			formattedAmount = `${(numAmount / 1e9).toFixed(2)}B`
 		} else if (numAmount >= 1e6) {
-			return `${(numAmount / 1e6).toFixed(2)}M`
+			formattedAmount = `${(numAmount / 1e6).toFixed(2)}M`
 		} else if (numAmount >= 1e3) {
-			return `${(numAmount / 1e3).toFixed(2)}K`
+			formattedAmount = `${(numAmount / 1e3).toFixed(2)}K`
 		} else if (numAmount < 0.01 && numAmount > 0) {
-			return numAmount.toFixed(6)
+			formattedAmount = numAmount.toFixed(6)
 		} else {
-			return numAmount.toFixed(2)
+			formattedAmount = numAmount.toFixed(2)
 		}
+		
+		// @dev: Add percentage if requested (based on 1B total supply)
+		if (showPercentage) {
+			const percentage = ((numAmount / 1e9) * 100).toFixed(2)
+			formattedAmount += ` (${percentage}%)`
+		}
+		
+		return formattedAmount
 	}
 
 	const formatRemainingTime = (endTime: number) => {
@@ -340,7 +350,7 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 							<div>
 								<p className="text-xs text-muted-foreground">Total Locked</p>
 								<p className="font-semibold text-sm">
-									{formatVestingAmount((processedData?.stats || vestingData?.stats)?.totalAmountLocked || "0")} {pool.metadata?.symbol}
+									{formatVestingAmount((processedData?.stats || vestingData?.stats)?.totalAmountLocked || "0", true)} {pool.metadata?.symbol}
 								</p>
 							</div>
 							<div className="text-right">
@@ -380,7 +390,7 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 									<div>
 										<p className="text-xs text-muted-foreground">Total</p>
 										<p className="font-semibold text-sm">
-											{formatVestingAmount(position.totalAmount)}
+											{formatVestingAmount(position.totalAmount, true)}
 										</p>
 									</div>
 									<div className="text-center">
@@ -445,7 +455,7 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 						<div className="text-sm">
 							<span className="text-muted-foreground">Total Locked: </span>
 							<span className="font-semibold">
-								{formatVestingAmount((processedData?.stats || vestingData?.stats)?.totalAmountLocked || "0")} {pool.metadata?.symbol}
+								{formatVestingAmount((processedData?.stats || vestingData?.stats)?.totalAmountLocked || "0", true)} {pool.metadata?.symbol}
 							</span>
 							<span className="text-muted-foreground ml-6">Total Users: </span>
 							<span className="font-semibold">{(processedData?.stats || vestingData?.stats)?.numberOfUsers || 0}</span>
@@ -545,7 +555,7 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 
 								{/* Total Amount */}
 								<div className="col-span-2 text-right font-mono text-[10px] sm:text-xs text-foreground/80">
-									{formatVestingAmount(position.totalAmount)}
+									{formatVestingAmount(position.totalAmount, true)}
 								</div>
 
 								{/* Released Amount */}
