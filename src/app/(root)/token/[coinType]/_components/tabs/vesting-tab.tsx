@@ -2,16 +2,19 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { Token } from "@/types/token"
-import { Lock, User } from "lucide-react"
+import { Lock, User, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useQuery } from "@tanstack/react-query"
 import { formatAddress } from "@mysten/sui/utils"
+import { useSuiNSNames } from "@/hooks/use-suins"
 import { cn } from "@/utils"
 import { useBreakpoint } from "@/hooks/use-breakpoint"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { VestingApi, type VestingPosition } from "@/lib/getVesting"
-import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import BigNumber from "bignumber.js"
+import { useVestingSDK } from "@/app/(root)/vesting/_hooks/use-vesting-sdk"
 
 interface VestingTabProps {
 	pool: Token
@@ -25,16 +28,77 @@ interface VestingPositionWithProgress extends VestingPosition {
 	progressPercent: number
 	isActive: boolean
 	endTime: number
+	claimableAmount: string
 }
+
+type SortField = "totalAmount" | "releasedAmount" | "lockedAmount" | "endTime"
+type SortDirection = "asc" | "desc"
 
 export function VestingTab({ pool, className }: VestingTabProps) {
 	const [currentTime, setCurrentTime] = useState(Date.now())
 	const { isMobile } = useBreakpoint()
+	const vestingSdk = useVestingSDK()
+	const [sortField, setSortField] = useState<SortField>("totalAmount")
+	const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
 
 	const { data: vestingData, isLoading, error } = useQuery({
 		queryKey: ["all-vesting-positions", pool.coinType],
 		queryFn: () => VestingApi.getAllVestingsByCoinType(pool.coinType),
 		enabled: !!pool.coinType
+	})
+
+	// @dev: Calculate claimable amounts using SDK for all positions
+	const { data: processedData, isLoading: isCalculatingClaimable } = useQuery({
+		queryKey: ["vesting-positions-with-claimable", pool.coinType, vestingData?.data?.length],
+		queryFn: async () => {
+			if (!vestingData?.data?.length) return null
+
+			// @dev: Calculate claimable amounts and fetch metadata in parallel
+			const claimablePromises = vestingData.data.map(async (position) => {
+				try {
+					const claimable = await vestingSdk.calculateClaimable(position.objectId)
+					return { objectId: position.objectId, claimableAmount: claimable.toString() }
+				} catch (error) {
+					console.error(`Failed to calculate claimable for ${position.objectId}:`, error)
+					return { objectId: position.objectId, claimableAmount: "0" }
+				}
+			})
+
+			// @dev: Get unique coin types and fetch metadata
+			const uniqueCoinTypes = [...new Set(vestingData.data.map(p => p.coinType))]
+			
+			// @dev: Run claimablePromises and metadata fetch in parallel
+			const [claimableResults, metadataResults] = await Promise.all([
+				Promise.all(claimablePromises),
+				VestingApi.getCoinMetadata(uniqueCoinTypes)
+			])
+
+			// @dev: Create decimals map for quick lookup
+			const decimalsMap: Record<string, number> = {}
+			metadataResults.forEach(metadata => {
+				decimalsMap[metadata.type] = metadata.decimals
+			})
+			
+			// @dev: Create map for quick lookup with decimal-adjusted claimable amounts
+			const claimableMap = new Map(
+				claimableResults.map(result => {
+					const position = vestingData.data.find(p => p.objectId === result.objectId)
+					const decimals = decimalsMap[position?.coinType || ""] || 9 // fallback to 9
+					const formattedClaimable = (parseFloat(result.claimableAmount) / 10 ** decimals).toString()
+					return [result.objectId, formattedClaimable]
+				})
+			)
+
+			return {
+				...vestingData,
+				data: vestingData.data.map(position => ({
+					...position,
+					claimableAmount: claimableMap.get(position.objectId) || "0"
+				}))
+			}
+		},
+		enabled: !!vestingData?.data?.length && !!vestingSdk,
+		staleTime: 30000, // 30 seconds
 	})
 
 	// @dev: Update current time every 30 seconds to keep remaining time accurate
@@ -46,39 +110,113 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 		return () => clearInterval(interval)
 	}, [])
 
-	// @dev: Process vesting positions to calculate progress
-	const processedPositions: VestingPositionWithProgress[] = useMemo(() => (vestingData?.data || []).map(position => {
-		const now = currentTime
-		const startTime = parseInt(position.start)
-		const duration = parseInt(position.duration)
-		const endTime = startTime + duration
+	// @dev: Process and sort vesting positions with SDK-calculated claimable amounts
+	const processedPositions: VestingPositionWithProgress[] = useMemo(() => {
+		const dataToProcess = processedData?.data || vestingData?.data || []
 		
-		// @dev: Balance and released are already in human-readable format from API
-		const balanceBN = new BigNumber(position.balance)
-		const releasedBN = new BigNumber(position.released)
-		const totalAmount = balanceBN.plus(releasedBN)
-		const releasedAmount = releasedBN
-		const lockedAmount = balanceBN
-		
-		// @dev: Calculate progress percentage
-		let progressPercent = 0
-		if (now >= endTime) {
-			progressPercent = 100
-		} else if (now > startTime) {
-			const elapsed = now - startTime
-			progressPercent = (elapsed / duration) * 100
-		}
+		const processed = dataToProcess.map(position => {
+			const now = currentTime
+			const startTime = parseInt(position.start)
+			const duration = parseInt(position.duration)
+			const endTime = startTime + duration
+			
+			// @dev: Balance and released are already in human-readable format from API
+			const balanceBN = new BigNumber(position.balance)
+			const releasedBN = new BigNumber(position.released)
+			const totalAmount = balanceBN.plus(releasedBN)
+			
+			// @dev: Use SDK-calculated claimable amount, fallback to 0 if not available
+			const claimableAmount = new BigNumber((position as any).claimableAmount || "0")
+			
+			// @dev: Total released = already claimed (released field) + currently claimable
+			const totalReleasedAmount = releasedBN.plus(claimableAmount)
+			const lockedAmount = balanceBN
+			
+			// @dev: Calculate progress percentage
+			let progressPercent = 0
+			if (now >= endTime) {
+				progressPercent = 100
+			} else if (now > startTime) {
+				const elapsed = now - startTime
+				progressPercent = (elapsed / duration) * 100
+			}
 
-		return {
-			...position,
-			totalAmount: totalAmount.toString(),
-			releasedAmount: releasedAmount.toString(),
-			lockedAmount: lockedAmount.toString(),
-			progressPercent,
-			isActive: now >= startTime && now < endTime,
-			endTime
+			return {
+				...position,
+				totalAmount: totalAmount.toString(),
+				releasedAmount: totalReleasedAmount.toString(),
+				lockedAmount: lockedAmount.toString(),
+				progressPercent,
+				isActive: now >= startTime && now < endTime,
+				endTime,
+				claimableAmount: claimableAmount.toString()
+			}
+		})
+
+		// @dev: Sort positions based on current sort field and direction
+		return processed.sort((a, b) => {
+			let aValue: number, bValue: number
+			
+			switch (sortField) {
+				case "totalAmount":
+					aValue = parseFloat(a.totalAmount)
+					bValue = parseFloat(b.totalAmount)
+					break
+				case "releasedAmount":
+					aValue = parseFloat(a.releasedAmount)
+					bValue = parseFloat(b.releasedAmount)
+					break
+				case "lockedAmount":
+					aValue = parseFloat(a.lockedAmount)
+					bValue = parseFloat(b.lockedAmount)
+					break
+				case "endTime":
+					aValue = a.endTime
+					bValue = b.endTime
+					break
+				default:
+					aValue = parseFloat(a.totalAmount)
+					bValue = parseFloat(b.totalAmount)
+			}
+			
+			const comparison = aValue - bValue
+			return sortDirection === "desc" ? -comparison : comparison
+		})
+	}, [processedData?.data, vestingData?.data, currentTime, sortField, sortDirection])
+
+	// @dev: Get unique addresses for SuiNS lookup
+	const uniqueAddresses = useMemo(() => {
+		return [...new Set(processedPositions.map(position => position.owner))]
+	}, [processedPositions])
+
+	const { data: suiNSNames } = useSuiNSNames(uniqueAddresses)
+
+	// @dev: Handle sorting functionality
+	const handleSort = (field: SortField) => {
+		if (sortField === field) {
+			setSortDirection(sortDirection === "desc" ? "asc" : "desc")
+		} else {
+			setSortField(field)
+			setSortDirection("desc")
 		}
-	}), [vestingData?.data, currentTime])
+	}
+
+	const getSortIcon = (field: SortField) => {
+		if (sortField !== field) return <ArrowUpDown className="h-3 w-3" />
+		return sortDirection === "desc" 
+			? <ArrowDown className="h-3 w-3" />
+			: <ArrowUp className="h-3 w-3" />
+	}
+
+	const getSortFieldLabel = (field: SortField) => {
+		switch (field) {
+			case "totalAmount": return "Total Amount"
+			case "releasedAmount": return "Released"
+			case "lockedAmount": return "Remaining"
+			case "endTime": return "Time Left"
+			default: return "Total Amount"
+		}
+	}
 
 	const formatVestingAmount = (amount: string) => {
 		// @dev: Amount is already in human-readable format from API, no need to apply decimals
@@ -135,18 +273,18 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 		const startTime = parseInt(position.start)
 		
 		if (position.isDestroyed) {
-			return <Badge variant="destructive" className="text-xs">Destroyed</Badge>
+			return <span className="px-1.5 py-0.5 bg-destructive/10 rounded font-mono text-[9px] uppercase text-destructive">Destroyed</span>
 		}
 		
 		if (now < startTime) {
-			return <Badge variant="secondary" className="text-xs">Pending</Badge>
+			return <span className="px-1.5 py-0.5 bg-secondary/10 rounded font-mono text-[9px] uppercase text-muted-foreground">Pending</span>
 		}
 		
 		if (position.progressPercent >= 100) {
-			return <Badge variant="default" className="text-xs bg-green-600">Completed</Badge>
+			return <span className="px-1.5 py-0.5 bg-green-600/10 rounded font-mono text-[9px] uppercase text-green-600">Completed</span>
 		}
 		
-		return <Badge variant="default" className="text-xs">Active</Badge>
+		return <span className="px-1.5 py-0.5 bg-primary/10 rounded font-mono text-[9px] uppercase text-primary">Active</span>
 	}
 
 	if (error) {
@@ -162,7 +300,7 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 		)
 	}
 
-	if (isLoading) {
+	if (isLoading || isCalculatingClaimable) {
 		return (
 			<div className={cn("flex flex-col h-full", className)}>
 				<div className="flex-1 flex items-center justify-center">
@@ -175,7 +313,7 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 		)
 	}
 
-	if (!vestingData?.data?.length) {
+	if (!vestingData?.data?.length && !processedData?.data?.length) {
 		return (
 			<div className={cn("flex flex-col h-full", className)}>
 				<div className="flex-1 flex items-center justify-center">
@@ -196,18 +334,18 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 		return (
 			<div className={cn("flex flex-col h-full", className)}>
 				{/* Stats Header - Compact */}
-				{vestingData.stats && (
+				{(processedData?.stats || vestingData?.stats) && (
 					<div className="p-3 border-b bg-muted/30">
 						<div className="flex justify-between text-sm">
 							<div>
 								<p className="text-xs text-muted-foreground">Total Locked</p>
 								<p className="font-semibold text-sm">
-									{formatVestingAmount(vestingData.stats.totalAmountLocked)} {pool.metadata?.symbol}
+									{formatVestingAmount((processedData?.stats || vestingData?.stats)?.totalAmountLocked || "0")} {pool.metadata?.symbol}
 								</p>
 							</div>
 							<div className="text-right">
 								<p className="text-xs text-muted-foreground">Users</p>
-								<p className="font-semibold text-sm">{vestingData.stats.numberOfUsers}</p>
+								<p className="font-semibold text-sm">{(processedData?.stats || vestingData?.stats)?.numberOfUsers || 0}</p>
 							</div>
 						</div>
 					</div>
@@ -293,15 +431,6 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 						))}
 					</div>
 				</div>
-
-				{/* Total Count */}
-				{vestingData && vestingData.data.length > 0 && (
-					<div className="border-t p-3">
-						<p className="text-xs text-muted-foreground text-center">
-							{vestingData.total} position{vestingData.total !== 1 ? 's' : ''}
-						</p>
-					</div>
-				)}
 			</div>
 		)
 	}
@@ -309,122 +438,146 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 	// @dev: Desktop layout with full table
 	return (
 		<div className={cn("flex flex-col h-full", className)}>
-			{/* Stats Header */}
-			{vestingData.stats && (
+			{/* Stats Header with Sort Controls */}
+			{(processedData?.stats || vestingData?.stats) && (
 				<div className="p-4 border-b bg-muted/30">
-					<div className="grid grid-cols-2 gap-4 text-sm">
-						<div>
-							<p className="text-muted-foreground">Total Locked</p>
-							<p className="font-semibold">
-								{formatVestingAmount(vestingData.stats.totalAmountLocked)} {pool.metadata?.symbol}
-							</p>
+					<div className="flex justify-between items-center">
+						<div className="text-sm">
+							<span className="text-muted-foreground">Total Locked: </span>
+							<span className="font-semibold">
+								{formatVestingAmount((processedData?.stats || vestingData?.stats)?.totalAmountLocked || "0")} {pool.metadata?.symbol}
+							</span>
+							<span className="text-muted-foreground ml-6">Total Users: </span>
+							<span className="font-semibold">{(processedData?.stats || vestingData?.stats)?.numberOfUsers || 0}</span>
 						</div>
-						<div>
-							<p className="text-muted-foreground">Total Users</p>
-							<p className="font-semibold">{vestingData.stats.numberOfUsers}</p>
+						<div className="flex items-center gap-2">
+							<span className="text-xs text-muted-foreground">Sort by:</span>
+							<DropdownMenu>
+								<DropdownMenuTrigger asChild>
+									<Button
+										variant="outline"
+										size="sm"
+										className="h-6 px-2 text-xs"
+									>
+										{getSortFieldLabel(sortField)} {getSortIcon(sortField)}
+									</Button>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent align="end" className="w-36">
+									<DropdownMenuItem onClick={() => handleSort("totalAmount")}>
+										<span className="flex items-center justify-between w-full">
+											Total Amount
+											{sortField === "totalAmount" && getSortIcon("totalAmount")}
+										</span>
+									</DropdownMenuItem>
+									<DropdownMenuItem onClick={() => handleSort("releasedAmount")}>
+										<span className="flex items-center justify-between w-full">
+											Released
+											{sortField === "releasedAmount" && getSortIcon("releasedAmount")}
+										</span>
+									</DropdownMenuItem>
+									<DropdownMenuItem onClick={() => handleSort("lockedAmount")}>
+										<span className="flex items-center justify-between w-full">
+											Remaining
+											{sortField === "lockedAmount" && getSortIcon("lockedAmount")}
+										</span>
+									</DropdownMenuItem>
+									<DropdownMenuItem onClick={() => handleSort("endTime")}>
+										<span className="flex items-center justify-between w-full">
+											Time Left
+											{sortField === "endTime" && getSortIcon("endTime")}
+										</span>
+									</DropdownMenuItem>
+								</DropdownMenuContent>
+							</DropdownMenu>
 						</div>
 					</div>
 				</div>
 			)}
 
 			{/* Table Header */}
-			<div className="grid grid-cols-12 gap-2 px-4 py-3 border-b bg-muted/20 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-				<div className="col-span-2">Owner</div>
-				<div className="col-span-2">Total Amount</div>
-				<div className="col-span-2">Released</div>
-				<div className="col-span-2">Remaining</div>
-				<div className="col-span-2">Progress</div>
-				<div className="col-span-1">Status</div>
-				<div className="col-span-1">Remaining</div>
+			<div className="grid grid-cols-12 py-2 border-b border-border/50 text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground sticky top-0 bg-background/95 backdrop-blur-sm z-10 select-none">
+				<div className="col-span-1 text-center"></div>
+				<div className="col-span-3 pl-2">Receiver</div>
+				<div className="col-span-2 text-right">Total Amount</div>
+				<div className="col-span-2 text-right">Released</div>
+				<div className="col-span-2 text-right">Remaining</div>
+				<div className="col-span-1 text-center">Status</div>
+				<div className="col-span-1 text-right pr-2">Time Left</div>
 			</div>
 
 			{/* Table Content */}
 			<ScrollArea className="flex-1">
 				<div className="space-y-0">
-					{processedPositions.map((position) => (
-						<div
-							key={position.objectId}
-							className="grid grid-cols-12 gap-2 px-4 py-3 border-b border-border/50 hover:bg-muted/30 transition-colors"
-						>
-							{/* Owner */}
-							<div className="col-span-2 flex items-center">
-								<Avatar className="h-6 w-6 mr-2">
-									<AvatarImage src={`https://avatar.sui.io/${position.owner}`} />
-									<AvatarFallback>
-										<User className="h-3 w-3" />
-									</AvatarFallback>
-								</Avatar>
-								<span className="font-mono text-xs">
-									{formatAddress(position.owner)}
-								</span>
-							</div>
-
-							{/* Total Amount */}
-							<div className="col-span-2 flex items-center">
-								<span className="font-semibold">
-									{formatVestingAmount(position.totalAmount)}
-								</span>
-							</div>
-
-							{/* Released Amount */}
-							<div className="col-span-2 flex items-center">
-								<span className="text-green-600 font-medium">
-									{formatVestingAmount(position.releasedAmount)}
-								</span>
-							</div>
-
-							{/* Remaining Amount */}
-							<div className="col-span-2 flex items-center">
-								<span className="text-orange-600 font-medium">
-									{formatVestingAmount(position.lockedAmount)}
-								</span>
-							</div>
-
-							{/* Progress */}
-							<div className="col-span-2 flex items-center">
-								<div className="w-full">
-									<div className="flex justify-between items-center mb-1">
-										<span className="text-xs font-medium">
-											{position.progressPercent.toFixed(1)}%
-										</span>
-									</div>
-									<div className="w-full bg-muted rounded-full h-1.5">
-										<div
-											className={cn(
-												"h-1.5 rounded-full transition-all",
-												position.progressPercent >= 100
-													? "bg-green-600"
-													: position.isActive
-													? "bg-primary"
-													: "bg-muted-foreground"
-											)}
-											style={{ width: `${Math.min(position.progressPercent, 100)}%` }}
-										/>
+					{processedPositions.map((position, index) => {
+						const displayName = suiNSNames?.[position.owner] || formatAddress(position.owner)
+						const rank = index + 1
+						
+						return (
+							<div
+								key={position.objectId}
+								className="relative grid grid-cols-12 py-2 sm:py-3 items-center border-b border-border/30 hover:bg-muted/5 transition-all duration-200"
+							>
+								{/* Rank */}
+								<div className="col-span-1 text-center">
+									<div className="font-mono text-[10px] sm:text-xs text-muted-foreground">
+										{rank}
 									</div>
 								</div>
-							</div>
 
-							{/* Status */}
-							<div className="col-span-1 flex items-center">
-								{getStatusBadge(position)}
-							</div>
+								{/* Receiver */}
+								<div className="col-span-3 flex items-center pl-2">
+									<div className="flex-1">
+										<a
+											href={`https://suivision.xyz/account/${position.owner}`}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="font-mono text-[10px] sm:text-xs text-muted-foreground hover:text-primary transition-colors"
+										>
+											<span className="sm:hidden">
+												{displayName.slice(0, 6) + '...'}
+											</span>
+											<span className="hidden sm:inline">
+												{displayName}
+											</span>
+										</a>
+									</div>
+								</div>
 
-							{/* Remaining Time */}
-							<div className="col-span-1 flex items-center">
-								<span className="text-xs font-medium">
+								{/* Total Amount */}
+								<div className="col-span-2 text-right font-mono text-[10px] sm:text-xs text-foreground/80">
+									{formatVestingAmount(position.totalAmount)}
+								</div>
+
+								{/* Released Amount */}
+								<div className="col-span-2 text-right font-mono text-[10px] sm:text-xs text-green-600">
+									{formatVestingAmount(position.releasedAmount)}
+								</div>
+
+								{/* Remaining Amount */}
+								<div className="col-span-2 text-right font-mono text-[10px] sm:text-xs text-orange-600">
+									{formatVestingAmount(position.lockedAmount)}
+								</div>
+
+								{/* Status */}
+								<div className="col-span-1 flex justify-center items-center">
+									{getStatusBadge(position)}
+								</div>
+
+								{/* Remaining Time */}
+								<div className="col-span-1 text-right pr-2 font-mono text-[10px] sm:text-xs text-foreground/60">
 									{formatRemainingTime(position.endTime)}
-								</span>
+								</div>
 							</div>
-						</div>
-					))}
+						)
+					})}
 				</div>
 			</ScrollArea>
 
 			{/* Total Count */}
-			{vestingData && vestingData.data.length > 0 && (
+			{processedPositions.length > 0 && (
 				<div className="border-t p-4">
 					<p className="text-sm text-muted-foreground text-center">
-						Showing all {vestingData.total} vesting positions
+						Showing all {(processedData?.total || vestingData?.total || processedPositions.length)} vesting positions
 					</p>
 				</div>
 			)}
