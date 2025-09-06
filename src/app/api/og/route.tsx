@@ -127,23 +127,23 @@ export async function GET(request: NextRequest) {
 							overflow: 'hidden',
 						}}
 					>
-						{/* Circular image container */}
-						<div
-							style={{
-								display: 'flex',
-								width: '300px',
-								height: '300px',
-								alignItems: 'center',
-								justifyContent: 'center',
-								borderRadius: '999px',
-								backgroundColor: '#ffffff',
-								border: '8px solid rgba(255, 255, 255, 0.2)',
-								marginBottom: '40px',
-								position: 'relative',
-								overflow: 'hidden',
-							}}
-						>
-							{coinImage ? (
+						{/* Coin image display */}
+						{coinImage && (
+							<div
+								style={{
+									display: 'flex',
+									width: '300px',
+									height: '300px',
+									alignItems: 'center',
+									justifyContent: 'center',
+									borderRadius: '999px',
+									backgroundColor: '#ffffff',
+									border: '8px solid rgba(255, 255, 255, 0.2)',
+									marginBottom: '40px',
+									position: 'relative',
+									overflow: 'hidden',
+								}}
+							>
 								<img
 									src={coinImage}
 									alt={coinName}
@@ -156,20 +156,8 @@ export async function GET(request: NextRequest) {
 										objectFit: 'cover',
 									}}
 								/>
-							) : (
-								<div
-									style={{
-										fontSize: '100px',
-										fontFamily: 'Mach',
-										fontWeight: '900',
-										color: '#850000',
-										textAlign: 'center',
-									}}
-								>
-									{coinName.slice(0, 3).toUpperCase()}
-								</div>
-							)}
-						</div>
+							</div>
+						)}
 
 						{/* Token name */}
 						<div

@@ -16,6 +16,7 @@ export async function generateMetadata({
 
 	const tokenData = await fetchTokenByCoinType(coinType)
 	if (!tokenData) {
+		console.log('No token data found for:', coinType)
 		return constructMetadata({ title: "Unknown Token | BLAST.FUN" })
 	}
 
@@ -24,12 +25,15 @@ export async function generateMetadata({
 	const marketCap = tokenData.market?.marketCap || 0
 	const formattedMcap = formatNumberWithSuffix(marketCap)
 	
-	// @dev: Get icon URL from metadata
-	const iconUrl = tokenData.metadata?.icon_url || ""
-
 	const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL 
 		? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
 		: 'http://localhost:3004'
+	
+	// @dev: Get icon URL from metadata - always provide an image
+	const iconUrl = tokenData.metadata?.icon_url || 
+		tokenData.metadata?.iconUrl || 
+		tokenData.metadata?.image || 
+		`${baseUrl}/logo/blast-bg.png` // Fallback to BLAST logo
 	
 	// @dev: Pass token data as parameters, only cache data URIs to avoid URL length issues
 	let processedImageUrl = ''

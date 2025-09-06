@@ -36,13 +36,6 @@ export async function fetchTokenByCoinType(coinType: string): Promise<Token | nu
 			marketData = await nexaServerClient.getMarketData(pool.coinType)
 			if ((marketData as any).coinMetadata) {
 				metadata = (marketData as any).coinMetadata
-				console.log("Nexa metadata for coin:", {
-					coinType: pool.coinType,
-					icon_url: metadata.icon_url,
-					iconUrl: metadata.iconUrl,
-					name: metadata.name,
-					symbol: metadata.symbol
-				})
 			}
 		} catch (error) {
 			console.error("Failed to fetch market data from Nexa:", error)
