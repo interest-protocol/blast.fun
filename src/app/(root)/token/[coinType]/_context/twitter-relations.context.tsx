@@ -41,7 +41,8 @@ export function TwitterRelationsProvider({ children, pool }: TwitterRelationsPro
 		queryFn: async () => {
 			const response = await fetch(`/api/pool/${pool.pool?.poolId}/twitter-relations`, {
 				headers: {
-					'cloudflare-cache': '15'
+					'cloudflare-cache': '15',
+					'cache-control': 'no-store'
 				}
 			})
 			if (!response.ok) return null

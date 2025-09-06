@@ -70,7 +70,8 @@ export function HoldersTab({ pool, className, activeTab = "holders", onTabChange
 		queryFn: async () => {
 			const response = await fetch(`/api/coin/holders/${encodeURIComponent(pool.coinType)}`, {
 				headers: {
-					'cloudflare-cache': '15'
+					'cloudflare-cache': '15',
+					'cache-control': 'no-store'
 				}
 			})
 			if (!response.ok) {

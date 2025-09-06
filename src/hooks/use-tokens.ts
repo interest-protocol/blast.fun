@@ -33,7 +33,8 @@ async function fetchTokens(
 		next: { revalidate: 1 },
 		headers: {
 			"Accept": "application/json",
-			"cloudflare-cache": "5"
+			"cloudflare-cache": "5",
+			'cache-control': 'no-store'
 		}
 	})
 
