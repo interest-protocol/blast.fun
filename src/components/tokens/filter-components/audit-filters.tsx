@@ -46,9 +46,11 @@ export function AuditFilters(props: AuditFiltersProps) {
 			setCreatedAtMin(undefined)
 			return
 		}
-		// @dev: value is in mins ago. Convert it to unix timestamp in ms
+		// @dev: Min age X means "minimum age in minutes"
+		// Show tokens that are at least X minutes old: createdAt <= (now - X mins)
+		// This becomes the upper bound (ageMax) in the filter
 		const timestamp = Date.now() - value * 60 * 1000
-		setCreatedAtMin(timestamp)
+		setCreatedAtMax(timestamp)
 	}
 
 	const handleSetCreatedAtMax = (value: number | undefined) => {
@@ -56,9 +58,11 @@ export function AuditFilters(props: AuditFiltersProps) {
 			setCreatedAtMax(undefined)
 			return
 		}
-		// @dev: value is in mins ago. Convert it to unix timestamp in ms
+		// @dev: Max age X means "maximum age in minutes" 
+		// Show tokens that are at most X minutes old: createdAt >= (now - X mins)
+		// This becomes the lower bound (ageMin) in the filter
 		const timestamp = Date.now() - value * 60 * 1000
-		setCreatedAtMax(timestamp)
+		setCreatedAtMin(timestamp)
 	}
 
 	const handleSetTop10HoldingsMin = (value: number | undefined) => {

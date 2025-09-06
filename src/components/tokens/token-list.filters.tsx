@@ -283,13 +283,13 @@ export const TokenListFilters = memo(function TokenListFilters({
 							<button
 								className={cn(
 									"py-2 px-3 rounded-md font-mono text-xs uppercase tracking-wider transition-all",
-									sortBy === 'age'
+									sortBy === 'lastTrade'
 										? "bg-background shadow-sm text-foreground"
 										: "hover:text-foreground text-muted-foreground"
 								)}
-								onClick={() => setSortBy('age')}
+								onClick={() => setSortBy('lastTrade')}
 							>
-								AGE
+								LAST TRADE
 							</button>
 							<button
 								className={cn(
