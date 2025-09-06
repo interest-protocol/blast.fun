@@ -39,7 +39,11 @@ export function TwitterRelationsProvider({ children, pool }: TwitterRelationsPro
 	const { data: twitterRelations, isLoading, error } = useQuery({
 		queryKey: ["twitter-relations", pool.pool?.poolId],
 		queryFn: async () => {
-			const response = await fetch(`/api/pool/${pool.pool?.poolId}/twitter-relations`)
+			const response = await fetch(`/api/pool/${pool.pool?.poolId}/twitter-relations`, {
+				headers: {
+					'cloudflare-cache': '15'
+				}
+			})
 			if (!response.ok) return null
 			const data = await response.json()
 			return data.relations as TwitterRelation[]
