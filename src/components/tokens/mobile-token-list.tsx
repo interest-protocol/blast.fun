@@ -13,6 +13,7 @@ import {
 } from "@/hooks/use-tokens"
 import type { TokenFilters, TokenListSettings, TokenSortOption } from "@/types/token"
 import { cn } from "@/utils"
+import { sortTokens, applyDefaultSort } from "@/utils/token-sorting"
 
 type TabType = "new" | "graduating" | "graduated"
 
@@ -86,57 +87,12 @@ const TabContent = memo(function TabContent({
 	const sortedTokens = useMemo(() => {
 		if (!data || data.length === 0) return []
 
-		switch (settings.sortBy) {
-			case "bondingProgress":
-				return [...data].sort((a, b) => {
-					const aBonding = a.market?.bondingProgress || 0
-					const bBonding = b.market?.bondingProgress || 0
-					return bBonding - aBonding
-				})
-			case "marketCap":
-				return [...data].sort((a, b) => {
-					const aMarketCap = a.market?.marketCap || 0
-					const bMarketCap = b.market?.marketCap || 0
-					return bMarketCap - aMarketCap
-				})
-			case "date":
-				return [...data].sort((a, b) => {
-					const aDate = new Date(a.lastTradeAt || a.createdAt || 0).getTime()
-					const bDate = new Date(b.lastTradeAt || b.createdAt || 0).getTime()
-					return bDate - aDate
-				})
-			case "volume":
-				return [...data].sort((a, b) => {
-					const aVolume = a.market?.volume24h || 0
-					const bVolume = b.market?.volume24h || 0
-					return bVolume - aVolume
-				})
-			case "holders":
-				return [...data].sort((a, b) => {
-					const aHolders = a.market?.holdersCount || 0
-					const bHolders = b.market?.holdersCount || 0
-					return bHolders - aHolders
-				})
-			default:
-				if (tab.key === "new") {
-					return [...data].sort((a, b) => {
-						const aDate = new Date(a.createdAt || 0).getTime()
-						const bDate = new Date(b.createdAt || 0).getTime()
-						return bDate - aDate
-					})
-				} else if (tab.key === "graduating") {
-					return [...data].sort((a, b) => {
-						const aBonding = a.market?.bondingProgress || 0
-						const bBonding = b.market?.bondingProgress || 0
-						return bBonding - aBonding
-					})
-				} else {
-					return [...data].sort((a, b) => {
-						const aMarketCap = a.market?.marketCap || 0
-						const bMarketCap = b.market?.marketCap || 0
-						return bMarketCap - aMarketCap
-					})
-				}
+		// @dev: Use unified sorting utility
+		if (settings.sortBy) {
+			return sortTokens(data, settings.sortBy)
+		} else {
+			// @dev: Apply default sorting based on tab type
+			return applyDefaultSort(data, tab.key)
 		}
 	}, [data, settings.sortBy, tab.key])
 
@@ -197,11 +153,9 @@ export const MobileTokenList = memo(function MobileTokenList() {
 
 	const handleTabChange = useCallback((tab: TabType) => {
 		setActiveTab(tab)
-		const defaultSort: TokenSortOption = tab === "graduating" ? "bondingProgress" : tab === "graduated" ? "marketCap" : "date"
 		const tabType = tab === "graduating" ? "about-to-bond" : tab === "graduated" ? "bonded" : "newly-created"
 		setSettings(prev => ({ 
 			...prev, 
-			sortBy: defaultSort,
 			filters: {
 				...prev.filters,
 				tabType
@@ -239,7 +193,7 @@ export const MobileTokenList = memo(function MobileTokenList() {
 				</div>
 				
 				<TokenListFilters
-					columnId={`mobile-${activeTab}`}
+					columnId="mobile"
 					onSettingsChange={setSettings}
 					defaultSort={getDefaultSort(activeTab)}
 					defaultTab={activeTab === "graduating" ? "about-to-bond" : activeTab === "graduated" ? "bonded" : "newly-created"}
