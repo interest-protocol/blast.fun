@@ -32,7 +32,6 @@ export async function GET(request: Request) {
 		// @dev: Try to enhance tokens with a timeout (bonded tokens are always migrated)
 		const { tokens: processedTokens, isEnhanced } = await enhanceTokensWithTimeout(tokens, {
 			enhancementTimeout: 500,
-			creatorTimeout: 200,
 			isBonded: true
 		})
 

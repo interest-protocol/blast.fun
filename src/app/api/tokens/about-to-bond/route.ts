@@ -31,8 +31,7 @@ export async function GET(request: Request) {
 		
 		// @dev: Try to enhance tokens with a timeout
 		const { tokens: processedTokens, isEnhanced } = await enhanceTokensWithTimeout(tokens, {
-			enhancementTimeout: 500,
-			creatorTimeout: 200
+			enhancementTimeout: 500
 		})
 
 		return NextResponse.json(processedTokens, {

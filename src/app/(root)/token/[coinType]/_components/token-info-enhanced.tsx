@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useResolveSuiNSName } from "@mysten/dapp-kit"
 import { formatAddress } from "@mysten/sui/utils"
 import {
@@ -20,13 +20,13 @@ import { useTokenProtection } from "@/hooks/use-token-protection"
 import { ProtectionBadges } from "@/components/shared/protection-badges"
 import { useCreator } from "@/hooks/use-creator"
 
-interface TokenInfoProps {
+interface TokenInfoEnhancedProps {
 	pool: Token
 	realtimePrice: number | null
 	realtimeMarketCap?: number | null
 }
 
-export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoProps) {
+export function TokenInfoEnhanced({ pool, realtimePrice, realtimeMarketCap }: TokenInfoEnhancedProps) {
 	const [updateMetadataDialogOpen, setUpdateMetadataDialogOpen] = useState(false)
 	const { isConnected, address } = useApp()
 	const { settings: protectionSettings } = useTokenProtection(pool.pool?.poolId || "", pool.pool?.isProtected)
@@ -113,11 +113,7 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 									)}
 								</div>
 
-								{creatorLoading ? (
-									<div className="flex items-center gap-1 text-xs">
-										<span className="text-muted-foreground">Loading creator...</span>
-									</div>
-								) : (showTwitterCreator || creatorWallet) && (
+								{(showTwitterCreator || creatorWallet) && !creatorLoading && (
 									<div className="flex items-center gap-1 text-xs">
 										<span className="text-muted-foreground">by</span>
 										{showTwitterCreator ? (
@@ -140,6 +136,12 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 											</span>
 											</a>
 										)}
+									</div>
+								)}
+								
+								{creatorLoading && (
+									<div className="flex items-center gap-1 text-xs">
+										<span className="text-muted-foreground">Loading creator...</span>
 									</div>
 								)}
 							</div>
