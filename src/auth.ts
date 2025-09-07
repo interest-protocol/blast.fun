@@ -11,7 +11,7 @@ const adapter = {
 
 		const user = await prisma.user.create({
 			data: {
-				id,
+				id: id || twitterId,
 				name,
 				username,
 				profileImageUrl: image,
@@ -86,6 +86,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 	session: {
 		strategy: "database",
 		maxAge: 24 * 60 * 60,
+	},
+	pages: {
+		signIn: "/",
+		error: "/",
+	},
+	cookies: {
+		sessionToken: {
+			name: `next-auth.session-token`,
+			options: {
+				httpOnly: true,
+				sameSite: "lax",
+				path: "/",
+				secure: false, // @dev: Set to false for localhost
+			},
+		},
 	},
 	callbacks: {
 		async session({ session, user }) {
