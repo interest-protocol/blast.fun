@@ -44,10 +44,14 @@ export const TokenCardEnhanced = memo(function TokenCardEnhanced({
 			Website: tokenData.metadata?.Website
 		},
 		creator: creatorData ? {
-			address: tokenData.dev || tokenData.creatorAddress,
+			address: typeof (tokenData.dev || tokenData.creatorAddress) === 'string' 
+				? (tokenData.dev || tokenData.creatorAddress)
+				: (tokenData.dev || tokenData.creatorAddress)?.address || '',
 			...creatorData
 		} : tokenData.creator || tokenData.creatorData || {
-			address: tokenData.dev || tokenData.creatorAddress,
+			address: typeof (tokenData.dev || tokenData.creatorAddress) === 'string'
+				? (tokenData.dev || tokenData.creatorAddress)
+				: (tokenData.dev || tokenData.creatorAddress)?.address || '',
 			launchCount: 0,
 			trustedFollowers: "0",
 			followers: "0",
@@ -225,14 +229,14 @@ export const TokenCardEnhanced = memo(function TokenCardEnhanced({
 											<span className="text-muted-foreground/60">Loading...</span>
 										) : (
 											<CreatorHoverCard
-												walletAddress={token.creator?.address || tokenData.dev || tokenData.creatorAddress}
+												walletAddress={token.creator?.address}
 												twitterHandle={token.creator?.twitterHandle || undefined}
 												twitterId={token.creator?.twitterId || undefined}
 												data={token.creator}
 											>
 												<span>
 													<CreatorDisplay
-														walletAddress={token.creator?.address || tokenData.dev || tokenData.creatorAddress}
+														walletAddress={token.creator?.address}
 														twitterHandle={token.creator?.twitterHandle || undefined}
 														twitterId={token.creator?.twitterId || undefined}
 														className="text-foreground/80 hover:text-foreground transition-colors cursor-pointer"
@@ -251,15 +255,16 @@ export const TokenCardEnhanced = memo(function TokenCardEnhanced({
 											{socialLinks.map((link, index) => (
 												<Tooltip key={index}>
 													<TooltipTrigger asChild>
-														<a
-															href={link.href}
-															target="_blank"
-															rel="noopener noreferrer"
-															onClick={(e) => e.stopPropagation()}
-															className="text-muted-foreground/60 hover:text-primary transition-colors"
+														<button
+															onClick={(e) => {
+																e.preventDefault()
+																e.stopPropagation()
+																window.open(link.href, '_blank', 'noopener,noreferrer')
+															}}
+															className="text-muted-foreground/60 hover:text-primary transition-colors p-0 border-none bg-transparent cursor-pointer"
 														>
 															<link.icon className="w-3 h-3" />
-														</a>
+														</button>
 													</TooltipTrigger>
 													<TooltipContent>
 														<p className="text-xs font-mono uppercase">{link.tooltip}</p>
