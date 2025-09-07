@@ -5,11 +5,12 @@ import { bcs } from "@mysten/sui/bcs"
 import { getServerKeypair } from "@/lib/server-keypair"
 import { getNextNonceFromPool } from "@/lib/pump/get-nonce"
 import { auth } from "@/auth"
+import { verifyTurnstileToken, isTurnstileVerificationSuccessful } from "@/lib/turnstile"
 
 export async function POST(request: NextRequest) {
 	try {
 		const body = await request.json()
-		const { poolId, amount, walletAddress } = body
+		const { poolId, amount, walletAddress, turnstileToken } = body
 		
 		// Get authenticated user from session
 		const session = await auth()
@@ -20,6 +21,24 @@ export async function POST(request: NextRequest) {
 
 		if (!poolId || !amount || !walletAddress) {
 			return NextResponse.json({ message: "Missing required fields" }, { status: 400 })
+		}
+
+		// Verify Turnstile token if provided
+		if (turnstileToken) {
+			// Extract remote IP from request headers
+			const remoteIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+				request.headers.get('x-real-ip') ||
+				request.headers.get('cf-connecting-ip') || ""
+
+			const verificationResult = await verifyTurnstileToken(turnstileToken, remoteIp)
+			
+			if (!isTurnstileVerificationSuccessful(verificationResult)) {
+				return NextResponse.json({ 
+					message: "Security verification failed. Please try again.",
+					error: "TURNSTILE_VERIFICATION_FAILED",
+					details: verificationResult['error-codes'] || []
+				}, { status: 403 })
+			}
 		}
 
 		const poolSettings = await prisma.tokenProtectionSettings.findUnique({ where: { poolId } })

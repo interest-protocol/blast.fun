@@ -26,7 +26,7 @@ interface UseTradingReturn {
 	isProcessing: boolean
 	error: string | null
 	success: string | null
-	buy: (amountInSui: string, slippagePercent?: number) => Promise<void>
+	buy: (amountInSui: string, slippagePercent?: number, turnstileToken?: string) => Promise<void>
 	sell: (amountInTokens: string, slippagePercent?: number) => Promise<void>
 }
 
@@ -50,7 +50,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 		}
 	}, [success])
 
-	const getProtectedPoolSignature = async (amount: string) => {
+	const getProtectedPoolSignature = async (amount: string, turnstileToken?: string) => {
 		if (!pool.pool?.isProtected) return null
 
 		try {
@@ -61,6 +61,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 					poolId: pool.pool?.poolId || pool.id,
 					amount,
 					walletAddress: address,
+					turnstileToken,
 					// Twitter credentials are now obtained from the authenticated session on the server
 				}),
 			})
@@ -85,7 +86,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 		}
 	}
 
-	const buy = async (amountInSui: string, slippagePercent = 15) => {
+	const buy = async (amountInSui: string, slippagePercent = 15, turnstileToken?: string) => {
 		if (!isConnected || !address) {
 			setError("WALLET::NOT_CONNECTED")
 			return
@@ -189,7 +190,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 				const tx = new Transaction()
 				const quoteCoin = tx.splitCoins(tx.gas, [tx.pure.u64(amountInMist)])
 
-				const signatureData = await getProtectedPoolSignature(amountInSui)
+				const signatureData = await getProtectedPoolSignature(amountInSui, turnstileToken)
 				const { memeCoin, tx: pumpTx } = await pumpSdk.pump({
 					tx,
 					pool: pool.pool?.poolId || pool.id,
