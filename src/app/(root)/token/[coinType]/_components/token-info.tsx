@@ -117,9 +117,15 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 												@{creatorTwitterHandle}
 											</a>
 										) : (
+											<a
+												href={`http://suivision.xyz/account/${creatorWallet}?tab=Activity`}
+												target="_blank"
+												className="hover:underline"
+											>
 											<span className="font-medium text-foreground">
 												{resolvedDomain || formatAddress(creatorWallet || "")}
 											</span>
+											</a>
 										)}
 									</div>
 								)}
