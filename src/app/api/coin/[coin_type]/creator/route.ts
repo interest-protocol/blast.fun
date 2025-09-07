@@ -60,7 +60,7 @@ export async function GET(
 		const creatorAddress = tokenLaunch.creatorAddress
 
 		// @dev: Get all launches by this creator for launch count
-		const allLaunches = await prisma.tokenLaunches.findMany({
+		const launchCount = await prisma.tokenLaunches.count({
 			where: {
 				creatorAddress: creatorAddress
 			},
@@ -73,49 +73,40 @@ export async function GET(
 			}
 		})
 
-		const launchCount = allLaunches.length
-		const hideIdentity = allLaunches.some(l => l.hideIdentity)
 
-		let twitterHandle = null
-		let twitterId = null
+		const twitterHandle: string | null = tokenLaunch.twitterUsername
+		const twitterId: string | null = tokenLaunch.twitterUserId
+		const hideIdentity: boolean = tokenLaunch.hideIdentity
 		let followerCount = 0
 		let trustedFollowerCount = 0
 		let followers = "0"
 		let trustedFollowers = "0"
 
-		// @dev: Try to get twitter handle from launches if available
-		if (allLaunches.length > 0) {
-			const launchWithTwitter = allLaunches.find(l => l.twitterUsername)
-			if (launchWithTwitter && launchWithTwitter.twitterUsername) {
-				twitterHandle = launchWithTwitter.twitterUsername
-				twitterId = launchWithTwitter.twitterUserId
+	
+		// @dev: Fetch follower counts regardless of hideIdentity (we'll band them later if needed)
+		try {
+			const [giveRepRes, fxTwitterRes] = await Promise.all([
+				fetch(`https://giverep.com/api/trust-count/user-count/${twitterHandle}`),
+				fetch(`https://api.fxtwitter.com/${twitterHandle}`)
+			])
 
-				// @dev: Fetch follower counts regardless of hideIdentity (we'll band them later if needed)
-				try {
-					const [giveRepRes, fxTwitterRes] = await Promise.all([
-						fetch(`https://giverep.com/api/trust-count/user-count/${twitterHandle}`),
-						fetch(`https://api.fxtwitter.com/${twitterHandle}`)
-					])
-
-					if (giveRepRes.ok) {
-						const giveRepData = await giveRepRes.json()
-						if (giveRepData.success && giveRepData.data) {
-							trustedFollowerCount = giveRepData.data.trustedFollowerCount || 0
-						}
-					}
-
-					if (fxTwitterRes.ok) {
-						const fxTwitterData = await fxTwitterRes.json()
-						if (fxTwitterData?.user) {
-							followerCount = fxTwitterData.user.followers || 0
-						}
-					}
-				} catch (error) {
-					console.error(`Error fetching Twitter data for ${twitterHandle}:`, error)
+			if (giveRepRes.ok) {
+				const giveRepData = await giveRepRes.json()
+				if (giveRepData.success && giveRepData.data) {
+					trustedFollowerCount = giveRepData.data.trustedFollowerCount || 0
 				}
 			}
-		}
 
+			if (fxTwitterRes.ok) {
+				const fxTwitterData = await fxTwitterRes.json()
+				if (fxTwitterData?.user) {
+					followerCount = fxTwitterData.user.followers || 0
+				}
+			}
+		} catch (error) {
+			console.error("Error fetching Twitter data:", error)
+		}
+				
 		// @dev: If followers is 0 but trusted followers is not 0, it likely means the handle changed
 		// set trusted followers to 0 as well to avoid showing misleading data
 		if (followerCount === 0 && trustedFollowerCount > 0) {
@@ -130,8 +121,6 @@ export async function GET(
 		if (hideIdentity) {
 			followers = bandValue(followerCount, followerThresholds)
 			trustedFollowers = bandValue(trustedFollowerCount, trustedFollowerThresholds)
-			twitterHandle = null
-			twitterId = null
 		} else {
 			// @dev: Show actual values when not hiding identity
 			followers = formatFollowerCount(followerCount)
@@ -142,8 +131,8 @@ export async function GET(
 			launchCount,
 			followers,
 			trustedFollowers,
-			twitterHandle: hideIdentity ? null : twitterHandle,
-			twitterId: hideIdentity ? null : twitterId
+			twitterHandle: hideIdentity ? null : tokenLaunch.twitterUsername,
+			twitterId: hideIdentity ? null : tokenLaunch.twitterUserId
 		}
 
 		const response = NextResponse.json(creatorData)
