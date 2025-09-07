@@ -143,14 +143,8 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 
 	const handleUrlSubmit = useCallback(
 		(url: string) => {
-			// @dev: Basic URL validation
-			try {
-				new URL(url)
-				form.setValue("imageUrl", url)
-				setUrlInput("")
-			} catch {
-				toast.error("INVALID::URL")
-			}
+			form.setValue("imageUrl", url)
+			setUrlInput("")
 		},
 		[form]
 	)
