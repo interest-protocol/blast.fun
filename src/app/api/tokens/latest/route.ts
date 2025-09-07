@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { enhanceTokensWithTimeout } from "@/lib/token-response-handler"
+import { processTokenIconUrls } from "@/lib/process-token-icon-urls"
 
 export const revalidate = 5
 
@@ -30,10 +31,12 @@ export async function GET(request: Request) {
 		const tokens = await response.json()
 		
 		// @dev: Try to enhance tokens with a timeout
-		const { tokens: processedTokens, isEnhanced } = await enhanceTokensWithTimeout(tokens, {
-			enhancementTimeout: 500,
-			creatorTimeout: 200
+		const { tokens: enhancedTokens, isEnhanced } = await enhanceTokensWithTimeout(tokens, {
+			enhancementTimeout: 500
 		})
+
+		// @dev: Process tokens to cache icon URLs and replace with backend URLs
+		const processedTokens = await processTokenIconUrls(enhancedTokens)
 
 		return NextResponse.json(processedTokens, {
 			headers: {

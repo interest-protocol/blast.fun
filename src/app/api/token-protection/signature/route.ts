@@ -38,9 +38,7 @@ export async function POST(request: NextRequest) {
 			if (!isTurnstileVerificationSuccessful(verificationResult)) {
 				return NextResponse.json({ 
 					message: "Security verification failed. Please try again.",
-					error: "TURNSTILE_VERIFICATION_FAILED",
-					details: verificationResult['error-codes'] || []
-				}, { status: 403 })
+				}, { status: 418 })
 			}
 		}
 
@@ -94,7 +92,7 @@ export async function POST(request: NextRequest) {
 							error: "INSUFFICIENT_FOLLOWERS",
 							currentFollowers: followerCount,
 							requiredFollowers: requiredFollowers
-						}, { status: 403 })
+						}, { status: 406 })
 					}
 				} else {
 					console.error(`Failed to fetch follower count for @${twitterUsername}`)
@@ -120,7 +118,7 @@ export async function POST(request: NextRequest) {
 				return NextResponse.json({
 					message: `This X account is already bound to a different wallet address for this pool. You must use wallet ${existingRelation.address.slice(0, 6)}...${existingRelation.address.slice(-4)} to buy this token.`,
 					error: "TWITTER_ACCOUNT_BOUND_TO_DIFFERENT_ADDRESS"
-				}, { status: 403 })
+				}, { status: 409 })
 			}
 
 			// If no existing relation, create one to bind this Twitter account to this address for this pool
@@ -186,7 +184,7 @@ export async function POST(request: NextRequest) {
 						currentPercentage: ((currentBalanceHuman / totalSupplyHuman) * 100).toFixed(2),
 						maxAllowed: settings.maxHoldingPercent,
 						wouldBe: percentageAfter.toFixed(2)
-					}, { status: 403 })
+					}, { status: 416 })
 				}
 			} catch (error) {
 				console.error("Failed to check max holding percentage:", error)

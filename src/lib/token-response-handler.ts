@@ -13,7 +13,7 @@ export async function enhanceTokensWithTimeout(
 ) {
 	const {
 		enhancementTimeout = 500,
-		creatorTimeout = 200,
+		creatorTimeout = 10000,
 		isBonded = false
 	} = options
 
