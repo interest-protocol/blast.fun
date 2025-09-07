@@ -21,6 +21,8 @@ import { TOTAL_POOL_SUPPLY, DEFAULT_TOKEN_DECIMALS } from "@/constants"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { useTokenTabs } from "@/stores/token-tabs"
 import { TwitterRelationsProvider } from "../_context/twitter-relations.context"
+import { TurnstileProvider } from "@/context/turnstile.context"
+import { TurnstileSection } from "@/components/trading/turnstile-section"
 
 interface TokenModuleProps {
 	pool: Token
@@ -83,8 +85,9 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 	}, [marketCap, pool.metadata?.symbol])
 
 	return (
-		<TwitterRelationsProvider pool={pool}>
-			{isMobile ? (
+		<TurnstileProvider>
+			<TwitterRelationsProvider pool={pool}>
+				{isMobile ? (
 				<MobileTokenView 
 					pool={pool} 
 					referral={referral} 
@@ -120,11 +123,13 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 						)}
 
 						<TradeTerminal pool={pool} referral={referral} />
+						<TurnstileSection />
 						<HolderDetails pool={pool} />
 						<ReferralShare pool={pool} />
 					</div>
 				</div>
 			)}
-		</TwitterRelationsProvider>
+			</TwitterRelationsProvider>
+		</TurnstileProvider>
 	)
 }

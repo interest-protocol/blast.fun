@@ -1,6 +1,6 @@
 "use client"
 
-import { memo } from "react"
+import { memo, useEffect } from "react"
 import { Users, Globe, Send } from "lucide-react"
 import Link from "next/link"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -16,13 +16,13 @@ import { useTokenProtection } from "@/hooks/use-token-protection"
 import { useCreator } from "@/hooks/use-creator"
 import { BsTwitterX } from "react-icons/bs"
 
-interface TokenCardProps {
+interface TokenCardEnhancedProps {
 	pool: Token | any // @dev: Support both new Token type and legacy format
 }
 
-export const TokenCard = memo(function TokenCard({
+export const TokenCardEnhanced = memo(function TokenCardEnhanced({
 	pool: tokenData
-}: TokenCardProps) {
+}: TokenCardEnhancedProps) {
 	// @dev: Fetch creator data individually for this coin
 	const { data: creatorData, isLoading: creatorLoading } = useCreator(tokenData.coinType)
 

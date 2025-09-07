@@ -10,6 +10,7 @@ import { buyMigratedToken, sellMigratedToken, getBuyQuote, getSellQuote } from "
 import type { Token } from "@/types/token"
 import { formatMistToSui } from "@/utils/format"
 import { useTwitter } from "@/context/twitter.context"
+import { useTurnstile } from "@/context/turnstile.context"
 import { TOTAL_POOL_SUPPLY } from "@/constants"
 import { fetchCoinBalance } from "@/lib/fetch-portfolio"
 
@@ -26,20 +27,26 @@ interface UseTradingReturn {
 	isProcessing: boolean
 	error: string | null
 	success: string | null
-	buy: (amountInSui: string, slippagePercent?: number) => Promise<void>
+	buy: (amountInSui: string, slippagePercent?: number, turnstileToken?: string) => Promise<void>
 	sell: (amountInTokens: string, slippagePercent?: number) => Promise<void>
+	clearError: () => void
 }
 
 export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }: UseTradingOptions): UseTradingReturn {
 	const { address, isConnected } = useApp()
 	const { executeTransaction } = useTransaction()
 	const { user: twitterUser } = useTwitter()
+	const { refreshToken } = useTurnstile()
 
 	const [isProcessing, setIsProcessing] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 	const [success, setSuccess] = useState<string | null>(null)
 
 	const isMigrated = pool.pool?.migrated === true
+
+	const clearError = () => {
+		setError(null)
+	}
 
 	useEffect(() => {
 		if (success) {
@@ -50,7 +57,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 		}
 	}, [success])
 
-	const getProtectedPoolSignature = async (amount: string) => {
+	const getProtectedPoolSignature = async (amount: string, turnstileToken?: string) => {
 		if (!pool.pool?.isProtected) return null
 
 		try {
@@ -61,6 +68,9 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 					poolId: pool.pool?.poolId || pool.id,
 					amount,
 					walletAddress: address,
+					turnstileToken,
+					coinType: pool.coinType,
+					decimals: decimals,
 					// Twitter credentials are now obtained from the authenticated session on the server
 				}),
 			})
@@ -85,7 +95,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 		}
 	}
 
-	const buy = async (amountInSui: string, slippagePercent = 15) => {
+	const buy = async (amountInSui: string, slippagePercent = 15, turnstileToken?: string) => {
 		if (!isConnected || !address) {
 			setError("WALLET::NOT_CONNECTED")
 			return
@@ -165,9 +175,10 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 
 								const percentageAfter = (totalBalanceAfterHuman / totalSupplyHuman) * 100
 
-								if (percentageAfter > settings.maxHoldingPercent) {
-									setError(`MAX::HOLDING_EXCEEDED - This purchase would give you ${percentageAfter.toFixed(2)}% of total supply, exceeding the ${settings.maxHoldingPercent}% limit`)
-									return
+								if (percentageAfter > Number(settings.maxHoldingPercent)) {
+									// Don't block the transaction, let backend handle it
+									// Frontend check is just for user experience - backend will enforce
+									console.log(`Frontend warning: Purchase would exceed max holding limit (${percentageAfter.toFixed(2)}% > ${settings.maxHoldingPercent}%)`)
 								}
 							}
 						}
@@ -189,7 +200,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 				const tx = new Transaction()
 				const quoteCoin = tx.splitCoins(tx.gas, [tx.pure.u64(amountInMist)])
 
-				const signatureData = await getProtectedPoolSignature(amountInSui)
+				const signatureData = await getProtectedPoolSignature(amountInSui, turnstileToken)
 				const { memeCoin, tx: pumpTx } = await pumpSdk.pump({
 					tx,
 					pool: pool.pool?.poolId || pool.id,
@@ -218,6 +229,8 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 			throw err
 		} finally {
 			setIsProcessing(false)
+			// Refresh Turnstile token to prevent timeout/duplicate errors
+			refreshToken()
 		}
 	}
 
@@ -330,6 +343,8 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 			throw err
 		} finally {
 			setIsProcessing(false)
+			// Refresh Turnstile token to prevent timeout/duplicate errors
+			refreshToken()
 		}
 	}
 
@@ -339,5 +354,6 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 		success,
 		buy,
 		sell,
+		clearError,
 	}
 }

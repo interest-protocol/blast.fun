@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { getFullnodeUrl, SuiClient } from "@mysten/sui/client"
 
 export async function POST(request: NextRequest) {
 	try {
@@ -33,6 +34,31 @@ export async function POST(request: NextRequest) {
 		if (!twitterUserId || !twitterUsername) {
 			return NextResponse.json({ error: "Twitter authentication required" }, { status: 401 })
 		}
+		
+		// Get coinType from the tokenTxHash using SuiClient
+		const client = new SuiClient({ url: getFullnodeUrl("mainnet") })
+		let coinType = ""
+		
+		try {
+			const tx = await client.waitForTransaction({ 
+				digest: tokenTxHash, 
+				options: { showObjectChanges: true } 
+			})
+			
+			// Look for TreasuryCap creation to extract coinType
+			tx.objectChanges?.forEach((change) => {
+				if (
+					change.type === "created" &&
+					typeof change.objectType === "string" &&
+					change.objectType.startsWith("0x2::coin::TreasuryCap<")
+				) {
+					coinType = change.objectType.split("<")[1].split(">")[0]
+				}
+			})
+		} catch (error) {
+			console.error("Failed to fetch coinType from transaction:", error)
+			// Continue without coinType - it can be updated later via the debug endpoint
+		}
 
 		const tokenLaunch = await prisma.tokenLaunches.create({
 			data: {
@@ -43,6 +69,7 @@ export async function POST(request: NextRequest) {
 				hideIdentity: hideIdentity || false,
 				tokenTxHash,
 				poolTxHash,
+				coinType,
 			},
 		})
 
