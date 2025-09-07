@@ -177,12 +177,28 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 		setIsDragging(false)
 	}, [])
 
-	// @dev: Handle paste event for images
+	// @dev: Handle paste event for images and image URLs
 	const handlePaste = useCallback(
 		async (e: React.ClipboardEvent) => {
 			// @dev: Only process paste if no image is present
 			if (imageUrl) return
 
+			// @dev: Check for text that might be an image URL
+			const pastedText = e.clipboardData.getData("text")
+			if (pastedText && pastedText.startsWith("http")) {
+				// @dev: Check if it's an image URL by looking at the extension
+				const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.ico']
+				const lowerUrl = pastedText.toLowerCase()
+				const isImageUrl = imageExtensions.some(ext => lowerUrl.endsWith(ext))
+				
+				if (isImageUrl) {
+					e.preventDefault()
+					form.setValue("imageUrl", pastedText)
+					return
+				}
+			}
+
+			// @dev: Check for actual image data
 			const items = e.clipboardData?.items
 			if (!items) return
 
@@ -197,21 +213,39 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 				}
 			}
 		},
-		[handleImageUpload, imageUrl]
+		[handleImageUpload, imageUrl, form]
 	)
 
 	// @dev: Add paste event listener to the entire form
 	useEffect(() => {
 		const handleGlobalPaste = (e: ClipboardEvent) => {
 			// @dev: Only handle paste when form is visible and no image is present
-			if (!imageUrl && e.clipboardData?.items) {
-				for (const item of e.clipboardData.items) {
-					if (item.type.startsWith("image/")) {
+			if (!imageUrl && e.clipboardData) {
+				// @dev: Check for text that might be an image URL
+				const pastedText = e.clipboardData.getData("text")
+				if (pastedText && pastedText.startsWith("http")) {
+					// @dev: Check if it's an image URL by looking at the extension
+					const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.ico']
+					const lowerUrl = pastedText.toLowerCase()
+					const isImageUrl = imageExtensions.some(ext => lowerUrl.endsWith(ext))
+					
+					if (isImageUrl) {
 						e.preventDefault()
-						const file = item.getAsFile()
-						if (file) {
-							handleImageUpload(file)
-							break
+						form.setValue("imageUrl", pastedText)
+						return
+					}
+				}
+				
+				// @dev: Check for actual image data
+				if (e.clipboardData.items) {
+					for (const item of e.clipboardData.items) {
+						if (item.type.startsWith("image/")) {
+							e.preventDefault()
+							const file = item.getAsFile()
+							if (file) {
+								handleImageUpload(file)
+								break
+							}
 						}
 					}
 				}
@@ -220,7 +254,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 
 		document.addEventListener("paste", handleGlobalPaste)
 		return () => document.removeEventListener("paste", handleGlobalPaste)
-	}, [handleImageUpload, imageUrl])
+	}, [handleImageUpload, imageUrl, form])
 
 	return (
 		<div className="w-full p-4 rounded-xl border-2 bg-background/50 backdrop-blur-sm shadow-2xl" onPaste={handlePaste}>
