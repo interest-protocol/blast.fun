@@ -69,6 +69,7 @@ interface CreateTokenFormProps {
 export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) {
 	const [isDragging, setIsDragging] = useState(false)
 	const [showProtectionSettings, setShowProtectionSettings] = useState(true) // Default to true since sniperProtection defaults to true
+	const [urlInput, setUrlInput] = useState("")
 	const { balance } = useBalance({ autoRefetch: true, autoRefetchInterval: 5000 })
 
 	const form = useForm<TokenFormValues>({
@@ -135,6 +136,20 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 			} catch (error) {
 				toast.error("UPLOAD::FAILED")
 				console.error("Image upload error:", error)
+			}
+		},
+		[form]
+	)
+
+	const handleUrlSubmit = useCallback(
+		(url: string) => {
+			// @dev: Basic URL validation
+			try {
+				new URL(url)
+				form.setValue("imageUrl", url)
+				setUrlInput("")
+			} catch {
+				toast.error("INVALID::URL")
 			}
 		},
 		[form]
@@ -211,8 +226,9 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 		<div className="w-full p-4 rounded-xl border-2 bg-background/50 backdrop-blur-sm shadow-2xl" onPaste={handlePaste}>
 			<Form {...form}>
 				<form className="space-y-6">
-					<div className="flex gap-6">
-						{/* Image Upload */}
+					{/* Main layout container - responsive flex direction */}
+					<div className="flex flex-col sm:flex-row gap-6">
+						{/* Image Upload - First on mobile */}
 						<FormField
 							control={form.control}
 							name="imageUrl"
@@ -272,11 +288,41 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 										</div>
 									</FormControl>
 									<FormMessage className="font-mono text-xs" />
+									{!imageUrl && (
+										<div className="space-y-2 pt-2">
+											<p className="font-mono text-xs uppercase text-muted-foreground">
+												OR::PASTE::URL
+											</p>
+											<div className="flex gap-2">
+												<Input
+													placeholder="https://example.com/image.jpg"
+													value={urlInput}
+													onChange={(e) => setUrlInput(e.target.value)}
+													className="font-mono text-xs focus:border-primary/50"
+													onKeyDown={(e) => {
+														if (e.key === "Enter" && urlInput.trim()) {
+															e.preventDefault()
+															handleUrlSubmit(urlInput.trim())
+														}
+													}}
+													onPaste={(e) => {
+														// @dev: Handle paste event specifically for URLs
+														const pastedText = e.clipboardData.getData("text")
+														if (pastedText && pastedText.startsWith("http")) {
+															e.preventDefault()
+															setUrlInput(pastedText)
+															setTimeout(() => handleUrlSubmit(pastedText), 0)
+														}
+													}}
+												/>
+											</div>
+										</div>
+									)}
 								</FormItem>
 							)}
 						/>
 
-						{/* Token Name and Symbol */}
+						{/* Token Name, Symbol and Description - Right side on desktop */}
 						<div className="flex-1 space-y-4">
 							<FormField
 								control={form.control}
@@ -317,38 +363,38 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 									</FormItem>
 								)}
 							/>
+
+							{/* Description - Moved here */}
+							<FormField
+								control={form.control}
+								name="description"
+								render={({ field }) => (
+									<FormItem>
+										<div className="flex items-center justify-between">
+											<FormLabel className="font-mono text-xs uppercase tracking-wider text-foreground/60">
+												PROJECT::DESCRIPTION
+											</FormLabel>
+											<span className={cn(
+												"font-mono text-xs",
+												description.length > 256 ? "text-destructive" : description.length > 230 ? "text-warning" : "text-muted-foreground"
+											)}>
+												{description.length}/256
+											</span>
+										</div>
+										<FormControl>
+											<Textarea
+												placeholder="[DESCRIBE_YOUR_TOKEN_PROJECT]"
+												className="resize-none min-h-[100px] font-mono text-sm focus:border-primary/50"
+												maxLength={256}
+												{...field}
+											/>
+										</FormControl>
+										<FormMessage className="font-mono text-xs" />
+									</FormItem>
+								)}
+							/>
 						</div>
 					</div>
-
-					{/* Description */}
-					<FormField
-						control={form.control}
-						name="description"
-						render={({ field }) => (
-							<FormItem>
-								<div className="flex items-center justify-between">
-									<FormLabel className="font-mono text-xs uppercase tracking-wider text-foreground/60">
-										PROJECT::DESCRIPTION
-									</FormLabel>
-									<span className={cn(
-										"font-mono text-xs",
-										description.length > 256 ? "text-destructive" : description.length > 230 ? "text-warning" : "text-muted-foreground"
-									)}>
-										{description.length}/256
-									</span>
-								</div>
-								<FormControl>
-									<Textarea
-										placeholder="[DESCRIBE_YOUR_TOKEN_PROJECT]"
-										className="resize-none min-h-[100px] font-mono text-sm focus:border-primary/50"
-										maxLength={256}
-										{...field}
-									/>
-								</FormControl>
-								<FormMessage className="font-mono text-xs" />
-							</FormItem>
-						)}
-					/>
 
 					{/* Social Links */}
 					<div className="space-y-4">
