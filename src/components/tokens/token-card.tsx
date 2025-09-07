@@ -77,13 +77,9 @@ export const TokenCard = memo(function TokenCard({
 				<div className="relative p-3 sm:p-2">
 					<div className="flex gap-3 sm:gap-2.5">
 						<div className="flex-shrink-0">
-							<div className="w-[48px] sm:w-[56px] h-[48px] sm:h-[56px] flex flex-col items-center justify-start">
+							<div className="w-[48px] sm:w-[56px] h-[48px] sm:h-[56px]">
 								{/* avatar with conic progress */}
-								<div className={`relative overflow-hidden rounded-md flex-shrink-0 ${
-									isGraduated 
-										? 'w-[48px] sm:w-[56px] h-[48px] sm:h-[56px]' 
-										: 'w-[48px] sm:w-[56px] h-[38px] sm:h-[44px]'
-								}`}>
+								<div className="relative overflow-hidden rounded-md flex-shrink-0 w-[48px] sm:w-[56px] h-[48px] sm:h-[56px]">
 									<div className="relative w-full h-full">
 										{/* background for incomplete progress */}
 										<div className={`absolute inset-0 rounded-md ${bondingProgress >= 100
@@ -118,18 +114,6 @@ export const TokenCard = memo(function TokenCard({
 										</div>
 									</div>
 								</div>
-
-								{!isGraduated && (
-									<div className="flex items-center justify-center w-full mt-1">
-										<p className={`text-[10px] font-mono font-semibold ${
-											bondingProgress >= 30
-												? 'text-pink-500/80'
-												: 'text-blue-500/80'
-										}`}>
-											{bondingProgress.toFixed(1)}%
-										</p>
-									</div>
-								)}
 							</div>
 						</div>
 
