@@ -1,16 +1,19 @@
 import { apolloClient } from "@/lib/apollo-client"
 import { prisma } from "@/lib/prisma"
+import { fetchCreatorsBatch } from "@/lib/fetch-creators-batch"
 import { GET_POOLS_BATCH } from "@/graphql/pools"
 
 export async function enhanceTokensWithTimeout(
 	tokens: any[],
 	options: {
 		enhancementTimeout?: number
+		creatorTimeout?: number
 		isBonded?: boolean
 	} = {}
 ) {
 	const {
 		enhancementTimeout = 500,
+		creatorTimeout = 10000,
 		isBonded = false
 	} = options
 
@@ -40,6 +43,7 @@ export async function enhanceTokensWithTimeout(
 		isProtected: false,
 		burnTax: undefined,
 		protectionSettings: undefined,
+		creatorData: undefined,
 		isEnhanced: false
 	}))
 
@@ -91,10 +95,14 @@ export async function enhanceTokensWithTimeout(
 			}
 		}
 
+		// @dev: get creator data
+		const creatorDataMap = await fetchCreatorsBatch(tokens, poolMap) as Map<string, any>
+
 		// @dev: Build enhanced tokens
 		const enhancedTokens = tokens.map((token: any) => {
 			const pool = poolMap.get(token.coinType) as any
 			const creatorAddress = pool?.creatorAddress || token.dev
+			const creatorData = creatorDataMap.get(creatorAddress)
 
 			return {
 				...token,
@@ -119,6 +127,7 @@ export async function enhanceTokensWithTimeout(
 				isProtected: !!pool?.publicKey,
 				burnTax: pool?.burnTax,
 				protectionSettings: pool?.publicKey ? protectionSettingsMap.get(pool.poolId) : undefined,
+				creatorData,
 				isEnhanced: true
 			}
 		})

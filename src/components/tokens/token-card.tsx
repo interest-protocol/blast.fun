@@ -13,7 +13,6 @@ import { CreatorDisplay } from "@/components/creator/creator-display"
 import { RelativeAge } from "@/components/shared/relative-age"
 import { ProtectionBadges } from "@/components/shared/protection-badges"
 import { useTokenProtection } from "@/hooks/use-token-protection"
-import { useCreator } from "@/hooks/use-creator"
 import { BsTwitterX } from "react-icons/bs"
 
 interface TokenCardProps {
@@ -23,9 +22,6 @@ interface TokenCardProps {
 export const TokenCard = memo(function TokenCard({
 	pool: tokenData
 }: TokenCardProps) {
-	// @dev: Fetch creator data individually for this coin
-	const { data: creatorData, isLoading: creatorLoading } = useCreator(tokenData.coinType)
-
 	// @dev: Normalize data structure - support both new Token type and legacy format
 	const token = tokenData.market ? tokenData : {
 		...tokenData,
@@ -43,16 +39,13 @@ export const TokenCard = memo(function TokenCard({
 			Telegram: tokenData.metadata?.Telegram,
 			Website: tokenData.metadata?.Website
 		},
-		creator: creatorData ? {
+		creator: tokenData.creator || tokenData.creatorData || {
 			address: tokenData.dev || tokenData.creatorAddress,
-			...creatorData
-		} : tokenData.creator || tokenData.creatorData || {
-			address: tokenData.dev || tokenData.creatorAddress,
-			launchCount: 0,
-			trustedFollowers: "0",
-			followers: "0",
-			twitterHandle: null,
-			twitterId: null
+			launchCount: tokenData.creatorData?.launchCount || 0,
+			trustedFollowers: tokenData.creatorData?.trustedFollowers || "0",
+			followers: tokenData.creatorData?.followers || "0",
+			twitterHandle: tokenData.creatorData?.twitterHandle,
+			twitterId: tokenData.creatorData?.twitterId
 		},
 		pool: tokenData.pool || {
 			poolId: tokenData.poolId,
@@ -221,25 +214,21 @@ export const TokenCard = memo(function TokenCard({
 									<span className="text-muted-foreground/40 hidden sm:inline">·</span>
 									<div className="flex items-center gap-1">
 										<span className="text-muted-foreground/60 uppercase tracking-wide hidden sm:inline">by</span>
-										{creatorLoading ? (
-											<span className="text-muted-foreground/60">Loading...</span>
-										) : (
-											<CreatorHoverCard
-												walletAddress={token.creator?.address || tokenData.dev || tokenData.creatorAddress}
-												twitterHandle={token.creator?.twitterHandle || undefined}
-												twitterId={token.creator?.twitterId || undefined}
-												data={token.creator}
-											>
-												<span>
-													<CreatorDisplay
-														walletAddress={token.creator?.address || tokenData.dev || tokenData.creatorAddress}
-														twitterHandle={token.creator?.twitterHandle || undefined}
-														twitterId={token.creator?.twitterId || undefined}
-														className="text-foreground/80 hover:text-foreground transition-colors cursor-pointer"
-													/>
-												</span>
-											</CreatorHoverCard>
-										)}
+										<CreatorHoverCard
+											walletAddress={token.creator?.address || tokenData.dev || tokenData.creatorAddress}
+											twitterHandle={token.creator?.twitterHandle || tokenData.creatorData?.twitterHandle || undefined}
+											twitterId={token.creator?.twitterId || tokenData.creatorData?.twitterId || undefined}
+											data={token.creator || tokenData.creatorData}
+										>
+											<span>
+												<CreatorDisplay
+													walletAddress={token.creator?.address || tokenData.dev || tokenData.creatorAddress}
+													twitterHandle={token.creator?.twitterHandle || tokenData.creatorData?.twitterHandle || undefined}
+													twitterId={token.creator?.twitterId || tokenData.creatorData?.twitterId || undefined}
+													className="text-foreground/80 hover:text-foreground transition-colors cursor-pointer"
+												/>
+											</span>
+										</CreatorHoverCard>
 									</div>
 								</div>
 
