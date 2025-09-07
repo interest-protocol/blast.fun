@@ -9,7 +9,7 @@ interface TurnstileSectionProps {
 }
 
 export function TurnstileSection({ className }: TurnstileSectionProps) {
-	const { token, setToken, resetToken, isRequired } = useTurnstile()
+	const { token, setToken, resetToken, refreshTrigger, isRequired } = useTurnstile()
 
 	if (!isRequired) {
 		return null
@@ -23,6 +23,8 @@ export function TurnstileSection({ className }: TurnstileSectionProps) {
 						onVerify={setToken}
 						onError={resetToken}
 						onExpire={resetToken}
+						onReset={resetToken}
+						refreshTrigger={refreshTrigger}
 						className="w-full"
 						theme="auto"
 						size="normal"

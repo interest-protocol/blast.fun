@@ -20,12 +20,16 @@ export const useTransaction = () => {
 			if (!wallet) {
 				throw new Error("No account connected")
 			}
+			const prevTitle = document.title;
 
 			try {
+				
+				document.title = "Blast.fun";
 				const { signature, bytes } = await signTransaction({
 					account: wallet,
 					transaction: tx,
-				})
+				});
+				document.title = prevTitle;
 
 				const startTime = Date.now()
 
@@ -77,6 +81,7 @@ export const useTransaction = () => {
 				} as TransactionResult
 			} catch (error) {
 				console.error("Transaction execution failed:", error)
+				document.title = prevTitle;
 				throw error instanceof Error ? error : new Error("Transaction failed")
 			}
 		},

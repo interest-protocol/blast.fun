@@ -269,6 +269,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 		}
 	})
 
+
 	const handleQuickAmount = (value: number) => {
 		if (tradeType === "buy") {
 			setAmount(value.toString())
@@ -343,6 +344,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	}
 
 	const isMigrating = pool.pool?.canMigrate === true && !pool.pool?.migrated
+
 
 	if (!isConnected) {
 		return (

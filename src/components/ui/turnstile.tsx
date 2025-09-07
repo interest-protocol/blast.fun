@@ -8,9 +8,11 @@ interface TurnstileProps {
 	onError?: () => void
 	onExpire?: () => void
 	onLoad?: () => void
+	onReset?: () => void
 	className?: string
 	theme?: "light" | "dark" | "auto"
 	size?: "normal" | "compact"
+	refreshTrigger?: number
 }
 
 declare global {
@@ -28,9 +30,11 @@ export function Turnstile({
 	onError,
 	onExpire,
 	onLoad,
+	onReset,
 	className = "",
 	theme = "auto",
-	size = "normal"
+	size = "normal",
+	refreshTrigger = 0
 }: TurnstileProps) {
 	const ref = useRef<HTMLDivElement>(null)
 	const [widgetId, setWidgetId] = useState<string | null>(null)
@@ -54,6 +58,11 @@ export function Turnstile({
 	useEffect(() => {
 		if (!isLoaded || !ref.current || !window.turnstile) return
 
+		// Clear the container before rendering
+		if (ref.current) {
+			ref.current.innerHTML = ''
+		}
+
 		const id = window.turnstile.render(ref.current, {
 			sitekey: env.NEXT_PUBLIC_CF_TURNSTILE_SITE_KEY,
 			callback: onVerify,
@@ -65,16 +74,31 @@ export function Turnstile({
 
 		setWidgetId(id)
 
+		// Call onReset when refresh is triggered and widget is rendered
+		if (refreshTrigger > 0) {
+			onReset?.()
+		}
+
 		return () => {
 			if (id && window.turnstile) {
-				window.turnstile.remove(id)
+				try {
+					window.turnstile.remove(id)
+				} catch (error) {
+					// Ignore removal errors
+					console.warn('Turnstile removal error:', error)
+				}
 			}
 		}
-	}, [isLoaded, onVerify, onError, onExpire, theme, size])
+	}, [isLoaded, onVerify, onError, onExpire, theme, size, refreshTrigger, onReset])
 
 	const reset = () => {
 		if (widgetId && window.turnstile) {
-			window.turnstile.reset(widgetId)
+			try {
+				window.turnstile.reset(widgetId)
+			} catch (error) {
+				// Ignore reset errors - widget will re-render anyway
+				console.warn('Turnstile reset error:', error)
+			}
 		}
 	}
 
