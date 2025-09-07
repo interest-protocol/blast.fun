@@ -3,6 +3,15 @@
 import { useEffect, useRef, useState } from "react"
 import { env } from "@/env"
 
+interface TurnstileOptions {
+	sitekey: string
+	callback: (token: string) => void
+	"error-callback"?: () => void
+	"expired-callback"?: () => void
+	theme?: "light" | "dark" | "auto"
+	size?: "normal" | "compact"
+}
+
 interface TurnstileProps {
 	onVerify: (token: string) => void
 	onError?: () => void
@@ -18,7 +27,7 @@ interface TurnstileProps {
 declare global {
 	interface Window {
 		turnstile?: {
-			render: (element: HTMLElement, options: any) => string
+			render: (element: HTMLElement, options: TurnstileOptions) => string
 			remove: (widgetId: string) => void
 			reset: (widgetId: string) => void
 		}
@@ -37,7 +46,6 @@ export function Turnstile({
 	refreshTrigger = 0
 }: TurnstileProps) {
 	const ref = useRef<HTMLDivElement>(null)
-	const [widgetId, setWidgetId] = useState<string | null>(null)
 	const [isLoaded, setIsLoaded] = useState(false)
 
 	useEffect(() => {
@@ -72,8 +80,6 @@ export function Turnstile({
 			size
 		})
 
-		setWidgetId(id)
-
 		// Call onReset when refresh is triggered and widget is rendered
 		if (refreshTrigger > 0) {
 			onReset?.()
@@ -90,17 +96,6 @@ export function Turnstile({
 			}
 		}
 	}, [isLoaded, onVerify, onError, onExpire, theme, size, refreshTrigger, onReset])
-
-	const reset = () => {
-		if (widgetId && window.turnstile) {
-			try {
-				window.turnstile.reset(widgetId)
-			} catch (error) {
-				// Ignore reset errors - widget will re-render anyway
-				console.warn('Turnstile reset error:', error)
-			}
-		}
-	}
 
 	return (
 		<div 
