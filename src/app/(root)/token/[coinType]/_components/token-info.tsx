@@ -18,7 +18,6 @@ import { UpdateMetadataDialog } from "./update-metadata-dialog"
 import { useApp } from "@/context/app.context"
 import { useTokenProtection } from "@/hooks/use-token-protection"
 import { ProtectionBadges } from "@/components/shared/protection-badges"
-import { useCreator } from "@/hooks/use-creator"
 
 interface TokenInfoProps {
 	pool: Token
@@ -30,22 +29,14 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 	const [updateMetadataDialogOpen, setUpdateMetadataDialogOpen] = useState(false)
 	const { isConnected, address } = useApp()
 	const { settings: protectionSettings } = useTokenProtection(pool.pool?.poolId || "", pool.pool?.isProtected)
-	
-	// @dev: Fetch creator data individually for this coin
-	const { data: creatorData, isLoading: creatorLoading } = useCreator(pool.coinType)
 
 	const metadata = pool.metadata
 	const marketData = pool.market
-	
-	// @dev: Merge fresh creator data with existing creator info
-	const currentCreatorData = creatorData ? {
-		...pool.creator,
-		...creatorData
-	} : pool.creator
+	const creatorData = pool.creator
 
-	const creatorTwitterHandle = currentCreatorData?.twitterHandle
-	const creatorTwitterId = currentCreatorData?.twitterId
-	const creatorWallet = currentCreatorData?.address
+	const creatorTwitterHandle = creatorData?.twitterHandle
+	const creatorTwitterId = creatorData?.twitterId
+	const creatorWallet = creatorData?.address
 	const showTwitterCreator = !!creatorTwitterHandle
 
 	const { data: resolvedDomain } = useResolveSuiNSName(!showTwitterCreator && creatorWallet ? creatorWallet : null)
@@ -74,7 +65,7 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 	const currentMarketCap = realtimeMarketCap || baseMarketCap
 
 	// @dev: Check if current user is the token creator
-	const isCreator = isConnected && address && currentCreatorData?.address && address === currentCreatorData?.address
+	const isCreator = isConnected && address && creatorData?.address && address === creatorData?.address
 
 	return (
 		<>
@@ -113,11 +104,7 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 									)}
 								</div>
 
-								{creatorLoading ? (
-									<div className="flex items-center gap-1 text-xs">
-										<span className="text-muted-foreground">Loading creator...</span>
-									</div>
-								) : (showTwitterCreator || creatorWallet) && (
+								{(showTwitterCreator || creatorWallet) && (
 									<div className="flex items-center gap-1 text-xs">
 										<span className="text-muted-foreground">by</span>
 										{showTwitterCreator ? (
@@ -186,24 +173,19 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 								</p>
 							</div>
 
-							{/* Creator Data Section */}
-							{creatorLoading ? (
-								<div className="flex items-center gap-3 text-xs select-none">
-									<span className="text-muted-foreground">Loading creator data...</span>
-								</div>
-							) : currentCreatorData ? (
+							{creatorData && (
 								<div className="flex items-center gap-3 text-xs select-none">
 									<span className="text-muted-foreground">
-										<span className="text-foreground font-medium">{currentCreatorData.launchCount}</span> launches
+										<span className="text-foreground font-medium">{creatorData.launchCount}</span> launches
 									</span>
 									<span className="text-muted-foreground">
-										<span className="text-foreground font-medium">{currentCreatorData.trustedFollowers}</span> trusted
+										<span className="text-foreground font-medium">{creatorData.trustedFollowers}</span> trusted
 									</span>
 									<span className="text-muted-foreground">
-										<span className="text-foreground font-medium">{currentCreatorData.followers}</span> followers
+										<span className="text-foreground font-medium">{creatorData.followers}</span> followers
 									</span>
 								</div>
-							) : null}
+							)}
 						</div>
 					</div>
 					

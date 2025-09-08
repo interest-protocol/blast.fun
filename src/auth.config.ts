@@ -20,8 +20,4 @@ export default {
 			},
 		}),
 	],
-	pages: {
-		signIn: "/",
-		error: "/",
-	},
 } satisfies NextAuthConfig
