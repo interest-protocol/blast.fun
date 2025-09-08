@@ -100,9 +100,9 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 
 	// set Turnstile requirement based on pool protection and trade type
 	useEffect(() => {
-		const isRequired = Boolean(pool.pool?.isProtected && tradeType === "buy")
+		const isRequired = Boolean(pool.pool?.isProtected && tradeType === "buy" && !pool.pool?.migrated)
 		setTurnstileRequired(isRequired)
-	}, [pool.pool?.isProtected, tradeType, setTurnstileRequired])
+	}, [pool.pool?.isProtected, pool.pool?.migrated, tradeType, setTurnstileRequired])
 
 	// state for quote from bonding curve
 	const [quote, setQuote] = useState<{ memeAmountOut?: bigint; memeAmountIn?: bigint; suiAmountOut?: bigint; coinAmountOut?: bigint; burnFee?: bigint } | null>(null)
@@ -725,8 +725,9 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 					</Alert>
 				)}
 
+
 				{/* Trade/Burn Button or X Connect Button */}
-				{protectionSettings?.requireTwitter && !isTwitterLoggedIn && tradeType !== "burn" ? (
+				{!pool.pool?.migrated && protectionSettings?.requireTwitter && !isTwitterLoggedIn && tradeType !== "burn" ? (
 					<Button
 						variant="outline"
 						className="w-full h-10 font-mono text-xs uppercase"
