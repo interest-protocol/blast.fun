@@ -39,7 +39,7 @@ export function AirdropTools() {
 	const { address, setIsConnectDialogOpen } = useApp()
 	const [coins, setCoins] = useState<WalletCoin[]>([])
 	const [selectedCoin, setSelectedCoin] = useState<string>("")
-	const [csvInput, setCsvInput] = useState<string>("")
+	const [csvInput, setCsvInput] = useState<string>("example.sui,0.001\n0x0000000000000000000000000000000000000000000000000000000000000000,0.001")
 	const [recipients, setRecipients] = useState<AirdropRecipient[]>([])
 	const [isLoadingCoins, setIsLoadingCoins] = useState(false)
 	const [viewMode, setViewMode] = useState<"csv" | "import" | "table">("csv")
@@ -50,6 +50,12 @@ export function AirdropTools() {
 	const [isDragging, setIsDragging] = useState(false)
 	const [coinSearchQuery, setCoinSearchQuery] = useState<string>("")
 	const searchInputRef = useRef<HTMLInputElement>(null)
+	const [lastAirdropDigest, setLastAirdropDigest] = useState<string>("")
+	const [isAirdropComplete, setIsAirdropComplete] = useState(false)
+	const [lastCsvInput, setLastCsvInput] = useState<string>("")
+	const [delegatorAddress, setDelegatorAddress] = useState<string>("")
+	const [airdropProgress, setAirdropProgress] = useState<string>("")
+	const [isProcessing, setIsProcessing] = useState(false)
 
 	// @dev: Fetch user's coins from BlockVision API
 	useEffect(() => {
@@ -119,6 +125,11 @@ export function AirdropTools() {
 
 	// @dev: Parse CSV input and auto-detect separator with SuiNS support
 	useEffect(() => {
+		// @dev: Reset completion state when CSV input changes
+		if (csvInput !== lastCsvInput) {
+			setIsAirdropComplete(false)
+		}
+
 		if (!csvInput.trim()) {
 			setRecipients([])
 			return
@@ -184,7 +195,7 @@ export function AirdropTools() {
 		}
 
 		parseAndResolve()
-	}, [csvInput])
+	}, [csvInput, lastCsvInput])
 
 	const handleAirdrop = async () => {
 		if(!address){
@@ -199,6 +210,9 @@ export function AirdropTools() {
 			toast.error("Please add recipients")
 			return
 		}
+
+		setIsProcessing(true)
+		setAirdropProgress("Preparing transaction...")
 
 		const coinMetadata = await suiClient.getCoinMetadata({
 			coinType: selectedCoin,
@@ -216,8 +230,9 @@ export function AirdropTools() {
 			delegatorKeypair = Ed25519Keypair.fromSecretKey(localSuiPrivateKey)
 		}
 		
-		const delegatorAddress = delegatorKeypair.getPublicKey().toSuiAddress()
-		let previousToastId = toast.loading("Sending Transactions")
+		const delegatorAddr = delegatorKeypair.getPublicKey().toSuiAddress()
+		setDelegatorAddress(delegatorAddr)
+		setAirdropProgress("Sending transactions...")
 
 		// create new tx to send funding and gas to delegator.
 		if(!isRecoveringGas) {
@@ -235,7 +250,7 @@ export function AirdropTools() {
 					type: "0x2::sui::SUI",
 				})(tx)
 
-				tx.transferObjects([coinInput, gasInput], delegatorAddress)
+				tx.transferObjects([coinInput, gasInput], delegatorAddr)
 
 				if(process.env.NEXT_PUBLIC_FEE_ADDRESS) {
 					const feeInput = coinWithBalance({
@@ -259,7 +274,7 @@ export function AirdropTools() {
 				for (let i = 0; i < Math.ceil(recipients.length / batchPerTx); i++) {
 					
 					const tx = new Transaction()
-					tx.setSender(delegatorAddress)
+					tx.setSender(delegatorAddr)
 					const transferBalances = []
 					const transferAddresses = []
 					const variableNames = []
@@ -291,8 +306,7 @@ export function AirdropTools() {
 						transaction: tx,
 						client: suiClient,
 					})
-					toast.dismiss(previousToastId)
-					previousToastId = toast.loading(`Sending batch ${i + 1} of ${Math.min((i+1) * batchPerTx, recipients.length)} / ${recipients.length}`)
+					setAirdropProgress(`Sending batch ${i + 1} of ${Math.ceil(recipients.length / batchPerTx)} (${Math.min((i+1) * batchPerTx, recipients.length)}/${recipients.length} recipients)`)
 					await suiClient.waitForTransaction({
 						digest: txResult.digest,
 					})
@@ -301,35 +315,34 @@ export function AirdropTools() {
 		}
 		{
 			setIsRecoveringGas(true)
-			toast.dismiss(previousToastId)
-			previousToastId = toast.loading("Returning unused gas")
+			setAirdropProgress("Returning unused gas...")
 			// Finally, send the rest of the coin to the sender with sponsor transaction.
 			const tx = new Transaction()
-			tx.setSender(delegatorAddress)
-			const remainingGasCoins = await suiClient.getCoins({
-				owner: delegatorAddress,
-				coinType: "0x2::sui::SUI",
-			})
+			tx.setSender(delegatorAddr)
+			// const remainingGasCoins = await suiClient.getCoins({
+			// 	owner: delegatorAddress,
+			// 	coinType: "0x2::sui::SUI",
+			// })
 
-			const remainingGasCoinsObjectIds = remainingGasCoins.data.map(coin => coin.coinObjectId)
+			// const remainingGasCoinsObjectIds = remainingGasCoins.data.map(coin => coin.coinObjectId)
 
-			tx.transferObjects(remainingGasCoinsObjectIds, address)
+			tx.transferObjects([tx.gas], address)
 
-			tx.setGasOwner(address)
+			// tx.setGasOwner(address)
 
 			const txBytes = await tx.build({
 				client: suiClient,
 			})
 			try {
-				const {signature: userSignature} = await signTransaction({
-					transaction: tx,
-				})
+				// const {signature: userSignature} = await signTransaction({
+				// 	transaction: tx,
+				// })
 				
 				const {signature: delegatorSignature} = await delegatorKeypair.signTransaction(txBytes)
 
 				const txResult = await suiClient.executeTransactionBlock({
 					transactionBlock: txBytes,
-					signature: [userSignature, delegatorSignature],
+					signature: [delegatorSignature],
 					options: {
 						showEffects: true,
 						showEvents: true,
@@ -340,13 +353,20 @@ export function AirdropTools() {
 				await suiClient.waitForTransaction({
 					digest: txResult.digest,
 				})
-				toast.dismiss(previousToastId)
+
+				// @dev: Store the last digest and set completion flags
+				setLastAirdropDigest(txResult.digest)
+				setIsAirdropComplete(true)
+				setLastCsvInput(csvInput)
+				setAirdropProgress("")
+				setIsProcessing(false)
 
 				toast.success("Airdrop finished", {
 					duration: 3000,
 				})
 			} catch (error) {
-				toast.dismiss(previousToastId)
+				setAirdropProgress("")
+				setIsProcessing(false)
 				return
 			}
 		}
@@ -794,7 +814,7 @@ export function AirdropTools() {
 					</div>
 
 					{/* Summary and Action */}
-					{recipients.length > 0 && selectedCoinInfo && (
+					{selectedCoinInfo && (
 						<div className="border-2 border-border rounded-lg bg-background/30 backdrop-blur-sm p-6">
 							<div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
 								{/* Recipients Count */}
@@ -850,15 +870,44 @@ export function AirdropTools() {
 								</div>
 							</div>
 							
+							{/* Completion Status - Above the button when re-executing */}
+							{isAirdropComplete && delegatorAddress && csvInput === lastCsvInput && (
+								<div className="mb-3 text-center">
+									<a
+										href={`https://suivision.xyz/account/${delegatorAddress}?tab=Activity`}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="font-mono text-xs text-primary hover:underline"
+									>
+										VIEW TRANSACTIONS
+									</a>
+								</div>
+							)}
+							
 							{/* Action Button */}
 							<Button 
 								onClick={handleAirdrop}
-								disabled={!selectedCoin || recipients.length === 0 || recipients.some(r => r.resolutionError)}
+								disabled={!selectedCoin || recipients.length === 0 || recipients.some(r => r.resolutionError) || isProcessing}
 								className="w-full font-mono uppercase tracking-wider py-6 text-sm"
 								size="lg"
 							>
-								<Send className="h-4 w-4 mr-2" />
-								{isRecoveringGas ? "RESUME GAS RECOVERY" : "EXECUTE AIRDROP"}
+								{isProcessing ? (
+									<>
+										<Loader2 className="h-4 w-4 mr-2 animate-spin" />
+										{airdropProgress || "Processing..."}
+									</>
+								) : (
+									<>
+										<Send className="h-4 w-4 mr-2" />
+										{isRecoveringGas 
+											? "RESUME GAS RECOVERY" 
+											: (isAirdropComplete && csvInput === lastCsvInput 
+												? "EXECUTE AIRDROP AGAIN" 
+												: "EXECUTE AIRDROP"
+											)
+										}
+									</>
+								)}
 							</Button>
 							
 							{recipients.some(r => r.resolutionError) && (
