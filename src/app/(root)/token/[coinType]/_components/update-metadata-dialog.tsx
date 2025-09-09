@@ -45,7 +45,7 @@ export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadat
 			console.log({ poolMetadata })
 		}
 		fetchPoolMetadata()
-	}, [pool.coinType, pool.pool.curve, pool.pool.poolId])
+	}, [pool.coinType, pool.pool?.curve, pool.pool?.poolId])
 
 	// Form state - pool metadata (initialize with existing values)
 	const [twitter, setTwitter] = useState(pool.metadata?.X || "")

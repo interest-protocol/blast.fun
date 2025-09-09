@@ -1,11 +1,10 @@
 import { Metadata } from "next"
-import { redirect } from "next/navigation"
-import { fetchTokenByCoinType } from "@/lib/fetch-token-by-cointype"
-import { fetchTokenByPool } from "@/lib/fetch-token-by-pool"
-import { cacheDataUri } from "@/lib/image-cache"
 import { constructMetadata } from "@/lib/metadata"
-import { formatNumberWithSuffix } from "@/utils/format"
 import { TokenModule } from "./_components/token-module"
+import { fetchTokenByCoinType } from "@/lib/fetch-token-by-cointype"
+import { formatNumberWithSuffix } from "@/utils/format"
+import { redirect } from "next/navigation"
+import { fetchTokenByPool } from "@/lib/fetch-token-by-pool"
 
 export async function generateMetadata({ params }: { params: Promise<{ coinType: string }> }): Promise<Metadata> {
 	const { coinType } = await params
@@ -23,36 +22,15 @@ export async function generateMetadata({ params }: { params: Promise<{ coinType:
 
 	const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
 		? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-		: "http://localhost:3004"
-
-	// @dev: Get icon URL from metadata - always provide an image
-	const iconUrl =
-		tokenData.metadata?.icon_url ||
-		tokenData.metadata?.iconUrl ||
-		tokenData.metadata?.image ||
-		`${baseUrl}/logo/blast-bg.png` // Fallback to BLAST logo
-
-	// @dev: Pass token data as parameters, only cache data URIs to avoid URL length issues
-	let processedImageUrl = ""
-	if (iconUrl) {
-		if (iconUrl.startsWith("data:image/")) {
-			// @dev: Only cache if it's a data URI that's not too large
-			const cached = cacheDataUri(iconUrl)
-			processedImageUrl = cached || ""
-		} else {
-			// @dev: Pass regular URLs directly
-			processedImageUrl = iconUrl
-		}
-	}
-
+		: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+	
+	// @dev: Use the blast.fun API endpoint for coin images
+	const processedImageUrl = `https://blast.fun/api/coin/${coinType}/image`
+	
 	const ogParams: Record<string, string> = {
 		name: name,
 		marketCap: `$${formattedMcap}`,
-	}
-
-	// @dev: Only add image if we have one
-	if (processedImageUrl) {
-		ogParams.image = processedImageUrl
+		image: processedImageUrl
 	}
 
 	const ogImageUrl = `${baseUrl}/api/og?${new URLSearchParams(ogParams).toString()}`
