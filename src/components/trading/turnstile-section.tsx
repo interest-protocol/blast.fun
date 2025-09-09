@@ -1,18 +1,31 @@
 "use client"
 
-import { useTurnstile } from "@/context/turnstile.context"
 import { Turnstile } from "@/components/ui/turnstile"
+import { useTurnstile } from "@/context/turnstile.context"
 import { cn } from "@/utils"
+import { CheckCircle2 } from "lucide-react"
 
 interface TurnstileSectionProps {
 	className?: string
 }
 
 export function TurnstileSection({ className }: TurnstileSectionProps) {
-	const { setToken, resetToken, refreshTrigger, isRequired } = useTurnstile()
+	const { setToken, resetToken, refreshTrigger, isRequired, isSlushWallet } = useTurnstile()
 
 	if (!isRequired) {
 		return null
+	}
+
+	// @dev: Show special message for Slush wallet users
+	if (isSlushWallet) {
+		return (
+			<div className={cn("p-3 rounded-lg border border-green-500/30 bg-green-500/5", className)}>
+				<div className="flex items-center gap-2 justify-center text-green-600 dark:text-green-400">
+					<CheckCircle2 className="h-5 w-5" />
+					<span className="text-sm font-medium">Slush Wallet detected - Verification bypassed</span>
+				</div>
+			</div>
+		)
 	}
 
 	return (

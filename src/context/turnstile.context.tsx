@@ -1,6 +1,7 @@
 "use client"
 
-import { createContext, useContext, useState, useCallback, ReactNode } from "react"
+import { SLUSH_WALLET_BYPASS_TOKEN, isSlushWalletBrowser } from "@/lib/slush-wallet-detector"
+import { ReactNode, createContext, useCallback, useContext, useEffect, useState } from "react"
 
 interface TurnstileContextType {
 	token: string | null
@@ -10,6 +11,7 @@ interface TurnstileContextType {
 	refreshTrigger: number
 	isRequired: boolean
 	setIsRequired: (required: boolean) => void
+	isSlushWallet: boolean
 }
 
 const TurnstileContext = createContext<TurnstileContextType | undefined>(undefined)
@@ -18,17 +20,44 @@ export function TurnstileProvider({ children }: { children: ReactNode }) {
 	const [token, setTokenState] = useState<string | null>(null)
 	const [isRequired, setIsRequired] = useState(false)
 	const [refreshTrigger, setRefreshTrigger] = useState(0)
+	const [isSlushWallet, setIsSlushWallet] = useState(false)
+
+	// @dev: Detect Slush wallet on mount and set bypass token if needed
+	useEffect(() => {
+		const isSlush = isSlushWalletBrowser()
+		setIsSlushWallet(isSlush)
+		
+		// @dev: Auto-set bypass token for Slush wallet users
+		if (isSlush) {
+			setTokenState(SLUSH_WALLET_BYPASS_TOKEN)
+		}
+	}, [])
 
 	const setToken = useCallback((newToken: string | null) => {
-		setTokenState(newToken)
+		// @dev: Don't override bypass token for Slush wallet
+		if (isSlushWalletBrowser()) {
+			setTokenState(SLUSH_WALLET_BYPASS_TOKEN)
+		} else {
+			setTokenState(newToken)
+		}
 	}, [])
 
 	const resetToken = useCallback(() => {
-		setTokenState(null)
+		// @dev: Keep bypass token for Slush wallet
+		if (isSlushWalletBrowser()) {
+			setTokenState(SLUSH_WALLET_BYPASS_TOKEN)
+		} else {
+			setTokenState(null)
+		}
 	}, [])
 
 	const refreshToken = useCallback(() => {
-		setTokenState(null)
+		// @dev: Keep bypass token for Slush wallet
+		if (isSlushWalletBrowser()) {
+			setTokenState(SLUSH_WALLET_BYPASS_TOKEN)
+		} else {
+			setTokenState(null)
+		}
 		setRefreshTrigger(prev => prev + 1)
 	}, [])
 
@@ -42,6 +71,7 @@ export function TurnstileProvider({ children }: { children: ReactNode }) {
 				refreshTrigger,
 				isRequired,
 				setIsRequired,
+				isSlushWallet,
 			}}
 		>
 			{children}
