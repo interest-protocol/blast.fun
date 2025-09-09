@@ -51,7 +51,7 @@ export default function SlushWalletTestPage() {
 				<CardHeader>
 					<CardTitle className="text-2xl">Slush Wallet Detection Test</CardTitle>
 					<CardDescription>
-						This page helps diagnose if you're using Slush wallet in a mobile browser
+						This page helps diagnose if you&apos;re using Slush wallet in a mobile browser
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-6">
@@ -154,7 +154,7 @@ export default function SlushWalletTestPage() {
 							<code className="text-xs break-all">{userAgent}</code>
 							{userAgent.toLowerCase().includes("slush") && (
 								<Badge className="mt-2 bg-green-500/10 text-green-600 border-green-500/30">
-									Contains "slush"
+									Contains &quot;slush&quot;
 								</Badge>
 							)}
 						</div>
@@ -183,10 +183,10 @@ export default function SlushWalletTestPage() {
 					<div className="mt-6 p-4 rounded-lg border border-blue-500/30 bg-blue-500/5">
 						<h4 className="font-semibold text-blue-600 dark:text-blue-400 mb-2">Testing Instructions</h4>
 						<ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
-							<li>Open this page in Slush wallet's built-in browser on your mobile device</li>
-							<li>Check if "Slush Wallet Detected" shows YES</li>
+							<li>Open this page in Slush wallet&apos;s built-in browser on your mobile device</li>
+							<li>Check if &quot;Slush Wallet Detected&quot; shows YES</li>
 							<li>If YES, Turnstile verification will be automatically bypassed when trading</li>
-							<li>If NO, ensure you're using Slush wallet's browser, not a regular mobile browser</li>
+							<li>If NO, ensure you&apos;re using Slush wallet&apos;s browser, not a regular mobile browser</li>
 						</ol>
 					</div>
 				</CardContent>
