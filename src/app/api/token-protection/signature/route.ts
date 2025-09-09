@@ -9,6 +9,7 @@ import { verifyTurnstileToken, isTurnstileVerificationSuccessful } from "@/lib/t
 import { pumpSdk } from "@/lib/pump"
 import { fetchCoinBalance } from "@/lib/fetch-portfolio"
 import { TOTAL_POOL_SUPPLY } from "@/constants"
+import { SLUSH_WALLET_BYPASS_TOKEN } from "@/lib/slush-wallet-detector"
 
 export async function POST(request: NextRequest) {
 	try {
@@ -28,17 +29,22 @@ export async function POST(request: NextRequest) {
 
 		// Verify Turnstile token if provided
 		if (turnstileToken) {
-			// Extract remote IP from request headers
-			const remoteIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-				request.headers.get('x-real-ip') ||
-				request.headers.get('cf-connecting-ip') || ""
+			// @dev: Skip verification for Slush wallet bypass token
+			if (turnstileToken === SLUSH_WALLET_BYPASS_TOKEN) {
+				console.log("Slush wallet bypass token detected, skipping Turnstile verification")
+			} else {
+				// Extract remote IP from request headers
+				const remoteIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+					request.headers.get('x-real-ip') ||
+					request.headers.get('cf-connecting-ip') || ""
 
-			const verificationResult = await verifyTurnstileToken(turnstileToken, remoteIp)
-			
-			if (!isTurnstileVerificationSuccessful(verificationResult)) {
-				return NextResponse.json({ 
-					message: "Security verification failed. Please try again.",
-				}, { status: 418 })
+				const verificationResult = await verifyTurnstileToken(turnstileToken, remoteIp)
+				
+				if (!isTurnstileVerificationSuccessful(verificationResult)) {
+					return NextResponse.json({ 
+						message: "Security verification failed. Please try again.",
+					}, { status: 418 })
+				}
 			}
 		}
 

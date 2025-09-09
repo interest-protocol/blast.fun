@@ -1,17 +1,23 @@
 "use client"
 
-import { useTurnstile } from "@/context/turnstile.context"
 import { Turnstile } from "@/components/ui/turnstile"
+import { useTurnstile } from "@/context/turnstile.context"
 import { cn } from "@/utils"
+import { CheckCircle2 } from "lucide-react"
 
 interface TurnstileSectionProps {
 	className?: string
 }
 
 export function TurnstileSection({ className }: TurnstileSectionProps) {
-	const { setToken, resetToken, refreshTrigger, isRequired } = useTurnstile()
+	const { setToken, resetToken, refreshTrigger, isRequired, isSlushWallet } = useTurnstile()
 
 	if (!isRequired) {
+		return null
+	}
+
+	// @dev: Show special message for Slush wallet users
+	if (isSlushWallet) {
 		return null
 	}
 
