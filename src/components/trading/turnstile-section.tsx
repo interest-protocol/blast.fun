@@ -18,14 +18,7 @@ export function TurnstileSection({ className }: TurnstileSectionProps) {
 
 	// @dev: Show special message for Slush wallet users
 	if (isSlushWallet) {
-		return (
-			<div className={cn("p-3 rounded-lg border border-green-500/30 bg-green-500/5", className)}>
-				<div className="flex items-center gap-2 justify-center text-green-600 dark:text-green-400">
-					<CheckCircle2 className="h-5 w-5" />
-					<span className="text-sm font-medium">Slush Wallet detected - Verification bypassed</span>
-				</div>
-			</div>
-		)
+		return null
 	}
 
 	return (
