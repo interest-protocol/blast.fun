@@ -5,6 +5,7 @@ import { fetchTokenByCoinType } from "@/lib/fetch-token-by-cointype"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { redirect } from "next/navigation"
 import { fetchTokenByPool } from "@/lib/fetch-token-by-pool"
+import { BASE_DOMAIN } from "@/constants"
 
 export async function generateMetadata({
 	params
@@ -19,10 +20,24 @@ export async function generateMetadata({
 	}
 
 	const symbol = tokenData.metadata?.symbol || "UNKNOWN"
+	const name = tokenData.metadata?.name || symbol
 	const marketCap = tokenData.market?.marketCap || 0
 	const formattedMcap = formatNumberWithSuffix(marketCap)
-
-	return constructMetadata({ title: `${symbol} $${formattedMcap}` })
+	
+	const baseUrl = BASE_DOMAIN
+	
+	// @dev: Build OG image URL with coinType and name only
+	const ogParams = new URLSearchParams({
+		coinType: coinType,
+		name: name
+	})
+	const ogImageUrl = `${baseUrl}/api/og?${ogParams.toString()}`
+	
+	return constructMetadata({
+		title: `${symbol} $${formattedMcap}`,
+		description: `Trade ${name} (${symbol}) on BLAST.FUN. Market Cap: $${formattedMcap}`,
+		image: ogImageUrl
+	})
 }
 
 export default async function TokenPage({
