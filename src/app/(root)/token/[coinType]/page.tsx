@@ -37,27 +37,8 @@ export async function generateMetadata({ params }: { params: Promise<{ coinType:
 
 	return constructMetadata({
 		title: `${symbol} $${formattedMcap}`,
-		description: `Trade ${name} (${symbol}) on BLAST.FUN - Market Cap: $${formattedMcap}`,
+		description: `Trade ${name} (${symbol}) on BLAST.FUN`,
 		image: ogImageUrl,
-		openGraph: {
-			title: `${name} (${symbol}) | BLAST.FUN`,
-			description: `Trade ${name} on BLAST.FUN - Market Cap: $${formattedMcap}`,
-			images: [
-				{
-					url: ogImageUrl,
-					width: 1200,
-					height: 630,
-					alt: `${name} (${symbol})`,
-					type: "image/png",
-				},
-			],
-		},
-		twitter: {
-			card: "summary_large_image",
-			title: `${name} (${symbol}) | BLAST.FUN`,
-			description: `Trade ${name} on BLAST.FUN - Market Cap: $${formattedMcap}`,
-			images: [ogImageUrl],
-		},
 	})
 }
 
