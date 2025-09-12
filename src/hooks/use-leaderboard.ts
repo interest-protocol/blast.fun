@@ -7,13 +7,14 @@ export type SortOrder = 'asc' | 'desc'
 
 interface UseLeaderboardOptions {
 	timeRange?: TimeRange
+	initialSort?: SortBy
 }
 
-export function useLeaderboard({ timeRange = '24h' }: UseLeaderboardOptions = {}) {
+export function useLeaderboard({ timeRange = '24h', initialSort = 'volume' }: UseLeaderboardOptions = {}) {
 	const [rawData, setRawData] = useState<LeaderboardEntry[]>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
-	const [sortBy, setSortBy] = useState<SortBy>('volume')
+	const [sortBy, setSortBy] = useState<SortBy>(initialSort)
 	const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
 
 	useEffect(() => {
@@ -23,7 +24,7 @@ export function useLeaderboard({ timeRange = '24h' }: UseLeaderboardOptions = {}
 			
 			try {
 				const params = new URLSearchParams({
-					sortOn: 'volume', // @dev: Always fetch by volume from API, we'll sort client-side
+					sortOn: 'totalVolume', // @dev: Always fetch by volume from API, we'll sort client-side
 					timeRange
 				})
 				

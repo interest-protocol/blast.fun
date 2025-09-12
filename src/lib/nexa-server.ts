@@ -64,7 +64,7 @@ class NexaServerClient {
 	}
 
 	async getLeaderboard(params?: {
-		sortOn?: 'volume' | 'trades'
+		sortOn?: 'totalVolume' | 'tradeCount'
 		startTime?: number
 		endTime?: number
 	}): Promise<LeaderboardEntry[]> {

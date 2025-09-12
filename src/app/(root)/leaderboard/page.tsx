@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useMemo } from "react"
-import { useLeaderboard, TimeRange } from "@/hooks/use-leaderboard"
+import { useState, useMemo, useEffect } from "react"
+import { useLeaderboard, TimeRange, SortBy } from "@/hooks/use-leaderboard"
 import { Trophy, Medal, ArrowUp, ArrowDown } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { cn } from "@/utils/index"
 import { formatAddress } from "@mysten/sui/utils"
 import { formatPrice } from "@/lib/format"
@@ -12,8 +13,45 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useSuiNSNames } from "@/hooks/use-suins"
 
 export default function LeaderboardPage() {
+	const router = useRouter()
+	const searchParams = useSearchParams()
 	const [timeRange, setTimeRange] = useState<TimeRange>('24h')
-	const { data, loading, error, sortBy, sortOrder, handleSort } = useLeaderboard({ timeRange })
+	const [initialSort, setInitialSort] = useState<SortBy>('volume')
+	
+	// @dev: Read sort and range from URL on mount
+	useEffect(() => {
+		const sortParam = searchParams.get('sort')
+		const rangeParam = searchParams.get('range')
+		
+		if (sortParam === 'volume' || sortParam === 'trades') {
+			setInitialSort(sortParam as SortBy)
+		}
+		
+		if (rangeParam === '24h' || rangeParam === '7d' || rangeParam === '14d' || rangeParam === 'all') {
+			setTimeRange(rangeParam as TimeRange)
+		}
+	}, [])
+	
+	const { data, loading, error, sortBy, sortOrder, handleSort: baseHandleSort } = useLeaderboard({ 
+		timeRange,
+		initialSort 
+	})
+	
+	// @dev: Wrap handleSort to update URL
+	const handleSort = (field: SortBy) => {
+		baseHandleSort(field)
+		const params = new URLSearchParams(searchParams.toString())
+		params.set('sort', field)
+		router.push(`/leaderboard?${params.toString()}`)
+	}
+	
+	// @dev: Handle time range change with URL update
+	const handleTimeRangeChange = (range: TimeRange) => {
+		setTimeRange(range)
+		const params = new URLSearchParams(searchParams.toString())
+		params.set('range', range)
+		router.push(`/leaderboard?${params.toString()}`)
+	}
 
 	const traderAddresses = useMemo(() => {
 		return data.map(entry => entry.user) || []
@@ -36,7 +74,7 @@ export default function LeaderboardPage() {
 					{(['24h', '7d', '14d', 'all'] as const).map((range) => (
 						<button
 							key={range}
-							onClick={() => setTimeRange(range)}
+							onClick={() => handleTimeRangeChange(range)}
 							disabled={loading}
 							className={cn(
 								"px-3 py-1 text-xs font-mono uppercase transition-all rounded",

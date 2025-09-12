@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 export async function GET(request: NextRequest) {
 	try {
 		const searchParams = request.nextUrl.searchParams
-		const sortOn = searchParams.get('sortOn') || 'volume'
+		const sortOn = searchParams.get('sortOn') || 'totalVolume'
 		const timeRange = searchParams.get('timeRange') || '24h'
 		
 		const now = Date.now()
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
 
 		const { nexaServerClient } = await import('@/lib/nexa-server')
 		const data = await nexaServerClient.getLeaderboard({
-			sortOn: sortOn as 'volume' | 'trades',
+			sortOn: sortOn as 'totalVolume' | 'tradeCount',
 			startTime,
 			endTime
 		})
