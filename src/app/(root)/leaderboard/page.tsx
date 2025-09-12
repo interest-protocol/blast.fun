@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, Suspense } from "react"
 import { useLeaderboard, TimeRange, SortBy } from "@/hooks/use-leaderboard"
-import { Trophy, Medal, ArrowUp, ArrowDown } from "lucide-react"
+import { Trophy, Medal, ArrowDown } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { cn } from "@/utils/index"
 import { formatAddress } from "@mysten/sui/utils"
@@ -12,7 +12,7 @@ import { Logo } from "@/components/ui/logo"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useSuiNSNames } from "@/hooks/use-suins"
 
-export default function LeaderboardPage() {
+function LeaderboardContent() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const [timeRange, setTimeRange] = useState<TimeRange>('24h')
@@ -30,9 +30,9 @@ export default function LeaderboardPage() {
 		if (rangeParam === '24h' || rangeParam === '7d' || rangeParam === '14d' || rangeParam === 'all') {
 			setTimeRange(rangeParam as TimeRange)
 		}
-	}, [])
+	}, [searchParams])
 	
-	const { data, loading, error, sortBy, sortOrder, handleSort: baseHandleSort } = useLeaderboard({ 
+	const { data, loading, error, sortBy, handleSort: baseHandleSort } = useLeaderboard({ 
 		timeRange,
 		initialSort 
 	})
@@ -260,5 +260,22 @@ export default function LeaderboardPage() {
 				)}
 			</div>
 		</div>
+	)
+}
+
+export default function LeaderboardPage() {
+	return (
+		<Suspense fallback={
+			<div className="container max-w-7xl mx-auto h-full flex flex-col">
+				<div className="flex-1 bg-card/50 border border-border/50 rounded-lg overflow-hidden min-h-0">
+					<div className="p-8 text-center">
+						<Logo className="w-12 h-12 mx-auto text-foreground/20 mb-4 animate-pulse" />
+						<p className="font-mono text-sm uppercase text-muted-foreground">LOADING::LEADERBOARD</p>
+					</div>
+				</div>
+			</div>
+		}>
+			<LeaderboardContent />
+		</Suspense>
 	)
 }
