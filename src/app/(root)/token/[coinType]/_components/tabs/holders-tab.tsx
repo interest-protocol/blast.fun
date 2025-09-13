@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { Token } from "@/types/token"
-import { Users, ExternalLink, Building2, User } from "lucide-react"
+import { Users, ExternalLink, Building2, User, Lock } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useQuery } from "@tanstack/react-query"
 import { formatAddress } from "@mysten/sui/utils"
@@ -14,6 +14,8 @@ import { useSuiNSNames } from "@/hooks/use-suins"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { PROJECT_WALLETS } from "@/constants/project-wallets"
 import { useTwitterRelations } from "../../_context/twitter-relations.context"
+import { VestingApi } from "@/lib/getVesting"
+import BigNumber from "bignumber.js"
 
 interface HoldersTabProps {
 	pool: Token
@@ -41,6 +43,8 @@ interface CoinHolder {
 		trueBurn: number
 		trueBurnPercent: number
 	}
+	isVesting?: boolean // @dev: This row represents vesting balance
+	vestingPositions?: number // @dev: Number of vesting positions (for tooltip)
 }
 
 interface HoldersResponse {
@@ -84,6 +88,14 @@ export function HoldersTab({ pool, className, activeTab = "holders", onTabChange
 		staleTime: 10000, // @dev: Consider data stale after 10 seconds
 	})
 
+	// @dev: Fetch vesting data
+	const { data: vestingData } = useQuery({
+		queryKey: ["all-vesting-positions", pool.coinType],
+		queryFn: () => VestingApi.getAllVestingsByCoinType(pool.coinType),
+		enabled: !!pool.coinType,
+		staleTime: 30000, // 30 seconds
+	})
+
 	const { addressToTwitter } = useTwitterRelations()
 
 	// @dev: Filter project holders from the main holders list
@@ -92,13 +104,30 @@ export function HoldersTab({ pool, className, activeTab = "holders", onTabChange
 		return data.holders.filter(holder => PROJECT_WALLETS[holder.account])
 	}, [data?.holders])
 
-	// @dev: Get display holders based on active tab and aggregate burns
+	// @dev: Get display holders based on active tab and aggregate burns + vesting
 	const displayHolders = useMemo(() => {
 		if (activeTab === "projects") {
 			return projectHolders
 		}
 		
 		const holders = data?.holders || []
+		const allHolders: CoinHolder[] = []
+		
+		// @dev: Aggregate vesting positions by owner
+		const vestingByOwner = new Map<string, { balance: BigNumber, count: number }>()
+		if (vestingData?.data) {
+			vestingData.data.forEach(position => {
+				const current = vestingByOwner.get(position.owner) || { 
+					balance: new BigNumber(0), 
+					count: 0
+				}
+				// @dev: balance and released are already in human-readable format from API
+				const totalVested = new BigNumber(position.balance).plus(position.released)
+				current.balance = current.balance.plus(totalVested)
+				current.count++
+				vestingByOwner.set(position.owner, current)
+			})
+		}
 		
 		// Find burn addresses
 		const burnAddress = holders.find(h => h.account === "0x0000000000000000000000000000000000000000000000000000000000000000")
@@ -109,6 +138,42 @@ export function HoldersTab({ pool, className, activeTab = "holders", onTabChange
 			h.account !== "0x0000000000000000000000000000000000000000000000000000000000000000" && 
 			h.account !== "true_burn"
 		)
+		
+		// @dev: Create holder entries - both regular and vesting as separate rows
+		const processedAddresses = new Set<string>()
+		
+		// First add all regular holders
+		filteredHolders.forEach(holder => {
+			allHolders.push({ ...holder })
+			processedAddresses.add(holder.account)
+		})
+		
+		// @dev: Add vesting entries as separate rows
+		vestingByOwner.forEach((vestingInfo, owner) => {
+			// Add vesting row
+			allHolders.push({
+				account: owner,
+				balance: vestingInfo.balance.toString(),
+				percentage: vestingInfo.balance.dividedBy(1_000_000_000).toString(),
+				name: "",
+				image: "",
+				website: "",
+				isVesting: true,
+				vestingPositions: vestingInfo.count
+			})
+			
+			// @dev: If this address doesn't have a regular holder entry, add one with 0 balance
+			if (!processedAddresses.has(owner)) {
+				allHolders.push({
+					account: owner,
+					balance: "0",
+					percentage: "0",
+					name: "",
+					image: "",
+					website: "",
+				})
+			}
+		})
 		
 		// Create aggregated burn holder if either exists
 		if (burnAddress || trueBurn) {
@@ -131,12 +196,23 @@ export function HoldersTab({ pool, className, activeTab = "holders", onTabChange
 				}
 			}
 			
-			filteredHolders.push(aggregatedBurn)
+			allHolders.push(aggregatedBurn)
 		}
 		
-		// Sort by balance descending
-		return filteredHolders.sort((a, b) => parseFloat(b.balance) - parseFloat(a.balance))
-	}, [activeTab, data?.holders, projectHolders])
+		// @dev: Sort by balance descending, grouping vesting rows after their main holder
+		return allHolders.sort((a, b) => {
+			// If both are for the same account, regular comes before vesting
+			if (a.account === b.account) {
+				if (a.isVesting && !b.isVesting) return 1
+				if (!a.isVesting && b.isVesting) return -1
+			}
+			
+			// Otherwise sort by balance
+			const aBalance = parseFloat(a.balance || "0")
+			const bBalance = parseFloat(b.balance || "0")
+			return bBalance - aBalance
+		})
+	}, [activeTab, data?.holders, projectHolders, vestingData])
 
 	// @dev: Get all holder addresses for SuiNS resolution
 	const holderAddresses = useMemo(() => {
@@ -253,6 +329,7 @@ export function HoldersTab({ pool, className, activeTab = "holders", onTabChange
 						} else {
 							percentage = parseFloat(holder.percentage) * 100 // @dev: Convert decimal to percentage
 						}
+						
 						const suinsName = suinsNames?.[holder.account]
 						// @dev: Check if this is a project wallet
 						const projectName = PROJECT_WALLETS[holder.account]
@@ -260,7 +337,7 @@ export function HoldersTab({ pool, className, activeTab = "holders", onTabChange
 						const balanceNum = parseFloat(holder.balance.replace(/,/g, ""))
 						const formattedBalance = formatNumberWithSuffix(balanceNum)
 						// @dev: Check if this holder is the developer
-						const isDev = holder.account === pool.creator?.address
+						const isDev = holder.account === pool.creator?.address && !holder.isVesting
 						// @dev: Check if this is the aggregated burn address
 						const isAggregatedBurn = holder.account === "aggregated_burn"
 
@@ -281,7 +358,7 @@ export function HoldersTab({ pool, className, activeTab = "holders", onTabChange
 
 									{/* Address */}
 									<div className="col-span-5 flex items-center gap-2 pl-2">
-										{holder.image && (
+										{holder.image && !holder.isVesting && (
 											<img 
 												src={holder.image} 
 												alt={holder.name || "Holder"} 
@@ -295,6 +372,28 @@ export function HoldersTab({ pool, className, activeTab = "holders", onTabChange
 														<span className="px-1.5 py-0.5 bg-destructive/10 rounded font-mono text-[10px] uppercase text-destructive">
 															BURN
 														</span>
+													</div>
+												) : holder.isVesting ? (
+													// @dev: For vesting rows, just show truncated address with vesting badge
+													<div className="flex items-center gap-2">
+														<span className="font-mono text-[10px] sm:text-xs text-muted-foreground">
+															{holder.account.slice(0, 8)}...
+														</span>
+														<TooltipProvider>
+															<Tooltip>
+																<TooltipTrigger asChild>
+																	<span className="px-1.5 py-0.5 bg-purple-500/10 rounded font-mono text-[9px] uppercase text-purple-500 flex items-center gap-0.5 cursor-help">
+																		<Lock className="h-2.5 w-2.5" />
+																		VESTING
+																	</span>
+																</TooltipTrigger>
+																<TooltipContent>
+																	<div className="text-xs">
+																		{holder.vestingPositions} vesting position{holder.vestingPositions && holder.vestingPositions > 1 ? 's' : ''}
+																	</div>
+																</TooltipContent>
+															</Tooltip>
+														</TooltipProvider>
 													</div>
 												) : addressToTwitter.has(holder.account) ? (
 													<a
@@ -386,17 +485,19 @@ export function HoldersTab({ pool, className, activeTab = "holders", onTabChange
 
 									{/* Holdings */}
 									<div className={cn(
-										"col-span-3 text-right font-mono text-[10px] sm:text-xs",
-										isAggregatedBurn ? "text-destructive" : "text-foreground/80"
+										"col-span-3 text-right font-mono text-[10px] sm:text-xs flex items-center justify-end",
+										isAggregatedBurn ? "text-destructive" : 
+										holder.isVesting ? "text-purple-500" : "text-foreground/80"
 									)}>
 										{formattedBalance}
 									</div>
 
 									{/* Percentage */}
-									<div className="col-span-3 text-right pr-2">
+									<div className="col-span-3 text-right pr-2 flex items-center justify-end">
 										<span className={cn(
 											"font-mono text-[10px] sm:text-xs font-bold",
 											isAggregatedBurn ? "text-destructive" :
+											holder.isVesting ? "text-purple-500" :
 											percentage >= 10 ? "text-destructive" : 
 											percentage >= 5 ? "text-yellow-500" : 
 											"text-foreground/60"
