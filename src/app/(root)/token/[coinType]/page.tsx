@@ -5,6 +5,7 @@ import { fetchTokenByCoinType } from "@/lib/fetch-token-by-cointype"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { redirect } from "next/navigation"
 import { fetchTokenByPool } from "@/lib/fetch-token-by-pool"
+import { BASE_DOMAIN } from "@/constants"
 
 export async function generateMetadata({ params }: { params: Promise<{ coinType: string }> }): Promise<Metadata> {
 	const { coinType } = await params
@@ -20,20 +21,16 @@ export async function generateMetadata({ params }: { params: Promise<{ coinType:
 	const marketCap = tokenData.market?.marketCap || 0
 	const formattedMcap = formatNumberWithSuffix(marketCap)
 
-	const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
-		? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-		: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-	
 	// @dev: Use the blast.fun API endpoint for coin images
 	const processedImageUrl = `https://blast.fun/api/coin/${coinType}/image`
-	
+
 	const ogParams: Record<string, string> = {
 		name: name,
 		marketCap: `$${formattedMcap}`,
 		image: processedImageUrl
 	}
 
-	const ogImageUrl = `${baseUrl}/api/og?${new URLSearchParams(ogParams).toString()}`
+	const ogImageUrl = `${BASE_DOMAIN}/api/og?${new URLSearchParams(ogParams).toString()}`
 
 	return constructMetadata({
 		title: `${symbol} $${formattedMcap}`,
