@@ -85,7 +85,7 @@ export function QuickAccountDialog({ open, onOpenChange }: QuickAccountDialogPro
 							<div>
 								<h3 className="font-semibold mb-1">Secure & Non-Custodial</h3>
 								<p className="text-sm text-muted-foreground">
-									Your account is powered by Privy and secured by Nexa's infrastructure
+									Your account is powered by Privy and secured by Nexa&apos;s infrastructure
 								</p>
 							</div>
 						</div>

@@ -69,7 +69,7 @@ interface WalletManagerProps {
 export function WalletManager({ onClosePopover }: WalletManagerProps = {}) {
 	const { accounts, currentAccount, switchAccount, setIsConnectDialogOpen } = useApp()
 	const { walletType, address: unifiedAddress, switchToWallet, hasStandardWallet, hasPrivyWallet } = useUnifiedWallet()
-	const { isAuthenticated: isPrivyAuthenticated, user: privyUser } = usePrivyAuth()
+	const { isAuthenticated: isPrivyAuthenticated } = usePrivyAuth()
 	const { suiAddress: privySuiAddress } = usePrivySuiWallet()
 	const { copy, copied } = useClipboard()
 	const router = useRouter()

@@ -131,7 +131,7 @@ const PrivyLoginMobileModule = () => {
 								<div className="flex-1">
 									<p className="font-medium">Secure & Non-Custodial</p>
 									<p className="text-sm text-muted-foreground">
-										Your account is powered by Privy and secured by Nexa's infrastructure
+										Your account is powered by Privy and secured by Nexa&apos;s infrastructure
 									</p>
 								</div>
 							</div>
