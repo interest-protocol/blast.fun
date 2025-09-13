@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, Suspense } from "react"
 import { useLeaderboard, TimeRange, SortBy } from "@/hooks/use-leaderboard"
-import { Trophy, Medal, ArrowDown, Loader2, Download } from "lucide-react"
+import { Trophy, Medal, ArrowDown, Loader2, Download, Copy, Check } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { cn } from "@/utils/index"
 import { formatAddress } from "@mysten/sui/utils"
@@ -16,6 +16,7 @@ function LeaderboardContent() {
 	const searchParams = useSearchParams()
 	const [timeRange, setTimeRange] = useState<TimeRange>('24h')
 	const [initialSort, setInitialSort] = useState<SortBy>('volume')
+	const [copied, setCopied] = useState(false)
 
 	// @dev: Read sort and range from URL on mount
 	useEffect(() => {
@@ -127,6 +128,36 @@ function LeaderboardContent() {
 		URL.revokeObjectURL(url)
 	}
 
+	// @dev: Copy leaderboard data to clipboard in TSV format
+	const handleCopyTSV = async () => {
+		// @dev: Prepare TSV content (Tab-Separated Values)
+		const headers = ['address', 'suins', 'volume', 'trades']
+		const rows = data.map(entry => {
+			const suinsName = suinsNames?.[entry.user] || ''
+			return [
+				entry.user,
+				suinsName,
+				(entry.totalVolume || 0).toString(),
+				(entry.tradeCount || 0).toString()
+			].join('\t')
+		})
+
+		// @dev: Convert to TSV format
+		const tsvContent = [
+			headers.join('\t'),
+			...rows
+		].join('\n')
+
+		try {
+			await navigator.clipboard.writeText(tsvContent)
+			setCopied(true)
+			// @dev: Reset copied state after 2 seconds
+			setTimeout(() => setCopied(false), 2000)
+		} catch (err) {
+			console.error('Failed to copy to clipboard:', err)
+		}
+	}
+
 	return (
 		<div className="container max-w-7xl mx-auto py-4">
 			{/* Controls Section */}
@@ -158,22 +189,51 @@ function LeaderboardContent() {
 					))}
 				</div>
 
-				{/* Download Button */}
-				<button
-					onClick={handleExportCSV}
-					disabled={loading || data.length === 0}
-					className={cn(
-						"px-3 py-1 text-xs font-mono uppercase transition-all rounded",
-						"bg-card/50 backdrop-blur-sm border border-border/50",
-						"text-muted-foreground hover:text-foreground hover:bg-muted/50",
-						"disabled:opacity-50 disabled:cursor-not-allowed",
-						"flex items-center gap-1.5"
-					)}
-					title="Download CSV"
-				>
-					<Download className="h-3.5 w-3.5" />
-					Download
-				</button>
+				{/* Action Buttons */}
+				<div className="flex items-center gap-2">
+					{/* Copy Button */}
+					<button
+						onClick={handleCopyTSV}
+						disabled={loading || data.length === 0}
+						className={cn(
+							"px-3 py-1 text-xs font-mono uppercase transition-all rounded",
+							"bg-card/50 backdrop-blur-sm border border-border/50",
+							"text-muted-foreground hover:text-foreground hover:bg-muted/50",
+							"disabled:opacity-50 disabled:cursor-not-allowed",
+							"flex items-center gap-1.5"
+						)}
+						title="Copy as TSV to clipboard"
+					>
+						{copied ? (
+							<>
+								<Check className="h-3.5 w-3.5 text-green-500" />
+								Copied
+							</>
+						) : (
+							<>
+								<Copy className="h-3.5 w-3.5" />
+								Copy
+							</>
+						)}
+					</button>
+
+					{/* Download Button */}
+					<button
+						onClick={handleExportCSV}
+						disabled={loading || data.length === 0}
+						className={cn(
+							"px-3 py-1 text-xs font-mono uppercase transition-all rounded",
+							"bg-card/50 backdrop-blur-sm border border-border/50",
+							"text-muted-foreground hover:text-foreground hover:bg-muted/50",
+							"disabled:opacity-50 disabled:cursor-not-allowed",
+							"flex items-center gap-1.5"
+						)}
+						title="Download CSV"
+					>
+						<Download className="h-3.5 w-3.5" />
+						Download
+					</button>
+				</div>
 			</div>
 
 			{/* Leaderboard Content */}
