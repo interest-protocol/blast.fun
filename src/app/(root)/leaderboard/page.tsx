@@ -2,12 +2,11 @@
 
 import { useState, useMemo, useEffect, Suspense } from "react"
 import { useLeaderboard, TimeRange, SortBy } from "@/hooks/use-leaderboard"
-import { Trophy, Medal, ArrowDown, Loader2 } from "lucide-react"
+import { Trophy, Medal, ArrowDown, Loader2, Download } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { cn } from "@/utils/index"
 import { formatAddress } from "@mysten/sui/utils"
 import { formatPrice } from "@/lib/format"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Logo } from "@/components/ui/logo"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useSuiNSNames } from "@/hooks/use-suins"
@@ -76,10 +75,62 @@ function LeaderboardContent() {
 		return <span className="text-xs font-mono text-muted-foreground">#{rank}</span>
 	}
 
+	// @dev: Export leaderboard data to CSV
+	const handleExportCSV = () => {
+		// @dev: Format timestamp as YYYYMMDD_HHmm
+		const now = new Date()
+		const year = now.getFullYear()
+		const month = String(now.getMonth() + 1).padStart(2, '0')
+		const day = String(now.getDate()).padStart(2, '0')
+		const hours = String(now.getHours()).padStart(2, '0')
+		const minutes = String(now.getMinutes()).padStart(2, '0')
+		const timestamp = `${year}${month}${day}_${hours}${minutes}`
+
+		// @dev: Map time range for filename
+		const rangeMap: Record<TimeRange, string> = {
+			'24h': '24h',
+			'7d': '7d',
+			'14d': 'cycle',
+			'all': 'all'
+		}
+
+		const filename = `${timestamp}_${rangeMap[timeRange]}.csv`
+
+		// @dev: Prepare CSV content
+		const headers = ['address', 'suins', 'volume', 'trades']
+		const rows = data.map(entry => {
+			const suinsName = suinsNames?.[entry.user] || ''
+			return [
+				entry.user,
+				suinsName,
+				(entry.totalVolume || 0).toString(),
+				(entry.tradeCount || 0).toString()
+			]
+		})
+
+		// @dev: Convert to CSV format
+		const csvContent = [
+			headers.join(','),
+			...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+		].join('\n')
+
+		// @dev: Create blob and download
+		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+		const link = document.createElement('a')
+		const url = URL.createObjectURL(blob)
+		link.setAttribute('href', url)
+		link.setAttribute('download', filename)
+		link.style.display = 'none'
+		document.body.appendChild(link)
+		link.click()
+		document.body.removeChild(link)
+		URL.revokeObjectURL(url)
+	}
+
 	return (
-		<div className="container max-w-7xl mx-auto h-full flex flex-col">
+		<div className="container max-w-7xl mx-auto py-4">
 			{/* Controls Section */}
-			<div className="flex justify-start mb-3">
+			<div className="flex justify-between items-center mb-3">
 				<div className="p-0.5 bg-card/50 backdrop-blur-sm border border-border/50 rounded-md flex items-center">
 					{(['24h', '7d', '14d', 'all'] as const).map((range) => (
 						<button
@@ -94,8 +145,8 @@ function LeaderboardContent() {
 									: "text-muted-foreground hover:text-foreground hover:bg-muted/50"
 							)}
 							title={
-								range === '14d' ? 'Current reward cycle' : 
-								range === 'all' ? 'All time since Sep 1' : 
+								range === '14d' ? 'Current reward cycle' :
+								range === 'all' ? 'All time since Sep 1' :
 								undefined
 							}
 						>
@@ -106,13 +157,29 @@ function LeaderboardContent() {
 						</button>
 					))}
 				</div>
+
+				{/* Download Button */}
+				<button
+					onClick={handleExportCSV}
+					disabled={loading || data.length === 0}
+					className={cn(
+						"px-3 py-1 text-xs font-mono uppercase transition-all rounded",
+						"bg-card/50 backdrop-blur-sm border border-border/50",
+						"text-muted-foreground hover:text-foreground hover:bg-muted/50",
+						"disabled:opacity-50 disabled:cursor-not-allowed",
+						"flex items-center gap-1.5"
+					)}
+					title="Download CSV"
+				>
+					<Download className="h-3.5 w-3.5" />
+					Download
+				</button>
 			</div>
 
 			{/* Leaderboard Content */}
-			<div className="flex-1 bg-card/50 border border-border/50 rounded-lg overflow-hidden min-h-0">
+			<div className="bg-card/50 border border-border/50 rounded-lg overflow-hidden">
 				{loading ? (
-					<ScrollArea className="h-full">
-						<div className="w-full">
+					<div className="w-full">
 							<div className="relative">
 								<div className="grid grid-cols-12 py-2 border-b border-border/50 text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground sticky top-0 bg-card/95 backdrop-blur-sm z-10 select-none">
 									<div className="col-span-1"></div>
@@ -147,8 +214,7 @@ function LeaderboardContent() {
 									</div>
 								))}
 							</div>
-						</div>
-					</ScrollArea>
+					</div>
 				) : error ? (
 					<div className="p-8 text-center">
 						<Logo className="w-12 h-12 mx-auto text-foreground/20 mb-4" />
@@ -166,9 +232,8 @@ function LeaderboardContent() {
 						</p>
 					</div>
 				) : (
-					<ScrollArea className="h-full">
-						<div className="w-full">
-							<div className="relative">
+					<div className="w-full">
+						<div className="relative">
 								{/* Header - Sticky like holders tab */}
 								<div className="grid grid-cols-12 py-2 border-b border-border/50 text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground sticky top-0 bg-card/95 backdrop-blur-sm z-10 select-none">
 									<div className="col-span-1 text-center"></div>
@@ -299,9 +364,8 @@ function LeaderboardContent() {
 										</span>
 									</div>
 								)}
-							</div>
 						</div>
-					</ScrollArea>
+					</div>
 				)}
 			</div>
 		</div>
@@ -311,8 +375,8 @@ function LeaderboardContent() {
 export default function LeaderboardPage() {
 	return (
 		<Suspense fallback={
-			<div className="container max-w-7xl mx-auto h-full flex flex-col">
-				<div className="flex-1 bg-card/50 border border-border/50 rounded-lg overflow-hidden min-h-0">
+			<div className="container max-w-7xl mx-auto py-4">
+				<div className="bg-card/50 border border-border/50 rounded-lg">
 					<div className="p-8 text-center">
 						<Logo className="w-12 h-12 mx-auto text-foreground/20 mb-4 animate-pulse" />
 						<p className="font-mono text-sm uppercase text-muted-foreground">LOADING::LEADERBOARD</p>
