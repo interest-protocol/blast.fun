@@ -16,6 +16,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import BigNumber from "bignumber.js"
 import { useVestingSDK } from "@/app/(root)/vesting/_hooks/use-vesting-sdk"
 import { formatNumber, formatNumberWithPercentage } from "@/lib/format"
+import { Plus } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 interface VestingTabProps {
 	pool: Token
@@ -39,6 +41,7 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 	const [currentTime, setCurrentTime] = useState(Date.now())
 	const { isMobile } = useBreakpoint()
 	const vestingSdk = useVestingSDK()
+	const router = useRouter()
 	const [sortField, setSortField] = useState<SortField>("totalAmount")
 	const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
 
@@ -305,6 +308,34 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 	}
 
 	if (!vestingData?.data?.length && !processedData?.data?.length) {
+		// @dev: Mobile layout for empty state
+		if (isMobile) {
+			return (
+				<div className={cn("flex flex-col h-full", className)}>
+					<div className="flex-1 flex items-center justify-center p-4">
+						<div className="w-full max-w-sm">
+							<div className="text-center mb-6">
+								<Lock className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+								<p className="text-muted-foreground">No vesting positions found</p>
+								<p className="text-sm text-muted-foreground/60 mt-1">
+									This token has no active vesting schedules
+								</p>
+							</div>
+							{/* Add Vesting Card - Mobile Empty State */}
+							<div
+								className="bg-card border rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors"
+								onClick={() => router.push(`/vesting?coin_type=${encodeURIComponent(pool.coinType)}`)}
+							>
+								<Plus className="h-8 w-8 mb-2 text-muted-foreground" />
+								<span className="text-sm font-medium text-muted-foreground">Add Vesting</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			)
+		}
+		
+		// @dev: Desktop layout for empty state
 		return (
 			<div className={cn("flex flex-col h-full", className)}>
 				<div className="flex-1 flex items-center justify-center">
@@ -314,6 +345,20 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 						<p className="text-sm text-muted-foreground/60 mt-1">
 							This token has no active vesting schedules
 						</p>
+					</div>
+				</div>
+				{/* Bottom Row for Desktop - Empty State */}
+				<div className="border-t p-4">
+					<div className="flex items-center justify-between">
+						<p className="text-sm text-muted-foreground">No vesting positions yet</p>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => router.push(`/vesting?coin_type=${encodeURIComponent(pool.coinType)}`)}
+						>
+							<Plus className="h-4 w-4 mr-2" />
+							Add Vesting
+						</Button>
 					</div>
 				</div>
 			</div>
@@ -420,6 +465,15 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 								</div>
 							</div>
 						))}
+						
+						{/* Add Vesting Card - Mobile (at bottom) */}
+						<div
+							className="bg-card border rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors"
+							onClick={() => router.push(`/vesting?coin_type=${encodeURIComponent(pool.coinType)}`)}
+						>
+							<Plus className="h-8 w-8 mb-2 text-muted-foreground" />
+							<span className="text-sm font-medium text-muted-foreground">Add Vesting</span>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -564,14 +618,25 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 				</div>
 			</ScrollArea>
 
-			{/* Total Count */}
-			{processedPositions.length > 0 && (
-				<div className="border-t p-4">
-					<p className="text-sm text-muted-foreground text-center">
-						Showing all {(processedData?.total || vestingData?.total || processedPositions.length)} vesting positions
+			{/* Bottom Row for Desktop - Always show */}
+			<div className="border-t p-4">
+				<div className="flex items-center justify-between">
+					<p className="text-sm text-muted-foreground">
+						{processedPositions.length > 0 
+							? `Showing all ${(processedData?.total || vestingData?.total || processedPositions.length)} vesting positions`
+							: "No vesting positions yet"
+						}
 					</p>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => router.push(`/vesting?coin_type=${encodeURIComponent(pool.coinType)}`)}
+					>
+						<Plus className="h-4 w-4 mr-2" />
+						Add Vesting
+					</Button>
 				</div>
-			)}
+			</div>
 		</div>
 	)
 }

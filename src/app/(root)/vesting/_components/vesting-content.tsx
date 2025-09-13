@@ -12,6 +12,7 @@ export default function VestingContent() {
 	const pathname = usePathname()
 	const [activeTab, setActiveTab] = useState<string>()
 	const [shouldRefresh, setShouldRefresh] = useState(false)
+	const coinType = searchParams.get("coin_type")
 
 	useEffect(() => {
 		const tabParam = searchParams.get("tab")
@@ -27,6 +28,10 @@ export default function VestingContent() {
 		const urlTab = value === "positions" ? "my_positions" : value
 		const params = new URLSearchParams(searchParams)
 		params.set("tab", urlTab)
+		// @dev: Preserve coin_type parameter when switching tabs
+		if (coinType) {
+			params.set("coin_type", coinType)
+		}
 		router.replace(`${pathname}?${params.toString()}`)
 	}
 
@@ -63,7 +68,7 @@ export default function VestingContent() {
 					</TabsList>
 
 					<TabsContent value="create" className="mt-6">
-						<CreateVesting onVestingCreated={handleVestingCreated} />
+						<CreateVesting onVestingCreated={handleVestingCreated} initialCoinType={coinType} />
 					</TabsContent>
 
 					<TabsContent value="positions" className="mt-6">

@@ -34,9 +34,10 @@ import BigNumber from "bignumber.js"
 
 interface CreateVestingProps {
 	onVestingCreated?: () => void
+	initialCoinType?: string | null
 }
 
-export function CreateVesting({ onVestingCreated }: CreateVestingProps) {
+export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVestingProps) {
 	const { address, setIsConnectDialogOpen } = useApp()
 	const [coins, setCoins] = useState<WalletCoin[]>([])
 	const [selectedCoin, setSelectedCoin] = useState<string>("")
@@ -142,7 +143,12 @@ export function CreateVesting({ onVestingCreated }: CreateVestingProps) {
 					})
 					setCoins(sortedCoins)
 					if (sortedCoins.length > 0 && !selectedCoin) {
-						setSelectedCoin(sortedCoins[0].coinType)
+						// @dev: Use initialCoinType if provided and exists in the coins list
+						if (initialCoinType && sortedCoins.some(c => c.coinType === initialCoinType)) {
+							setSelectedCoin(initialCoinType)
+						} else {
+							setSelectedCoin(sortedCoins[0].coinType)
+						}
 					}
 				}
 			} catch (error) {
@@ -154,7 +160,7 @@ export function CreateVesting({ onVestingCreated }: CreateVestingProps) {
 		}
 
 		fetchCoins()
-	}, [address, selectedCoin])
+	}, [address, selectedCoin, initialCoinType])
 
 	const selectedCoinData = coins.find(c => c.coinType === selectedCoin)
 
