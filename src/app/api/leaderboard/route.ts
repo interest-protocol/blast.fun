@@ -12,8 +12,8 @@ export async function GET(request: NextRequest) {
 		let startTime: number
 		const endTime: number = now
 		
-		// @dev: reward cycles - 14 day periods starting Sep 1st
-		const PROGRAM_START = new Date('2025-09-01T00:00:00Z').getTime()
+		// @dev: reward cycles - 14 day periods starting Sep 5th
+		const PROGRAM_START = new Date('2025-09-05T00:00:00Z').getTime()
 		const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000
 		
 		// @dev: calculate current cycle

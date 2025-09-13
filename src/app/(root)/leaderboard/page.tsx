@@ -177,7 +177,7 @@ function LeaderboardContent() {
 							)}
 							title={
 								range === '14d' ? 'Current reward cycle' :
-								range === 'all' ? 'All time since Sep 1' :
+								range === 'all' ? 'All time since Sep 5' :
 								undefined
 							}
 						>
