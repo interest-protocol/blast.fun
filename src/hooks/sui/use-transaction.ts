@@ -18,8 +18,13 @@ export const useTransaction = () => {
 			if (!isConnected) {
 				throw new Error("No wallet connected")
 			}
+			const prevTitle = document.title;
 
 			try {
+				
+				document.title = "Blast.fun";
+				document.title = prevTitle;
+
 				const startTime = Date.now()
 				
 				// @dev: Use unified wallet to sign and execute transaction
@@ -91,6 +96,7 @@ export const useTransaction = () => {
 				} as TransactionResult
 			} catch (error) {
 				console.error("Transaction execution failed:", error)
+				document.title = prevTitle;
 				throw error instanceof Error ? error : new Error("Transaction failed")
 			}
 		},

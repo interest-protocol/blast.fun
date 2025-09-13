@@ -1,6 +1,7 @@
 import { env } from "@/env"
-import { MarketData } from "@/types/market"
-import { CoinMetadata } from "@/types/pool"
+import type { TokenMarketData } from "@/types/token"
+import type { TokenMetadata } from "@/types/token"
+import type { LeaderboardEntry } from "@/types/leaderboard"
 
 const NEXA_SERVER_API_BASE = "https://spot.api.sui-prod.bluefin.io/external-api/insidex"
 
@@ -41,20 +42,17 @@ class NexaServerClient {
 		return response
 	}
 
-	async getMarketData(coinType: string): Promise<MarketData> {
-		const response = await this.fetch(`/coins/${coinType}/market-data`, {
-			// revalidate: 120, // 2 minutes
-		})
-
-		return await response.json() as MarketData
+	async getMarketData(coinType: string): Promise<TokenMarketData> {
+		const response = await this.fetch(`/coins/${coinType}/market-data`)
+		return await response.json() as TokenMarketData
 	}
 
-	async getCoinMetadata(coinType: string): Promise<CoinMetadata> {
+	async getCoinMetadata(coinType: string): Promise<TokenMetadata> {
 		const response = await this.fetch(`/coins/${coinType}/coin-metadata`, {
 			revalidate: 43200, // 12 hours
 		})
 
-		return await response.json() as CoinMetadata
+		return await response.json() as TokenMetadata
 	}
 
 	async getPortfolio(address: string) {
@@ -63,6 +61,27 @@ class NexaServerClient {
 		})
 
 		return await response.json()
+	}
+
+	async getLeaderboard(params?: {
+		sortOn?: 'totalVolume' | 'tradeCount'
+		startTime?: number
+		endTime?: number
+	}): Promise<LeaderboardEntry[]> {
+		const searchParams = new URLSearchParams()
+		
+		if (params?.sortOn) searchParams.append('sortOn', params.sortOn)
+		if (params?.startTime) searchParams.append('startTime', params.startTime.toString())
+		if (params?.endTime) searchParams.append('endTime', params.endTime.toString())
+		
+		const queryString = searchParams.toString()
+		const endpoint = queryString ? `/blast-fun/leaderboard?${queryString}` : '/blast-fun/leaderboard'
+		
+		const response = await this.fetch(endpoint, {
+			revalidate: 60, // Cache for 1 minute
+		})
+
+		return await response.json() as LeaderboardEntry[]
 	}
 }
 

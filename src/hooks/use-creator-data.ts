@@ -1,13 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-
-interface CreatorData {
-	launchCount: number;
-	trustedFollowers: string;
-	followers: string;
-}
+import type { TokenCreator } from "@/types/token";
 
 export function useCreatorData(identifier: string | undefined) {
-	return useQuery<CreatorData>({
+	return useQuery<TokenCreator>({
 		queryKey: ["creator", identifier],
 		queryFn: async () => {
 			if (!identifier) throw new Error("No identifier provided");

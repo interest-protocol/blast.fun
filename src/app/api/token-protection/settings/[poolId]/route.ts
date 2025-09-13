@@ -12,11 +12,15 @@ export async function GET(
 			select: { settings: true }
 		})
 
-		if (!poolSettings) {
-			return NextResponse.json({ settings: null })
-		}
-
-		return NextResponse.json({ settings: poolSettings.settings })
+		const response = NextResponse.json(
+			{ settings: poolSettings ? poolSettings.settings : null },
+			{
+				headers: {
+					"Cache-Control": "public, s-maxage=3600, stale-while-revalidate=60"
+				}
+			}
+		)
+		return response
 	} catch (error) {
 		console.error("Error fetching pool settings:", error)
 		return NextResponse.json(

@@ -1,103 +1,63 @@
 "use client"
 
 import { memo, useCallback, useState, useMemo } from "react"
-import { useQuery } from "@tanstack/react-query"
 import { TokenCard } from "./token-card"
 import { TokenListLayout } from "./token-list.layout"
 import { TokenCardSkeleton } from "./token-card.skeleton"
 import { Logo } from "@/components/ui/logo"
-import { TokenListSettingsDialog, type TokenListSettings } from "./token-list.settings"
-import type { PoolWithMetadata } from "@/types/pool"
+import { TokenListFilters } from "./token-list.filters"
+import { useAboutToBondTokens } from "@/hooks/use-tokens"
+import type { TokenListSettings, TokenFilters } from "@/types/token"
+import { sortTokens } from "@/utils/token-sorting"
 
 interface NearGraduationProps {
 	pollInterval?: number
-}
-
-async function fetchGraduatingTokens() {
-	const response = await fetch("/api/tokens?category=graduating&sortField=bondingCurve&sortDirection=DESC&pageSize=30")
-	if (!response.ok) throw new Error("Failed to fetch tokens")
-	return response.json()
 }
 
 export const NearGraduation = memo(function NearGraduation({
 	pollInterval = 10000
 }: NearGraduationProps) {
 	const [settings, setSettings] = useState<TokenListSettings>({
-		sortBy: "bondingCurve",
-		socialFilters: {
-			requireWebsite: false,
-			requireTwitter: false,
-			requireTelegram: false,
+		sortBy: "bondingProgress",
+		filters: {
+			tabType: 'about-to-bond'
 		}
 	})
 
-	const { data, isLoading, error } = useQuery({
-		queryKey: ["tokens", "graduating"],
-		queryFn: fetchGraduatingTokens,
-		refetchInterval: pollInterval,
-		staleTime: 5000
+	// @dev: Build filter params - about to bond should have high bonding progress
+	const filterParams = useMemo<TokenFilters>(() => {
+		return {
+			...settings.filters,
+			tabType: 'about-to-bond'
+		}
+	}, [settings.filters])
+
+	const { data, isLoading, error } = useAboutToBondTokens(filterParams, {
+		refetchInterval: pollInterval
 	})
 
+	const filteredAndSortedTokens = useMemo(() => {
+		if (!data || data.length === 0) return []
 
-	const filteredAndSortedPools = useMemo(() => {
-		if (!data?.pools || data.pools.length === 0) return []
+		let tokens = [...data]
 
-		let pools = [...data.pools]
-
-		// Apply social filters
-		if (settings.socialFilters.requireWebsite ||
-			settings.socialFilters.requireTwitter ||
-			settings.socialFilters.requireTelegram) {
-
-			pools = pools.filter((pool: PoolWithMetadata) => {
-				const metadata = pool.metadata
+		// @dev: Apply additional client-side social filters if needed
+		if (settings.filters.hasWebsite || settings.filters.hasTwitter || settings.filters.hasTelegram) {
+			tokens = tokens.filter((token) => {
+				const metadata = token.metadata || token
 				if (!metadata) return false
-
-				// Check for social links with proper field names (capital letters)
-				if (settings.socialFilters.requireWebsite && (!metadata.Website || metadata.Website === '')) return false
-				if (settings.socialFilters.requireTwitter && (!metadata.X || metadata.X === '')) return false
-				if (settings.socialFilters.requireTelegram && (!metadata.Telegram || metadata.Telegram === '')) return false
-
+				
+				if (settings.filters.hasWebsite && (!metadata.Website || metadata.Website === '')) return false
+				if (settings.filters.hasTwitter && (!metadata.X || metadata.X === '')) return false
+				if (settings.filters.hasTelegram && (!metadata.Telegram || metadata.Telegram === '')) return false
+				
 				return true
 			})
 		}
 
-		// Apply sorting
-		switch (settings.sortBy) {
-			case "bondingCurve":
-				return pools.sort((a: PoolWithMetadata, b: PoolWithMetadata) => {
-					const aBonding = Number(a.bondingCurve) || 0
-					const bBonding = Number(b.bondingCurve) || 0
-					return bBonding - aBonding
-				})
-			case "marketCap":
-				return pools.sort((a: PoolWithMetadata, b: PoolWithMetadata) => {
-					const aMarketCap = a.marketData?.marketCap || 0
-					const bMarketCap = b.marketData?.marketCap || 0
-					return bMarketCap - aMarketCap
-				})
-			case "date":
-				return pools.sort((a: PoolWithMetadata, b: PoolWithMetadata) => {
-					const aDate = new Date(a.lastTradeAt || a.createdAt || 0).getTime()
-					const bDate = new Date(b.lastTradeAt || b.createdAt || 0).getTime()
-					return bDate - aDate
-				})
-			case "volume":
-				return pools.sort((a: PoolWithMetadata, b: PoolWithMetadata) => {
-					const aVolume = a.marketData?.coin24hTradeVolumeUsd || 0
-					const bVolume = b.marketData?.coin24hTradeVolumeUsd || 0
-					return bVolume - aVolume
-				})
-			case "holders":
-				return pools.sort((a: PoolWithMetadata, b: PoolWithMetadata) => {
-					const aHolders = a.marketData?.holdersCount || 0
-					const bHolders = b.marketData?.holdersCount || 0
-					return bHolders - aHolders
-				})
-			default:
-				return pools
-		}
-	}, [data?.pools, settings])
+		// @dev: Use unified sorting utility
+		return sortTokens(tokens, settings.sortBy)
+	}, [data, settings])
 
 	const renderContent = useCallback(() => {
 		if (error) {
@@ -117,7 +77,7 @@ export const NearGraduation = memo(function NearGraduation({
 			))
 		}
 
-		if (filteredAndSortedPools.length === 0 && !isLoading) {
+		if (filteredAndSortedTokens.length === 0 && !isLoading) {
 			return (
 				<div className="p-8 text-center">
 					<Logo className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
@@ -128,30 +88,24 @@ export const NearGraduation = memo(function NearGraduation({
 			)
 		}
 
-		return filteredAndSortedPools.map((pool: PoolWithMetadata) => (
+		return filteredAndSortedTokens.map((pool) => (
 			<TokenCard 
-				key={pool.poolId} 
+				key={pool.coinType} 
 				pool={pool} 
 			/>
 		))
-	}, [filteredAndSortedPools, isLoading, error])
+	}, [filteredAndSortedTokens, isLoading, error])
 
 	return (
 		<TokenListLayout
 			title="NEAR GRADUATION"
 			glowColor="pink"
 			headerAction={
-				<TokenListSettingsDialog
+				<TokenListFilters
 					columnId="graduating"
 					onSettingsChange={setSettings}
-					defaultSort="bondingCurve"
-					availableSortOptions={[
-						{ value: "bondingCurve", label: "BONDING::PROGRESS" },
-						{ value: "marketCap", label: "MARKET::CAP" },
-						{ value: "date", label: "RECENT::TRADES" },
-						{ value: "volume", label: "VOLUME::24H" },
-						{ value: "holders", label: "HOLDER::COUNT" },
-					]}
+					defaultSort="bondingProgress"
+					defaultTab="about-to-bond"
 				/>
 			}
 		>

@@ -47,7 +47,14 @@ export function useTokenProtectionBatch(pools: Array<{ poolId: string }>) {
 						const batch = poolsToFetch.slice(i, i + batchSize)
 						const promises = batch.map(async (poolId) => {
 							try {
-								const response = await fetch(`/api/token-protection/settings/${poolId}`)
+								const response = await fetch(`/api/token-protection/settings/${poolId}`,
+									{
+										headers: {
+											'cloudflare-cache': '3600',
+											'cache-control': 'no-store'
+										}
+									}
+								)
 								if (response.ok) {
 									const data = await response.json()
 									const settings = data.settings || null

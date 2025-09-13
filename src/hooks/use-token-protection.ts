@@ -24,7 +24,12 @@ export function useTokenProtection(poolId: string, isProtected?: boolean) {
 			setError(null)
 
 			try {
-				const response = await fetch(`/api/token-protection/settings/${poolId}`)
+				const response = await fetch(`/api/token-protection/settings/${poolId}`, {
+					headers: {
+						'cloudflare-cache': '3600',
+						'cache-control': 'no-store'
+					}
+				})
 				if (response.ok) {
 					const data = await response.json()
 					setSettings(data.settings || null)

@@ -54,6 +54,10 @@ const tokenSchema = z.object({
 		(val) => !val || Number(val) >= 0,
 		"Must be a positive number"
 	),
+	burnTax: z.string().optional().refine(
+		(val) => !val || (Number(val) >= 0 && Number(val) <= 60),
+		"Must be between 0% and 60%"
+	),
 })
 
 export type TokenFormValues = z.infer<typeof tokenSchema>
@@ -65,6 +69,7 @@ interface CreateTokenFormProps {
 export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) {
 	const [isDragging, setIsDragging] = useState(false)
 	const [showProtectionSettings, setShowProtectionSettings] = useState(true) // Default to true since sniperProtection defaults to true
+	const [urlInput, setUrlInput] = useState("")
 	const { balance } = useBalance({ autoRefetch: true, autoRefetchInterval: 5000 })
 
 	const form = useForm<TokenFormValues>({
@@ -84,6 +89,7 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 			minFollowerCount: "",
 			maxHoldingPercent: "",
 			devBuyAmount: "",
+			burnTax: "",
 		},
 		mode: "onBlur",
 	})
@@ -106,9 +112,10 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 		hideIdentity,
 		sniperProtection,
 		requireTwitter,
+		minFollowerCount,
 		maxHoldingPercent,
 		devBuyAmount,
-	}), [imageUrl, tokenName, tokenSymbol, hideIdentity, sniperProtection, requireTwitter, maxHoldingPercent, devBuyAmount])
+	}), [imageUrl, tokenName, tokenSymbol, hideIdentity, sniperProtection, requireTwitter, minFollowerCount, maxHoldingPercent, devBuyAmount])
 
 	useEffect(() => {
 		if (onFormChange) {
@@ -130,6 +137,14 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 				toast.error("UPLOAD::FAILED")
 				console.error("Image upload error:", error)
 			}
+		},
+		[form]
+	)
+
+	const handleUrlSubmit = useCallback(
+		(url: string) => {
+			form.setValue("imageUrl", url)
+			setUrlInput("")
 		},
 		[form]
 	)
@@ -156,12 +171,28 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 		setIsDragging(false)
 	}, [])
 
-	// @dev: Handle paste event for images
+	// @dev: Handle paste event for images and image URLs
 	const handlePaste = useCallback(
 		async (e: React.ClipboardEvent) => {
 			// @dev: Only process paste if no image is present
 			if (imageUrl) return
 
+			// @dev: Check for text that might be an image URL
+			const pastedText = e.clipboardData.getData("text")
+			if (pastedText && pastedText.startsWith("http")) {
+				// @dev: Check if it's an image URL by looking at the extension
+				const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.ico']
+				const lowerUrl = pastedText.toLowerCase()
+				const isImageUrl = imageExtensions.some(ext => lowerUrl.endsWith(ext))
+				
+				if (isImageUrl) {
+					e.preventDefault()
+					form.setValue("imageUrl", pastedText)
+					return
+				}
+			}
+
+			// @dev: Check for actual image data
 			const items = e.clipboardData?.items
 			if (!items) return
 
@@ -176,21 +207,39 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 				}
 			}
 		},
-		[handleImageUpload, imageUrl]
+		[handleImageUpload, imageUrl, form]
 	)
 
 	// @dev: Add paste event listener to the entire form
 	useEffect(() => {
 		const handleGlobalPaste = (e: ClipboardEvent) => {
 			// @dev: Only handle paste when form is visible and no image is present
-			if (!imageUrl && e.clipboardData?.items) {
-				for (const item of e.clipboardData.items) {
-					if (item.type.startsWith("image/")) {
+			if (!imageUrl && e.clipboardData) {
+				// @dev: Check for text that might be an image URL
+				const pastedText = e.clipboardData.getData("text")
+				if (pastedText && pastedText.startsWith("http")) {
+					// @dev: Check if it's an image URL by looking at the extension
+					const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.ico']
+					const lowerUrl = pastedText.toLowerCase()
+					const isImageUrl = imageExtensions.some(ext => lowerUrl.endsWith(ext))
+					
+					if (isImageUrl) {
 						e.preventDefault()
-						const file = item.getAsFile()
-						if (file) {
-							handleImageUpload(file)
-							break
+						form.setValue("imageUrl", pastedText)
+						return
+					}
+				}
+				
+				// @dev: Check for actual image data
+				if (e.clipboardData.items) {
+					for (const item of e.clipboardData.items) {
+						if (item.type.startsWith("image/")) {
+							e.preventDefault()
+							const file = item.getAsFile()
+							if (file) {
+								handleImageUpload(file)
+								break
+							}
 						}
 					}
 				}
@@ -199,14 +248,15 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 
 		document.addEventListener("paste", handleGlobalPaste)
 		return () => document.removeEventListener("paste", handleGlobalPaste)
-	}, [handleImageUpload, imageUrl])
+	}, [handleImageUpload, imageUrl, form])
 
 	return (
 		<div className="w-full p-4 rounded-xl border-2 bg-background/50 backdrop-blur-sm shadow-2xl" onPaste={handlePaste}>
 			<Form {...form}>
 				<form className="space-y-6">
-					<div className="flex gap-6">
-						{/* Image Upload */}
+					{/* Main layout container - responsive flex direction */}
+					<div className="flex flex-col sm:flex-row gap-6">
+						{/* Image Upload - First on mobile */}
 						<FormField
 							control={form.control}
 							name="imageUrl"
@@ -266,11 +316,41 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 										</div>
 									</FormControl>
 									<FormMessage className="font-mono text-xs" />
+									{!imageUrl && (
+										<div className="space-y-2 pt-2">
+											<p className="font-mono text-xs uppercase text-muted-foreground">
+												OR::PASTE::URL
+											</p>
+											<div className="flex gap-2">
+												<Input
+													placeholder="https://example.com/image.jpg"
+													value={urlInput}
+													onChange={(e) => setUrlInput(e.target.value)}
+													className="font-mono text-xs focus:border-primary/50"
+													onKeyDown={(e) => {
+														if (e.key === "Enter" && urlInput.trim()) {
+															e.preventDefault()
+															handleUrlSubmit(urlInput.trim())
+														}
+													}}
+													onPaste={(e) => {
+														// @dev: Handle paste event specifically for URLs
+														const pastedText = e.clipboardData.getData("text")
+														if (pastedText && pastedText.startsWith("http")) {
+															e.preventDefault()
+															setUrlInput(pastedText)
+															setTimeout(() => handleUrlSubmit(pastedText), 0)
+														}
+													}}
+												/>
+											</div>
+										</div>
+									)}
 								</FormItem>
 							)}
 						/>
 
-						{/* Token Name and Symbol */}
+						{/* Token Name, Symbol and Description - Right side on desktop */}
 						<div className="flex-1 space-y-4">
 							<FormField
 								control={form.control}
@@ -311,38 +391,38 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 									</FormItem>
 								)}
 							/>
+
+							{/* Description - Moved here */}
+							<FormField
+								control={form.control}
+								name="description"
+								render={({ field }) => (
+									<FormItem>
+										<div className="flex items-center justify-between">
+											<FormLabel className="font-mono text-xs uppercase tracking-wider text-foreground/60">
+												PROJECT::DESCRIPTION
+											</FormLabel>
+											<span className={cn(
+												"font-mono text-xs",
+												description.length > 256 ? "text-destructive" : description.length > 230 ? "text-warning" : "text-muted-foreground"
+											)}>
+												{description.length}/256
+											</span>
+										</div>
+										<FormControl>
+											<Textarea
+												placeholder="[DESCRIBE_YOUR_TOKEN_PROJECT]"
+												className="resize-none min-h-[100px] font-mono text-sm focus:border-primary/50"
+												maxLength={256}
+												{...field}
+											/>
+										</FormControl>
+										<FormMessage className="font-mono text-xs" />
+									</FormItem>
+								)}
+							/>
 						</div>
 					</div>
-
-					{/* Description */}
-					<FormField
-						control={form.control}
-						name="description"
-						render={({ field }) => (
-							<FormItem>
-								<div className="flex items-center justify-between">
-									<FormLabel className="font-mono text-xs uppercase tracking-wider text-foreground/60">
-										PROJECT::DESCRIPTION
-									</FormLabel>
-									<span className={cn(
-										"font-mono text-xs",
-										description.length > 256 ? "text-destructive" : description.length > 230 ? "text-warning" : "text-muted-foreground"
-									)}>
-										{description.length}/256
-									</span>
-								</div>
-								<FormControl>
-									<Textarea
-										placeholder="[DESCRIBE_YOUR_TOKEN_PROJECT]"
-										className="resize-none min-h-[100px] font-mono text-sm focus:border-primary/50"
-										maxLength={256}
-										{...field}
-									/>
-								</FormControl>
-								<FormMessage className="font-mono text-xs" />
-							</FormItem>
-						)}
-					/>
 
 					{/* Social Links */}
 					<div className="space-y-4">
@@ -453,6 +533,41 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 											INSUFFICIENT::BALANCE
 										</p>
 									)}
+									<FormMessage className="font-mono text-xs" />
+								</div>
+							</FormItem>
+						)}
+					/>
+
+					{/* Burn Tax */}
+					<FormField
+						control={form.control}
+						name="burnTax"
+						render={({ field }) => (
+							<FormItem className="rounded-lg border-2 border-dashed p-4 bg-background/50">
+								<div className="space-y-3">
+									<FormLabel className="font-mono text-sm uppercase tracking-wider flex items-center gap-2">
+										🔥 BURN TAX (optional)
+									</FormLabel>
+									<FormControl>
+										<div className="relative">
+											<Input
+												placeholder="0"
+												className="font-mono text-sm pr-12 focus:border-primary/50"
+												type="number"
+												step="0.1"
+												min="0"
+												max="60"
+												{...field}
+											/>
+											<span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono text-sm text-muted-foreground">
+												%
+											</span>
+										</div>
+									</FormControl>
+									<FormDescription className="font-mono text-xs uppercase text-muted-foreground">
+									The burn/sell tax is progressive: it starts at 0% and increases up to the max % chosen by the creator, depending on how close the pool is to full bonding.
+									</FormDescription>
 									<FormMessage className="font-mono text-xs" />
 								</div>
 							</FormItem>

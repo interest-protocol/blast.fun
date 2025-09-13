@@ -71,17 +71,14 @@ export const CreatorDisplay = forwardRef<
 
 	if (asLink && displayData.href) {
 		return (
-			<a
-				ref={ref as React.Ref<HTMLAnchorElement>}
-				href={displayData.href}
-				target="_blank"
-				rel="noopener noreferrer"
+			<button
+				ref={ref as React.Ref<HTMLButtonElement>}
 				onClick={handleClick}
-				className={`hover:underline ${className}`}
+				className={`hover:underline bg-transparent border-none p-0 cursor-pointer ${className}`}
 				{...props}
 			>
 				{displayData.display}
-			</a>
+			</button>
 		)
 	}
 

@@ -1,0 +1,933 @@
+"use client"
+
+import React, { useState, useEffect, useMemo, useCallback } from "react"
+import { Loader2, Settings2, Wallet, Activity, Pencil, Check, X, Rocket, AlertTriangle, Flame } from "lucide-react"
+import Image from "next/image"
+import { Button } from "@/components/ui/button"
+import { TokenAvatar } from "@/components/tokens/token-avatar"
+import { useApp } from "@/context/app.context"
+import { useTwitter } from "@/context/twitter.context"
+import { useTrading } from "@/hooks/pump/use-trading"
+import { useTokenBalance } from "@/hooks/sui/use-token-balance"
+import { usePortfolio } from "@/hooks/nexa/use-portfolio"
+import { useTokenProtection } from "@/hooks/use-token-protection"
+import { usePresetStore } from "@/stores/preset-store"
+import type { Token } from "@/types/token"
+import { cn } from "@/utils"
+import { formatNumberWithSuffix } from "@/utils/format"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { TradeSettings } from "./trade-settings"
+import { MIST_PER_SUI } from "@mysten/sui/utils"
+import { pumpSdk } from "@/lib/pump"
+import { getBuyQuote, getSellQuote } from "@/lib/aftermath"
+import BigNumber from "bignumber.js"
+import { BsTwitterX } from "react-icons/bs"
+import { useBurn } from "../_hooks/use-burn"
+import { useTurnstile } from "@/context/turnstile.context"
+
+interface TradeTerminalProps {
+	pool: Token
+	referral?: string
+}
+
+export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
+	const { isConnected } = useApp()
+	const { isLoggedIn: isTwitterLoggedIn, login: twitterLogin } = useTwitter()
+	const { settings: protectionSettings } = useTokenProtection(pool.pool?.poolId || "", pool.pool?.isProtected)
+	const [tradeType, setTradeType] = useState<"buy" | "sell" | "burn">("buy")
+	const [amount, setAmount] = useState("")
+	const [settingsOpen, setSettingsOpen] = useState(false)
+	const [referrerWallet, setReferrerWallet] = useState<string | null>(null)
+	const [editingQuickBuy, setEditingQuickBuy] = useState(false)
+	const [editingQuickSell, setEditingQuickSell] = useState(false)
+	const [tempQuickBuyAmounts, setTempQuickBuyAmounts] = useState<number[]>([])
+	const [tempQuickSellPercentages, setTempQuickSellPercentages] = useState<number[]>([])
+	
+	const { token: turnstileToken, resetToken: resetTurnstileToken, setIsRequired: setTurnstileRequired } = useTurnstile()
+
+	const {
+		slippage,
+		quickBuyAmounts,
+		quickSellPercentages,
+		setQuickBuyAmounts,
+		setQuickSellPercentages,
+	} = usePresetStore()
+
+	const { balance: tokenBalance, refetch: refetchTokenBalance } = useTokenBalance(pool.coinType)
+	const { balance: actualBalance, refetch: refetchPortfolio } = usePortfolio(pool.coinType)
+	const { balance: suiBalance, refetch: refetchSuiBalance } = useTokenBalance("0x2::sui::SUI")
+
+	// derived states
+	const metadata = pool.metadata
+	const marketData = pool.market
+	const decimals = metadata?.decimals || 9
+	const effectiveBalance = actualBalance !== "0" ? actualBalance : tokenBalance
+	const balanceInDisplayUnit = effectiveBalance ? Number(effectiveBalance) / Math.pow(10, decimals) : 0
+	const hasBalance = balanceInDisplayUnit > 0
+	const suiBalanceInDisplayUnit = suiBalance ? Number(suiBalance) / Number(MIST_PER_SUI) : 0
+
+
+	// Precise balance calculation for MAX button using BigNumber
+	const balanceInDisplayUnitPrecise = useMemo(() => {
+		// Guard against undefined or null effectiveBalance
+		if (!effectiveBalance || effectiveBalance === undefined || effectiveBalance === null) {
+			return "0"
+		}
+
+		// Additional safety check to ensure effectiveBalance is a valid value
+		try {
+			const balanceBN = new BigNumber(effectiveBalance)
+			// Check if BigNumber is valid
+			if (balanceBN.isNaN()) {
+				return "0"
+			}
+			const divisor = new BigNumber(10).pow(decimals)
+			return balanceBN.dividedBy(divisor).toFixed()
+		} catch (error) {
+			console.error("Error calculating precise balance:", error)
+			return "0"
+		}
+	}, [effectiveBalance, decimals])
+
+	// @dev: Calculate max buyable amount based on max holding percentage
+	const [maxBuyableAmountSui, setMaxBuyableAmountSui] = useState<string | null>(null)
+	const [isCalculatingMax, setIsCalculatingMax] = useState(false)
+
+	useEffect(() => {
+		const calculateMaxBuyable = async () => {
+			// Only calculate for buy mode and when there's a max holding percentage
+			if (tradeType !== "buy" || !protectionSettings?.maxHoldingPercent || !pool.pool || pool.pool?.migrated) {
+				setMaxBuyableAmountSui(null)
+				return
+			}
+
+			try {
+				setIsCalculatingMax(true)
+				
+				const maxHoldingPercent = parseFloat(protectionSettings.maxHoldingPercent)
+				if (isNaN(maxHoldingPercent) || maxHoldingPercent <= 0) {
+					setMaxBuyableAmountSui(null)
+					return
+				}
+
+				// For tokens with 1B supply and 9 decimals
+				const TOTAL_SUPPLY_AMOUNT = 1_000_000_000n // 1 billion tokens
+				const totalSupplyInSmallestUnit = TOTAL_SUPPLY_AMOUNT * BigInt(10 ** decimals)
+
+				// Calculate the max amount of tokens user can hold (percentage of total supply)
+				const maxTokenAmount = (totalSupplyInSmallestUnit * BigInt(Math.floor(maxHoldingPercent * 100))) / 10000n
+
+				// Subtract current holdings to get how much more they can buy
+				const currentHoldingsBigInt = BigInt(effectiveBalance || "0")
+				const remainingTokensToBuy = maxTokenAmount > currentHoldingsBigInt 
+					? maxTokenAmount - currentHoldingsBigInt 
+					: 0n
+
+				if (remainingTokensToBuy === 0n) {
+					setMaxBuyableAmountSui("0")
+					return
+				}
+
+				// We need to find how much SUI is needed to buy remainingTokensToBuy
+				// We'll use binary search to find the right SUI amount
+				let low = 0n
+				let high = BigInt(suiBalanceInDisplayUnit * Number(MIST_PER_SUI)) // Max is user's balance in MIST
+				let bestSuiAmount = 0n
+				
+				// Binary search to find the SUI amount that gives us the desired tokens
+				while (low <= high) {
+					const mid = (low + high) / 2n
+					
+					try {
+						const quoteResult = await pumpSdk.quotePump({
+							pool: pool.pool.poolId,
+							amount: mid,
+						})
+						
+						const tokensReceived = BigInt(quoteResult.memeAmountOut || 0)
+						
+						if (tokensReceived === remainingTokensToBuy) {
+							bestSuiAmount = mid
+							break
+						} else if (tokensReceived < remainingTokensToBuy) {
+							low = mid + 1n
+							bestSuiAmount = mid // Keep the last amount that doesn't exceed
+						} else {
+							high = mid - 1n
+						}
+						
+						// If we're close enough (within 0.01 SUI), stop
+						if (high - low < BigInt(0.01 * Number(MIST_PER_SUI))) {
+							bestSuiAmount = mid
+							break
+						}
+					} catch (error) {
+						// If quote fails, try lower amount
+						high = mid - 1n
+					}
+				}
+
+				console.log({
+					maxHoldingPercent,
+					currentHoldingsInTokens: Number(currentHoldingsBigInt) / Math.pow(10, decimals),
+					maxTokensAllowed: Number(maxTokenAmount) / Math.pow(10, decimals),
+					remainingTokensToBuy: Number(remainingTokensToBuy) / Math.pow(10, decimals),
+					bestSuiAmountMist: bestSuiAmount,
+					bestSuiAmountSui: Number(bestSuiAmount) / Number(MIST_PER_SUI),
+					userSuiBalance: suiBalanceInDisplayUnit,
+				})
+				
+				// Convert from MIST to SUI for display
+				const suiAmountInSui = Number(bestSuiAmount) / Number(MIST_PER_SUI)
+				
+				// Ensure we don't exceed user's balance (leave 0.02 SUI for gas)
+				const maxAffordable = Math.min(suiAmountInSui, Math.max(0, suiBalanceInDisplayUnit - 0.02))
+				
+				setMaxBuyableAmountSui(maxAffordable.toString())
+			} catch (error) {
+				console.error("Error calculating max buyable amount:", error)
+				setMaxBuyableAmountSui(null)
+			} finally {
+				setIsCalculatingMax(false)
+			}
+		}
+
+		calculateMaxBuyable()
+	}, [tradeType, protectionSettings?.maxHoldingPercent, pool.pool, decimals, effectiveBalance, suiBalanceInDisplayUnit])
+
+	// @dev: prices for USD calculations from server data
+	const suiPrice = 4
+
+	// initialize temp amounts with store values
+	useEffect(() => {
+		setTempQuickBuyAmounts(quickBuyAmounts)
+		setTempQuickSellPercentages(quickSellPercentages)
+	}, [quickBuyAmounts, quickSellPercentages])
+
+	// set Turnstile requirement based on pool protection and trade type
+	useEffect(() => {
+		const isRequired = Boolean(pool.pool?.isProtected && tradeType === "buy" && !pool.pool?.migrated)
+		setTurnstileRequired(isRequired)
+	}, [pool.pool?.isProtected, pool.pool?.migrated, tradeType, setTurnstileRequired])
+
+	// state for quote from bonding curve
+	const [quote, setQuote] = useState<{ memeAmountOut?: bigint; memeAmountIn?: bigint; suiAmountOut?: bigint; coinAmountOut?: bigint; burnFee?: bigint } | null>(null)
+	const [isLoadingQuote, setIsLoadingQuote] = useState(false)
+	const [isRefreshingQuote, setIsRefreshingQuote] = useState(false)
+
+	const fetchQuote = useCallback(async (isRefresh = false) => {
+		if (!amount || parseFloat(amount) === 0 || !pool.pool?.poolId || tradeType === "burn") {
+			setQuote(null)
+			return
+		}
+
+		if (isRefresh) {
+			setIsRefreshingQuote(true)
+		} else {
+			setIsLoadingQuote(true)
+		}
+
+		try {
+			const isMigrated = pool.pool?.migrated === true
+
+			if (tradeType === "buy") {
+				// convert SUI amount to MIST for the quote
+				const amountBN = new BigNumber(amount)
+				const mistPerSuiBN = new BigNumber(MIST_PER_SUI.toString())
+				const amountInMist = BigInt(amountBN.multipliedBy(mistPerSuiBN).integerValue(BigNumber.ROUND_DOWN).toString())
+
+				if (isMigrated) {
+					const quoteResult = await getBuyQuote(pool.coinType, amountInMist, slippage)
+					setQuote({
+						memeAmountOut: quoteResult.amountOut,
+						suiAmountOut: amountInMist, // Amount being spent
+						coinAmountOut: quoteResult.amountOut // Tokens received
+					})
+				} else {
+					const quoteResult = await pumpSdk.quotePump({
+						pool: pool.pool?.poolId,
+						amount: amountInMist,
+					})
+					setQuote(quoteResult)
+				}
+			} else {
+				// for sell, convert token amount to smallest unit
+				const amountBN = new BigNumber(amount)
+				const tokenInSmallestUnit = BigInt(amountBN.multipliedBy(Math.pow(10, decimals)).integerValue(BigNumber.ROUND_DOWN).toString())
+
+				if (isMigrated) {
+					const quoteResult = await getSellQuote(pool.coinType, tokenInSmallestUnit, slippage)
+					setQuote({
+						memeAmountIn: tokenInSmallestUnit,
+						suiAmountOut: quoteResult.amountOut,
+						coinAmountOut: quoteResult.amountOut
+					})
+				} else {
+					// use pump SDK for bonding curve tokens
+					const quoteResult = await pumpSdk.quoteDump({
+						pool: pool.pool?.poolId,
+						amount: tokenInSmallestUnit,
+					})
+					setQuote({
+						memeAmountIn: tokenInSmallestUnit,
+						suiAmountOut: quoteResult.quoteAmountOut,
+						coinAmountOut: quoteResult.quoteAmountOut,
+						burnFee: quoteResult.burnFee
+					})
+				}
+			}
+		} catch (error) {
+			console.error("Failed to fetch quote:", error)
+			setQuote(null)
+		} finally {
+			setIsLoadingQuote(false)
+			setIsRefreshingQuote(false)
+		}
+	}, [amount, tradeType, pool.pool?.poolId, pool.coinType, pool.pool?.migrated, decimals, slippage])
+
+	// initial quote fetch when amount changes
+	useEffect(() => {
+		const timer = setTimeout(() => fetchQuote(false), 300)
+		return () => clearTimeout(timer)
+	}, [fetchQuote])
+
+	// refresh quote every 15 seconds (except for burn)
+	useEffect(() => {
+		if (!amount || parseFloat(amount) === 0 || tradeType === "burn") return
+
+		const interval = setInterval(() => {
+			fetchQuote(true)
+		}, 15000)
+
+		return () => clearInterval(interval)
+	}, [amount, tradeType, fetchQuote])
+
+	// calculate output amount based on bonding curve quote
+	const calculateOutputAmount = useMemo(() => {
+		if (!quote) return 0
+
+		if (tradeType === "buy" && quote.memeAmountOut) {
+			// convert from smallest unit to display unit
+			const tokenAmount = Number(quote.memeAmountOut) / Math.pow(10, decimals)
+			return tokenAmount
+		} else if (tradeType === "sell" && quote.suiAmountOut) {
+			// convert MIST to SUI for display
+			const suiAmount = Number(quote.suiAmountOut) / Number(MIST_PER_SUI)
+			return suiAmount
+		}
+		return 0
+	}, [quote, tradeType, decimals])
+
+	// @dev: Calculate burn percentage for display
+	const burnPercentage = useMemo(() => {
+		if (!quote || !quote.burnFee || !quote.memeAmountIn || tradeType !== "sell") return 0
+		
+		const burnAmount = Number(quote.burnFee)
+		const totalAmount = Number(quote.memeAmountIn)
+		
+		if (totalAmount === 0) return 0
+		return (burnAmount / totalAmount) * 100
+	}, [quote, tradeType])
+
+	// calculate USD value
+	const usdValue = useMemo(() => {
+		if (!amount || parseFloat(amount) === 0) return "0.00"
+
+		if (tradeType === "buy") {
+			return (parseFloat(amount) * suiPrice).toFixed(2)
+		} else {
+			return (calculateOutputAmount * suiPrice).toFixed(2)
+		}
+	}, [amount, tradeType, suiPrice, calculateOutputAmount])
+
+	// fetch referrer wallet if referral code exists
+	useEffect(() => {
+		if (referral) {
+			fetch(`/api/referrals?refCode=${referral}`)
+				.then(res => res.json())
+				.then(data => {
+					if (data.wallet) {
+						setReferrerWallet(data.wallet)
+					}
+				})
+				.catch(console.error)
+		}
+	}, [referral])
+
+	const { isProcessing, error, buy, sell } = useTrading({
+		pool,
+		decimals,
+		actualBalance: effectiveBalance,
+		referrerWallet,
+	})
+
+	const {
+		burn,
+		isProcessing: isBurning,
+		error: burnError
+	} = useBurn({
+		pool,
+		decimals,
+		actualBalance: effectiveBalance,
+		onSuccess: async () => {
+			await refetchPortfolio()
+			setAmount("")
+		}
+	})
+
+
+	const handleQuickAmount = (value: number) => {
+		if (tradeType === "buy") {
+			setAmount(value.toString())
+		} else if (tradeType === "sell" || tradeType === "burn") {
+			// @dev: For sell and burn, calculate percentage
+			const percentage = value
+
+			// Safety check: ensure we have a valid balance before calculating
+			if (!balanceInDisplayUnitPrecise || balanceInDisplayUnitPrecise === "0") {
+				setAmount("0")
+				return
+			}
+
+			if (percentage === 100) {
+				// Use precise balance for 100%
+				setAmount(balanceInDisplayUnitPrecise)
+			} else {
+				// For other percentages, use BigNumber for precise calculation
+				try {
+					const balanceBN = new BigNumber(balanceInDisplayUnitPrecise)
+					const percentageBN = new BigNumber(percentage).dividedBy(100)
+					const tokenAmount = balanceBN.multipliedBy(percentageBN).toFixed(9, BigNumber.ROUND_DOWN)
+					setAmount(tokenAmount)
+				} catch (error) {
+					console.error("Error calculating quick amount:", error)
+					setAmount("0")
+				}
+			}
+		}
+	}
+
+	const handleSaveQuickBuyAmounts = () => {
+		setQuickBuyAmounts(tempQuickBuyAmounts)
+		setEditingQuickBuy(false)
+	}
+
+	const handleSaveQuickSellPercentages = () => {
+		setQuickSellPercentages(tempQuickSellPercentages)
+		setEditingQuickSell(false)
+	}
+
+	const handleTrade = async () => {
+		if (!amount || parseFloat(amount) <= 0) return
+
+		if (tradeType === "buy") {
+			const requiredSui = parseFloat(amount)
+			if (requiredSui > suiBalanceInDisplayUnit) {
+				return
+			}
+
+			// @dev: Refresh all balances after successful buy
+			
+			await buy(amount, slippage, turnstileToken || undefined)
+			await Promise.all([
+				refetchPortfolio(),
+				refetchTokenBalance(),
+				refetchSuiBalance(),
+			])
+			setAmount("")
+			resetTurnstileToken() // Reset turnstile token after use
+		} else if (tradeType === "sell") {
+			const requiredTokens = parseFloat(amount)
+			if (requiredTokens > balanceInDisplayUnit) {
+				return
+			}
+
+			await sell(amount, slippage)
+			// @dev: Refresh all balances after successful sell
+			await Promise.all([
+				refetchPortfolio(),
+				refetchTokenBalance(),
+				refetchSuiBalance(),
+			])
+			setAmount("")
+		} else if (tradeType === "burn") {
+			const requiredTokens = parseFloat(amount)
+			if (requiredTokens > balanceInDisplayUnit) {
+				return
+			}
+
+			await burn(amount)
+			// @dev: Refresh balances after burn
+			await Promise.all([
+				refetchPortfolio(),
+				refetchTokenBalance(),
+			])
+			setAmount("")
+		}
+	}
+
+	const isMigrating = pool.pool?.canMigrate === true && !pool.pool?.migrated
+
+
+	if (!isConnected) {
+		return (
+			<div className="p-4 border-b border-border">
+				<div className="text-center space-y-2">
+					<Wallet className="w-8 h-8 text-muted-foreground mx-auto" />
+					<p className="font-mono text-xs text-muted-foreground">
+						Connect wallet to trade
+					</p>
+				</div>
+			</div>
+		)
+	}
+
+	return (
+		<div className="relative border-b border-border">
+			{isMigrating && (
+				<div className="absolute inset-0 bg-background/95 backdrop-blur-sm z-10 flex items-center justify-center p-4 select-none">
+					{/* background glow */}
+					<div className="absolute inset-0">
+						<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-yellow-400/10 rounded-full blur-3xl animate-pulse" />
+					</div>
+
+					<div className="relative text-center space-y-4">
+						<div className="relative mx-auto w-20 h-20">
+							<div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full blur-2xl animate-pulse opacity-50" />
+							<div className="absolute inset-0 flex items-center justify-center">
+								<Rocket className="w-16 h-16 text-yellow-400/80 animate-pulse" />
+							</div>
+						</div>
+
+						<div className="space-y-2">
+							<p className="font-mono text-sm font-bold uppercase tracking-wider text-yellow-400/80">
+								MIGRATION::IN_PROGRESS
+							</p>
+
+							<p className="font-mono text-xs text-muted-foreground/70 max-w-xs mx-auto">
+								TOKEN_IS_MIGRATING::PLEASE_WAIT
+							</p>
+						</div>
+					</div>
+				</div>
+			)}
+
+			<div className="p-3 space-y-3">
+				{/* Buy/Sell/Burn Tabs */}
+				<div className={cn(
+					"grid gap-1 p-1 bg-muted/30 rounded-lg",
+					hasBalance ? "grid-cols-3" : "grid-cols-2"
+				)}>
+					<button
+						onClick={() => setTradeType("buy")}
+						className={cn(
+							"py-2 rounded-md font-mono text-xs uppercase transition-all",
+							tradeType === "buy"
+								? "bg-green-500/20 text-green-500 border border-green-500/50"
+								: "hover:bg-muted/50 text-muted-foreground"
+						)}
+					>
+						Buy
+					</button>
+					<button
+						onClick={() => setTradeType("sell")}
+						disabled={!hasBalance}
+						className={cn(
+							"py-2 rounded-md font-mono text-xs uppercase transition-all",
+							tradeType === "sell"
+								? "bg-red-500/20 text-red-500 border border-red-500/50"
+								: "hover:bg-muted/50 text-muted-foreground",
+							!hasBalance && "opacity-50 cursor-not-allowed"
+						)}
+					>
+						Sell
+					</button>
+					{hasBalance && (
+						<button
+							onClick={() => setTradeType("burn")}
+							className={cn(
+								"py-2 rounded-md font-mono text-xs uppercase transition-all",
+								tradeType === "burn"
+									? "bg-orange-500/20 text-orange-500 border border-orange-500/50"
+									: "hover:bg-muted/50 text-muted-foreground"
+							)}
+						>
+							Burn
+						</button>
+					)}
+				</div>
+
+				{/* Input Section with Balance */}
+				<div className="border border-border/50 rounded-lg p-3 space-y-2 bg-muted/5">
+					{/* Balance Header */}
+					<div className="flex justify-between items-center text-xs">
+						<div className="flex items-center gap-1.5 text-muted-foreground">
+							<Wallet className="h-3.5 w-3.5" />
+							<span>Balance</span>
+						</div>
+						<div className="flex items-center gap-2">
+							<span className="text-foreground font-mono">
+								{tradeType === "buy"
+									? formatNumberWithSuffix(suiBalanceInDisplayUnit)
+									: formatNumberWithSuffix(balanceInDisplayUnit)
+								}
+							</span>
+							<span className="text-muted-foreground">
+								{tradeType === "buy" ? "SUI" : metadata?.symbol}
+							</span>
+							<button
+								onClick={() => {
+									if (tradeType === "buy") {
+										// @dev: Use max holding percentage calculation if available
+										if (maxBuyableAmountSui && protectionSettings?.maxHoldingPercent && !pool.pool?.migrated) {
+											setAmount(maxBuyableAmountSui)
+										} else {
+											// Default behavior: leave some SUI for gas
+											const maxSui = Math.max(0, suiBalanceInDisplayUnit - 0.02)
+											setAmount(maxSui.toString())
+										}
+									} else {
+										// Safety check for sell - ensure we have a valid balance
+										if (!balanceInDisplayUnitPrecise || balanceInDisplayUnitPrecise === "0") {
+											setAmount("0")
+										} else {
+											setAmount(balanceInDisplayUnitPrecise)
+										}
+									}
+								}}
+								className="text-blue-400 hover:text-blue-300 font-medium text-xs transition-colors"
+								disabled={isProcessing || (tradeType === "sell" && !hasBalance) || (tradeType === "buy" && isCalculatingMax)}
+							>
+								{isCalculatingMax ? "..." : "MAX"}
+							</button>
+						</div>
+					</div>
+
+					{/* Amount Input */}
+					<div className="space-y-1.5">
+						<div className="flex items-center gap-2">
+							<input
+								type="text"
+								placeholder="0.00"
+								value={amount}
+								onChange={(e) => setAmount(e.target.value)}
+								className="flex-1 bg-transparent text-2xl font-medium outline-none placeholder:text-muted-foreground/50 text-foreground min-w-0"
+								disabled={isProcessing}
+								inputMode="decimal"
+							/>
+							<div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-muted/20 rounded-md border border-border/50 shrink-0">
+								{tradeType === "buy" ? (
+									<Image
+										src="/logo/sui-logo.svg"
+										alt="SUI"
+										width={18}
+										height={18}
+										className="rounded-full shrink-0"
+										unoptimized={true}
+									/>
+								) : (
+									<TokenAvatar
+										iconUrl={metadata?.icon_url}
+										symbol={metadata?.symbol}
+										name={metadata?.name}
+										className="w-[18px] h-[18px] rounded-full shrink-0"
+										fallbackClassName="text-xs"
+										enableHover={false}
+									/>
+								)}
+								<span className="text-sm font-medium whitespace-nowrap">
+									{tradeType === "buy" ? "SUI" : metadata?.symbol}
+								</span>
+							</div>
+						</div>
+
+						{/* Price Display */}
+						<span className="text-xs text-muted-foreground">
+							≈ ${usdValue} USD
+						</span>
+					</div>
+				</div>
+
+				{/* Quick Actions with Inline Edit */}
+				<div className="space-y-2">
+					<div className="flex gap-1.5">
+						{tradeType === "buy" ? (
+							<>
+								{editingQuickBuy ? (
+									tempQuickBuyAmounts.map((suiAmount, index) => (
+										<input
+											key={index}
+											type="number"
+											value={suiAmount}
+											onChange={(e) => {
+												const newAmounts = [...tempQuickBuyAmounts]
+												newAmounts[index] = parseFloat(e.target.value) || 0
+												setTempQuickBuyAmounts(newAmounts)
+											}}
+											onKeyDown={(e) => {
+												if (e.key === 'Enter') {
+													handleSaveQuickBuyAmounts()
+												}
+												if (e.key === 'Escape') {
+													setTempQuickBuyAmounts(quickBuyAmounts)
+													setEditingQuickBuy(false)
+												}
+											}}
+											className="flex-1 h-9 text-xs text-center rounded-md border border-border bg-background focus:border-primary focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+											step="0.01"
+											min="0"
+											style={{ minWidth: 0 }}
+										/>
+									))
+								) : (
+									quickBuyAmounts.map((suiAmount: number, index: number) => (
+										<button
+											key={index}
+											className={cn(
+												"flex-1 py-2 px-3 rounded-lg flex justify-center items-center",
+												"border border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20",
+												"transition-all duration-200",
+												"group",
+												(isProcessing || isMigrating) && "opacity-50 cursor-not-allowed"
+											)}
+											onClick={() => handleQuickAmount(suiAmount)}
+											disabled={isProcessing || isMigrating}
+											style={{ minWidth: 0 }}
+										>
+											<span className="text-xs font-semibold text-blue-400 group-hover:text-blue-300 whitespace-nowrap">
+												{suiAmount} SUI
+											</span>
+										</button>
+									))
+								)}
+
+								{editingQuickBuy ? (
+									<div className="flex gap-1">
+										<button
+											className="h-9 w-9 flex items-center justify-center rounded-lg border border-green-500/50 bg-green-500/10 hover:bg-green-500/20 transition-colors"
+											title="Save changes"
+											onClick={handleSaveQuickBuyAmounts}
+										>
+											<Check className="h-3.5 w-3.5 text-green-500" />
+										</button>
+										<button
+											className="h-9 w-9 flex items-center justify-center rounded-lg border border-destructive/50 bg-destructive/10 hover:bg-destructive/20 transition-colors"
+											title="Cancel"
+											onClick={() => {
+												setTempQuickBuyAmounts(quickBuyAmounts)
+												setEditingQuickBuy(false)
+											}}
+										>
+											<X className="h-3.5 w-3.5 text-destructive" />
+										</button>
+									</div>
+								) : (
+									<button
+										className="h-9 w-9 flex items-center justify-center rounded-lg border border-border bg-background hover:bg-muted/50 transition-colors"
+										title="Edit quick buy amounts"
+										onClick={() => setEditingQuickBuy(true)}
+									>
+										<Pencil className="h-3 w-3 text-muted-foreground" />
+									</button>
+								)}
+							</>
+						) : (
+							<>
+								{editingQuickSell ? (
+									tempQuickSellPercentages.map((percentage: number, index: number) => (
+										<div key={index} className="relative flex-1" style={{ minWidth: 0 }}>
+											<input
+												type="number"
+												value={percentage}
+												onChange={(e) => {
+													const newPercentages = [...tempQuickSellPercentages]
+													newPercentages[index] = parseFloat(e.target.value) || 0
+													setTempQuickSellPercentages(newPercentages)
+												}}
+												onKeyDown={(e) => {
+													if (e.key === 'Enter') {
+														handleSaveQuickSellPercentages()
+													}
+													if (e.key === 'Escape') {
+														setTempQuickSellPercentages(quickSellPercentages)
+														setEditingQuickSell(false)
+													}
+												}}
+												className="w-full h-9 text-xs text-center rounded-md border border-border bg-background focus:border-primary focus:outline-none pr-4 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+												step="1"
+												min="1"
+												max="100"
+											/>
+											<span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">%</span>
+										</div>
+									))
+								) : (
+									quickSellPercentages.map((percentage: number, index: number) => (
+										<button
+											key={index}
+											className={cn(
+												"flex-1 py-2 px-3 rounded-lg flex justify-center items-center",
+												"border border-orange-500/30 bg-orange-500/10 hover:bg-orange-500/20",
+												"transition-all duration-200",
+												"group",
+												(!hasBalance || isProcessing || isMigrating) && "opacity-50 cursor-not-allowed"
+											)}
+											onClick={() => handleQuickAmount(percentage)}
+											disabled={isProcessing || !hasBalance || isMigrating}
+											style={{ minWidth: 0 }}
+										>
+											<span className="text-xs font-semibold text-orange-400 group-hover:text-orange-300 whitespace-nowrap">
+												{percentage}%
+											</span>
+										</button>
+									))
+								)}
+
+								{editingQuickSell ? (
+									<div className="flex gap-1">
+										<button
+											className="h-9 w-9 flex items-center justify-center rounded-lg border border-green-500/50 bg-green-500/10 hover:bg-green-500/20 transition-colors"
+											title="Save changes"
+											onClick={handleSaveQuickSellPercentages}
+										>
+											<Check className="h-3.5 w-3.5 text-green-500" />
+										</button>
+										<button
+											className="h-9 w-9 flex items-center justify-center rounded-lg border border-destructive/50 bg-destructive/10 hover:bg-destructive/20 transition-colors"
+											title="Cancel"
+											onClick={() => {
+												setTempQuickSellPercentages(quickSellPercentages)
+												setEditingQuickSell(false)
+											}}
+										>
+											<X className="h-3.5 w-3.5 text-destructive" />
+										</button>
+									</div>
+								) : (
+									<button
+										className="h-9 w-9 flex items-center justify-center rounded-lg border border-border bg-background hover:bg-muted/50 transition-colors"
+										title="Edit quick sell percentages"
+										onClick={() => setEditingQuickSell(true)}
+									>
+										<Pencil className="h-3 w-3 text-muted-foreground" />
+									</button>
+								)}
+							</>
+						)}
+					</div>
+				</div>
+
+				{/* Settings Status Bar */}
+				<div className="flex items-center justify-between p-2 rounded-lg bg-muted/10 border border-border/50">
+					<div className="flex items-center gap-3 text-[10px] font-mono uppercase">
+						<div className="flex items-center gap-1">
+							<Activity className="h-3 w-3 text-yellow-500" />
+							<span>Slippage: {slippage}%</span>
+						</div>
+					</div>
+
+					<button
+						className="p-1 rounded border border-border hover:border-primary/50 transition-colors"
+						onClick={() => setSettingsOpen(true)}
+					>
+						<Settings2 className="h-3 w-3" />
+					</button>
+				</div>
+
+				{/* X Identity Reveal Warning - Only for bonding curve tokens */}
+				{["buy", "sell"].includes(tradeType) && protectionSettings?.revealTraderIdentity && !pool.pool?.migrated && (
+					<div className="flex items-center gap-2 p-3 rounded-lg border border-yellow-500/30 bg-yellow-500/5">
+						<AlertTriangle className="h-4 w-4 text-yellow-500 shrink-0" />
+						<span className="text-xs text-yellow-500 font-medium">
+							This {tradeType} will reveal your X (Twitter) username in trade history table.
+						</span>
+					</div>
+				)}
+
+				{/* Error */}
+				{((tradeType !== "burn" && error && !error.includes("AUTHENTICATED WITH X")) || (tradeType === "burn" && burnError)) && (
+					<Alert className="py-1.5 border-destructive/50 bg-destructive/10">
+						<AlertDescription className="font-mono text-[10px] uppercase text-destructive">
+							{tradeType === "burn" ? burnError : error}
+						</AlertDescription>
+					</Alert>
+				)}
+
+
+				{/* Trade/Burn Button or X Connect Button */}
+				{!pool.pool?.migrated && protectionSettings?.requireTwitter && !isTwitterLoggedIn && tradeType !== "burn" ? (
+					<Button
+						variant="outline"
+						className="w-full h-10 font-mono text-xs uppercase"
+						onClick={twitterLogin}
+					>
+						<BsTwitterX className="h-4 w-4 mr-2" />
+						Connect X to Trade
+					</Button>
+				) : (
+					<Button
+						className={cn(
+							"w-full h-10 font-mono text-xs uppercase",
+							tradeType === "buy"
+								? "bg-green-400/50 hover:bg-green-500/90 text-foreground"
+								: tradeType === "sell"
+									? "bg-destructive/80 hover:bg-destructive text-foreground"
+									: "bg-orange-500/80 hover:bg-orange-600 text-foreground",
+							(isMigrating || !amount || isProcessing || isBurning) && "opacity-50"
+						)}
+						onClick={handleTrade}
+						disabled={
+							!amount ||
+							isProcessing ||
+							isBurning ||
+							isMigrating ||
+							((tradeType === "sell" || tradeType === "burn") && !hasBalance) ||
+							(tradeType === "buy" && parseFloat(amount) > suiBalanceInDisplayUnit) ||
+							((tradeType === "sell" || tradeType === "burn") && parseFloat(amount) > balanceInDisplayUnit) ||
+							(pool.pool?.isProtected && tradeType === "buy" && !turnstileToken)
+						}
+					>
+						{(isProcessing || isBurning) ? (
+							<>
+								<Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
+								{tradeType === "burn" ? "Burning..." : "Processing..."}
+							</>
+						) : isRefreshingQuote && tradeType !== "burn" ? (
+							<>
+								<Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
+								Getting quotes...
+							</>
+						) : (
+							<>
+								{tradeType === "buy"
+									? isLoadingQuote ? `Calculating...` : `Buy ${formatNumberWithSuffix(calculateOutputAmount)} ${metadata?.symbol}`
+									: tradeType === "sell"
+										? isLoadingQuote ? `Calculating...` : (
+											<>
+												Sell {formatNumberWithSuffix(parseFloat(amount) || 0)} {metadata?.symbol} for {formatNumberWithSuffix(calculateOutputAmount)} SUI
+												{burnPercentage > 0 && !pool.pool?.migrated && (
+													<span className="ml-1 text-xs opacity-80">
+														({burnPercentage.toFixed(1)}% burn)
+													</span>
+												)}
+											</>
+										)
+										: (<><Flame className="h-3.5 w-3.5 mr-1 inline" />Burn {formatNumberWithSuffix(parseFloat(amount) || 0)} {metadata?.symbol}</>)
+								}
+							</>
+						)}
+					</Button>
+				)}
+			</div>
+
+
+
+
+			{/* Trade Settings Dialog */}
+			<TradeSettings
+				open={settingsOpen}
+				onOpenChange={setSettingsOpen}
+			/>
+		</div>
+	)
+}

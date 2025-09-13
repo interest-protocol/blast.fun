@@ -155,6 +155,9 @@ export function useLaunchCoin() {
 		// should pool be protected based on sniper protection toggle
 		const isProtected = formValues.sniperProtection
 
+		// @dev: Convert burn tax percentage to basis points (0-60% = 0-6000 bps)
+		const burnTaxBps = formValues.burnTax ? Math.floor(parseFloat(formValues.burnTax) * 100) : 0
+
 		const tx = new Transaction();
 		const firstPurchase = formValues.devBuyAmount
 				? coinWithBalance({
@@ -173,7 +176,7 @@ export function useLaunchCoin() {
 			isProtected,
 			developer: address,
 			quoteCoinType: SUI_TYPE_ARG,
-			burnTax: 0,
+			burnTax: burnTaxBps,
 			virtualLiquidity: VIRTUAL_LIQUIDITY,
 			targetQuoteLiquidity: TARGET_QUOTE_LIQUIDITY,
 			liquidityProvision: BASE_LIQUIDITY_PROVISION,

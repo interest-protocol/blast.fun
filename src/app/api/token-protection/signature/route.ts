@@ -5,11 +5,16 @@ import { bcs } from "@mysten/sui/bcs"
 import { getServerKeypair } from "@/lib/server-keypair"
 import { getNextNonceFromPool } from "@/lib/pump/get-nonce"
 import { auth } from "@/auth"
+import { verifyTurnstileToken, isTurnstileVerificationSuccessful } from "@/lib/turnstile"
+import { pumpSdk } from "@/lib/pump"
+import { fetchCoinBalance } from "@/lib/fetch-portfolio"
+import { TOTAL_POOL_SUPPLY } from "@/constants"
+import { SLUSH_WALLET_BYPASS_TOKEN } from "@/lib/slush-wallet-detector"
 
 export async function POST(request: NextRequest) {
 	try {
 		const body = await request.json()
-		const { poolId, amount, walletAddress } = body
+		const { poolId, amount, walletAddress, turnstileToken, coinType, decimals } = body
 		
 		// Get authenticated user from session
 		const session = await auth()
@@ -18,8 +23,29 @@ export async function POST(request: NextRequest) {
 
 		console.log(session?.user);
 
-		if (!poolId || !amount || !walletAddress) {
+		if (!poolId || !amount || !walletAddress || !coinType) {
 			return NextResponse.json({ message: "Missing required fields" }, { status: 400 })
+		}
+
+		// Verify Turnstile token if provided
+		if (turnstileToken) {
+			// @dev: Skip verification for Slush wallet bypass token
+			if (turnstileToken === SLUSH_WALLET_BYPASS_TOKEN) {
+				console.log("Slush wallet bypass token detected, skipping Turnstile verification")
+			} else {
+				// Extract remote IP from request headers
+				const remoteIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+					request.headers.get('x-real-ip') ||
+					request.headers.get('cf-connecting-ip') || ""
+
+				const verificationResult = await verifyTurnstileToken(turnstileToken, remoteIp)
+				
+				if (!isTurnstileVerificationSuccessful(verificationResult)) {
+					return NextResponse.json({ 
+						message: "Security verification failed. Please try again.",
+					}, { status: 418 })
+				}
+			}
 		}
 
 		const poolSettings = await prisma.tokenProtectionSettings.findUnique({ where: { poolId } })
@@ -72,7 +98,7 @@ export async function POST(request: NextRequest) {
 							error: "INSUFFICIENT_FOLLOWERS",
 							currentFollowers: followerCount,
 							requiredFollowers: requiredFollowers
-						}, { status: 403 })
+						}, { status: 406 })
 					}
 				} else {
 					console.error(`Failed to fetch follower count for @${twitterUsername}`)
@@ -98,7 +124,7 @@ export async function POST(request: NextRequest) {
 				return NextResponse.json({
 					message: `This X account is already bound to a different wallet address for this pool. You must use wallet ${existingRelation.address.slice(0, 6)}...${existingRelation.address.slice(-4)} to buy this token.`,
 					error: "TWITTER_ACCOUNT_BOUND_TO_DIFFERENT_ADDRESS"
-				}, { status: 403 })
+				}, { status: 409 })
 			}
 
 			// If no existing relation, create one to bind this Twitter account to this address for this pool
@@ -129,6 +155,47 @@ export async function POST(request: NextRequest) {
 					where: { id: existingRelation.id },
 					data: { purchases }
 				})
+			}
+		}
+
+		// Check max holding percentage if set
+		if (settings.maxHoldingPercent && Number(settings.maxHoldingPercent) > 0) {
+			try {
+				// Get user's current balance for this token
+				const currentBalance = await fetchCoinBalance(walletAddress, coinType)
+				const currentBalanceBigInt = BigInt(currentBalance)
+
+				// Convert SUI amount to MIST for quote
+				const amountInMist = BigInt(Math.floor(parseFloat(amount) * Number(MIST_PER_SUI)))
+
+				// Get quote to see how many tokens they would receive
+				const quote = await pumpSdk.quotePump({
+					pool: poolId,
+					amount: amountInMist,
+				})
+
+				// Calculate percentages using the provided decimals with fallback
+				const tokenDecimals = decimals || 9
+				const totalSupplyHuman = Number(TOTAL_POOL_SUPPLY) / Math.pow(10, tokenDecimals)
+				const currentBalanceHuman = Number(currentBalanceBigInt) / Math.pow(10, tokenDecimals)
+				const quoteAmountOutHuman = Number(quote.memeAmountOut) / Math.pow(10, tokenDecimals)
+				const totalBalanceAfterHuman = currentBalanceHuman + quoteAmountOutHuman
+
+				const percentageAfter = (totalBalanceAfterHuman / totalSupplyHuman) * 100
+
+				if (percentageAfter >= Number(settings.maxHoldingPercent+0.01)) {
+					return NextResponse.json({
+						message: `This purchase would give you ${percentageAfter.toFixed(2)}% of total supply, exceeding the ${settings.maxHoldingPercent}% limit`,
+						error: "MAX_HOLDING_EXCEEDED",
+						currentPercentage: ((currentBalanceHuman / totalSupplyHuman) * 100).toFixed(2),
+						maxAllowed: settings.maxHoldingPercent,
+						wouldBe: percentageAfter.toFixed(2)
+					}, { status: 416 })
+				}
+			} catch (error) {
+				console.error("Failed to check max holding percentage:", error)
+				// Don't block the purchase if we can't verify the holding percentage
+				// This ensures the user experience isn't broken by temporary API issues
 			}
 		}
 

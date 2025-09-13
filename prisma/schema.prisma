@@ -76,7 +76,12 @@ model TokenLaunches {
   tokenTxHash     String
   poolTxHash      String
   user            User     @relation(fields: [twitterUserId], references: [twitterId], onDelete: SetNull)
+  coinType        String   @default("")
 
+  @@index([twitterUserId])
+  @@index([creatorAddress])
+  @@index([poolObjectId])
+  @@index([coinType])
   @@map("token_launches")
 }
 
