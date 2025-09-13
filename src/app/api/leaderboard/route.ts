@@ -5,7 +5,9 @@ export async function GET(request: NextRequest) {
 		const searchParams = request.nextUrl.searchParams
 		const sortOn = searchParams.get('sortOn') || 'totalVolume'
 		const timeRange = searchParams.get('timeRange') || '24h'
-		
+		const skip = searchParams.get('skip') ? parseInt(searchParams.get('skip')!) : undefined
+		const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined
+
 		const now = Date.now()
 		let startTime: number
 		const endTime: number = now
@@ -41,7 +43,9 @@ export async function GET(request: NextRequest) {
 		const data = await nexaServerClient.getLeaderboard({
 			sortOn: sortOn as 'totalVolume' | 'tradeCount',
 			startTime,
-			endTime
+			endTime,
+			skip,
+			limit
 		})
 		
 		return NextResponse.json(data)

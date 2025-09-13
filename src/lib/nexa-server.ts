@@ -67,16 +67,20 @@ class NexaServerClient {
 		sortOn?: 'totalVolume' | 'tradeCount'
 		startTime?: number
 		endTime?: number
+		skip?: number
+		limit?: number
 	}): Promise<LeaderboardEntry[]> {
 		const searchParams = new URLSearchParams()
-		
+
 		if (params?.sortOn) searchParams.append('sortOn', params.sortOn)
 		if (params?.startTime) searchParams.append('startTime', params.startTime.toString())
 		if (params?.endTime) searchParams.append('endTime', params.endTime.toString())
-		
+		if (params?.skip !== undefined) searchParams.append('skip', params.skip.toString())
+		if (params?.limit !== undefined) searchParams.append('limit', params.limit.toString())
+
 		const queryString = searchParams.toString()
 		const endpoint = queryString ? `/blast-fun/leaderboard?${queryString}` : '/blast-fun/leaderboard'
-		
+
 		const response = await this.fetch(endpoint, {
 			revalidate: 60, // Cache for 1 minute
 		})

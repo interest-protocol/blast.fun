@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, Suspense } from "react"
 import { useLeaderboard, TimeRange, SortBy } from "@/hooks/use-leaderboard"
-import { Trophy, Medal, ArrowDown } from "lucide-react"
+import { Trophy, Medal, ArrowDown, Loader2 } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { cn } from "@/utils/index"
 import { formatAddress } from "@mysten/sui/utils"
@@ -17,24 +17,34 @@ function LeaderboardContent() {
 	const searchParams = useSearchParams()
 	const [timeRange, setTimeRange] = useState<TimeRange>('24h')
 	const [initialSort, setInitialSort] = useState<SortBy>('volume')
-	
+
 	// @dev: Read sort and range from URL on mount
 	useEffect(() => {
 		const sortParam = searchParams.get('sort')
 		const rangeParam = searchParams.get('range')
-		
+
 		if (sortParam === 'volume' || sortParam === 'trades') {
 			setInitialSort(sortParam as SortBy)
 		}
-		
+
 		if (rangeParam === '24h' || rangeParam === '7d' || rangeParam === '14d' || rangeParam === 'all') {
 			setTimeRange(rangeParam as TimeRange)
 		}
 	}, [searchParams])
-	
-	const { data, loading, error, sortBy, handleSort: baseHandleSort } = useLeaderboard({ 
+
+	const {
+		data,
+		loading,
+		loadingMore,
+		error,
+		sortBy,
+		handleSort: baseHandleSort,
+		hasMore,
+		loadMore
+	} = useLeaderboard({
 		timeRange,
-		initialSort 
+		initialSort,
+		pageSize: 100 // @dev: Load 100 items per page
 	})
 	
 	// @dev: Wrap handleSort to update URL
@@ -254,6 +264,41 @@ function LeaderboardContent() {
 										</div>
 									)
 								})}
+
+								{/* Load More Button */}
+								{hasMore && !loading && (
+									<div className="flex justify-center items-center py-6">
+										<button
+											onClick={loadMore}
+											disabled={loadingMore}
+											className={cn(
+												"px-6 py-2 font-mono text-xs uppercase transition-all",
+												"bg-destructive/10 hover:bg-destructive/20 border border-destructive/30",
+												"text-destructive rounded-md",
+												"disabled:opacity-50 disabled:cursor-not-allowed",
+												"flex items-center gap-2"
+											)}
+										>
+											{loadingMore ? (
+												<>
+													<Loader2 className="h-4 w-4 animate-spin" />
+													Loading...
+												</>
+											) : (
+												"Load More"
+											)}
+										</button>
+									</div>
+								)}
+
+								{/* End of list indicator */}
+								{!hasMore && data.length > 0 && (
+									<div className="flex justify-center items-center py-4">
+										<span className="font-mono text-xs text-muted-foreground uppercase">
+											End of leaderboard
+										</span>
+									</div>
+								)}
 							</div>
 						</div>
 					</ScrollArea>
