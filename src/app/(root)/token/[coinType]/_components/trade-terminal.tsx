@@ -53,9 +53,9 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 		setQuickSellPercentages,
 	} = usePresetStore()
 
-	const { balance: tokenBalance } = useTokenBalance(pool.coinType)
+	const { balance: tokenBalance, refetch: refetchTokenBalance } = useTokenBalance(pool.coinType)
 	const { balance: actualBalance, refetch: refetchPortfolio } = usePortfolio(pool.coinType)
-	const { balance: suiBalance } = useTokenBalance("0x2::sui::SUI")
+	const { balance: suiBalance, refetch: refetchSuiBalance } = useTokenBalance("0x2::sui::SUI")
 
 	// derived states
 	const metadata = pool.metadata
@@ -426,8 +426,14 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 				return
 			}
 
+			// @dev: Refresh all balances after successful buy
+			
 			await buy(amount, slippage, turnstileToken || undefined)
-			await refetchPortfolio()
+			await Promise.all([
+				refetchPortfolio(),
+				refetchTokenBalance(),
+				refetchSuiBalance(),
+			])
 			setAmount("")
 			resetTurnstileToken() // Reset turnstile token after use
 		} else if (tradeType === "sell") {
@@ -437,7 +443,12 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 			}
 
 			await sell(amount, slippage)
-			await refetchPortfolio()
+			// @dev: Refresh all balances after successful sell
+			await Promise.all([
+				refetchPortfolio(),
+				refetchTokenBalance(),
+				refetchSuiBalance(),
+			])
 			setAmount("")
 		} else if (tradeType === "burn") {
 			const requiredTokens = parseFloat(amount)
@@ -446,6 +457,12 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 			}
 
 			await burn(amount)
+			// @dev: Refresh balances after burn
+			await Promise.all([
+				refetchPortfolio(),
+				refetchTokenBalance(),
+			])
+			setAmount("")
 		}
 	}
 

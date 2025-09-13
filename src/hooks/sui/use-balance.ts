@@ -1,12 +1,15 @@
-import { useCurrentAccount, useSuiClientQuery } from "@mysten/dapp-kit"
+import { useSuiClientQuery } from "@mysten/dapp-kit"
 import { useEffect } from "react"
 import { formatAmount } from "@/utils/format"
+import { useUnifiedWallet } from "@/hooks/use-unified-wallet"
 
 const DEFAULT_REFETCH_INTERVAL = 3000
 
 export interface IUseBalanceParams {
 	autoRefetch?: boolean
 	autoRefetchInterval?: number
+	// @dev: Allow overriding the address for specific use cases
+	address?: string
 }
 
 export interface IUseBalanceResponse {
@@ -15,10 +18,15 @@ export interface IUseBalanceResponse {
 	refetch: () => void
 }
 
-const useBalance = ({ autoRefetch, autoRefetchInterval }: IUseBalanceParams = {}): IUseBalanceResponse => {
-	const currentAccount = useCurrentAccount()
+const useBalance = ({ autoRefetch, autoRefetchInterval, address: overrideAddress }: IUseBalanceParams = {}): IUseBalanceResponse => {
+	// @dev: Use unified wallet to get the active wallet address
+	const { address: unifiedAddress } = useUnifiedWallet()
+	const address = overrideAddress || unifiedAddress
+	
 	const { data, refetch, error } = useSuiClientQuery("getBalance", {
-		owner: currentAccount?.address as string,
+		owner: address as string,
+	}, {
+		enabled: !!address
 	})
 
 	useEffect(() => {
@@ -28,7 +36,7 @@ const useBalance = ({ autoRefetch, autoRefetchInterval }: IUseBalanceParams = {}
 
 		const interval = setInterval(
 			() => {
-				if (currentAccount == null || !autoRefetch) {
+				if (address == null || !autoRefetch) {
 					clearInterval(interval)
 					return
 				}
@@ -41,7 +49,7 @@ const useBalance = ({ autoRefetch, autoRefetchInterval }: IUseBalanceParams = {}
 		return () => {
 			clearTimeout(interval)
 		}
-	}, [refetch, autoRefetch, autoRefetchInterval, currentAccount])
+	}, [refetch, autoRefetch, autoRefetchInterval, address])
 
 	return {
 		balance: data ? formatAmount(data.totalBalance) : undefined,

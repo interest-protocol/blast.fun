@@ -9,16 +9,20 @@ import { Button } from "../ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { TwitterUserAvatar } from "./user-avatar"
 import { BsTwitterX } from 'react-icons/bs'
-import { WalletList } from "../shared/wallet-list"
+import { WalletListWithPrivy } from "../shared/wallet-list-with-privy"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog"
 import { WalletManager } from "./wallet-manager"
 import Link from "next/link"
+import { useUnifiedWallet } from "@/hooks/use-unified-wallet"
+import { usePrivyAuth } from "@/hooks/privy/use-privy-auth"
 
 export function UserDropdown() {
 	const [open, setOpen] = useState(false)
 
 	const { user, isLoggedIn, login, logout } = useTwitter()
 	const { isConnected, address, domain, disconnect, isConnecting, connect, isConnectDialogOpen, setIsConnectDialogOpen, accounts, currentAccount, switchAccount } = useApp()
+	const { walletType } = useUnifiedWallet()
+	const { isAuthenticated: isPrivyAuthenticated, logout: privyLogout } = usePrivyAuth()
 
 	const showConnectButton = !isConnected && !isLoggedIn
 	const showTwitterOnlyState = isLoggedIn && !isConnected
@@ -34,7 +38,7 @@ export function UserDropdown() {
 								Connect with one of the available wallet providers or create a new wallet.
 							</DialogDescription>
 						</DialogHeader>
-						<WalletList onSelect={connect} isConnecting={isConnecting} />
+						<WalletListWithPrivy onSelect={connect} isConnecting={isConnecting} onClose={() => setIsConnectDialogOpen(false)} />
 					</div>
 				</DialogContent>
 			</Dialog>
@@ -69,7 +73,7 @@ export function UserDropdown() {
 						<Button variant="outline" className="rounded-xl px-2 ease-in-out duration-300 transition-all">
 							{user && <TwitterUserAvatar user={user} className="h-4 w-4" />}
 							<span className="text-muted-foreground group-hover:text-primary transition-colors duration-300 font-semibold text-sm">
-								{user?.username ? `@${user.username}` : currentAccount?.label || domain || formatAddress(address || "")}
+								{user?.username ? `@${user.username}` : domain || formatAddress(address || "")}
 							</span>
 						</Button>
 					</PopoverTrigger>
@@ -78,7 +82,7 @@ export function UserDropdown() {
 						<div className="space-y-3">
 							{/* Wallet Manager */}
 							<div className="pb-2 border-b">
-								<WalletManager />
+								<WalletManager onClosePopover={() => setOpen(false)} />
 							</div>
 							
 							{/* Navigation Links */}
@@ -135,16 +139,36 @@ export function UserDropdown() {
 								)}
 							</div>
 
-							<Button
-								variant="outline"
-								className="w-full justify-start text-destructive hover:bg-destructive/10 bg-transparent"
-								onClick={disconnect}
-							>
-								<span className="flex flex-grow items-center gap-2 text-destructive">
-									<Unplug className="w-4 h-4" />
-									{accounts.length > 1 ? "Disconnect All" : "Disconnect Wallet"}
-								</span>
-							</Button>
+							{/* Disconnect Options */}
+							<div className="space-y-2">
+								{/* @dev: Show Quick Account disconnect if connected */}
+								{isPrivyAuthenticated && walletType === "privy" && (
+									<Button
+										variant="outline"
+										className="w-full justify-start hover:bg-muted"
+										onClick={() => privyLogout()}
+									>
+										<span className="flex flex-grow items-center gap-2">
+											<Unplug className="w-4 h-4" />
+											Disconnect Quick Account
+										</span>
+									</Button>
+								)}
+								
+								{/* @dev: Show standard wallet disconnect if any connected */}
+								{accounts.length > 0 && (
+									<Button
+										variant="outline"
+										className="w-full justify-start text-destructive hover:bg-destructive/10 bg-transparent"
+										onClick={disconnect}
+									>
+										<span className="flex flex-grow items-center gap-2 text-destructive">
+											<Unplug className="w-4 h-4" />
+											{accounts.length > 1 ? "Disconnect All Wallets" : "Disconnect Wallet"}
+										</span>
+									</Button>
+								)}
+							</div>
 						</div>
 					</PopoverContent>
 				</Popover>

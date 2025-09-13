@@ -2,7 +2,7 @@
 
 import { Loader2, ShieldCheck } from "lucide-react"
 import { useState, useCallback } from "react"
-import { WalletList } from "@/components/shared/wallet-list"
+import { WalletListWithPrivy } from "@/components/shared/wallet-list-with-privy"
 import { Button } from "@/components/ui/button"
 import { TwitterUserAvatar } from "@/components/user/user-avatar"
 import { useApp } from "@/context/app.context"
@@ -63,7 +63,7 @@ export default function LaunchContent() {
 					<div className="w-full max-w-md mx-auto space-y-4">
 						<div className="border-t border-foreground/10 pt-6">
 							<p className="text-xs font-mono text-muted-foreground/60 mb-6 uppercase">AVAILABLE::WALLETS</p>
-							<WalletList onSelect={connect} isConnecting={isConnecting} />
+							<WalletListWithPrivy onSelect={connect} isConnecting={isConnecting} />
 						</div>
 					</div>
 				</div>
