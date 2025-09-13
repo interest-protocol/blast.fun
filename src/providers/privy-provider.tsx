@@ -8,7 +8,7 @@ const getPrivyConfig = (): PrivyProviderBaseProps["config"] => {
 	return {
 		// @dev: ONLY Solana wallet connections - no social login, no Ethereum
 		// Solana wallets (Phantom, Solflare, etc.) authenticate directly without OAuth redirects
-		loginMethods: ["wallet"],
+		loginMethods: ["google", "twitter"],
 		
 		// @dev: Disable embedded wallets - Nexa backend creates Sui wallets
 		embeddedWallets: {

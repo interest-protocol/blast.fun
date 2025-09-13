@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { useWallets } from "@mysten/dapp-kit"
 import type { WalletWithRequiredFeatures } from "@mysten/wallet-standard"
 import { ChevronRight, Sparkles } from "lucide-react"
@@ -12,7 +11,6 @@ import { Button } from "../ui/button"
 import { Skeleton } from "../ui/skeleton"
 import { usePrivyAuth } from "@/hooks/privy/use-privy-auth"
 import { Separator } from "../ui/separator"
-import { QuickAccountDialog } from "../dialogs/QuickAccountDialog"
 
 type WalletListWithPrivyProps = {
 	onSelect: (wallet: WalletWithRequiredFeatures) => Promise<void>
@@ -25,11 +23,14 @@ export function WalletListWithPrivy({ onSelect, isConnecting = false, onClose }:
 	const isMounted = useMounted()
 	const router = useRouter()
 	const { isAuthenticated } = usePrivyAuth()
-	const [showQuickAccountDialog, setShowQuickAccountDialog] = useState(false)
 
 	const handleQuickAccountClick = () => {
-		// @dev: Show the Quick Account dialog - Solana wallets don't need redirects
-		setShowQuickAccountDialog(true)
+		// @dev: Navigate to home with quick_wallet_signin param and keep dialog open
+		router.push("/?quick_wallet_signin=true")
+		// Close the current dialog if exists
+		if (onClose) {
+			onClose()
+		}
 	}
 
 	if (!isMounted) {
@@ -167,18 +168,6 @@ export function WalletListWithPrivy({ onSelect, isConnecting = false, onClose }:
 					<ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-accent transition-colors" />
 				</Button>
 			)}
-			
-			{/* @dev: Quick Account Dialog */}
-			<QuickAccountDialog 
-				open={showQuickAccountDialog} 
-				onOpenChange={(open) => {
-					setShowQuickAccountDialog(open)
-					// @dev: If dialog is closed and parent has onClose, call it
-					if (!open && onClose) {
-						onClose()
-					}
-				}}
-			/>
 		</div>
 	)
 }

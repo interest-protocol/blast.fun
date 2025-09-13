@@ -4,13 +4,12 @@ import { formatAddress } from "@mysten/sui/utils"
 import { useResolveSuiNSName } from "@mysten/dapp-kit"
 import { Wallet, Check, Copy, CheckCircle2, Sparkles, Plus } from "lucide-react"
 import { useApp } from "@/context/app.context"
-import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { useClipboard } from "@/hooks/use-clipboard"
 import { useUnifiedWallet } from "@/hooks/use-unified-wallet"
 import { usePrivyAuth } from "@/hooks/privy/use-privy-auth"
 import { usePrivySuiWallet } from "@/hooks/privy/use-privy-sui-wallet"
 import { Button } from "@/components/ui/button"
-import { QuickAccountDialog } from "@/components/dialogs/QuickAccountDialog"
 
 interface WalletAccountItemProps {
 	account: any
@@ -73,7 +72,7 @@ export function WalletManager({ onClosePopover }: WalletManagerProps = {}) {
 	const { isAuthenticated: isPrivyAuthenticated, user: privyUser } = usePrivyAuth()
 	const { suiAddress: privySuiAddress } = usePrivySuiWallet()
 	const { copy, copied } = useClipboard()
-	const [showQuickAccountDialog, setShowQuickAccountDialog] = useState(false)
+	const router = useRouter()
 	
 	// @dev: Check if we have any connections (Quick Account or standard wallets)
 	// Quick Account should show whenever authenticated, regardless of which wallet is active
@@ -189,9 +188,10 @@ export function WalletManager({ onClosePopover }: WalletManagerProps = {}) {
 						onClick={(e) => {
 							e.preventDefault()
 							e.stopPropagation()
-							// @dev: Show Quick Account dialog only if not authenticated
+							// @dev: Navigate to home with quick wallet sign-in param
 							if (!isPrivyAuthenticated) {
-								setShowQuickAccountDialog(true)
+								onClosePopover?.()
+								router.push("/?quick_wallet_signin=true")
 							}
 						}}
 					>
@@ -206,12 +206,6 @@ export function WalletManager({ onClosePopover }: WalletManagerProps = {}) {
 					No wallets connected
 				</div>
 			)}
-			
-			{/* @dev: Quick Account Dialog */}
-			<QuickAccountDialog 
-				open={showQuickAccountDialog} 
-				onOpenChange={setShowQuickAccountDialog}
-			/>
 		</div>
 	)
 }
