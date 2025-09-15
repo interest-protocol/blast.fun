@@ -53,9 +53,9 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 		setQuickSellPercentages,
 	} = usePresetStore()
 
-	const { balance: tokenBalance } = useTokenBalance(pool.coinType)
+	const { balance: tokenBalance, refetch: refetchTokenBalance } = useTokenBalance(pool.coinType)
 	const { balance: actualBalance, refetch: refetchPortfolio } = usePortfolio(pool.coinType)
-	const { balance: suiBalance } = useTokenBalance("0x2::sui::SUI")
+	const { balance: suiBalance, refetch: refetchSuiBalance } = useTokenBalance("0x2::sui::SUI")
 
 	// derived states
 	const metadata = pool.metadata
@@ -88,6 +88,112 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 			return "0"
 		}
 	}, [effectiveBalance, decimals])
+
+	// @dev: Calculate max buyable amount based on max holding percentage
+	const [maxBuyableAmountSui, setMaxBuyableAmountSui] = useState<string | null>(null)
+	const [isCalculatingMax, setIsCalculatingMax] = useState(false)
+
+	useEffect(() => {
+		const calculateMaxBuyable = async () => {
+			// Only calculate for buy mode and when there's a max holding percentage
+			if (tradeType !== "buy" || !protectionSettings?.maxHoldingPercent || !pool.pool || pool.pool?.migrated) {
+				setMaxBuyableAmountSui(null)
+				return
+			}
+
+			try {
+				setIsCalculatingMax(true)
+				
+				const maxHoldingPercent = parseFloat(protectionSettings.maxHoldingPercent)
+				if (isNaN(maxHoldingPercent) || maxHoldingPercent <= 0) {
+					setMaxBuyableAmountSui(null)
+					return
+				}
+
+				// For tokens with 1B supply and 9 decimals
+				const TOTAL_SUPPLY_AMOUNT = 1_000_000_000n // 1 billion tokens
+				const totalSupplyInSmallestUnit = TOTAL_SUPPLY_AMOUNT * BigInt(10 ** decimals)
+
+				// Calculate the max amount of tokens user can hold (percentage of total supply)
+				const maxTokenAmount = (totalSupplyInSmallestUnit * BigInt(Math.floor(maxHoldingPercent * 100))) / 10000n
+
+				// Subtract current holdings to get how much more they can buy
+				const currentHoldingsBigInt = BigInt(effectiveBalance || "0")
+				const remainingTokensToBuy = maxTokenAmount > currentHoldingsBigInt 
+					? maxTokenAmount - currentHoldingsBigInt 
+					: 0n
+
+				if (remainingTokensToBuy === 0n) {
+					setMaxBuyableAmountSui("0")
+					return
+				}
+
+				// We need to find how much SUI is needed to buy remainingTokensToBuy
+				// We'll use binary search to find the right SUI amount
+				let low = 0n
+				let high = BigInt(suiBalanceInDisplayUnit * Number(MIST_PER_SUI)) // Max is user's balance in MIST
+				let bestSuiAmount = 0n
+				
+				// Binary search to find the SUI amount that gives us the desired tokens
+				while (low <= high) {
+					const mid = (low + high) / 2n
+					
+					try {
+						const quoteResult = await pumpSdk.quotePump({
+							pool: pool.pool.poolId,
+							amount: mid,
+						})
+						
+						const tokensReceived = BigInt(quoteResult.memeAmountOut || 0)
+						
+						if (tokensReceived === remainingTokensToBuy) {
+							bestSuiAmount = mid
+							break
+						} else if (tokensReceived < remainingTokensToBuy) {
+							low = mid + 1n
+							bestSuiAmount = mid // Keep the last amount that doesn't exceed
+						} else {
+							high = mid - 1n
+						}
+						
+						// If we're close enough (within 0.01 SUI), stop
+						if (high - low < BigInt(0.01 * Number(MIST_PER_SUI))) {
+							bestSuiAmount = mid
+							break
+						}
+					} catch (error) {
+						// If quote fails, try lower amount
+						high = mid - 1n
+					}
+				}
+
+				console.log({
+					maxHoldingPercent,
+					currentHoldingsInTokens: Number(currentHoldingsBigInt) / Math.pow(10, decimals),
+					maxTokensAllowed: Number(maxTokenAmount) / Math.pow(10, decimals),
+					remainingTokensToBuy: Number(remainingTokensToBuy) / Math.pow(10, decimals),
+					bestSuiAmountMist: bestSuiAmount,
+					bestSuiAmountSui: Number(bestSuiAmount) / Number(MIST_PER_SUI),
+					userSuiBalance: suiBalanceInDisplayUnit,
+				})
+				
+				// Convert from MIST to SUI for display
+				const suiAmountInSui = Number(bestSuiAmount) / Number(MIST_PER_SUI)
+				
+				// Ensure we don't exceed user's balance (leave 0.02 SUI for gas)
+				const maxAffordable = Math.min(suiAmountInSui, Math.max(0, suiBalanceInDisplayUnit - 0.02))
+				
+				setMaxBuyableAmountSui(maxAffordable.toString())
+			} catch (error) {
+				console.error("Error calculating max buyable amount:", error)
+				setMaxBuyableAmountSui(null)
+			} finally {
+				setIsCalculatingMax(false)
+			}
+		}
+
+		calculateMaxBuyable()
+	}, [tradeType, protectionSettings?.maxHoldingPercent, pool.pool, decimals, effectiveBalance, suiBalanceInDisplayUnit])
 
 	// @dev: prices for USD calculations from server data
 	const suiPrice = 4
@@ -320,8 +426,14 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 				return
 			}
 
+			// @dev: Refresh all balances after successful buy
+			
 			await buy(amount, slippage, turnstileToken || undefined)
-			await refetchPortfolio()
+			await Promise.all([
+				refetchPortfolio(),
+				refetchTokenBalance(),
+				refetchSuiBalance(),
+			])
 			setAmount("")
 			resetTurnstileToken() // Reset turnstile token after use
 		} else if (tradeType === "sell") {
@@ -331,7 +443,12 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 			}
 
 			await sell(amount, slippage)
-			await refetchPortfolio()
+			// @dev: Refresh all balances after successful sell
+			await Promise.all([
+				refetchPortfolio(),
+				refetchTokenBalance(),
+				refetchSuiBalance(),
+			])
 			setAmount("")
 		} else if (tradeType === "burn") {
 			const requiredTokens = parseFloat(amount)
@@ -340,6 +457,12 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 			}
 
 			await burn(amount)
+			// @dev: Refresh balances after burn
+			await Promise.all([
+				refetchPortfolio(),
+				refetchTokenBalance(),
+			])
+			setAmount("")
 		}
 	}
 
@@ -455,9 +578,14 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 							<button
 								onClick={() => {
 									if (tradeType === "buy") {
-										// leave some SUI for gas
-										const maxSui = Math.max(0, suiBalanceInDisplayUnit - 0.02)
-										setAmount(maxSui.toString())
+										// @dev: Use max holding percentage calculation if available
+										if (maxBuyableAmountSui && protectionSettings?.maxHoldingPercent && !pool.pool?.migrated) {
+											setAmount(maxBuyableAmountSui)
+										} else {
+											// Default behavior: leave some SUI for gas
+											const maxSui = Math.max(0, suiBalanceInDisplayUnit - 0.02)
+											setAmount(maxSui.toString())
+										}
 									} else {
 										// Safety check for sell - ensure we have a valid balance
 										if (!balanceInDisplayUnitPrecise || balanceInDisplayUnitPrecise === "0") {
@@ -468,9 +596,9 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 									}
 								}}
 								className="text-blue-400 hover:text-blue-300 font-medium text-xs transition-colors"
-								disabled={isProcessing || (tradeType === "sell" && !hasBalance)}
+								disabled={isProcessing || (tradeType === "sell" && !hasBalance) || (tradeType === "buy" && isCalculatingMax)}
 							>
-								MAX
+								{isCalculatingMax ? "..." : "MAX"}
 							</button>
 						</div>
 					</div>

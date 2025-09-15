@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
-import { redisGet } from "@/lib/redis/client"
+import { interestProtocolApi } from "@/lib/interest-protocol-api"
+import { CACHE_TTL, redisGet, redisSetEx } from "@/lib/redis/client"
 
 export async function GET(
 	_request: Request,
@@ -15,21 +16,39 @@ export async function GET(
 
 	try {
 		// @dev: Get icon URL from Redis cache
-		const cachedIconUrl = await redisGet(cacheKey)
+		let iconUrl = await redisGet(cacheKey)
 		
-		if (!cachedIconUrl) {
-			// @dev: Return 404 if no cached icon URL found
-			const response = new Response(null, { status: 404 })
-			response.headers.set('Cache-Control', 'public, max-age=60, s-maxage=60') // 1 min cache for 404s
-			response.headers.set('CDN-Cache-Control', 'public, max-age=60')
-			response.headers.set('Vercel-CDN-Cache-Control', 'public, max-age=60')
-			return response
+		if (!iconUrl) {
+			// @dev: Fetch from Interest Protocol REST API if not cached
+			try {
+				const metadata = await interestProtocolApi.getCoinMetadata(
+					decodeURIComponent(coin_type)
+				)
+
+				if (metadata?.iconUrl) {
+					iconUrl = metadata.iconUrl
+					
+					// @dev: Cache the icon URL if found
+					await redisSetEx(cacheKey, CACHE_TTL.ICON_URL, iconUrl)
+				}
+			} catch (error) {
+				console.error("Failed to fetch coin metadata from Interest Protocol:", error)
+			}
+			
+			// @dev: Return 404 if still no icon URL found
+			if (!iconUrl) {
+				const response = new Response(null, { status: 404 })
+				response.headers.set('Cache-Control', 'public, max-age=60, s-maxage=60') // 1 min cache for 404s
+				response.headers.set('CDN-Cache-Control', 'public, max-age=60')
+				response.headers.set('Vercel-CDN-Cache-Control', 'public, max-age=60')
+				return response
+			}
 		}
 
 		// @dev: Check if it's a base64 image
-		if (cachedIconUrl.startsWith('data:image/')) {
+		if (iconUrl.startsWith('data:image/')) {
 			// @dev: Extract the base64 data and content type
-			const [header, base64Data] = cachedIconUrl.split(',')
+			const [header, base64Data] = iconUrl.split(',')
 			const mimeMatch = header.match(/data:([^;]+)/)
 			const mimeType = mimeMatch ? mimeMatch[1] : 'image/png'
 			
@@ -49,7 +68,7 @@ export async function GET(
 			return response
 		} else {
 			// @dev: For regular URLs, redirect to the actual image
-			const response = NextResponse.redirect(cachedIconUrl, { status: 302 })
+			const response = NextResponse.redirect(iconUrl, { status: 302 })
 			
 			// @dev: Set cache headers for 30 minutes as requested
 			response.headers.set('Cache-Control', 'public, max-age=1800, s-maxage=1800')

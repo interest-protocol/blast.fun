@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { LeaderboardEntry } from "@/types/leaderboard"
 
 export type TimeRange = '24h' | '7d' | '14d' | 'all'
@@ -7,35 +7,53 @@ export type SortOrder = 'asc' | 'desc'
 
 interface UseLeaderboardOptions {
 	timeRange?: TimeRange
+	initialSort?: SortBy
+	pageSize?: number
 }
 
-export function useLeaderboard({ timeRange = '24h' }: UseLeaderboardOptions = {}) {
+export function useLeaderboard({ timeRange = '24h', initialSort = 'volume', pageSize = 50 }: UseLeaderboardOptions = {}) {
 	const [rawData, setRawData] = useState<LeaderboardEntry[]>([])
 	const [loading, setLoading] = useState(true)
+	const [loadingMore, setLoadingMore] = useState(false)
 	const [error, setError] = useState<string | null>(null)
-	const [sortBy, setSortBy] = useState<SortBy>('volume')
+	const [sortBy, setSortBy] = useState<SortBy>(initialSort)
 	const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
+	const [hasMore, setHasMore] = useState(true)
+	const [skip, setSkip] = useState(0)
 
+	// @dev: Reset data when timeRange changes
+	useEffect(() => {
+		setRawData([])
+		setSkip(0)
+		setHasMore(true)
+		setError(null)
+	}, [timeRange])
+
+	// @dev: Fetch initial data
 	useEffect(() => {
 		const fetchLeaderboard = async () => {
 			setLoading(true)
 			setError(null)
-			
+
 			try {
 				const params = new URLSearchParams({
-					sortOn: 'volume', // @dev: Always fetch by volume from API, we'll sort client-side
-					timeRange
+					sortOn: 'totalVolume', // @dev: Always fetch by volume from API, we'll sort client-side
+					timeRange,
+					limit: pageSize.toString(),
+					skip: '0'
 				})
-				
+
 				const response = await fetch(`/api/leaderboard?${params}`)
 				const result = await response.json()
-				
+
 				if (result.error) {
 					setError(result.error)
 					setRawData([])
 				} else {
 					const entries: LeaderboardEntry[] = Array.isArray(result) ? result : result.leaderboard || []
 					setRawData(entries)
+					setSkip(entries.length)
+					setHasMore(entries.length === pageSize)
 				}
 			} catch (err) {
 				console.error('Failed to fetch leaderboard:', err)
@@ -47,7 +65,40 @@ export function useLeaderboard({ timeRange = '24h' }: UseLeaderboardOptions = {}
 		}
 
 		fetchLeaderboard()
-	}, [timeRange])
+	}, [timeRange, pageSize])
+
+	// @dev: Load more data
+	const loadMore = useCallback(async () => {
+		if (loadingMore || !hasMore || loading) return
+
+		setLoadingMore(true)
+		try {
+			const params = new URLSearchParams({
+				sortOn: 'totalVolume',
+				timeRange,
+				limit: pageSize.toString(),
+				skip: skip.toString()
+			})
+
+			const response = await fetch(`/api/leaderboard?${params}`)
+			const result = await response.json()
+
+			if (!result.error) {
+				const entries: LeaderboardEntry[] = Array.isArray(result) ? result : result.leaderboard || []
+				if (entries.length > 0) {
+					setRawData(prev => [...prev, ...entries])
+					setSkip(prev => prev + entries.length)
+					setHasMore(entries.length === pageSize)
+				} else {
+					setHasMore(false)
+				}
+			}
+		} catch (err) {
+			console.error('Failed to load more:', err)
+		} finally {
+			setLoadingMore(false)
+		}
+	}, [loadingMore, hasMore, loading, skip, timeRange, pageSize])
 
 	// @dev: Sort data based on current sort settings
 	const data = useMemo(() => {
@@ -77,11 +128,17 @@ export function useLeaderboard({ timeRange = '24h' }: UseLeaderboardOptions = {}
 	return {
 		data,
 		loading,
+		loadingMore,
 		error,
 		sortBy,
 		sortOrder,
 		handleSort,
+		hasMore,
+		loadMore,
 		refetch: () => {
+			setRawData([])
+			setSkip(0)
+			setHasMore(true)
 			setLoading(true)
 			setError(null)
 		}

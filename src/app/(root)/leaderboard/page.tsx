@@ -1,19 +1,67 @@
 "use client"
 
-import { useState, useMemo } from "react"
-import { useLeaderboard, TimeRange } from "@/hooks/use-leaderboard"
-import { Trophy, Medal, ArrowUp, ArrowDown } from "lucide-react"
+import { useState, useMemo, useEffect, Suspense } from "react"
+import { useLeaderboard, TimeRange, SortBy } from "@/hooks/use-leaderboard"
+import { Trophy, Medal, ArrowDown, Loader2, Download, Copy, Check } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { cn } from "@/utils/index"
 import { formatAddress } from "@mysten/sui/utils"
 import { formatPrice } from "@/lib/format"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Logo } from "@/components/ui/logo"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useSuiNSNames } from "@/hooks/use-suins"
 
-export default function LeaderboardPage() {
+function LeaderboardContent() {
+	const router = useRouter()
+	const searchParams = useSearchParams()
 	const [timeRange, setTimeRange] = useState<TimeRange>('24h')
-	const { data, loading, error, sortBy, sortOrder, handleSort } = useLeaderboard({ timeRange })
+	const [initialSort, setInitialSort] = useState<SortBy>('volume')
+	const [copied, setCopied] = useState(false)
+
+	// @dev: Read sort and range from URL on mount
+	useEffect(() => {
+		const sortParam = searchParams.get('sort')
+		const rangeParam = searchParams.get('range')
+
+		if (sortParam === 'volume' || sortParam === 'trades') {
+			setInitialSort(sortParam as SortBy)
+		}
+
+		if (rangeParam === '24h' || rangeParam === '7d' || rangeParam === '14d' || rangeParam === 'all') {
+			setTimeRange(rangeParam as TimeRange)
+		}
+	}, [searchParams])
+
+	const {
+		data,
+		loading,
+		loadingMore,
+		error,
+		sortBy,
+		handleSort: baseHandleSort,
+		hasMore,
+		loadMore
+	} = useLeaderboard({
+		timeRange,
+		initialSort,
+		pageSize: 100 // @dev: Load 100 items per page
+	})
+	
+	// @dev: Wrap handleSort to update URL
+	const handleSort = (field: SortBy) => {
+		baseHandleSort(field)
+		const params = new URLSearchParams(searchParams.toString())
+		params.set('sort', field)
+		router.push(`/leaderboard?${params.toString()}`)
+	}
+	
+	// @dev: Handle time range change with URL update
+	const handleTimeRangeChange = (range: TimeRange) => {
+		setTimeRange(range)
+		const params = new URLSearchParams(searchParams.toString())
+		params.set('range', range)
+		router.push(`/leaderboard?${params.toString()}`)
+	}
 
 	const traderAddresses = useMemo(() => {
 		return data.map(entry => entry.user) || []
@@ -28,15 +76,97 @@ export default function LeaderboardPage() {
 		return <span className="text-xs font-mono text-muted-foreground">#{rank}</span>
 	}
 
+	// @dev: Export leaderboard data to CSV
+	const handleExportCSV = () => {
+		// @dev: Format timestamp as YYYYMMDD_HHmm
+		const now = new Date()
+		const year = now.getFullYear()
+		const month = String(now.getMonth() + 1).padStart(2, '0')
+		const day = String(now.getDate()).padStart(2, '0')
+		const hours = String(now.getHours()).padStart(2, '0')
+		const minutes = String(now.getMinutes()).padStart(2, '0')
+		const timestamp = `${year}${month}${day}_${hours}${minutes}`
+
+		// @dev: Map time range for filename
+		const rangeMap: Record<TimeRange, string> = {
+			'24h': '24h',
+			'7d': '7d',
+			'14d': 'cycle',
+			'all': 'all'
+		}
+
+		const filename = `${timestamp}_${rangeMap[timeRange]}.csv`
+
+		// @dev: Prepare CSV content
+		const headers = ['address', 'suins', 'volume', 'trades']
+		const rows = data.map(entry => {
+			const suinsName = suinsNames?.[entry.user] || ''
+			return [
+				entry.user,
+				suinsName,
+				(entry.totalVolume || 0).toString(),
+				(entry.tradeCount || 0).toString()
+			]
+		})
+
+		// @dev: Convert to CSV format
+		const csvContent = [
+			headers.join(','),
+			...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+		].join('\n')
+
+		// @dev: Create blob and download
+		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+		const link = document.createElement('a')
+		const url = URL.createObjectURL(blob)
+		link.setAttribute('href', url)
+		link.setAttribute('download', filename)
+		link.style.display = 'none'
+		document.body.appendChild(link)
+		link.click()
+		document.body.removeChild(link)
+		URL.revokeObjectURL(url)
+	}
+
+	// @dev: Copy leaderboard data to clipboard in TSV format
+	const handleCopyTSV = async () => {
+		// @dev: Prepare TSV content (Tab-Separated Values)
+		const headers = ['address', 'suins', 'volume', 'trades']
+		const rows = data.map(entry => {
+			const suinsName = suinsNames?.[entry.user] || ''
+			return [
+				entry.user,
+				suinsName,
+				(entry.totalVolume || 0).toString(),
+				(entry.tradeCount || 0).toString()
+			].join('\t')
+		})
+
+		// @dev: Convert to TSV format
+		const tsvContent = [
+			headers.join('\t'),
+			...rows
+		].join('\n')
+
+		try {
+			await navigator.clipboard.writeText(tsvContent)
+			setCopied(true)
+			// @dev: Reset copied state after 2 seconds
+			setTimeout(() => setCopied(false), 2000)
+		} catch (err) {
+			console.error('Failed to copy to clipboard:', err)
+		}
+	}
+
 	return (
-		<div className="container max-w-7xl mx-auto h-full flex flex-col">
+		<div className="container max-w-7xl mx-auto py-4">
 			{/* Controls Section */}
-			<div className="flex justify-start mb-3">
+			<div className="flex justify-between items-center mb-3">
 				<div className="p-0.5 bg-card/50 backdrop-blur-sm border border-border/50 rounded-md flex items-center">
 					{(['24h', '7d', '14d', 'all'] as const).map((range) => (
 						<button
 							key={range}
-							onClick={() => setTimeRange(range)}
+							onClick={() => handleTimeRangeChange(range)}
 							disabled={loading}
 							className={cn(
 								"px-3 py-1 text-xs font-mono uppercase transition-all rounded",
@@ -46,8 +176,8 @@ export default function LeaderboardPage() {
 									: "text-muted-foreground hover:text-foreground hover:bg-muted/50"
 							)}
 							title={
-								range === '14d' ? 'Current reward cycle' : 
-								range === 'all' ? 'All time since Sep 1' : 
+								range === '14d' ? 'Current reward cycle' :
+								range === 'all' ? 'All time since Sep 5' :
 								undefined
 							}
 						>
@@ -58,13 +188,58 @@ export default function LeaderboardPage() {
 						</button>
 					))}
 				</div>
+
+				{/* Action Buttons */}
+				<div className="flex items-center gap-2">
+					{/* Copy Button */}
+					<button
+						onClick={handleCopyTSV}
+						disabled={loading || data.length === 0}
+						className={cn(
+							"px-3 py-1 text-xs font-mono uppercase transition-all rounded",
+							"bg-card/50 backdrop-blur-sm border border-border/50",
+							"text-muted-foreground hover:text-foreground hover:bg-muted/50",
+							"disabled:opacity-50 disabled:cursor-not-allowed",
+							"flex items-center gap-1.5"
+						)}
+						title="Copy as TSV to clipboard"
+					>
+						{copied ? (
+							<>
+								<Check className="h-3.5 w-3.5 text-green-500" />
+								Copied
+							</>
+						) : (
+							<>
+								<Copy className="h-3.5 w-3.5" />
+								Copy
+							</>
+						)}
+					</button>
+
+					{/* Download Button */}
+					<button
+						onClick={handleExportCSV}
+						disabled={loading || data.length === 0}
+						className={cn(
+							"px-3 py-1 text-xs font-mono uppercase transition-all rounded",
+							"bg-card/50 backdrop-blur-sm border border-border/50",
+							"text-muted-foreground hover:text-foreground hover:bg-muted/50",
+							"disabled:opacity-50 disabled:cursor-not-allowed",
+							"flex items-center gap-1.5"
+						)}
+						title="Download CSV"
+					>
+						<Download className="h-3.5 w-3.5" />
+						Download
+					</button>
+				</div>
 			</div>
 
 			{/* Leaderboard Content */}
-			<div className="flex-1 bg-card/50 border border-border/50 rounded-lg overflow-hidden min-h-0">
+			<div className="bg-card/50 border border-border/50 rounded-lg overflow-hidden">
 				{loading ? (
-					<ScrollArea className="h-full">
-						<div className="w-full">
+					<div className="w-full">
 							<div className="relative">
 								<div className="grid grid-cols-12 py-2 border-b border-border/50 text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground sticky top-0 bg-card/95 backdrop-blur-sm z-10 select-none">
 									<div className="col-span-1"></div>
@@ -99,8 +274,7 @@ export default function LeaderboardPage() {
 									</div>
 								))}
 							</div>
-						</div>
-					</ScrollArea>
+					</div>
 				) : error ? (
 					<div className="p-8 text-center">
 						<Logo className="w-12 h-12 mx-auto text-foreground/20 mb-4" />
@@ -118,9 +292,8 @@ export default function LeaderboardPage() {
 						</p>
 					</div>
 				) : (
-					<ScrollArea className="h-full">
-						<div className="w-full">
-							<div className="relative">
+					<div className="w-full">
+						<div className="relative">
 								{/* Header - Sticky like holders tab */}
 								<div className="grid grid-cols-12 py-2 border-b border-border/50 text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground sticky top-0 bg-card/95 backdrop-blur-sm z-10 select-none">
 									<div className="col-span-1 text-center"></div>
@@ -216,11 +389,62 @@ export default function LeaderboardPage() {
 										</div>
 									)
 								})}
-							</div>
+
+								{/* Load More Button */}
+								{hasMore && !loading && (
+									<div className="flex justify-center items-center py-6">
+										<button
+											onClick={loadMore}
+											disabled={loadingMore}
+											className={cn(
+												"px-6 py-2 font-mono text-xs uppercase transition-all",
+												"bg-destructive/10 hover:bg-destructive/20 border border-destructive/30",
+												"text-destructive rounded-md",
+												"disabled:opacity-50 disabled:cursor-not-allowed",
+												"flex items-center gap-2"
+											)}
+										>
+											{loadingMore ? (
+												<>
+													<Loader2 className="h-4 w-4 animate-spin" />
+													Loading...
+												</>
+											) : (
+												"Load More"
+											)}
+										</button>
+									</div>
+								)}
+
+								{/* End of list indicator */}
+								{!hasMore && data.length > 0 && (
+									<div className="flex justify-center items-center py-4">
+										<span className="font-mono text-xs text-muted-foreground uppercase">
+											End of leaderboard
+										</span>
+									</div>
+								)}
 						</div>
-					</ScrollArea>
+					</div>
 				)}
 			</div>
 		</div>
+	)
+}
+
+export default function LeaderboardPage() {
+	return (
+		<Suspense fallback={
+			<div className="container max-w-7xl mx-auto py-4">
+				<div className="bg-card/50 border border-border/50 rounded-lg">
+					<div className="p-8 text-center">
+						<Logo className="w-12 h-12 mx-auto text-foreground/20 mb-4 animate-pulse" />
+						<p className="font-mono text-sm uppercase text-muted-foreground">LOADING::LEADERBOARD</p>
+					</div>
+				</div>
+			</div>
+		}>
+			<LeaderboardContent />
+		</Suspense>
 	)
 }

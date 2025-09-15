@@ -3,15 +3,17 @@ import { NextRequest, NextResponse } from "next/server"
 export async function GET(request: NextRequest) {
 	try {
 		const searchParams = request.nextUrl.searchParams
-		const sortOn = searchParams.get('sortOn') || 'volume'
+		const sortOn = searchParams.get('sortOn') || 'totalVolume'
 		const timeRange = searchParams.get('timeRange') || '24h'
-		
+		const skip = searchParams.get('skip') ? parseInt(searchParams.get('skip')!) : undefined
+		const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined
+
 		const now = Date.now()
 		let startTime: number
 		const endTime: number = now
 		
-		// @dev: reward cycles - 14 day periods starting Sep 1st
-		const PROGRAM_START = new Date('2025-09-01T00:00:00Z').getTime()
+		// @dev: reward cycles - 14 day periods starting Sep 5th
+		const PROGRAM_START = new Date('2025-09-05T00:00:00Z').getTime()
 		const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000
 		
 		// @dev: calculate current cycle
@@ -39,9 +41,11 @@ export async function GET(request: NextRequest) {
 
 		const { nexaServerClient } = await import('@/lib/nexa-server')
 		const data = await nexaServerClient.getLeaderboard({
-			sortOn: sortOn as 'volume' | 'trades',
+			sortOn: sortOn as 'totalVolume' | 'tradeCount',
 			startTime,
-			endTime
+			endTime,
+			skip,
+			limit
 		})
 		
 		return NextResponse.json(data)

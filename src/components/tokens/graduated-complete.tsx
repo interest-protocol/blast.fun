@@ -21,7 +21,7 @@ export const GraduatedComplete = memo(function GraduatedComplete({
 		sortBy: "marketCap",
 		filters: {
 			tabType: 'bonded'
-		}
+		},
 	})
 
 	// @dev: Build filter params for bonded tokens

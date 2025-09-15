@@ -24,16 +24,6 @@ interface TurnstileProps {
 	refreshTrigger?: number
 }
 
-declare global {
-	interface Window {
-		turnstile?: {
-			render: (element: HTMLElement, options: TurnstileOptions) => string
-			remove: (widgetId: string) => void
-			reset: (widgetId: string) => void
-		}
-	}
-}
-
 export function Turnstile({
 	onVerify,
 	onError,
