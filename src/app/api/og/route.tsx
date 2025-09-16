@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
 
 		// @dev: Get parameters from URL
 		const coinName = searchParams.get("name") || "BLAST.FUN"
+		const coinTicker = searchParams.get("ticker") || ""
 		const rawCoinImage = searchParams.get("image")
 
 		// @dev: Resolve cached data URIs or use direct URLs
@@ -57,39 +58,60 @@ export async function GET(request: NextRequest) {
 		return new ImageResponse(
 			(
 				isMainPage ? (
-					// @dev: Full-width card for main page
+					// @dev: Full-width card for main page with helmet image
 					<div
 						style={{
 							display: 'flex',
 							height: '630px',
 							width: '1200px',
-							alignItems: 'center',
-							justifyContent: 'center',
+							alignItems: 'stretch',
+							justifyContent: 'flex-start',
+							flexDirection: 'row',
 							backgroundColor: '#000000',
 							fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
 							overflow: 'hidden',
 						}}
 					>
+						{/* Left side with helmet image */}
 						<div
 							style={{
 								display: 'flex',
-								flexDirection: 'column',
+								width: '600px',
+								height: '630px',
 								alignItems: 'center',
-								gap: '32px',
+								justifyContent: 'center',
+								backgroundColor: '#000000',
+								padding: '0',
+								position: 'relative',
+								overflow: 'hidden',
 							}}
 						>
-							{/* Mushroom cloud logo */}
 							<img
-								src={`${baseUrl}/logo/blast-bg.png`}
+								src={`${baseUrl}/logo/blast-helmet.png`}
 								alt="BLAST.FUN"
-								width={120}
-								height={120}
+								width={600}
+								height={630}
 								style={{
-									width: '120px',
-									height: '120px',
-									objectFit: 'contain',
+									width: '600px',
+									height: '630px',
+									objectFit: 'cover',
 								}}
 							/>
+						</div>
+						
+						{/* Right side with BLAST.FUN text */}
+						<div
+							style={{
+								display: 'flex',
+								width: '600px',
+								height: '630px',
+								flexDirection: 'column',
+								alignItems: 'center',
+								justifyContent: 'center',
+								backgroundColor: '#0a0a0a',
+								padding: '60px',
+							}}
+						>
 							<div
 								style={{
 									color: '#ffffff',
@@ -118,56 +140,35 @@ export async function GET(request: NextRequest) {
 							overflow: 'hidden',
 						}}
 					>
-						{/* Left panel with BLAST.FUN branding */}
+						{/* Left panel with BLAST.FUN helmet */}
 						<div
 							style={{
 								display: 'flex',
 								width: '600px',
 								height: '630px',
-								flexDirection: 'column',
 								alignItems: 'center',
 								justifyContent: 'center',
 								backgroundColor: '#000000',
-								padding: '40px',
+								padding: '0',
 								position: 'relative',
+								overflow: 'hidden',
 							}}
 						>
-							{/* BLAST.FUN logo with mushroom cloud icon */}
-							<div
+							{/* BLAST.FUN helmet image - full size */}
+							<img
+								src={`${baseUrl}/logo/blast-helmet.png`}
+								alt="BLAST.FUN"
+								width={600}
+								height={630}
 								style={{
-									display: 'flex',
-									flexDirection: 'column',
-									alignItems: 'center',
-									gap: '24px',
+									width: '600px',
+									height: '630px',
+									objectFit: 'cover',
 								}}
-							>
-								{/* Mushroom cloud logo */}
-								<img
-									src={`${baseUrl}/logo/blast-bg.png`}
-									alt="BLAST.FUN"
-									width={80}
-									height={80}
-									style={{
-										width: '80px',
-										height: '80px',
-										objectFit: 'contain',
-									}}
-								/>
-								<div
-									style={{
-										color: '#ffffff',
-										fontSize: '42px',
-										fontFamily: 'Mach',
-										fontWeight: '900',
-										letterSpacing: '-1px',
-									}}
-								>
-									BLAST.FUN
-								</div>
-							</div>
+							/>
 						</div>
 
-						{/* Right panel with solid red background and token info */}
+						{/* Right panel with solid dark background and token info */}
 						<div
 							style={{
 								display: 'flex',
@@ -176,7 +177,7 @@ export async function GET(request: NextRequest) {
 								flexDirection: 'column',
 								alignItems: 'center',
 								justifyContent: 'center',
-								backgroundColor: '#850000',
+								backgroundColor: '#0a0a0a',
 								padding: '60px',
 								position: 'relative',
 								overflow: 'hidden',
@@ -214,7 +215,7 @@ export async function GET(request: NextRequest) {
 								</div>
 							)}
 
-							{/* Token name */}
+							{/* Token name and ticker */}
 							<div
 								style={{
 									display: 'flex',
@@ -235,7 +236,7 @@ export async function GET(request: NextRequest) {
 										textTransform: 'uppercase',
 									}}
 								>
-									{coinName.split(' ')[0].slice(0, 12).toUpperCase()}
+									{(coinTicker || coinName.split(' ')[0]).slice(0, 12).toUpperCase()}
 								</h1>
 								<p
 									style={{
