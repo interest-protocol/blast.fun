@@ -1,14 +1,21 @@
 "use client"
 
+import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useCreatorRewards } from "../_hooks/use-creator-rewards"
 import { formatAddress } from "@mysten/sui/utils"
-import { Loader2, ExternalLink, Coins } from "lucide-react"
+import { Loader2, ExternalLink, Coins, Send } from "lucide-react"
 import Link from "next/link"
+import { TransferPositionDialog } from "./transfer-position-dialog"
 
 export function CreatorRewardsList() {
-	const { rewards, claimReward, isClaiming } = useCreatorRewards()
+	const { rewards, claimReward, isClaiming, transferPosition, isTransferring } = useCreatorRewards()
+	const [transferDialog, setTransferDialog] = useState<{ open: boolean; positionId: string; tokenSymbol?: string }>({
+		open: false,
+		positionId: "",
+		tokenSymbol: undefined
+	})
 
 	return (
 		<div className="space-y-4">
@@ -63,13 +70,13 @@ export function CreatorRewardsList() {
 							</div>
 						</div>
 
-						{/* @dev: Claim button - full width on mobile */}
-						<div className="w-full sm:w-auto">
+						{/* @dev: Action buttons - full width on mobile */}
+						<div className="flex w-full gap-2 sm:w-auto">
 							<Button
 								onClick={() => claimReward(reward.id)}
 								disabled={isClaiming === reward.id || reward.claimed}
 								variant={reward.claimed ? "outline" : "default"}
-								className="w-full sm:w-auto"
+								className="flex-1 sm:flex-initial"
 								size="sm"
 							>
 								{isClaiming === reward.id ? (
@@ -83,10 +90,48 @@ export function CreatorRewardsList() {
 									"Claim"
 								)}
 							</Button>
+							<Button
+								onClick={() => setTransferDialog({
+									open: true,
+									positionId: reward.id,
+									tokenSymbol: reward.memeCoinSymbol
+								})}
+								disabled={isTransferring === reward.id}
+								variant="outline"
+								className="flex-1 sm:flex-initial"
+								size="sm"
+							>
+								{isTransferring === reward.id ? (
+									<>
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										Transferring...
+									</>
+								) : (
+									<>
+										<Send className="mr-2 h-4 w-4" />
+										Transfer
+									</>
+								)}
+							</Button>
 						</div>
 					</div>
 				</Card>
 			))}
+
+			{/* @dev: Transfer dialog */}
+			<TransferPositionDialog
+				open={transferDialog.open}
+				onOpenChange={(open) => setTransferDialog(prev => ({ ...prev, open }))}
+				positionId={transferDialog.positionId}
+				tokenSymbol={transferDialog.tokenSymbol}
+				onConfirm={async (address) => {
+					const success = await transferPosition(transferDialog.positionId, address)
+					if (success) {
+						setTransferDialog({ open: false, positionId: "", tokenSymbol: undefined })
+					}
+					return success
+				}}
+			/>
 		</div>
 	)
 }

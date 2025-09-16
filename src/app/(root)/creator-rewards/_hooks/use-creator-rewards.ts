@@ -28,6 +28,7 @@ export function useCreatorRewards() {
 	const [isLoading, setIsLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 	const [isClaiming, setIsClaiming] = useState<string | null>(null)
+	const [isTransferring, setIsTransferring] = useState<string | null>(null)
 
 	const fetchRewards = useCallback(async () => {
 		if (!address) return
@@ -112,8 +113,6 @@ export function useCreatorRewards() {
 
 		try {
 			// @dev: Create PTB for claiming rewards
-			console.log("reward", reward)
-
 			const { tx, suiCoin } = migratorSdk.collectFee({
 				bluefinPool: reward.blueFinPoolId,
 				memeCoinType: reward.memeCoinType,
@@ -190,13 +189,59 @@ export function useCreatorRewards() {
 		}
 	}, [address, fetchRewards])
 
+	const transferPosition = useCallback(async (positionId: string, recipientAddress: string) => {
+		if (!address) {
+			toast.error("Please connect your wallet")
+			return false
+		}
+
+		const position = rewards.find(r => r.id === positionId)
+		if (!position) {
+			toast.error("Position not found")
+			return false
+		}
+
+		setIsTransferring(positionId)
+
+		try {
+			// @dev: Create PTB for transferring position ownership
+			const { Transaction } = await import('@mysten/sui/transactions')
+			const tx = new Transaction()
+
+			// @dev: Transfer the position object to the recipient
+			tx.transferObjects([tx.object(position.objectId)], tx.pure.address(recipientAddress))
+
+			const result = await executeTransaction(tx)
+
+			if (result) {
+				toast.success(`Successfully transferred position to ${recipientAddress.slice(0, 6)}...${recipientAddress.slice(-4)}`)
+
+				// @dev: Refresh the list after transfer
+				await fetchRewards()
+
+				return true
+			} else {
+				toast.error("Failed to transfer position")
+				return false
+			}
+		} catch (err) {
+			console.error("Error transferring position:", err)
+			toast.error("Failed to transfer position")
+			return false
+		} finally {
+			setIsTransferring(null)
+		}
+	}, [address, rewards, executeTransaction, fetchRewards])
+
 	return {
 		rewards,
 		isLoading,
 		error,
 		isClaiming,
+		isTransferring,
 		claimReward,
 		claimAllRewards,
+		transferPosition,
 		refetch: fetchRewards,
 	}
 }
