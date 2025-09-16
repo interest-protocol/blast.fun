@@ -374,18 +374,28 @@ export function HoldersTab({ pool, className, activeTab = "holders", onTabChange
 														</span>
 													</div>
 												) : holder.isVesting ? (
-													// @dev: For vesting rows, just show truncated address with vesting badge
+													// @dev: For vesting rows, make address and badge clickable
 													<div className="flex items-center gap-2">
-														<span className="font-mono text-[10px] sm:text-xs text-muted-foreground">
+														<a
+															href={`https://suivision.xyz/account/${holder.account}`}
+															target="_blank"
+															rel="noopener noreferrer"
+															className="font-mono text-[10px] sm:text-xs text-muted-foreground hover:text-primary transition-colors"
+														>
 															{holder.account.slice(0, 8)}...
-														</span>
+														</a>
 														<TooltipProvider>
 															<Tooltip>
 																<TooltipTrigger asChild>
-																	<span className="px-1.5 py-0.5 bg-purple-500/10 rounded font-mono text-[9px] uppercase text-purple-500 flex items-center gap-0.5 cursor-help">
+																	<a
+																		href={`https://suivision.xyz/account/${holder.account}`}
+																		target="_blank"
+																		rel="noopener noreferrer"
+																		className="px-1.5 py-0.5 bg-purple-500/10 rounded font-mono text-[9px] uppercase text-purple-500 flex items-center gap-0.5 cursor-pointer hover:bg-purple-500/20 transition-colors"
+																	>
 																		<Lock className="h-2.5 w-2.5" />
 																		VESTING
-																	</span>
+																	</a>
 																</TooltipTrigger>
 																<TooltipContent>
 																	<div className="text-xs">
