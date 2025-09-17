@@ -144,7 +144,7 @@ export async function GET(request: NextRequest) {
 						>
 							{/* BLAST.FUN helmet image - full size */}
 							<img
-								src={`${baseUrl}/logo/blast-helmet.png`}
+								src={`${baseUrl}/logo/blast-helmet.jpg`}
 								alt="BLAST.FUN"
 								width={600}
 								height={630}
