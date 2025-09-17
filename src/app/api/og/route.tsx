@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
 							}}
 						>
 							<img
-								src={`${baseUrl}/logo/blast-helmet.png`}
+								src={`${baseUrl}/logo/blast-helmet.jpg`}
 								alt="BLAST.FUN"
 								width={600}
 								height={630}
