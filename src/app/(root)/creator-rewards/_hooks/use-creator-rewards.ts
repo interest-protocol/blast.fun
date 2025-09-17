@@ -58,9 +58,10 @@ export function useCreatorRewards() {
 							memeCoinType: p.memeCoinType,
 							positionOwner: p.objectId,
 						})
+						console.log({pendingFeeResult});
 
-						if (pendingFeeResult && pendingFeeResult.amount) {
-							estimatedRewards = pendingFeeResult.amount
+						if (pendingFeeResult) {
+							estimatedRewards = (Number(pendingFeeResult) / 10**9).toString()
 						}
 
 						// @dev: Fetch coin metadata
