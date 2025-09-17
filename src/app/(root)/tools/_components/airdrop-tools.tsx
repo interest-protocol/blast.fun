@@ -198,6 +198,7 @@ export function AirdropTools() {
 	}, [csvInput, lastCsvInput])
 
 	const handleAirdrop = async () => {
+		
 		if(!address){
 			return;
 		}
@@ -214,161 +215,179 @@ export function AirdropTools() {
 		setIsProcessing(true)
 		setAirdropProgress("Preparing transaction...")
 
-		const coinMetadata = await suiClient.getCoinMetadata({
-			coinType: selectedCoin,
-		}) as CoinMetadata
-
-		const totalAmountToSend = BigInt(Math.ceil(recipients.reduce((sum, r) => sum + parseFloat(r.amount || "0"), 0)  * Math.pow(10, coinMetadata.decimals)))
-
-		const localSuiPrivateKey = localStorage.getItem("localSuiPrivateKey")
-		let delegatorKeypair: Ed25519Keypair;
-		if(!localSuiPrivateKey) {
-			delegatorKeypair = Ed25519Keypair.generate()
-			localStorage.setItem("localSuiPrivateKey", delegatorKeypair.getSecretKey())
-			return
-		} else {
-			delegatorKeypair = Ed25519Keypair.fromSecretKey(localSuiPrivateKey)
-		}
-		
-		const delegatorAddr = delegatorKeypair.getPublicKey().toSuiAddress()
-		setDelegatorAddress(delegatorAddr)
-		setAirdropProgress("Sending transactions...")
-
-		// create new tx to send funding and gas to delegator.
-		if(!isRecoveringGas) {
-			{
-				const tx = new Transaction()
-				tx.setSender(address)
-				
-				const coinInput = coinWithBalance({
-					balance: totalAmountToSend,
-					type: selectedCoin,
-				})(tx)
-
-				const gasInput = coinWithBalance({
-					balance: BigInt(recipients.length * 0.005 * 10 ** 9),
-					type: "0x2::sui::SUI",
-				})(tx)
-
-				tx.transferObjects([coinInput, gasInput], delegatorAddr)
-
-				if(process.env.NEXT_PUBLIC_FEE_ADDRESS) {
-					const feeInput = coinWithBalance({
-						balance: BigInt(recipients.length * 0.01 * 10 ** 9),
-						type: "0x2::sui::SUI",
-					})(tx)
-					tx.transferObjects([feeInput], process.env.NEXT_PUBLIC_FEE_ADDRESS)
-				}
-
-				const txResult = await executeTransaction(tx)
-				await suiClient.waitForTransaction({
-					digest: txResult.digest,
-				})
-			}
+		try{
+			const coinMetadata = await suiClient.getCoinMetadata({
+				coinType: selectedCoin,
+			}) as CoinMetadata
 			
 
-			// let delegator run the airdrop.
-			{
-				// send the coin to recipients, 500 each batch.
-				const batchPerTx = 500;
-				for (let i = 0; i < Math.ceil(recipients.length / batchPerTx); i++) {
-					
+			const totalAmountToSend = BigInt(Math.ceil(recipients.reduce((sum, r) => sum + parseFloat(r.amount || "0"), 0)  * Math.pow(10, coinMetadata.decimals)))
+
+			const localSuiPrivateKey = localStorage.getItem("localSuiPrivateKey")
+			let delegatorKeypair: Ed25519Keypair;
+			if(!localSuiPrivateKey) {
+				delegatorKeypair = Ed25519Keypair.generate()
+				localStorage.setItem("localSuiPrivateKey", delegatorKeypair.getSecretKey())
+				return
+			} else {
+				delegatorKeypair = Ed25519Keypair.fromSecretKey(localSuiPrivateKey)
+			}
+			
+			const delegatorAddr = delegatorKeypair.getPublicKey().toSuiAddress()
+			setDelegatorAddress(delegatorAddr)
+			setAirdropProgress("Sending transactions...")
+
+			// create new tx to send funding and gas to delegator.
+			if(!isRecoveringGas) {
+				{
 					const tx = new Transaction()
-					tx.setSender(delegatorAddr)
-					const transferBalances = []
-					const transferAddresses = []
-					const variableNames = []
-					for(let j = 0; j < batchPerTx; j++) {
-						const recipient = recipients[i * batchPerTx + j]
-						if(!recipient) {
-							break;
-						}
-						transferBalances.push(String(BigInt(Math.ceil(parseFloat(recipient.amount) * Math.pow(10, coinMetadata.decimals)))))
-						transferAddresses.push(recipient.address)
-						variableNames.push(`coin${i * batchPerTx + j}`)
-					}
-					const coinInput = coinWithBalance({
+					tx.setSender(address)
+
+					let coinInput = null;
+					if(!selectedCoin.endsWith("2::sui::SUI")) {
+						coinInput = coinWithBalance({
 						balance: totalAmountToSend,
-						type: selectedCoin,
-					})(tx)
-
-					// Instead of using eval, directly call splitCoins and store the result
-					const splitCoins = tx.splitCoins(coinInput, transferBalances.map(balance => tx.pure.u64(balance)));
-
-					// Transfer each coin to its respective address
-					for(let j = 0; j < transferAddresses.length; j++) {
-						tx.transferObjects([splitCoins[j]], tx.pure.address(transferAddresses[j]));
+							type: selectedCoin,
+							useGasCoin: true,
+						})(tx)
+					} else {
+						coinInput = tx.splitCoins(tx.gas, [tx.pure.u64(totalAmountToSend)])
 					}
 
-					tx.transferObjects([coinInput], address)
+					const gasInput = tx.splitCoins(tx.gas, [tx.pure.u64(BigInt(recipients.length * 0.005 * 10 ** 9))])
 
-					const txResult = await delegatorKeypair.signAndExecuteTransaction({
-						transaction: tx,
-						client: suiClient,
-					})
-					setAirdropProgress(`Sending batch ${i + 1} of ${Math.ceil(recipients.length / batchPerTx)} (${Math.min((i+1) * batchPerTx, recipients.length)}/${recipients.length} recipients)`)
+					tx.transferObjects([coinInput, gasInput], delegatorAddr)
+
+					if(process.env.NEXT_PUBLIC_FEE_ADDRESS) {
+						const feeInput = coinWithBalance({
+							balance: BigInt(recipients.length * 0.01 * 10 ** 9),
+							type: "0x2::sui::SUI",
+						})(tx)
+						tx.transferObjects([feeInput], process.env.NEXT_PUBLIC_FEE_ADDRESS)
+					}
+
+					const txResult = await executeTransaction(tx)
 					await suiClient.waitForTransaction({
 						digest: txResult.digest,
 					})
 				}
-			}
-		}
-		{
-			setIsRecoveringGas(true)
-			setAirdropProgress("Returning unused gas...")
-			// Finally, send the rest of the coin to the sender with sponsor transaction.
-			const tx = new Transaction()
-			tx.setSender(delegatorAddr)
-			// const remainingGasCoins = await suiClient.getCoins({
-			// 	owner: delegatorAddress,
-			// 	coinType: "0x2::sui::SUI",
-			// })
-
-			// const remainingGasCoinsObjectIds = remainingGasCoins.data.map(coin => coin.coinObjectId)
-
-			tx.transferObjects([tx.gas], address)
-
-			// tx.setGasOwner(address)
-
-			const txBytes = await tx.build({
-				client: suiClient,
-			})
-			try {
-				// const {signature: userSignature} = await signTransaction({
-				// 	transaction: tx,
-				// })
 				
-				const {signature: delegatorSignature} = await delegatorKeypair.signTransaction(txBytes)
 
-				const txResult = await suiClient.executeTransactionBlock({
-					transactionBlock: txBytes,
-					signature: [delegatorSignature],
-					options: {
-						showEffects: true,
-						showEvents: true,
-					},
-				})
-				setIsRecoveringGas(false)
+				// let delegator run the airdrop.
+				{
+					// send the coin to recipients, 500 each batch.
+					const batchPerTx = 500;
+					for (let i = 0; i < Math.ceil(recipients.length / batchPerTx); i++) {
+						
+						const tx = new Transaction()
+						tx.setSender(delegatorAddr)
+						const transferBalances = []
+						const transferAddresses = []
+						const variableNames = []
+						for(let j = 0; j < batchPerTx; j++) {
+							const recipient = recipients[i * batchPerTx + j]
+							if(!recipient) {
+								break;
+							}
+							transferBalances.push(String(BigInt(Math.ceil(parseFloat(recipient.amount) * Math.pow(10, coinMetadata.decimals)))))
+							transferAddresses.push(recipient.address)
+							variableNames.push(`coin${i * batchPerTx + j}`)
+						}
+						let coinInput = null;
+						if(!selectedCoin.endsWith("2::sui::SUI")) {
+							coinInput = coinWithBalance({
+								balance: totalAmountToSend,
+								type: selectedCoin,
+								useGasCoin: true,
+							})(tx)
+						} else {
+							coinInput = tx.gas
+						}
 
-				await suiClient.waitForTransaction({
-					digest: txResult.digest,
-				})
+						// Instead of using eval, directly call splitCoins and store the result
+						const splitCoins = tx.splitCoins(coinInput, transferBalances.map(balance => tx.pure.u64(balance)));
 
-				// @dev: Store the last digest and set completion flags
-				setLastAirdropDigest(txResult.digest)
-				setIsAirdropComplete(true)
-				setLastCsvInput(csvInput)
-				setAirdropProgress("")
-				setIsProcessing(false)
+						// Transfer each coin to its respective address
+						for(let j = 0; j < transferAddresses.length; j++) {
+							tx.transferObjects([splitCoins[j]], tx.pure.address(transferAddresses[j]));
+						}
 
-				toast.success("Airdrop finished", {
-					duration: 3000,
-				})
-			} catch (error) {
-				setAirdropProgress("")
-				setIsProcessing(false)
-				return
+						if(!selectedCoin.endsWith("2::sui::SUI")) {
+							tx.transferObjects([coinInput], address)
+						}
+
+						const txResult = await delegatorKeypair.signAndExecuteTransaction({
+							transaction: tx,
+							client: suiClient,
+						})
+						setAirdropProgress(`Sending batch ${i + 1} of ${Math.ceil(recipients.length / batchPerTx)} (${Math.min((i+1) * batchPerTx, recipients.length)}/${recipients.length} recipients)`)
+						await suiClient.waitForTransaction({
+							digest: txResult.digest,
+						})
+					}
+				}
 			}
+			{
+				setIsRecoveringGas(true)
+				setAirdropProgress("Returning unused gas...")
+				// Finally, send the rest of the coin to the sender with sponsor transaction.
+				const tx = new Transaction()
+				tx.setSender(delegatorAddr)
+				// const remainingGasCoins = await suiClient.getCoins({
+				// 	owner: delegatorAddress,
+				// 	coinType: "0x2::sui::SUI",
+				// })
+
+				// const remainingGasCoinsObjectIds = remainingGasCoins.data.map(coin => coin.coinObjectId)
+
+				tx.transferObjects([tx.gas], address)
+
+				// tx.setGasOwner(address)
+
+				const txBytes = await tx.build({
+					client: suiClient,
+				})
+				try {
+					// const {signature: userSignature} = await signTransaction({
+					// 	transaction: tx,
+					// })
+					
+					const {signature: delegatorSignature} = await delegatorKeypair.signTransaction(txBytes)
+
+					const txResult = await suiClient.executeTransactionBlock({
+						transactionBlock: txBytes,
+						signature: [delegatorSignature],
+						options: {
+							showEffects: true,
+							showEvents: true,
+						},
+					})
+					setIsRecoveringGas(false)
+
+					await suiClient.waitForTransaction({
+						digest: txResult.digest,
+					})
+
+					// @dev: Store the last digest and set completion flags
+					setLastAirdropDigest(txResult.digest)
+					setIsAirdropComplete(true)
+					setLastCsvInput(csvInput)
+					setAirdropProgress("")
+					setIsProcessing(false)
+
+					toast.success("Airdrop finished", {
+						duration: 3000,
+					})
+				} catch (error) {
+					setAirdropProgress("")
+					setIsProcessing(false)
+					return
+				}
+			}
+		} catch (error) {
+			console.error("Error in airdrop:", error)
+			toast.error("Failed to airdrop")
+			setIsProcessing(false)
 		}
 	}
 
