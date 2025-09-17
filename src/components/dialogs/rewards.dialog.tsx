@@ -13,6 +13,7 @@ import { Transaction } from "@mysten/sui/transactions"
 import { useCurrentAccount, useSignAndExecuteTransaction } from "@mysten/dapp-kit"
 import type { CoinStruct } from "@mysten/sui/client"
 import type { WalletCoin } from "@/types/blockvision"
+import { useTransaction } from "@/hooks/sui/use-transaction"
 
 interface RewardsDialogProps {
 	open: boolean
@@ -27,6 +28,7 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 	const [isLoading, setIsLoading] = useState(false)
 	const [claimingCoinType, setClaimingCoinType] = useState<string | null>(null)
 	const [memezWalletAddress, setMemezWalletAddress] = useState<string | null>(null)
+	const { executeTransaction } = useTransaction()
 	
 	// Initialize MemezWalletSDK
 	const walletSdk = new MemezWalletSDK()
@@ -272,10 +274,7 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 			// Set gas budget
 			tx.setGasBudget(10000000)
 			
-			// Have the user sign and execute the transaction
-			await signAndExecuteTransaction({
-				transaction: tx,
-			})
+			await executeTransaction(tx)
 			
 			toast.success(`${coin.symbol} claimed successfully!`)
 			
@@ -352,10 +351,7 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 			// Set gas budget
 			tx.setGasBudget(10000000)
 			
-			// Have the user sign and execute the transaction
-			await signAndExecuteTransaction({
-				transaction: tx,
-			})
+			await executeTransaction(tx)
 			
 			toast.success(`Successfully claimed ${successCount} reward(s)!`)
 			
