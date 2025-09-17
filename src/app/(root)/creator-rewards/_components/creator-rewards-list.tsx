@@ -16,6 +16,7 @@ export function CreatorRewardsList() {
 		positionId: "",
 		tokenSymbol: undefined
 	})
+	console.log({rewards});
 
 	return (
 		<div className="space-y-4">
