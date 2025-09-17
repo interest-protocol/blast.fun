@@ -26,6 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ coinType:
 
 	const ogParams: Record<string, string> = {
 		name: name,
+		ticker: symbol,
 		marketCap: `$${formattedMcap}`,
 		image: processedImageUrl
 	}
