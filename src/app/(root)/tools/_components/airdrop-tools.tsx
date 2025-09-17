@@ -244,7 +244,6 @@ export function AirdropTools() {
 					tx.setSender(address)
 
 					let coinInput = null;
-					console.log({selectedCoin});
 					if(!selectedCoin.endsWith("2::sui::SUI")) {
 						coinInput = coinWithBalance({
 						balance: totalAmountToSend,
@@ -266,7 +265,6 @@ export function AirdropTools() {
 						})(tx)
 						tx.transferObjects([feeInput], process.env.NEXT_PUBLIC_FEE_ADDRESS)
 					}
-					console.log({tx});
 
 					const txResult = await executeTransaction(tx)
 					await suiClient.waitForTransaction({
@@ -317,7 +315,6 @@ export function AirdropTools() {
 						if(!selectedCoin.endsWith("2::sui::SUI")) {
 							tx.transferObjects([coinInput], address)
 						}
-						console.log({tx});
 
 						const txResult = await delegatorKeypair.signAndExecuteTransaction({
 							transaction: tx,
