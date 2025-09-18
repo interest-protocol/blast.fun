@@ -7,6 +7,7 @@ import { TokenCardSkeleton } from "./token-card.skeleton"
 import { Logo } from "@/components/ui/logo"
 import { TokenListFilters } from "./token-list.filters"
 import { useBondedTokens } from "@/hooks/use-tokens"
+import { useTradeBump } from "@/hooks/use-trade-bump"
 import type { TokenListSettings, TokenFilters } from "@/types/token"
 import { sortTokens } from "@/utils/token-sorting"
 
@@ -23,6 +24,7 @@ export const GraduatedComplete = memo(function GraduatedComplete({
 			tabType: 'bonded'
 		},
 	})
+	const { bumpOrder, isAnimating } = useTradeBump()
 
 	// @dev: Build filter params for bonded tokens
 	const filterParams = useMemo<TokenFilters>(() => {
@@ -46,18 +48,37 @@ export const GraduatedComplete = memo(function GraduatedComplete({
 			tokens = tokens.filter((token) => {
 				const metadata = token.metadata || token
 				if (!metadata) return false
-				
+
 				if (settings.filters.hasWebsite && (!metadata.Website || metadata.Website === '')) return false
 				if (settings.filters.hasTwitter && (!metadata.X || metadata.X === '')) return false
 				if (settings.filters.hasTelegram && (!metadata.Telegram || metadata.Telegram === '')) return false
-				
+
 				return true
 			})
 		}
 
-		// @dev: Use unified sorting utility
-		return sortTokens(tokens, settings.sortBy)
-	}, [data, settings])
+		// sort based on bump order, then apply normal sorting
+		const sorted = [...tokens].sort((a, b) => {
+			const aIndex = bumpOrder.indexOf(a.coinType)
+			const bIndex = bumpOrder.indexOf(b.coinType)
+
+			if (aIndex !== -1 && bIndex !== -1) {
+				return aIndex - bIndex
+			}
+
+			if (aIndex !== -1) return -1
+			if (bIndex !== -1) return 1
+
+			return 0
+		})
+
+		// apply normal sorting to non-bumped tokens
+		const bumped = sorted.filter(t => bumpOrder.includes(t.coinType))
+		const nonBumped = sorted.filter(t => !bumpOrder.includes(t.coinType))
+		const sortedNonBumped = sortTokens(nonBumped, settings.sortBy)
+
+		return [...bumped, ...sortedNonBumped]
+	}, [data, settings, bumpOrder])
 
 	const renderContent = useCallback(() => {
 		if (error) {
@@ -89,12 +110,13 @@ export const GraduatedComplete = memo(function GraduatedComplete({
 		}
 
 		return filteredAndSortedTokens.map((pool) => (
-			<TokenCard 
-				key={pool.coinType} 
-				pool={pool} 
+			<TokenCard
+				key={pool.coinType}
+				pool={pool}
+				hasRecentTrade={isAnimating(pool.coinType)}
 			/>
 		))
-	}, [filteredAndSortedTokens, isLoading, error])
+	}, [filteredAndSortedTokens, isLoading, error, isAnimating])
 
 	return (
 		<TokenListLayout
