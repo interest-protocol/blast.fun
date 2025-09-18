@@ -92,6 +92,18 @@ export function SearchToken() {
 		setSelectedCoinType(coinType)
 	}, [])
 
+	useEffect(() => {
+		const down = (e: KeyboardEvent) => {
+			if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+				e.preventDefault()
+				setOpen((open) => !open)
+			}
+		}
+
+		document.addEventListener("keydown", down)
+		return () => document.removeEventListener("keydown", down)
+	}, [])
+
 	return (
 		<>
 			<Button
@@ -101,6 +113,16 @@ export function SearchToken() {
 				onClick={() => setOpen(true)}
 			>
 				<Search className="size-4" />
+			</Button>
+
+			{/* floating search button */}
+			<Button
+				variant="default"
+				size="icon"
+				className="fixed bottom-[72px] right-6 z-30 size-14 rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 bg-primary hover:bg-primary/90 animate-in fade-in zoom-in lg:bottom-16"
+				onClick={() => setOpen(true)}
+			>
+				<Search className="size-5" />
 			</Button>
 
 			<CommandDialog

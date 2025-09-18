@@ -7,6 +7,7 @@ import { NearGraduation } from "@/components/tokens/near-graduation"
 import { GraduatedComplete } from "@/components/tokens/graduated-complete"
 import { MobileTokenList } from "@/components/tokens/mobile-token-list"
 import { QuickAccountDialog } from "@/components/dialogs/QuickAccountDialog"
+import { SearchToken } from "@/components/shared/search-token"
 import { useBreakpoint } from "@/hooks/use-breakpoint"
 
 export default function DiscoveryPageContent() {
@@ -38,8 +39,9 @@ export default function DiscoveryPageContent() {
 				<div className="h-full">
 					<MobileTokenList />
 				</div>
-				<QuickAccountDialog 
-					open={showQuickWallet} 
+				<SearchToken />
+				<QuickAccountDialog
+					open={showQuickWallet}
 					onOpenChange={handleQuickWalletClose}
 				/>
 			</>
@@ -53,8 +55,9 @@ export default function DiscoveryPageContent() {
 				<NearGraduation pollInterval={10000} />
 				<GraduatedComplete pollInterval={30000} />
 			</div>
-			<QuickAccountDialog 
-				open={showQuickWallet} 
+			<SearchToken />
+			<QuickAccountDialog
+				open={showQuickWallet}
 				onOpenChange={handleQuickWalletClose}
 			/>
 		</>
