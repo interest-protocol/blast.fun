@@ -14,11 +14,11 @@ export const ThemeSwitcher = () => {
 	return (
 		<Button
 			size="icon"
-			variant="outline"
+			variant="ghost"
 			onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-			className="rounded-xl ease-in-out duration-300 transition-all"
+			className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
 		>
-			{theme === "light" ? <Moon className="h-6 w-6" /> : <Sun className="h-6 w-6" />}
+			{theme === "light" ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
 		</Button>
 	)
 }

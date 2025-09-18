@@ -108,3 +108,11 @@ export const formatSmallPrice = (value: number | undefined): ReactNode => {
 
 	return formatNumberWithSuffix(value)
 }
+
+export const formatAddressShort = (address: string): string => {
+	if (!address || address.length <= 6) {
+		return address || ""
+	}
+
+	return address.slice(-6)
+}

@@ -17,10 +17,12 @@ import { BsTwitterX } from "react-icons/bs"
 
 interface TokenCardProps {
 	pool: Token | any // @dev: Support both new Token type and legacy format
+	hasRecentTrade?: boolean
 }
 
 export const TokenCard = memo(function TokenCard({
-	pool: tokenData
+	pool: tokenData,
+	hasRecentTrade = false
 }: TokenCardProps) {
 	// @dev: Normalize data structure - support both new Token type and legacy format
 	const token = tokenData.market ? tokenData : {
@@ -72,7 +74,7 @@ export const TokenCard = memo(function TokenCard({
 
 	return (
 		<Link href={`/token/${token.coinType}`} className="cursor-default">
-			<div className="relative border-b border-border/40 group hover:bg-accent/15 transition-all duration-300 overflow-hidden">
+			<div className={`relative border-b border-border/40 group hover:bg-accent/15 transition-all duration-300 overflow-hidden ${hasRecentTrade ? 'animate-shake' : ''}`}>
 				{/* Content */}
 				<div className="relative p-3 sm:p-2">
 					<div className="flex gap-3 sm:gap-2.5">
