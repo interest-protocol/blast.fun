@@ -9,8 +9,11 @@ export default function Header() {
 	return (
 		<header className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/50">
 			<div className="h-16 px-4 xl:px-8 flex items-center gap-4">
-				<Link href="/" className="group flex-shrink-0">
-					<Logo className="h-8 w-8 text-destructive group-hover:animate-spin transition-all" />
+				<Link href="/" className="group flex items-center gap-2">
+					<Logo className="size-8 text-foreground group-hover:text-destructive transition-colors duration-200" />
+					<span className="hidden sm:inline-block font-mono font-black text-lg text-foreground group-hover:text-destructive transition-colors duration-200">
+						BLAST.FUN
+					</span>
 				</Link>
 
 				<TradeTicker />
