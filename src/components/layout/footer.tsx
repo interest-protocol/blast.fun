@@ -36,7 +36,7 @@ export function Footer() {
 									key={item.href}
 									href={item.href}
 									className={cn(
-										"flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all",
+										"flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all",
 										isActive
 											? "text-foreground bg-destructive/10 border border-destructive/30"
 											: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
