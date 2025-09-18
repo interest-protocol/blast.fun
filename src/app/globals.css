@@ -154,3 +154,26 @@
 		height: 65px !important;
 	}
 }
+
+/* Ticker Animation */
+.ticker-wrapper {
+	@apply flex items-center overflow-hidden;
+}
+
+.ticker-content {
+	@apply flex;
+	animation: scroll 40s linear infinite;
+}
+
+.ticker-content:hover {
+	animation-play-state: paused;
+}
+
+@keyframes scroll {
+	0% {
+		transform: translateX(0);
+	}
+	100% {
+		transform: translateX(-50%);
+	}
+}
