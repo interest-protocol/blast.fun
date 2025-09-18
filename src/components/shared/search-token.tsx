@@ -95,14 +95,12 @@ export function SearchToken() {
 	return (
 		<>
 			<Button
-				variant="outline"
-				className="rounded-xl px-2 h-9 hover:bg-accent/50 transition-all duration-300"
+				variant="ghost"
+				size="icon"
+				className="size-8 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
 				onClick={() => setOpen(true)}
 			>
-				<Search className="h-4 w-4 text-muted-foreground" />
-				<span className="text-muted-foreground font-semibold text-sm hidden md:inline-block">
-					Search for tokens...
-				</span>
+				<Search className="size-4" />
 			</Button>
 
 			<CommandDialog
