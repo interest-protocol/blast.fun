@@ -73,7 +73,7 @@ export function QuickAccountDialog({ open, onOpenChange }: QuickAccountDialogPro
 							<div>
 								<h3 className="font-semibold mb-1">Easy Onboarding</h3>
 								<p className="text-sm text-muted-foreground">
-									Connect with Phantom, Solflare, or any Solana wallet
+									Connect with your social accounts like Google, Twitter, or Discord
 								</p>
 							</div>
 						</div>
