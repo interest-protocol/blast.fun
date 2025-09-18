@@ -1,6 +1,7 @@
 "use client"
 
 import Header from "@/components/layout/header"
+import { Footer } from "@/components/layout/footer"
 import { MobileNavigation } from "@/components/layout/mobile-nav"
 import { TokenTabsHeader } from "@/components/layout/token-tabs-header"
 import { usePathname } from "next/navigation"
@@ -26,7 +27,7 @@ export default function Layout({
 			<Header />
 			<TokenTabsHeader />
 
-			<main className="flex-1 overflow-hidden">
+			<main className="flex-1 overflow-hidden pb-12">
 				{shouldHavePadding ? (
 					<div className={cn(
 						"h-full overflow-auto p-2"
@@ -38,6 +39,7 @@ export default function Layout({
 				)}
 			</main>
 
+			<Footer />
 			<MobileNavigation />
 		</div>
 	)
