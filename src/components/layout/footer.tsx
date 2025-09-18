@@ -11,7 +11,6 @@ import { Button } from "../ui/button"
 import { cn } from "@/utils"
 import { navigationItems } from "@/constants/navigation"
 import { useMounted } from "@/hooks/use-mounted"
-import { SearchToken } from "../shared/search-token"
 
 const socialLinks = [
 	{ href: "https://x.com/blastdotfun", icon: BsTwitterX, label: "X" },
@@ -52,8 +51,6 @@ export function Footer() {
 
 					{/* socials */}
 					<div className="flex items-center gap-1">
-						<SearchToken />
-
 						{/* trade preset settings */}
 						<Button
 							variant="ghost"

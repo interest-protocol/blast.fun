@@ -106,16 +106,7 @@ export function SearchToken() {
 
 	return (
 		<>
-			<Button
-				variant="ghost"
-				size="icon"
-				className="size-8 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
-				onClick={() => setOpen(true)}
-			>
-				<Search className="size-4" />
-			</Button>
-
-			{/* floating search button */}
+			{/* floating search */}
 			<Button
 				variant="default"
 				size="icon"
