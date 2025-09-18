@@ -16,9 +16,9 @@ export const ThemeSwitcher = () => {
 			size="icon"
 			variant="ghost"
 			onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-			className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
+			className="size-8 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
 		>
-			{theme === "light" ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
+			{theme === "light" ? <Moon className="size-4" /> : <Sun className="size-4" />}
 		</Button>
 	)
 }
