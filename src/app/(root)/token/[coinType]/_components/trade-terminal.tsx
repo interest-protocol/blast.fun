@@ -884,7 +884,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 							((tradeType === "sell" || tradeType === "burn") && !hasBalance) ||
 							(tradeType === "buy" && parseFloat(amount) > suiBalanceInDisplayUnit) ||
 							((tradeType === "sell" || tradeType === "burn") && parseFloat(amount) > balanceInDisplayUnit) ||
-							(pool.pool?.isProtected && tradeType === "buy" && !turnstileToken)
+							(pool.pool?.isProtected && tradeType === "buy" && !turnstileToken && !pool.pool?.migrated)
 						}
 					>
 						{(isProcessing || isBurning) ? (
