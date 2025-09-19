@@ -7,6 +7,9 @@ import { migratorSdk } from "@/lib/pump"
 import { useTransaction } from "@/hooks/sui/use-transaction"
 import { playSound } from "@/lib/audio"
 import { interestProtocolApi } from "@/lib/interest-protocol-api"
+import { SUI_TYPE_ARG } from "@mysten/sui/utils"
+import { Aftermath } from "aftermath-ts-sdk"
+import { env } from "@/env"
 
 export interface CreatorReward {
 	id: string
@@ -29,6 +32,7 @@ export function useCreatorRewards() {
 	const [error, setError] = useState<string | null>(null)
 	const [isClaiming, setIsClaiming] = useState<string | null>(null)
 	const [isTransferring, setIsTransferring] = useState<string | null>(null)
+	const [isBuyingBack, setIsBuyingBack] = useState<string | null>(null)
 
 	const fetchRewards = useCallback(async () => {
 		if (!address) return
@@ -146,6 +150,100 @@ export function useCreatorRewards() {
 		}
 	}, [address, rewards, executeTransaction, fetchRewards])
 
+	const buyBackReward = useCallback(async (rewardId: string) => {
+		if (!address) {
+			toast.error("Please connect your wallet")
+			return false
+		}
+
+		const reward = rewards.find(r => r.id === rewardId)
+		if (!reward) {
+			toast.error("Reward not found")
+			return false
+		}
+
+		setIsBuyingBack(rewardId)
+
+		try {
+			// @dev: First get the pending fee amount
+			const pendingFeeResult = await migratorSdk.pendingFee({
+				bluefinPool: reward.blueFinPoolId,
+				memeCoinType: reward.memeCoinType,
+				positionOwner: reward.objectId,
+			})
+
+			if (!pendingFeeResult || Number(pendingFeeResult) === 0) {
+				toast.error("No rewards to claim")
+				return false
+			}
+
+			// @dev: Get Aftermath instance and create the swap route
+			const af = new Aftermath("MAINNET")
+			await af.init()
+			const router = af.Router()
+
+			// @dev: Get the swap route
+			const route = await router.getCompleteTradeRouteGivenAmountIn({
+				coinInType: SUI_TYPE_ARG,
+				coinOutType: reward.memeCoinType,
+				coinInAmount: BigInt(pendingFeeResult),
+				referrer: undefined,
+				externalFee: {
+					recipient: env.NEXT_PUBLIC_FEE_ADDRESS,
+					feePercentage: 0.01
+				}
+			})
+
+			if (!route) {
+				throw new Error("No route found for swap")
+			}
+
+			// @dev: Create PTB for claiming rewards
+			const { tx, suiCoin } = migratorSdk.collectFee({
+				bluefinPool: reward.blueFinPoolId,
+				memeCoinType: reward.memeCoinType,
+				positionOwner: reward.objectId,
+			})
+
+			// @dev: Add the swap to the same PTB
+			const swapResult = await router.addTransactionForCompleteTradeRoute({
+				tx,
+				walletAddress: address,
+				completeRoute: route,
+				slippage: 0.01,
+				coinInId: suiCoin,
+			})
+
+			// @dev: Transfer the swapped tokens to the user if available
+			if (swapResult.coinOutId) {
+				tx.transferObjects([swapResult.coinOutId], tx.pure.address(address))
+			}
+
+			const result = await executeTransaction(tx)
+
+			if (result) {
+				toast.success(`Successfully bought back ${reward.memeCoinSymbol || 'tokens'}!`)
+
+				// @dev: Play success sound
+				playSound('buy')
+
+				// @dev: Update rewards list
+				await fetchRewards()
+
+				return true
+			} else {
+				toast.error("Failed to buy back tokens")
+				return false
+			}
+		} catch (err) {
+			console.error("Error buying back reward:", err)
+			toast.error("Failed to buy back tokens")
+			return false
+		} finally {
+			setIsBuyingBack(null)
+		}
+	}, [address, rewards, executeTransaction, fetchRewards])
+
 	const claimAllRewards = useCallback(async () => {
 		if (!address) {
 			toast.error("Please connect your wallet")
@@ -239,7 +337,9 @@ export function useCreatorRewards() {
 		error,
 		isClaiming,
 		isTransferring,
+		isBuyingBack,
 		claimReward,
+		buyBackReward,
 		claimAllRewards,
 		transferPosition,
 		refetch: fetchRewards,

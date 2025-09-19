@@ -10,7 +10,7 @@ import Link from "next/link"
 import { TransferPositionDialog } from "./transfer-position-dialog"
 
 export function CreatorRewardsList() {
-	const { rewards, claimReward, isClaiming, transferPosition, isTransferring } = useCreatorRewards()
+	const { rewards, claimReward, isClaiming, transferPosition, isTransferring, buyBackReward, isBuyingBack } = useCreatorRewards()
 	const [transferDialog, setTransferDialog] = useState<{ open: boolean; positionId: string; tokenSymbol?: string }>({
 		open: false,
 		positionId: "",
@@ -88,6 +88,22 @@ export function CreatorRewardsList() {
 									"Claimed"
 								) : (
 									"Claim"
+								)}
+							</Button>
+							<Button
+								onClick={() => buyBackReward(reward.id)}
+								disabled={isBuyingBack === reward.id || reward.claimed}
+								variant="secondary"
+								className="flex-1 sm:flex-initial"
+								size="sm"
+							>
+								{isBuyingBack === reward.id ? (
+									<>
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										Buying...
+									</>
+								) : (
+									"Buy Back"
 								)}
 							</Button>
 							<Button
