@@ -33,7 +33,6 @@ interface SwapSuccessDialogProps {
 export function SwapSuccessDialog({
 	open,
 	onOpenChange,
-	tradeType,
 	fromAmount,
 	toAmount,
 	fromToken,
@@ -75,13 +74,14 @@ export function SwapSuccessDialog({
 			await navigator.clipboard.write([item])
 
 			toast.success("Successfully copied the image")
-		} catch (err: any) {
+		} catch (err) {
 			console.error("Failed to copy:", err)
 			// Better error message for debugging
-			if (err?.message?.includes('trim')) {
+			const errorMessage = err instanceof Error ? err.message : "Unknown error"
+			if (errorMessage.includes('trim')) {
 				toast.error("Image generation failed. Please try again.")
 			} else {
-				toast.error(err?.message || "Failed to copy the image")
+				toast.error(errorMessage || "Failed to copy the image")
 			}
 		} finally {
 			setIsCopying(false)
@@ -115,13 +115,14 @@ export function SwapSuccessDialog({
 			link.click()
 
 			toast.success("Successfully downloaded the image")
-		} catch (err: any) {
+		} catch (err) {
 			console.error("Failed to download:", err)
 			// Better error message for debugging
-			if (err?.message?.includes('trim')) {
+			const errorMessage = err instanceof Error ? err.message : "Unknown error"
+			if (errorMessage.includes('trim')) {
 				toast.error("Image generation failed. Please try again.")
 			} else {
-				toast.error(err?.message || "Failed to download the image")
+				toast.error(errorMessage || "Failed to download the image")
 			}
 		} finally {
 			setIsSaving(false)
