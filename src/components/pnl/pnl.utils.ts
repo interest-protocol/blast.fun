@@ -10,24 +10,25 @@ export interface BackgroundImage {
 }
 
 export const resizeImage = async (file: File): Promise<string> => {
-	if (file.size > MAX_FILE_SIZE) {
-		throw new Error('Image must be less than 1MB');
-	}
-
 	const resizedImage = await new Promise<string>((resolve) => {
 		Resizer.imageFileResizer(
 			file,
-			800,
-			400,
+			600,
+			340,
 			'JPEG',
-			85,
+			90,
 			0,
 			(uri) => resolve(uri.toString()),
 			'base64',
-			800,
-			400
+			600,
+			340
 		);
 	});
+
+	const dataUrlSize = resizedImage.length * 0.75;
+	if (dataUrlSize > MAX_FILE_SIZE) {
+		throw new Error('Image is too large after compression. Please use a smaller image.');
+	}
 
 	return resizedImage;
 };

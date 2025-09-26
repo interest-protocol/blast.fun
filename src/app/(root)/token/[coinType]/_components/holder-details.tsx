@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useApp } from "@/context/app.context"
 import type { Token } from "@/types/token"
 import { useUserHoldings } from "@/hooks/use-user-holdings"
-import { PnlDialog } from "@/components/dialogs/pnl-share.dialog"
+import { PnlDialog } from "@/components/pnl/pnl-share.dialog"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { ChartLine } from "lucide-react"
 import {
