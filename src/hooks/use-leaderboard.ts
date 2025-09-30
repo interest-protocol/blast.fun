@@ -9,9 +9,10 @@ interface UseLeaderboardOptions {
 	timeRange?: TimeRange
 	initialSort?: SortBy
 	pageSize?: number
+	cycleNumber?: number
 }
 
-export function useLeaderboard({ timeRange = '24h', initialSort = 'volume', pageSize = 50 }: UseLeaderboardOptions = {}) {
+export function useLeaderboard({ timeRange = '24h', initialSort = 'volume', pageSize = 50, cycleNumber }: UseLeaderboardOptions = {}) {
 	const [rawData, setRawData] = useState<LeaderboardEntry[]>([])
 	const [loading, setLoading] = useState(true)
 	const [loadingMore, setLoadingMore] = useState(false)
@@ -21,13 +22,13 @@ export function useLeaderboard({ timeRange = '24h', initialSort = 'volume', page
 	const [hasMore, setHasMore] = useState(true)
 	const [skip, setSkip] = useState(0)
 
-	// @dev: Reset data when timeRange changes
+	// @dev: Reset data when timeRange or cycleNumber changes
 	useEffect(() => {
 		setRawData([])
 		setSkip(0)
 		setHasMore(true)
 		setError(null)
-	}, [timeRange])
+	}, [timeRange, cycleNumber])
 
 	// @dev: Fetch initial data
 	useEffect(() => {
@@ -42,6 +43,10 @@ export function useLeaderboard({ timeRange = '24h', initialSort = 'volume', page
 					limit: pageSize.toString(),
 					skip: '0'
 				})
+
+				if (cycleNumber !== undefined && timeRange === '14d') {
+					params.set('cycle', cycleNumber.toString())
+				}
 
 				const response = await fetch(`/api/leaderboard?${params}`)
 				const result = await response.json()
@@ -65,7 +70,7 @@ export function useLeaderboard({ timeRange = '24h', initialSort = 'volume', page
 		}
 
 		fetchLeaderboard()
-	}, [timeRange, pageSize])
+	}, [timeRange, pageSize, cycleNumber])
 
 	// @dev: Load more data
 	const loadMore = useCallback(async () => {
@@ -79,6 +84,10 @@ export function useLeaderboard({ timeRange = '24h', initialSort = 'volume', page
 				limit: pageSize.toString(),
 				skip: skip.toString()
 			})
+
+			if (cycleNumber !== undefined && timeRange === '14d') {
+				params.set('cycle', cycleNumber.toString())
+			}
 
 			const response = await fetch(`/api/leaderboard?${params}`)
 			const result = await response.json()
@@ -98,7 +107,7 @@ export function useLeaderboard({ timeRange = '24h', initialSort = 'volume', page
 		} finally {
 			setLoadingMore(false)
 		}
-	}, [loadingMore, hasMore, loading, skip, timeRange, pageSize])
+	}, [loadingMore, hasMore, loading, skip, timeRange, pageSize, cycleNumber])
 
 	// @dev: Sort data based on current sort settings
 	const data = useMemo(() => {
