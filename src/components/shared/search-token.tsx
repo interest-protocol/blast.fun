@@ -17,6 +17,8 @@ import { nexaClient } from "@/lib/nexa"
 import { TokenAvatar } from "@/components/tokens/token-avatar"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { GET_POOL_BY_COIN_TYPE } from "@/graphql/pools"
+import { QuickBuyButtons } from "@/components/tokens/quick-buy-buttons"
+import { useApp } from "@/context/app.context"
 
 interface SearchResult {
 	type: "coin"
@@ -46,6 +48,7 @@ export function SearchToken() {
 	const [loading, setLoading] = useState(false)
 	const [selectedCoinType, setSelectedCoinType] = useState<string | null>(null)
 	const router = useRouter()
+	const { isConnected } = useApp()
 
 	useQuery(GET_POOL_BY_COIN_TYPE, {
 		variables: { type: selectedCoinType },
@@ -187,6 +190,25 @@ export function SearchToken() {
 									</div>
 								)}
 							</div>
+
+							{/* Quick Buy Buttons */}
+							{isConnected && (
+								<QuickBuyButtons
+									pool={{
+										id: result.coinType,
+										coinType: result.coinType,
+										metadata: {
+											symbol: result.symbol,
+											name: result.name,
+											icon_url: result.icon || result.coinMetadata?.iconUrl || result.coinMetadata?.icon_url || "",
+											decimals: 9,
+											description: "",
+											supply: 0
+										}
+									} as any}
+									className="flex-row ml-auto"
+								/>
+							)}
 						</CommandItem>
 					))}
 				</CommandList>
