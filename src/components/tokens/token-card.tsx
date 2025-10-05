@@ -14,6 +14,7 @@ import { RelativeAge } from "@/components/shared/relative-age"
 import { ProtectionBadges } from "@/components/shared/protection-badges"
 import { useTokenProtection } from "@/hooks/use-token-protection"
 import { BsTwitterX } from "react-icons/bs"
+import { QuickBuyButtons } from "./quick-buy-buttons"
 
 interface TokenCardProps {
 	pool: Token | any // @dev: Support both new Token type and legacy format
@@ -77,7 +78,7 @@ export const TokenCard = memo(function TokenCard({
 			<div className={`relative border-b border-border/40 group hover:bg-accent/15 transition-all duration-300 overflow-hidden ${hasRecentTrade ? 'animate-shake' : ''}`}>
 				{/* Content */}
 				<div className="relative p-3 sm:p-2">
-					<div className="flex gap-3 sm:gap-2.5">
+					<div className="flex gap-3 sm:gap-2.5 items-center">
 						<div className="flex-shrink-0">
 							<div className="w-[48px] sm:w-[56px] h-[48px] sm:h-[56px]">
 								{/* avatar with conic progress */}
@@ -125,18 +126,16 @@ export const TokenCard = memo(function TokenCard({
 								<h3 className="font-mono font-bold text-xs sm:text-sm uppercase tracking-wider text-foreground/90 truncate">
 									{token.metadata?.name || tokenData.name || "[UNNAMED]"}
 								</h3>
-								
+
 								{/* Protection Badges */}
 								{(token.pool?.isProtected || protectionSettings || (typeof token.pool?.burnTax === 'number' && token.pool?.burnTax > 0)) && (
-									<ProtectionBadges 
+									<ProtectionBadges
 										protectionSettings={protectionSettings}
 										isProtected={token.pool?.isProtected}
 										burnTax={token.pool?.burnTax}
 										size="sm"
 									/>
 								)}
-								
-								<CopyableToken symbol={token.metadata?.symbol || tokenData.symbol || "[???]"} coinType={tokenData.coinType} className="ml-auto text-xs" />
 							</div>
 
 							{/* stats */}
@@ -245,6 +244,12 @@ export const TokenCard = memo(function TokenCard({
 									</>
 								)}
 							</div>
+						</div>
+
+						{/* Token Symbol & Quick Buy Buttons - Far Right */}
+						<div className="flex-shrink-0 ml-auto flex flex-col items-end gap-2">
+							<CopyableToken symbol={token.metadata?.symbol || tokenData.symbol || "[???]"} coinType={tokenData.coinType} className="text-xs" />
+							<QuickBuyButtons pool={token} />
 						</div>
 					</div>
 				</div>
