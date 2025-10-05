@@ -107,6 +107,7 @@ export const GET_POOL_QUICK_BUY = gql`
 		coinPool(type: $type) {
 			poolId
 			metadata
+			migrated
 		}
 	}
 `
