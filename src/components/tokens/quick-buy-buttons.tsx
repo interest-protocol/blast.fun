@@ -14,6 +14,7 @@ import type { Token } from "@/types/token"
 import { cn } from "@/utils"
 import toast from "react-hot-toast"
 import { pumpSdk } from "@/lib/pump"
+import { buyMigratedToken, getBuyQuote } from "@/lib/aftermath"
 import { playSound } from "@/lib/audio"
 
 type QuickBuyStage = 'idle' | 'fetching' | 'quoting' | 'building' | 'confirming'
@@ -65,7 +66,7 @@ export function QuickBuyButtons({ pool, className }: QuickBuyButtonsProps) {
 				throw new Error("Pool ID not found")
 			}
 
-			const { poolId, decimals, symbol } = poolData
+			const { poolId, decimals, symbol, migrated } = poolData
 
 			const amountBN = new BigNumber(amount)
 			const mistPerSuiBN = new BigNumber(MIST_PER_SUI.toString())
@@ -74,39 +75,61 @@ export function QuickBuyButtons({ pool, className }: QuickBuyButtonsProps) {
 
 			setBuyStage('quoting')
 
-			const quote = await pumpSdk.quotePump({
-				pool: poolId,
-				amount: amountInMist,
-			})
+			if (migrated) {
+				const quote = await getBuyQuote(pool.coinType, amountInMist, 15)
 
-			setBuyStage('building')
+				setBuyStage('building')
 
-			const slippagePercent = 5
-			const slippageMultiplier = new BigNumber(1).minus(new BigNumber(slippagePercent).dividedBy(100))
-			const quoteAmountBN = new BigNumber(quote.memeAmountOut.toString())
-			const minAmountOutBN = quoteAmountBN.multipliedBy(slippageMultiplier).integerValue(BigNumber.ROUND_DOWN)
-			const minAmountOut = BigInt(minAmountOutBN.toString())
+				const tx = await buyMigratedToken({
+					tokenType: pool.coinType,
+					suiAmount: amountInMist,
+					address,
+					slippagePercentage: 15,
+				})
 
-			const tx = new Transaction()
-			const quoteCoin = tx.splitCoins(tx.gas, [tx.pure.u64(amountInMist)])
+				setBuyStage('confirming')
 
-			const { memeCoin, tx: pumpTx } = await pumpSdk.pump({
-				tx,
-				pool: poolId,
-				quoteCoin,
-				minAmountOut,
-			})
+				await executeTransaction(tx)
 
-			pumpTx.transferObjects([memeCoin], address)
+				playSound("buy")
 
-			setBuyStage('confirming')
+				const tokenAmount = Number(quote.amountOut) / Math.pow(10, decimals)
+				toast.success(`Bought ${tokenAmount.toFixed(2)} ${symbol} for ${amount} SUI via Aftermath`)
+			} else {
+				const quote = await pumpSdk.quotePump({
+					pool: poolId,
+					amount: amountInMist,
+				})
 
-			await executeTransaction(pumpTx)
+				setBuyStage('building')
 
-			playSound("buy")
+				const slippagePercent = 5
+				const slippageMultiplier = new BigNumber(1).minus(new BigNumber(slippagePercent).dividedBy(100))
+				const quoteAmountBN = new BigNumber(quote.memeAmountOut.toString())
+				const minAmountOutBN = quoteAmountBN.multipliedBy(slippageMultiplier).integerValue(BigNumber.ROUND_DOWN)
+				const minAmountOut = BigInt(minAmountOutBN.toString())
 
-			const tokenAmount = Number(quote.memeAmountOut) / Math.pow(10, decimals)
-			toast.success(`Bought ${tokenAmount.toFixed(2)} ${symbol} for ${amount} SUI`)
+				const tx = new Transaction()
+				const quoteCoin = tx.splitCoins(tx.gas, [tx.pure.u64(amountInMist)])
+
+				const { memeCoin, tx: pumpTx } = await pumpSdk.pump({
+					tx,
+					pool: poolId,
+					quoteCoin,
+					minAmountOut,
+				})
+
+				pumpTx.transferObjects([memeCoin], address)
+
+				setBuyStage('confirming')
+
+				await executeTransaction(pumpTx)
+
+				playSound("buy")
+
+				const tokenAmount = Number(quote.memeAmountOut) / Math.pow(10, decimals)
+				toast.success(`Bought ${tokenAmount.toFixed(2)} ${symbol} for ${amount} SUI`)
+			}
 		} catch (error: any) {
 			console.error("Quick buy failed:", error)
 			toast.error(error?.message || "Buy failed")
