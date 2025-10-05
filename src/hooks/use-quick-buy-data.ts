@@ -4,6 +4,7 @@ export interface QuickBuyData {
 	poolId: string
 	decimals: number
 	symbol: string
+	migrated: boolean
 }
 
 export function useQuickBuyData(coinType: string, enabled: boolean = false) {
