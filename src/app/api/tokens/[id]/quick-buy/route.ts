@@ -43,6 +43,7 @@ export async function GET(
 			poolId: pool.poolId,
 			decimals: pool.metadata?.decimals || 9,
 			symbol: pool.metadata?.symbol || "TOKEN",
+			migrated: pool.migrated || false,
 		}
 
 		return NextResponse.json(quickBuyData, {
