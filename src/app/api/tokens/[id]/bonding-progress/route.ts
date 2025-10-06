@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { apolloClient } from "@/lib/apollo-client"
 import { redisGet, redisSetEx, CACHE_PREFIX, CACHE_TTL } from "@/lib/redis/client"
-import { GET_POOL_BONDING_PROGRESS } from "@/graphql/pools"
+import { GET_COIN_POOL_BASIC } from "@/graphql/pools"
 
 interface BondingProgressData {
   progress: number
@@ -38,7 +38,7 @@ export async function GET(
 
     // Fetch fresh data
     const { data } = await apolloClient.query({
-      query: GET_POOL_BONDING_PROGRESS,
+      query: GET_COIN_POOL_BASIC,
       variables: { coinType },
       fetchPolicy: 'network-only',
     })

@@ -39,6 +39,7 @@ export const GET_COIN_POOL_BASIC = gql`
 			metadata
 			bondingCurve
 			migrated
+			canMigrate
 			publicKey
 			burnTax
 		}
@@ -71,16 +72,6 @@ export const GET_POOL = gql`
 			publicKey
 			innerState
 			burnTax
-		}
-	}
-`
-
-export const GET_POOL_BONDING_PROGRESS = gql`
-	query GetPoolBondingProgress($coinType: String!) {
-		coinPool(type: $coinType) {
-			bondingCurve
-			migrated
-			canMigrate
 		}
 	}
 `
