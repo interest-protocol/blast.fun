@@ -1,23 +1,24 @@
 "use client"
 
-import { useState, useRef } from "react"
-import { Loader2 } from "lucide-react"
 import { Transaction } from "@mysten/sui/transactions"
 import { MIST_PER_SUI } from "@mysten/sui/utils"
 import BigNumber from "bignumber.js"
+import { Loader2 } from "lucide-react"
+import Image from "next/image"
+import { useRef, useState } from "react"
+import toast from "react-hot-toast"
 import { useDebouncedCallback } from "use-debounce"
 import { useApp } from "@/context/app.context"
-import { usePresetStore } from "@/stores/preset-store"
 import { useTransaction } from "@/hooks/sui/use-transaction"
 import { useQuickBuyData } from "@/hooks/use-quick-buy-data"
-import type { Token } from "@/types/token"
-import { cn } from "@/utils"
-import toast from "react-hot-toast"
-import { pumpSdk } from "@/lib/pump"
 import { buyMigratedToken, getBuyQuote } from "@/lib/aftermath"
 import { playSound } from "@/lib/audio"
+import { pumpSdk } from "@/lib/pump"
+import { usePresetStore } from "@/stores/preset-store"
+import type { Token } from "@/types/token"
+import { cn } from "@/utils"
 
-type QuickBuyStage = 'idle' | 'fetching' | 'quoting' | 'building' | 'confirming'
+type QuickBuyStage = "idle" | "fetching" | "quoting" | "building" | "confirming"
 
 interface QuickBuyButtonsProps {
 	pool: Token
@@ -29,7 +30,7 @@ export function QuickBuyButtons({ pool, className }: QuickBuyButtonsProps) {
 	const { quickBuyAmounts } = usePresetStore()
 	const { executeTransaction } = useTransaction()
 	const [processingAmount, setProcessingAmount] = useState<number | null>(null)
-	const [buyStage, setBuyStage] = useState<QuickBuyStage>('idle')
+	const [buyStage, setBuyStage] = useState<QuickBuyStage>("idle")
 	const processingRequests = useRef(new Set<string>())
 
 	const { data: cachedPoolData, refetch } = useQuickBuyData(pool.coinType, false)
@@ -57,7 +58,7 @@ export function QuickBuyButtons({ pool, className }: QuickBuyButtonsProps) {
 
 		processingRequests.current.add(requestId)
 		setProcessingAmount(amount)
-		setBuyStage('fetching')
+		setBuyStage("fetching")
 
 		try {
 			const poolData = cachedPoolData || (await refetch()).data
@@ -73,12 +74,12 @@ export function QuickBuyButtons({ pool, className }: QuickBuyButtonsProps) {
 			const amountInMistBN = amountBN.multipliedBy(mistPerSuiBN).integerValue(BigNumber.ROUND_DOWN)
 			const amountInMist = BigInt(amountInMistBN.toString())
 
-			setBuyStage('quoting')
+			setBuyStage("quoting")
 
 			if (migrated) {
 				const quote = await getBuyQuote(pool.coinType, amountInMist, 15)
 
-				setBuyStage('building')
+				setBuyStage("building")
 
 				const tx = await buyMigratedToken({
 					tokenType: pool.coinType,
@@ -87,7 +88,7 @@ export function QuickBuyButtons({ pool, className }: QuickBuyButtonsProps) {
 					slippagePercentage: 15,
 				})
 
-				setBuyStage('confirming')
+				setBuyStage("confirming")
 
 				await executeTransaction(tx)
 
@@ -101,7 +102,7 @@ export function QuickBuyButtons({ pool, className }: QuickBuyButtonsProps) {
 					amount: amountInMist,
 				})
 
-				setBuyStage('building')
+				setBuyStage("building")
 
 				const slippagePercent = 5
 				const slippageMultiplier = new BigNumber(1).minus(new BigNumber(slippagePercent).dividedBy(100))
@@ -121,7 +122,7 @@ export function QuickBuyButtons({ pool, className }: QuickBuyButtonsProps) {
 
 				pumpTx.transferObjects([memeCoin], address)
 
-				setBuyStage('confirming')
+				setBuyStage("confirming")
 
 				await executeTransaction(pumpTx)
 
@@ -135,7 +136,7 @@ export function QuickBuyButtons({ pool, className }: QuickBuyButtonsProps) {
 			toast.error(error?.message || "Buy failed")
 		} finally {
 			setProcessingAmount(null)
-			setBuyStage('idle')
+			setBuyStage("idle")
 			processingRequests.current.delete(requestId)
 		}
 	}
@@ -148,39 +149,46 @@ export function QuickBuyButtons({ pool, className }: QuickBuyButtonsProps) {
 
 	const getStageLabel = (stage: QuickBuyStage) => {
 		switch (stage) {
-			case 'fetching': return 'Vibing'
-			case 'quoting': return 'Aping'
-			case 'building': return 'Send It!'
-			case 'confirming': return 'Cooking'
-			default: return null
+			case "fetching":
+				return "Vibing"
+			case "quoting":
+				return "Aping"
+			case "building":
+				return "Send It!"
+			case "confirming":
+				return "Cooking"
+			default:
+				return null
 		}
 	}
 
 	return (
 		<div
-			className={cn("flex items-center gap-1", className)}
+			className={cn("flex items-center gap-1.5", className)}
 			onClick={(e) => e.stopPropagation()}
 			onMouseEnter={prefetchPoolData}
 		>
+			<div className="flex items-center gap-1">
+				<Image src="/logo/SUI.svg" alt="SUI" width={12} height={12} className="opacity-60 dark:hue-rotate-180 dark:invert" />
+				<span className="font-mono text-[10px] font-medium text-muted-foreground">Buy</span>
+			</div>
 			{displayAmounts.map((amount) => (
 				<button
 					key={amount}
 					onClick={(e) => handleQuickBuy(amount, e)}
 					disabled={processingAmount !== null}
 					className={cn(
-						"px-2 py-1 text-[10px] font-mono font-semibold rounded border transition-all",
+						"rounded border px-2 py-1 font-mono font-semibold text-[10px] transition-all",
 						"border-green-500/40 bg-green-500/10 text-green-400",
-						"hover:bg-green-500/20 hover:border-green-500/60",
-						"disabled:opacity-50 disabled:cursor-not-allowed",
+						"hover:border-green-500/60 hover:bg-green-500/20",
+						"disabled:cursor-not-allowed disabled:opacity-50",
 						processingAmount === amount && "bg-green-500/30"
 					)}
 				>
 					{processingAmount === amount ? (
 						<div className="flex items-center gap-1">
 							<Loader2 className="h-3 w-3 animate-spin" />
-							{getStageLabel(buyStage) && (
-								<span className="text-[8px]">{getStageLabel(buyStage)}</span>
-							)}
+							{getStageLabel(buyStage) && <span className="text-[8px]">{getStageLabel(buyStage)}</span>}
 						</div>
 					) : (
 						`${amount}`
