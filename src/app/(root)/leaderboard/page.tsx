@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, Suspense } from "react"
 import { useLeaderboard, TimeRange, SortBy } from "@/hooks/use-leaderboard"
-import { Trophy, Medal, ArrowDown, Loader2, Download, Copy, Check } from "lucide-react"
+import { Trophy, Medal, ArrowDown, Loader2, Download, Copy, Check, ChevronDown } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { cn } from "@/utils/index"
 import { formatAddress } from "@mysten/sui/utils"
@@ -10,6 +10,7 @@ import { formatPrice } from "@/lib/format"
 import { Logo } from "@/components/ui/logo"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useSuiNSNames } from "@/hooks/use-suins"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 function LeaderboardContent() {
 	const router = useRouter()
@@ -17,11 +18,29 @@ function LeaderboardContent() {
 	const [timeRange, setTimeRange] = useState<TimeRange>('24h')
 	const [initialSort, setInitialSort] = useState<SortBy>('volume')
 	const [copied, setCopied] = useState(false)
+	const [cycleNumber, setCycleNumber] = useState<number | undefined>(undefined)
 
-	// @dev: Read sort and range from URL on mount
+	// @dev: Calculate current cycle and available cycles
+	// Cycle 0: Sep 5-14 (10 days, display as Sep 1-14)
+	// Cycle 1+: 14-day cycles starting Sep 15
+	const PROGRAM_START = new Date('2025-09-05T00:00:00Z').getTime()
+	const FIRST_CYCLE_END = new Date('2025-09-15T00:00:00Z').getTime()
+	const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000
+	const now = Date.now()
+
+	const getCurrentCycle = (timestamp: number) => {
+		if (timestamp < FIRST_CYCLE_END) return 0
+		return Math.floor((timestamp - FIRST_CYCLE_END) / TWO_WEEKS_MS) + 1
+	}
+
+	const currentCycleNumber = getCurrentCycle(now)
+	const availableCycles = Array.from({ length: currentCycleNumber + 1 }, (_, i) => i)
+
+	// @dev: Read sort, range, and cycle from URL on mount
 	useEffect(() => {
 		const sortParam = searchParams.get('sort')
 		const rangeParam = searchParams.get('range')
+		const cycleParam = searchParams.get('cycle')
 
 		if (sortParam === 'volume' || sortParam === 'trades') {
 			setInitialSort(sortParam as SortBy)
@@ -29,6 +48,10 @@ function LeaderboardContent() {
 
 		if (rangeParam === '24h' || rangeParam === '7d' || rangeParam === '14d' || rangeParam === 'all') {
 			setTimeRange(rangeParam as TimeRange)
+		}
+
+		if (cycleParam) {
+			setCycleNumber(parseInt(cycleParam))
 		}
 	}, [searchParams])
 
@@ -44,7 +67,8 @@ function LeaderboardContent() {
 	} = useLeaderboard({
 		timeRange,
 		initialSort,
-		pageSize: 100 // @dev: Load 100 items per page
+		pageSize: 100, // @dev: Load 100 items per page
+		cycleNumber: timeRange === '14d' ? cycleNumber : undefined
 	})
 	
 	// @dev: Wrap handleSort to update URL
@@ -60,7 +84,43 @@ function LeaderboardContent() {
 		setTimeRange(range)
 		const params = new URLSearchParams(searchParams.toString())
 		params.set('range', range)
+		// @dev: Reset cycle to current when switching to 14d
+		if (range === '14d') {
+			setCycleNumber(undefined)
+			params.delete('cycle')
+		}
 		router.push(`/leaderboard?${params.toString()}`)
+	}
+
+	// @dev: Handle cycle change with URL update
+	const handleCycleChange = (cycle: number) => {
+		setCycleNumber(cycle)
+		const params = new URLSearchParams(searchParams.toString())
+		params.set('cycle', cycle.toString())
+		router.push(`/leaderboard?${params.toString()}`)
+	}
+
+	// @dev: Get cycle date range display (show Sep 1-14, Sep 15-28, Sep 29-...)
+	const getCycleDateRange = (cycle: number) => {
+		let cycleStart: Date
+		let cycleEnd: Date
+
+		if (cycle === 0) {
+			// Display as Sep 1-14, but actual data is Sep 5-14
+			cycleStart = new Date('2025-09-01T00:00:00Z')
+			cycleEnd = new Date('2025-09-14T23:59:59Z')
+		} else {
+			const start = FIRST_CYCLE_END + ((cycle - 1) * TWO_WEEKS_MS)
+			cycleStart = new Date(start)
+			cycleEnd = new Date(start + TWO_WEEKS_MS - 1)
+		}
+
+		const formatDate = (date: Date) => {
+			const month = date.toLocaleString('en-US', { month: 'short' })
+			const day = date.getDate()
+			return `${month} ${day}`
+		}
+		return `${formatDate(cycleStart)} - ${formatDate(cycleEnd)}`
 	}
 
 	const traderAddresses = useMemo(() => {
@@ -191,6 +251,48 @@ function LeaderboardContent() {
 
 				{/* Action Buttons */}
 				<div className="flex items-center gap-2">
+					{/* Cycle Selector - only show when in 14d mode */}
+					{timeRange === '14d' && availableCycles.length > 0 && (
+						<Select
+							value={(cycleNumber ?? currentCycleNumber).toString()}
+							onValueChange={(value) => handleCycleChange(parseInt(value))}
+							disabled={loading}
+						>
+							<SelectTrigger
+								className={cn(
+									"w-[140px] h-auto px-3 py-1 text-xs font-mono uppercase",
+									"bg-card/50 backdrop-blur-sm border border-border/50",
+									"text-muted-foreground hover:text-foreground hover:bg-muted/50",
+									"disabled:opacity-50 disabled:cursor-not-allowed"
+								)}
+								size="sm"
+							>
+								<SelectValue>
+									{cycleNumber === undefined || cycleNumber === currentCycleNumber
+										? 'CURRENT'
+										: `CYCLE ${cycleNumber + 1}`}
+								</SelectValue>
+							</SelectTrigger>
+							<SelectContent className="font-mono text-xs">
+								{availableCycles.reverse().map((cycle) => (
+									<SelectItem
+										key={cycle}
+										value={cycle.toString()}
+										className="font-mono text-xs"
+									>
+										{cycle === currentCycleNumber ? (
+											<span className="flex items-center gap-2">
+												<span className="text-destructive">●</span>
+												<span>Current ({getCycleDateRange(cycle)})</span>
+											</span>
+										) : (
+											<span>Cycle {cycle + 1} ({getCycleDateRange(cycle)})</span>
+										)}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					)}
 					{/* Copy Button */}
 					<button
 						onClick={handleCopyTSV}
