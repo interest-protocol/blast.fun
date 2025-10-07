@@ -8,11 +8,12 @@ import {
 	ContextMenuItem,
 	ContextMenuTrigger,
 } from "@/components/ui/context-menu"
-import { Loader2, Copy, Download, Upload, Trash2 } from "lucide-react"
+import { Loader2, Copy, Download, Upload, Trash2, ArrowUpDown } from "lucide-react"
 import toast from "react-hot-toast"
 import * as htmlToImage from "html-to-image"
 import type { Token } from "@/types/token"
 import { useUserHoldings } from "@/hooks/use-user-holdings"
+import { useSuiPrice } from "@/hooks/sui/use-sui-price"
 import { formatNumberWithSuffix, formatSmallPrice } from "@/utils/format"
 import { cn } from "@/utils"
 import {
@@ -33,12 +34,14 @@ interface PnlDialogProps {
 
 export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProps) {
 	const { data: pnlData, isLoading, error } = useUserHoldings(pool, address)
+	const suiPrice = useSuiPrice()
 	const cardRef = useRef<HTMLDivElement>(null)
 	const fileInputRef = useRef<HTMLInputElement>(null)
 
 	const [selectedBackground, setSelectedBackground] = useState<string>(DEFAULT_BACKGROUNDS[0])
 	const [customBackgrounds, setCustomBackgrounds] = useState<BackgroundImage[]>([])
 	const [isDragging, setIsDragging] = useState<boolean>(false)
+	const [showInSui, setShowInSui] = useState<boolean>(false)
 
 	useEffect(() => {
 		setCustomBackgrounds(getBackgroundsFromStorage())
@@ -51,6 +54,26 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 	const isProfit = (pnlData?.pnl ?? 0) >= 0
 	const pnlAmount = Math.abs(pnlData?.pnl ?? 0)
 	const pnlPercentage = Math.abs(pnlData?.pnlPercentage ?? 0)
+
+	const formatValue = (usdValue: number | undefined, isPrice: boolean = false) => {
+		if (!usdValue) return isPrice ? "0.00" : "0"
+
+		if (showInSui && suiPrice.usd > 0) {
+			const suiValue = usdValue / suiPrice.usd
+			if (isPrice) {
+				return formatSmallPrice(suiValue) + " SUI"
+			}
+			return formatNumberWithSuffix(suiValue) + " SUI"
+		}
+
+		if (isPrice) {
+			return "$" + formatSmallPrice(usdValue)
+		}
+		return "$" + formatNumberWithSuffix(usdValue)
+	}
+
+	const getCurrencySymbol = () => showInSui ? "" : "$"
+	const getCurrencySuffix = () => showInSui ? " SUI" : ""
 
 	const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0]
@@ -249,7 +272,7 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 											{name || 'Unknown'} ({symbol || '?'})
 										</div>
 										<div className={`text-4xl font-bold mb-1 ${isProfit ? 'text-green-500' : 'text-red-500'}`}>
-											{isProfit ? '+' : '-'}${formatNumberWithSuffix(pnlAmount || 0)}
+											{isProfit ? '+' : '-'}{getCurrencySymbol()}{showInSui && suiPrice.usd > 0 ? formatNumberWithSuffix(pnlAmount / suiPrice.usd) : formatNumberWithSuffix(pnlAmount || 0)}{getCurrencySuffix()}
 										</div>
 										<div className={`text-xl font-semibold ${isProfit ? 'text-green-400' : 'text-red-400'}`}>
 											{isProfit ? '↑' : '↓'} {(pnlPercentage || 0).toFixed(1)}%
@@ -267,13 +290,13 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 									<div>
 										<div className="text-muted-foreground uppercase text-xs tracking-wider mb-1">SOLD</div>
 										<div className="font-bold text-lg text-white">
-											${pnlData?.sold ? formatNumberWithSuffix(pnlData.sold) : '0'}
+											{formatValue(pnlData?.sold, false)}
 										</div>
 									</div>
 									<div>
 										<div className="text-muted-foreground uppercase text-xs tracking-wider mb-1">HOLDING</div>
 										<div className="font-bold text-lg text-white">
-											${pnlData?.holding ? formatNumberWithSuffix(pnlData.holding) : '0'}
+											{formatValue(pnlData?.holding, false)}
 										</div>
 									</div>
 								</div>
@@ -370,25 +393,37 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 								</button>
 							</div>
 
-							<div className="flex gap-2">
+							<div className="flex justify-between items-center">
 								<Button
-									onClick={handleDownload}
+									onClick={() => setShowInSui(!showInSui)}
 									variant="outline"
 									size="sm"
 									className="text-xs"
+									disabled={suiPrice.loading || !suiPrice.usd}
 								>
-									<Download className="h-3 w-3 mr-1" />
-									Download
+									<ArrowUpDown className="size-4 mr-1" />
+									{showInSui ? "USD" : "SUI"}
 								</Button>
-								<Button
-									onClick={handleCopy}
-									variant="outline"
-									size="sm"
-									className="text-xs"
-								>
-									<Copy className="h-3 w-3 mr-1" />
-									Copy
-								</Button>
+								<div className="flex gap-2">
+									<Button
+										onClick={handleDownload}
+										variant="outline"
+										size="sm"
+										className="text-xs"
+									>
+										<Download className="size-4 mr-1" />
+										Download
+									</Button>
+									<Button
+										onClick={handleCopy}
+										variant="outline"
+										size="sm"
+										className="text-xs"
+									>
+										<Copy className="size-4 mr-1" />
+										Copy
+									</Button>
+								</div>
 							</div>
 						</div>
 					</div>
