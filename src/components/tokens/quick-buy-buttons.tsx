@@ -17,6 +17,7 @@ import { pumpSdk } from "@/lib/pump"
 import { usePresetStore } from "@/stores/preset-store"
 import type { Token } from "@/types/token"
 import { cn } from "@/utils"
+import { formatNumberWithSuffix } from "@/utils/format"
 
 type QuickBuyStage = "idle" | "fetching" | "quoting" | "building" | "confirming"
 
@@ -27,7 +28,7 @@ interface QuickBuyButtonsProps {
 
 export function QuickBuyButtons({ pool, className }: QuickBuyButtonsProps) {
 	const { isConnected, address } = useApp()
-	const { quickBuyAmounts } = usePresetStore()
+	const { flashBuyAmount } = usePresetStore()
 	const { executeTransaction } = useTransaction()
 	const [processingAmount, setProcessingAmount] = useState<number | null>(null)
 	const [buyStage, setBuyStage] = useState<QuickBuyStage>("idle")
@@ -95,7 +96,7 @@ export function QuickBuyButtons({ pool, className }: QuickBuyButtonsProps) {
 				playSound("buy")
 
 				const tokenAmount = Number(quote.amountOut) / Math.pow(10, decimals)
-				toast.success(`Bought ${tokenAmount.toFixed(2)} ${symbol} for ${amount} SUI via Aftermath`)
+				toast.success(`Bought ${formatNumberWithSuffix(tokenAmount)} ${symbol} for ${amount} SUI`)
 			} else {
 				const quote = await pumpSdk.quotePump({
 					pool: poolId,
@@ -129,7 +130,7 @@ export function QuickBuyButtons({ pool, className }: QuickBuyButtonsProps) {
 				playSound("buy")
 
 				const tokenAmount = Number(quote.memeAmountOut) / Math.pow(10, decimals)
-				toast.success(`Bought ${tokenAmount.toFixed(2)} ${symbol} for ${amount} SUI`)
+				toast.success(`Bought ${formatNumberWithSuffix(tokenAmount)} ${symbol} for ${amount} SUI`)
 			}
 		} catch (error: any) {
 			console.error("Quick buy failed:", error)
@@ -144,8 +145,6 @@ export function QuickBuyButtons({ pool, className }: QuickBuyButtonsProps) {
 	if (!isConnected) {
 		return null
 	}
-
-	const displayAmounts = quickBuyAmounts.slice(0, 3)
 
 	const getStageLabel = (stage: QuickBuyStage) => {
 		switch (stage) {
@@ -172,29 +171,26 @@ export function QuickBuyButtons({ pool, className }: QuickBuyButtonsProps) {
 				<Image src="/logo/SUI.svg" alt="SUI" width={12} height={12} className="opacity-60 dark:hue-rotate-180 dark:invert" />
 				<span className="font-mono text-[10px] font-medium text-muted-foreground">Buy</span>
 			</div>
-			{displayAmounts.map((amount) => (
-				<button
-					key={amount}
-					onClick={(e) => handleQuickBuy(amount, e)}
-					disabled={processingAmount !== null}
-					className={cn(
-						"rounded border px-2 py-1 font-mono font-semibold text-[10px] transition-all",
-						"border-green-500/40 bg-green-500/10 text-green-400",
-						"hover:border-green-500/60 hover:bg-green-500/20",
-						"disabled:cursor-not-allowed disabled:opacity-50",
-						processingAmount === amount && "bg-green-500/30"
-					)}
-				>
-					{processingAmount === amount ? (
-						<div className="flex items-center gap-1">
-							<Loader2 className="h-3 w-3 animate-spin" />
-							{getStageLabel(buyStage) && <span className="text-[8px]">{getStageLabel(buyStage)}</span>}
-						</div>
-					) : (
-						`${amount}`
-					)}
-				</button>
-			))}
+			<button
+				onClick={(e) => handleQuickBuy(flashBuyAmount, e)}
+				disabled={processingAmount !== null}
+				className={cn(
+					"rounded border px-2 py-1 font-mono font-semibold text-[10px] transition-all",
+					"border-green-500/40 bg-green-500/10 text-green-400",
+					"hover:border-green-500/60 hover:bg-green-500/20",
+					"disabled:cursor-not-allowed disabled:opacity-50",
+					processingAmount === flashBuyAmount && "bg-green-500/30"
+				)}
+			>
+				{processingAmount === flashBuyAmount ? (
+					<div className="flex items-center gap-1">
+						<Loader2 className="h-3 w-3 animate-spin" />
+						{getStageLabel(buyStage) && <span className="text-[8px]">{getStageLabel(buyStage)}</span>}
+					</div>
+				) : (
+					`${flashBuyAmount}`
+				)}
+			</button>
 		</div>
 	)
 }
