@@ -39,7 +39,7 @@ export async function GET(
     // Fetch fresh data
     const { data } = await apolloClient.query({
       query: GET_COIN_POOL_BASIC,
-      variables: { coinType },
+      variables: { type: coinType },
       fetchPolicy: 'network-only',
     })
 
