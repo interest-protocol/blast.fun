@@ -227,7 +227,7 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 					<div className="flex flex-col items-center gap-2">
 						<div
 							ref={cardRef}
-							className="relative overflow-hidden rounded-xl shadow-2xl"
+							className="relative overflow-hidden rounded-xl shadow-2xl select-none"
 							style={{
 								width: "600px",
 								height: "340px",
@@ -247,56 +247,71 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 								}}
 							/>
 
-							<div className="absolute inset-0 bg-gradient-to-r from-background/70 via-background/50 to-transparent" />
+							<div className="absolute inset-0 bg-gradient-to-b from-black/50 to-black/70" />
 
-							<div className="relative z-10 flex h-full w-full flex-col justify-between p-6">
-								<div className="flex items-start gap-4">
-									<div className="relative h-24 w-24 flex-shrink-0">
+							<div className="relative z-10 flex h-full w-full flex-col p-6">
+								{/* Blast Branding */}
+								<img
+									src="/logo/blast.svg"
+									alt="Blast"
+									className="absolute top-4 right-4 h-16 w-auto opacity-60"
+									style={{ filter: 'brightness(0) invert(1)' }}
+								/>
+
+								{/* Token Info */}
+								<div className="flex items-center gap-3">
+									<div className="relative h-10 w-10 flex-shrink-0">
 										{iconUrl ? (
 											<img
 												src={iconUrl}
 												alt={symbol}
-												className="h-24 w-24 rounded-full object-cover"
+												className="h-10 w-10 rounded-full object-cover"
 											/>
 										) : (
-											<div className="flex h-24 w-24 items-center justify-center rounded-full bg-muted">
-												<span className="text-3xl font-bold">
-													{symbol?.[0]?.toUpperCase() || '?'}
-												</span>
-											</div>
+											<span className="text-sm font-bold text-white">
+												{symbol?.[0]?.toUpperCase() || '?'}
+											</span>
 										)}
 									</div>
-
-									<div className="pt-1">
-										<div className="text-base font-bold text-gray-300 mb-1">
-											{name || 'Unknown'} ({symbol || '?'})
-										</div>
-										<div className={`text-4xl font-bold mb-1 ${isProfit ? 'text-green-500' : 'text-red-500'}`}>
-											{isProfit ? '+' : '-'}{getCurrencySymbol()}{showInSui && suiPrice.usd > 0 ? formatNumberWithSuffix(pnlAmount / suiPrice.usd) : formatNumberWithSuffix(pnlAmount || 0)}{getCurrencySuffix()}
-										</div>
-										<div className={`text-xl font-semibold ${isProfit ? 'text-green-400' : 'text-red-400'}`}>
-											{isProfit ? '↑' : '↓'} {(pnlPercentage || 0).toFixed(1)}%
-										</div>
+								
+									<div className="text-lg font-semibold text-white">
+										{name || 'Unknown'}
 									</div>
 								</div>
 
-								<div className="flex flex-row gap-12">
-									<div>
-										<div className="text-muted-foreground uppercase text-xs tracking-wider mb-1">ENTRY</div>
-										<div className="font-bold text-lg text-white">
-											${pnlData?.entryPrice ? formatSmallPrice(pnlData.entryPrice) : '0.00'}
+								<div className="flex-1 flex flex-col justify-center">
+									{/* Profit Block */}
+									<div className={cn(
+										"inline-flex px-6 py-3 rounded-md shadow-lg self-start mb-6",
+										isProfit ? "bg-green-400" : "bg-red-400"
+									)}>
+										<div className={cn(
+											"text-5xl font-bold",
+											isProfit ? "text-green-900" : "text-red-900"
+										)}>
+											{isProfit ? '+' : '-'}{getCurrencySymbol()}{showInSui && suiPrice.usd > 0 ? formatNumberWithSuffix(pnlAmount / suiPrice.usd) : formatNumberWithSuffix(pnlAmount || 0)}{getCurrencySuffix()}
 										</div>
 									</div>
-									<div>
-										<div className="text-muted-foreground uppercase text-xs tracking-wider mb-1">SOLD</div>
-										<div className="font-bold text-lg text-white">
-											{formatValue(pnlData?.sold, false)}
+
+									{/* PnL Stats */}
+									<div className="flex flex-col gap-1.5">
+										<div className="flex items-baseline">
+											<span className="text-muted-foreground text-base font-medium w-20" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>PNL</span>
+											<span className={`text-base font-semibold ${isProfit ? 'text-green-400' : 'text-red-400'}`} style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+												{isProfit ? '+' : '-'}{(pnlPercentage || 0).toFixed(2)}%
+											</span>
 										</div>
-									</div>
-									<div>
-										<div className="text-muted-foreground uppercase text-xs tracking-wider mb-1">HOLDING</div>
-										<div className="font-bold text-lg text-white">
-											{formatValue(pnlData?.holding, false)}
+										<div className="flex items-baseline">
+											<span className="text-muted-foreground text-base font-medium w-20" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>Sold</span>
+											<span className="text-base font-semibold text-white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+												{formatValue(pnlData?.sold, false)}
+											</span>
+										</div>
+										<div className="flex items-baseline">
+											<span className="text-muted-foreground text-base font-medium w-20" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>Holding</span>
+											<span className="text-base font-semibold text-white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+												{formatValue(pnlData?.holding, false)}
+											</span>
 										</div>
 									</div>
 								</div>
