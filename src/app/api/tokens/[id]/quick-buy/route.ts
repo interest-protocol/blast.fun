@@ -1,26 +1,20 @@
-import { NextRequest, NextResponse } from "next/server"
-import { apolloClient } from "@/lib/apollo-client"
 import { CONFIG_KEYS } from "@interest-protocol/memez-fun-sdk"
-import { GET_POOL_QUICK_BUY } from "@/graphql/pools"
+import { NextRequest, NextResponse } from "next/server"
+import { GET_COIN_POOL_BASIC } from "@/graphql/pools"
+import { apolloClient } from "@/lib/apollo-client"
 
-export async function GET(
-	request: NextRequest,
-	{ params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
 	try {
 		const { id } = await params
 
 		if (!id) {
-			return NextResponse.json(
-				{ error: "Coin type is required" },
-				{ status: 400 }
-			)
+			return NextResponse.json({ error: "Coin type is required" }, { status: 400 })
 		}
 
 		const decodedCoinType = decodeURIComponent(id)
 
 		const { data } = await apolloClient.query({
-			query: GET_POOL_QUICK_BUY,
+			query: GET_COIN_POOL_BASIC,
 			variables: { type: decodedCoinType },
 			context: {
 				headers: {
@@ -31,10 +25,7 @@ export async function GET(
 		})
 
 		if (!data?.coinPool) {
-			return NextResponse.json(
-				{ error: "Pool not found" },
-				{ status: 404 }
-			)
+			return NextResponse.json({ error: "Pool not found" }, { status: 404 })
 		}
 
 		const pool = data.coinPool
@@ -55,9 +46,6 @@ export async function GET(
 		})
 	} catch (error) {
 		console.error("Failed to fetch quick buy data:", error)
-		return NextResponse.json(
-			{ error: "Failed to fetch pool data" },
-			{ status: 500 }
-		)
+		return NextResponse.json({ error: "Failed to fetch pool data" }, { status: 500 })
 	}
 }
