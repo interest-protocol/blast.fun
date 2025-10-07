@@ -1,14 +1,9 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog"
-import { usePresetStore } from "@/stores/preset-store"
 import { Zap } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { usePresetStore } from "@/stores/preset-store"
 import { cn } from "@/utils"
 
 interface TradeSettingsProps {
@@ -17,19 +12,14 @@ interface TradeSettingsProps {
 }
 
 export function TradeSettings({ open, onOpenChange }: TradeSettingsProps) {
-	const {
-		slippage,
-		quickBuyAmounts,
-		quickSellPercentages,
-		setSlippage,
-		setQuickBuyAmounts,
-		setQuickSellPercentages,
-	} = usePresetStore()
+	const { slippage, quickBuyAmounts, quickSellPercentages, flashBuyAmount, setSlippage, setQuickBuyAmounts, setQuickSellPercentages, setFlashBuyAmount } =
+		usePresetStore()
 
 	// local state for editing
 	const [localSlippage, setLocalSlippage] = useState(slippage)
 	const [localQuickBuyAmounts, setLocalQuickBuyAmounts] = useState(quickBuyAmounts)
 	const [localQuickSellPercentages, setLocalQuickSellPercentages] = useState(quickSellPercentages)
+	const [localFlashBuyAmount, setLocalFlashBuyAmount] = useState(flashBuyAmount)
 
 	// reset local state when dialog opens
 	useEffect(() => {
@@ -37,8 +27,9 @@ export function TradeSettings({ open, onOpenChange }: TradeSettingsProps) {
 			setLocalSlippage(slippage)
 			setLocalQuickBuyAmounts(quickBuyAmounts)
 			setLocalQuickSellPercentages(quickSellPercentages)
+			setLocalFlashBuyAmount(flashBuyAmount)
 		}
-	}, [open, slippage, quickBuyAmounts, quickSellPercentages])
+	}, [open, slippage, quickBuyAmounts, quickSellPercentages, flashBuyAmount])
 
 	// auto-save when closing the dialog
 	const handleClose = (newOpen: boolean) => {
@@ -46,6 +37,7 @@ export function TradeSettings({ open, onOpenChange }: TradeSettingsProps) {
 			setSlippage(localSlippage)
 			setQuickBuyAmounts(localQuickBuyAmounts)
 			setQuickSellPercentages(localQuickSellPercentages)
+			setFlashBuyAmount(localFlashBuyAmount)
 		}
 
 		onOpenChange(newOpen)
@@ -53,11 +45,9 @@ export function TradeSettings({ open, onOpenChange }: TradeSettingsProps) {
 
 	return (
 		<Dialog open={open} onOpenChange={handleClose}>
-			<DialogContent className="sm:max-w-[420px] bg-background border-border">
+			<DialogContent className="border-border bg-background sm:max-w-[420px]">
 				<DialogHeader>
-					<DialogTitle className="font-mono text-sm uppercase">
-						Trade Settings
-					</DialogTitle>
+					<DialogTitle className="font-mono text-sm uppercase">Trade Settings</DialogTitle>
 				</DialogHeader>
 
 				<div className="space-y-6">
@@ -72,11 +62,13 @@ export function TradeSettings({ open, onOpenChange }: TradeSettingsProps) {
 									type="number"
 									value={localSlippage}
 									onChange={(e) => setLocalSlippage(Number(e.target.value))}
-									className="w-full px-2 py-1 pr-6 text-sm text-center bg-muted/50 border border-border rounded focus:outline-none focus:border-primary"
+									className="w-full rounded border border-border bg-muted/50 px-2 py-1 pr-6 text-center text-sm focus:border-primary focus:outline-none"
 									min={0}
 									max={100}
 								/>
-								<span className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">%</span>
+								<span className="-translate-y-1/2 pointer-events-none absolute top-1/2 right-2 text-muted-foreground text-sm">
+									%
+								</span>
 							</div>
 						</div>
 						<div className="grid grid-cols-5 gap-1">
@@ -85,7 +77,7 @@ export function TradeSettings({ open, onOpenChange }: TradeSettingsProps) {
 									key={val}
 									onClick={() => setLocalSlippage(val)}
 									className={cn(
-										"py-1 text-xs rounded-md border transition-all",
+										"rounded-md border py-1 text-xs transition-all",
 										localSlippage === val
 											? "border-primary bg-primary text-primary-foreground"
 											: "border-border hover:border-primary/50"
@@ -97,9 +89,26 @@ export function TradeSettings({ open, onOpenChange }: TradeSettingsProps) {
 						</div>
 					</div>
 
+					{/* Flash Buy Amount */}
+					<div className="space-y-3">
+						<div className="text-center font-mono text-muted-foreground text-xs uppercase">
+							Flash Buy Amount (SUI)
+						</div>
+						<div className="relative mx-auto w-32">
+							<input
+								type="number"
+								value={localFlashBuyAmount}
+								onChange={(e) => setLocalFlashBuyAmount(Number(e.target.value))}
+								className="w-full rounded border border-border bg-muted/50 px-2 py-2 text-center text-sm focus:border-primary focus:outline-none"
+								step={0.1}
+								min={0.1}
+							/>
+						</div>
+					</div>
+
 					{/* Quick Buy Amounts */}
 					<div className="space-y-3">
-						<div className="text-xs text-muted-foreground uppercase font-mono text-center">
+						<div className="text-center font-mono text-muted-foreground text-xs uppercase">
 							Quick Buy Amounts (SUI)
 						</div>
 						<div className="grid grid-cols-4 gap-2">
@@ -113,7 +122,7 @@ export function TradeSettings({ open, onOpenChange }: TradeSettingsProps) {
 											newAmounts[index] = Number(e.target.value)
 											setLocalQuickBuyAmounts(newAmounts)
 										}}
-										className="w-full px-2 py-2 text-xs text-center bg-muted/50 border border-border rounded focus:outline-none focus:border-primary"
+										className="w-full rounded border border-border bg-muted/50 px-2 py-2 text-center text-xs focus:border-primary focus:outline-none"
 										step={0.01}
 										min={0}
 									/>
@@ -124,7 +133,7 @@ export function TradeSettings({ open, onOpenChange }: TradeSettingsProps) {
 
 					{/* Quick Sell Percentages */}
 					<div className="space-y-3">
-						<div className="text-xs text-muted-foreground uppercase font-mono text-center">
+						<div className="text-center font-mono text-muted-foreground text-xs uppercase">
 							Quick Sell Percentages
 						</div>
 						<div className="grid grid-cols-4 gap-2">
@@ -138,12 +147,14 @@ export function TradeSettings({ open, onOpenChange }: TradeSettingsProps) {
 											newPercentages[index] = Number(e.target.value)
 											setLocalQuickSellPercentages(newPercentages)
 										}}
-										className="w-full px-2 py-2 pr-6 text-xs text-center bg-muted/50 border border-border rounded focus:outline-none focus:border-primary"
+										className="w-full rounded border border-border bg-muted/50 px-2 py-2 pr-6 text-center text-xs focus:border-primary focus:outline-none"
 										step={1}
 										min={1}
 										max={100}
 									/>
-									<span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">%</span>
+									<span className="-translate-y-1/2 pointer-events-none absolute top-1/2 right-1.5 text-muted-foreground text-xs">
+										%
+									</span>
 								</div>
 							))}
 						</div>
