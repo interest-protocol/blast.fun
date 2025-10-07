@@ -101,13 +101,3 @@ export const GET_POOLS_BATCH = gql`
 		}
 	}
 `
-
-export const GET_POOL_QUICK_BUY = gql`
-	query GetPoolQuickBuy($type: String!) {
-		coinPool(type: $type) {
-			poolId
-			metadata
-			migrated
-		}
-	}
-`
