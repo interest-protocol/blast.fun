@@ -5,11 +5,13 @@ interface PresetStore {
 	slippage: number
 	quickBuyAmounts: number[]
 	quickSellPercentages: number[]
+	flashBuyAmount: number
 
 	// actions
 	setSlippage: (slippage: number) => void
 	setQuickBuyAmounts: (amounts: number[]) => void
 	setQuickSellPercentages: (percentages: number[]) => void
+	setFlashBuyAmount: (amount: number) => void
 	resetToDefaults: () => void
 }
 
@@ -19,16 +21,19 @@ export const usePresetStore = create<PresetStore>()(
 			slippage: 5,
 			quickBuyAmounts: [1, 10, 50, 100],
 			quickSellPercentages: [25, 50, 75, 100],
+			flashBuyAmount: 5,
 
 			setSlippage: (slippage) => set({ slippage }),
 			setQuickBuyAmounts: (amounts) => set({ quickBuyAmounts: amounts }),
 			setQuickSellPercentages: (percentages) => set({ quickSellPercentages: percentages }),
+			setFlashBuyAmount: (amount) => set({ flashBuyAmount: amount }),
 
 			resetToDefaults: () =>
 				set({
 					slippage: 5,
 					quickBuyAmounts: [1, 10, 50, 100],
 					quickSellPercentages: [25, 50, 75, 100],
+					flashBuyAmount: 5,
 				}),
 		}),
 		{
