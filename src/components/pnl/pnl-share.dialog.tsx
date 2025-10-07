@@ -14,6 +14,7 @@ import * as htmlToImage from "html-to-image"
 import type { Token } from "@/types/token"
 import { useUserHoldings } from "@/hooks/use-user-holdings"
 import { formatNumberWithSuffix, formatSmallPrice } from "@/utils/format"
+import { cn } from "@/utils"
 import {
 	resizeImage,
 	saveBackgroundToStorage,
@@ -37,6 +38,7 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 
 	const [selectedBackground, setSelectedBackground] = useState<string>(DEFAULT_BACKGROUNDS[0])
 	const [customBackgrounds, setCustomBackgrounds] = useState<BackgroundImage[]>([])
+	const [isDragging, setIsDragging] = useState<boolean>(false)
 
 	useEffect(() => {
 		setCustomBackgrounds(getBackgroundsFromStorage())
@@ -76,6 +78,47 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 
 		deleteBackgroundFromStorage(id)
 		setCustomBackgrounds(customBackgrounds.filter(bg => bg.id !== id))
+	}
+
+	const handleDragOver = (e: React.DragEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		setIsDragging(true)
+	}
+
+	const handleDragLeave = (e: React.DragEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+
+		const rect = e.currentTarget.getBoundingClientRect()
+		const x = e.clientX
+		const y = e.clientY
+		if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
+			setIsDragging(false)
+		}
+	}
+
+	const handleDrop = async (e: React.DragEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		setIsDragging(false)
+
+		const files = Array.from(e.dataTransfer.files)
+		const imageFile = files.find(file => file.type.startsWith('image/'))
+
+		if (!imageFile) {
+			toast.error("Please drop an image file")
+			return
+		}
+
+		try {
+			const resizedImage = await resizeImage(imageFile)
+			const newBackground = saveBackgroundToStorage(resizedImage)
+			setCustomBackgrounds([...customBackgrounds, newBackground])
+			setSelectedBackground(newBackground.dataUrl)
+		} catch (err: any) {
+			toast.error(err?.message || "Failed to upload image")
+		}
 	}
 
 	const handleCopy = async () => {
@@ -305,10 +348,25 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 
 								<button
 									onClick={() => fileInputRef.current?.click()}
-									className="h-16 w-16 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center hover:border-muted-foreground transition-colors gap-1 flex-shrink-0"
+									onDragOver={handleDragOver}
+									onDragLeave={handleDragLeave}
+									onDrop={handleDrop}
+									className={cn(
+										"h-16 w-16 rounded-lg border-2 border-dashed flex flex-col items-center justify-center transition-all gap-1 flex-shrink-0",
+										isDragging ? "border-primary bg-primary/10 scale-105" : "border-border hover:border-muted-foreground"
+									)}
 								>
-									<Upload className="size-5 text-muted-foreground" />
-									<span className="text-[9px] text-muted-foreground uppercase tracking-wide">MAX 1MB</span>
+									{isDragging ? (
+										<>
+											<Upload className="size-5 text-primary animate-pulse" />
+											<span className="text-[9px] text-primary uppercase tracking-wide font-semibold">DROP</span>
+										</>
+									) : (
+										<>
+											<Upload className="size-5 text-muted-foreground" />
+											<span className="text-[9px] text-muted-foreground uppercase tracking-wide">MAX 1MB</span>
+										</>
+									)}
 								</button>
 							</div>
 
