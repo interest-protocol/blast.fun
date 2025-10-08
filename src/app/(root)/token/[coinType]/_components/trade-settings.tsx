@@ -12,14 +12,13 @@ interface TradeSettingsProps {
 }
 
 export function TradeSettings({ open, onOpenChange }: TradeSettingsProps) {
-	const { slippage, quickBuyAmounts, quickSellPercentages, flashBuyAmount, setSlippage, setQuickBuyAmounts, setQuickSellPercentages, setFlashBuyAmount } =
+	const { slippage, quickBuyAmounts, quickSellPercentages, setSlippage, setQuickBuyAmounts, setQuickSellPercentages } =
 		usePresetStore()
 
 	// local state for editing
 	const [localSlippage, setLocalSlippage] = useState(slippage)
 	const [localQuickBuyAmounts, setLocalQuickBuyAmounts] = useState(quickBuyAmounts)
 	const [localQuickSellPercentages, setLocalQuickSellPercentages] = useState(quickSellPercentages)
-	const [localFlashBuyAmount, setLocalFlashBuyAmount] = useState(flashBuyAmount)
 
 	// reset local state when dialog opens
 	useEffect(() => {
@@ -27,9 +26,8 @@ export function TradeSettings({ open, onOpenChange }: TradeSettingsProps) {
 			setLocalSlippage(slippage)
 			setLocalQuickBuyAmounts(quickBuyAmounts)
 			setLocalQuickSellPercentages(quickSellPercentages)
-			setLocalFlashBuyAmount(flashBuyAmount)
 		}
-	}, [open, slippage, quickBuyAmounts, quickSellPercentages, flashBuyAmount])
+	}, [open, slippage, quickBuyAmounts, quickSellPercentages])
 
 	// auto-save when closing the dialog
 	const handleClose = (newOpen: boolean) => {
@@ -37,7 +35,6 @@ export function TradeSettings({ open, onOpenChange }: TradeSettingsProps) {
 			setSlippage(localSlippage)
 			setQuickBuyAmounts(localQuickBuyAmounts)
 			setQuickSellPercentages(localQuickSellPercentages)
-			setFlashBuyAmount(localFlashBuyAmount)
 		}
 
 		onOpenChange(newOpen)
@@ -86,23 +83,6 @@ export function TradeSettings({ open, onOpenChange }: TradeSettingsProps) {
 									{val}%
 								</button>
 							))}
-						</div>
-					</div>
-
-					{/* Flash Buy Amount */}
-					<div className="space-y-3">
-						<div className="text-center font-mono text-muted-foreground text-xs uppercase">
-							Flash Buy Amount (SUI)
-						</div>
-						<div className="relative mx-auto w-32">
-							<input
-								type="number"
-								value={localFlashBuyAmount}
-								onChange={(e) => setLocalFlashBuyAmount(Number(e.target.value))}
-								className="w-full rounded border border-border bg-muted/50 px-2 py-2 text-center text-sm focus:border-primary focus:outline-none"
-								step={0.1}
-								min={0.1}
-							/>
 						</div>
 					</div>
 

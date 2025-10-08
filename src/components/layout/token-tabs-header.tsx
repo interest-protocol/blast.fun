@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { useBreakpoint } from "@/hooks/use-breakpoint"
 import { useBondingProgress } from "@/hooks/use-bonding-progress"
+import { SearchToken } from "../shared/search-token"
 import { useRef, useState, useEffect, useCallback, memo } from "react"
 
 const TokenTabItem = memo(function TokenTabItem({
@@ -222,7 +223,9 @@ export const TokenTabsHeader = memo(function TokenTabsHeader() {
 
 	return (
 		<div className="border-b border-border bg-background/50 backdrop-blur-sm">
-			<div className="flex items-center py-1.5 px-4 gap-1">
+			<div className="flex items-center py-1.5 px-4 gap-2">
+				<SearchToken mode="header" />
+
 				{canScrollLeft && (
 					<Button
 						variant="ghost"

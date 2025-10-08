@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog"
@@ -93,19 +94,19 @@ export function AudioDialog({ open, onOpenChange }: AudioDialogProps) {
 			<DialogContent className="sm:max-w-[400px] backdrop-blur-sm border-2 shadow-2xl">
 				<DialogHeader className="pb-2 border-b">
 					<DialogTitle className="font-mono text-base uppercase tracking-wider text-foreground/80">
-						AUDIO::CONTROL
+						Audio Settings
 					</DialogTitle>
+					<DialogDescription>
+						Toggle miscellanous sounds for new tokens, and buying & selling.
+					</DialogDescription>
 				</DialogHeader>
 
 				<div className="space-y-2">
 					<div className="flex items-center justify-between p-3 rounded-lg border border-border/40 bg-background/30">
 						<div className="space-y-0.5">
-							<Label htmlFor="audio-enabled" className="font-mono text-xs uppercase tracking-wider text-foreground/80">
-								SYSTEM::AUDIO
+							<Label className="font-mono text-xs uppercase tracking-wider text-foreground/80">
+								SYSTEM AUDIO
 							</Label>
-							<p className="font-mono text-[10px] uppercase text-muted-foreground">
-								{localEnabled ? "STATUS::ACTIVE" : "STATUS::INACTIVE"}
-							</p>
 						</div>
 						<Switch
 							id="audio-enabled"
@@ -120,7 +121,7 @@ export function AudioDialog({ open, onOpenChange }: AudioDialogProps) {
 							<div className="p-3 rounded-lg border border-border/40 bg-background/30">
 								<div className="flex items-center justify-between mb-3">
 									<Label className="font-mono text-xs uppercase tracking-wider text-foreground/80">
-										VOLUME::LEVEL
+										VOLUME LEVEL
 									</Label>
 									<div className="relative flex items-center select-none">
 										<input

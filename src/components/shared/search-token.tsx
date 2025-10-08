@@ -95,11 +95,12 @@ export function SearchToken({ mode = "floating" }: SearchTokenProps) {
 			{mode === "header" ? (
 				<Button
 					variant="outline"
-					size="icon"
-					className="rounded-xl text-muted-foreground hover:text-primary ease-in-out duration-300 transition-all"
+					size="sm"
+					className="rounded-lg group px-2 ease-in-out duration-300 transition-all gap-1.5"
 					onClick={() => setOpen(true)}
 				>
-					<Search className="size-4" />
+					<Search className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
+					<span className="text-xs font-semibold text-muted-foreground group-hover:text-primary transition-colors duration-300">Search</span>
 				</Button>
 			) : (
 				<Button
