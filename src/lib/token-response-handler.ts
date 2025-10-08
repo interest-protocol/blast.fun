@@ -44,6 +44,14 @@ export async function enhanceTokensWithTimeout(
 		burnTax: undefined,
 		protectionSettings: undefined,
 		creatorData: undefined,
+		pool: {
+			poolId: token.id,
+			isProtected: false,
+			burnTax: undefined,
+			migrated: isBonded || false,
+			bondingCurve: isBonded ? 100 : ((token.bondingProgress || 0) * 100),
+			canMigrate: false,
+		},
 		isEnhanced: false
 	}))
 
@@ -128,6 +136,14 @@ export async function enhanceTokensWithTimeout(
 				burnTax: pool?.burnTax,
 				protectionSettings: pool?.publicKey ? protectionSettingsMap.get(pool.poolId) : undefined,
 				creatorData,
+				pool: {
+					poolId: pool?.poolId || token.id,
+					isProtected: !!pool?.publicKey,
+					burnTax: pool?.burnTax,
+					migrated: isBonded ? true : (pool?.migrated || false),
+					bondingCurve: isBonded ? 100 : (pool?.bondingCurve || ((token.bondingProgress || 0) * 100)),
+					canMigrate: pool?.canMigrate || false,
+				},
 				isEnhanced: true
 			}
 		})
