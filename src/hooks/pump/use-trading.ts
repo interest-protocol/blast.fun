@@ -21,7 +21,6 @@ interface UseTradingOptions {
 	decimals?: number
 	actualBalance?: string
 	referrerWallet?: string | null
-	onSuccess?: (type: "buy" | "sell", fromAmount: number, toAmount: number, txHash?: string) => void
 }
 
 interface UseTradingReturn {
@@ -33,10 +32,9 @@ interface UseTradingReturn {
 	clearError: () => void
 }
 
-export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet, onSuccess }: UseTradingOptions): UseTradingReturn {
+export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }: UseTradingOptions): UseTradingReturn {
 	const { address, isConnected } = useApp()
 	const { executeTransaction } = useTransaction()
-	const { user: twitterUser } = useTwitter()
 	const { refreshToken } = useTurnstile()
 
 	const [isProcessing, setIsProcessing] = useState(false)
@@ -141,18 +139,13 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet, 
 					referrer: referrerWallet ?? undefined,
 				})
 
-				const result = await executeTransaction(tx)
+				await executeTransaction(tx)
 				playSound("buy")
 
 				const tokenAmount = Number(quote.amountOut) / Math.pow(10, decimals)
 				setSuccess(
 					`ORDER::FILLED - Bought ${tokenAmount.toFixed(2)} ${pool.metadata?.symbol || "TOKEN"} for ${amount} SUI via Aftermath`
 				)
-
-				// @dev: Call success callback with swap details
-				if (onSuccess) {
-					onSuccess("buy", amount, tokenAmount, result?.digest)
-				}
 			} else {
 				if (pool.pool?.isProtected) {
 					try {
@@ -218,18 +211,13 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet, 
 
 				pumpTx.transferObjects([memeCoin], address)
 
-				const result = await executeTransaction(pumpTx)
+				await executeTransaction(pumpTx)
 				playSound("buy")
 
 				const tokenAmount = Number(quote.memeAmountOut) / Math.pow(10, decimals)
 				setSuccess(
 					`ORDER::FILLED - Bought ${tokenAmount.toFixed(2)} ${pool.metadata?.symbol || "TOKEN"} for ${amount} SUI`
 				)
-
-				// @dev: Call success callback with swap details
-				if (onSuccess) {
-					onSuccess("buy", amount, tokenAmount, result?.digest)
-				}
 			}
 		} catch (err) {
 			let errorMessage = err instanceof Error ? err.message : "UNKNOWN_ERROR"
@@ -240,7 +228,6 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet, 
 			throw err
 		} finally {
 			setIsProcessing(false)
-			// Refresh Turnstile token to prevent timeout/duplicate errors
 			refreshToken()
 		}
 	}
@@ -301,22 +288,16 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet, 
 					referrer: referrerWallet ?? undefined,
 				})
 
-				const result = await executeTransaction(tx)
+				await executeTransaction(tx)
 				playSound("sell")
-				const suiAmount = Number(quote.amountOut) / Number(MIST_PER_SUI)
+
 				setSuccess(
 					`ORDER::FILLED - Sold ${amount} ${pool.metadata?.symbol || "TOKEN"} for ${formatMistToSui(String(quote.amountOut))} SUI via Aftermath`
 				)
-
-				// @dev: Call success callback with swap details
-				if (onSuccess) {
-					onSuccess("sell", amount, suiAmount, result?.digest)
-				}
 			} else {
 				// For non-migrated tokens, amountInSmallestUnit has already been set correctly
 				// in the balance check above (either exact balance or the calculated amount)
 				const amountToSell = amountInSmallestUnit
-
 				const quote = await pumpSdk.quoteDump({
 					pool: pool.pool?.poolId || pool.id,
 					amount: amountToSell,
@@ -345,17 +326,12 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet, 
 
 				dumpTx.transferObjects([quoteCoin], address)
 
-				const result = await executeTransaction(dumpTx)
+				await executeTransaction(dumpTx)
 				playSound("sell")
-				const suiAmount = Number(quote.quoteAmountOut) / Number(MIST_PER_SUI)
+
 				setSuccess(
 					`ORDER::FILLED - Sold ${amount} ${pool.metadata?.symbol || "TOKEN"} for ${formatMistToSui(String(quote.quoteAmountOut))} SUI`
 				)
-
-				// @dev: Call success callback with swap details
-				if (onSuccess) {
-					onSuccess("sell", amount, suiAmount, result?.digest)
-				}
 			}
 		} catch (err) {
 			let errorMessage = err instanceof Error ? err.message : "UNKNOWN_ERROR"
@@ -366,7 +342,6 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet, 
 			throw err
 		} finally {
 			setIsProcessing(false)
-			// Refresh Turnstile token to prevent timeout/duplicate errors
 			refreshToken()
 		}
 	}
