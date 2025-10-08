@@ -4,8 +4,6 @@ import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Search, Loader2 } from "lucide-react"
 import { useDebouncedCallback } from "use-debounce"
-import { useQuery } from "@apollo/client"
-import toast from "react-hot-toast"
 import {
 	CommandDialog,
 	CommandEmpty,
@@ -16,7 +14,6 @@ import { Button } from "@/components/ui/button"
 import { nexaClient } from "@/lib/nexa"
 import { TokenAvatar } from "@/components/tokens/token-avatar"
 import { formatNumberWithSuffix } from "@/utils/format"
-import { GET_POOL_BY_COIN_TYPE } from "@/graphql/pools"
 
 interface SearchResult {
 	type: "coin"
@@ -48,27 +45,7 @@ export function SearchToken({ mode = "floating" }: SearchTokenProps) {
 	const [query, setQuery] = useState("")
 	const [searchResults, setSearchResults] = useState<SearchResult[]>([])
 	const [loading, setLoading] = useState(false)
-	const [selectedCoinType, setSelectedCoinType] = useState<string | null>(null)
 	const router = useRouter()
-
-	useQuery(GET_POOL_BY_COIN_TYPE, {
-		variables: { type: selectedCoinType },
-		skip: !selectedCoinType,
-		onCompleted: (data) => {
-			if (data?.coinPool?.poolId) {
-				router.push(`/token/${data.coinPool.poolId}`)
-				setOpen(false)
-				setQuery("")
-				setSearchResults([])
-				setSelectedCoinType(null)
-			}
-		},
-		onError: (error) => {
-			console.error("Error fetching poolId:", error)
-			toast.error("Something went wrong. Please try again later.")
-			setSelectedCoinType(null)
-		}
-	})
 
 	const handleSearch = useDebouncedCallback(async (searchQuery: string) => {
 		if (!searchQuery || searchQuery.length < 2) {
@@ -93,8 +70,11 @@ export function SearchToken({ mode = "floating" }: SearchTokenProps) {
 	}, [query, handleSearch])
 
 	const handleSelect = useCallback((coinType: string) => {
-		setSelectedCoinType(coinType)
-	}, [])
+		router.push(`/token/${coinType}`)
+		setOpen(false)
+		setQuery("")
+		setSearchResults([])
+	}, [router])
 
 	useEffect(() => {
 		if (mode === "header") return
