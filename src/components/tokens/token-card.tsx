@@ -141,12 +141,6 @@ export const TokenCard = memo(function TokenCard({ pool: tokenData, hasRecentTra
 										size="sm"
 									/>
 								)}
-
-								<CopyableToken
-									symbol={token.metadata?.symbol || tokenData.symbol || "[???]"}
-									coinType={tokenData.coinType}
-									className="ml-auto text-xs"
-								/>
 							</div>
 
 							{/* stats */}
@@ -287,8 +281,9 @@ export const TokenCard = memo(function TokenCard({ pool: tokenData, hasRecentTra
 							</div>
 						</div>
 
-						{/* Quick Buy Buttons - Far Right */}
-						<div className="ml-auto flex flex-shrink-0">
+						{/* Token Symbol & Quick Buy Buttons - Far Right */}
+						<div className="flex-shrink-0 ml-auto flex flex-col items-end gap-2">
+							<CopyableToken symbol={token.metadata?.symbol || tokenData.symbol || "[???]"} coinType={tokenData.coinType} className="text-xs" />
 							<QuickBuyButtons pool={token} />
 						</div>
 					</div>
