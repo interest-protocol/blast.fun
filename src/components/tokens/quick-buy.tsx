@@ -15,7 +15,6 @@ interface QuickBuyProps {
 export function QuickBuy({ pool, className }: QuickBuyProps) {
 	const { isConnected } = useApp()
 	const { flashBuyAmount, slippage } = usePresetStore()
-	console.log(pool)
 	const { buy, isProcessing } = useTrading({ pool })
 
 	const handleQuickBuy = async (e: React.MouseEvent) => {
@@ -25,7 +24,7 @@ export function QuickBuy({ pool, className }: QuickBuyProps) {
 		try {
 			await buy(flashBuyAmount.toString(), slippage)
 		} catch (error) {
-			console.log(error)
+			// error handling is done in trading hook
 		}
 	}
 
