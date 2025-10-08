@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from "react"
 import { Loader2, Settings2, Wallet, Activity, Pencil, Check, X, Rocket, AlertTriangle, Flame } from "lucide-react"
-import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { TokenAvatar } from "@/components/tokens/token-avatar"
 import { useApp } from "@/context/app.context"
@@ -634,13 +633,12 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 							/>
 							<div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-muted/20 rounded-md border border-border/50 shrink-0">
 								{tradeType === "buy" ? (
-									<Image
-										src="/logo/sui-logo.svg"
+									<img
+										src="/assets/currency/sui-fill.svg"
 										alt="SUI"
 										width={18}
 										height={18}
-										className="rounded-full shrink-0"
-										unoptimized={true}
+										className="shrink-0"
 									/>
 								) : (
 									<TokenAvatar
@@ -962,7 +960,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 						swapSuccessDialog.tradeType === "buy"
 							? {
 									symbol: "SUI",
-									icon: "/logo/SUI.svg",
+									icon: "/assets/currency/sui-fill.svg",
 									name: "Sui"
 							  }
 							: {
@@ -980,7 +978,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 							  }
 							: {
 									symbol: "SUI",
-									icon: "/logo/SUI.svg",
+									icon: "/assets/currency/sui-fill.svg",
 									name: "Sui"
 							  }
 					}

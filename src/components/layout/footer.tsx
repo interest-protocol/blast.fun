@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { ThemeSwitcher } from "../shared/theme-switcher"
 import { TradeSettings } from "@/app/(root)/token/[coinType]/_components/trade-settings"
 import { Settings } from "lucide-react"
@@ -32,7 +31,7 @@ export function Footer() {
 							<Tooltip>
 								<TooltipTrigger asChild>
 									<button className="text-[#F7931A] flex flex-row h-6 gap-1 items-center hover:brightness-110 transition-all duration-125">
-										<Image src="/assets/currency/btc-fill.svg" alt="BTC" width={16} height={16} className="flex-shrink-0" />
+										<img src="/assets/currency/btc-fill.svg" alt="BTC" width={16} height={16} className="flex-shrink-0" />
 										{btcPrice.loading ? (
 											<Skeleton className="h-3 w-14" />
 										) : (
@@ -47,7 +46,7 @@ export function Footer() {
 							<Tooltip>
 								<TooltipTrigger asChild>
 									<button className="text-[#6FBCF0] flex flex-row h-6 gap-1 items-center hover:brightness-110 transition-all duration-125">
-										<Image src="/assets/currency/sui-fill.svg" alt="SUI" width={16} height={16} className="flex-shrink-0" />
+										<img src="/assets/currency/sui-fill.svg" alt="SUI" width={16} height={16} className="flex-shrink-0" />
 										{suiPrice.loading ? (
 											<Skeleton className="h-3 w-12" />
 										) : (
