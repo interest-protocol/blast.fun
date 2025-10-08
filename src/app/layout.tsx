@@ -5,7 +5,6 @@ import type { Metadata } from "next"
 import { GoogleAnalytics } from '@next/third-parties/google'
 import { SessionProvider } from "next-auth/react"
 import { Toaster } from "react-hot-toast"
-import { ReactScan } from "@/components/utils/react-scan"
 import { TailwindIndicator } from "@/components/utils/tailwind-indicator"
 import { TwitterAuthProvider } from "@/context/twitter.context"
 import { geistMono, geistSans } from "@/fonts"
@@ -58,7 +57,6 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en" suppressHydrationWarning>
-			<ReactScan />
 			<body className={cn(geistSans.variable, geistMono.variable, "antialiased")}>
 				<ThemeProvider attribute="class" defaultTheme="dark" disableTransitionOnChange>
 					<TooltipProvider>
