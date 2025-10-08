@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useApp } from "@/context/app.context"
 import type { Token } from "@/types/token"
 import { useUserHoldings } from "@/hooks/use-user-holdings"
+import { useBreakpoint } from "@/hooks/use-breakpoint"
 import { PnlDialog } from "@/components/pnl/pnl-share.dialog"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { ChartLine } from "lucide-react"
@@ -21,11 +22,12 @@ export function HolderDetails({ pool }: HolderDetailsProps) {
 	const { address } = useApp()
 	const [isOpen, setIsOpen] = useState(false)
 	const { data: holdings } = useUserHoldings(pool, address)
+	const { isMobile } = useBreakpoint()
 
 	const content = (
 		<div
 			className="w-full flex border-b border-border justify-between items-center cursor-pointer hover:bg-accent/10 transition-all duration-200 relative group"
-			onClick={() => address && setIsOpen(true)}
+			onClick={() => address && !isMobile && setIsOpen(true)}
 		>
 			<div className="w-full flex flex-col items-center justify-center py-2 border-r border-border">
 				<p className="text-[10px] text-muted-foreground">Bought</p>
@@ -67,7 +69,7 @@ export function HolderDetails({ pool }: HolderDetailsProps) {
 
 	return (
 		<>
-			{address ? (
+			{address && !isMobile ? (
 				<Tooltip delayDuration={300}>
 					<TooltipTrigger asChild>
 						{content}
@@ -80,7 +82,7 @@ export function HolderDetails({ pool }: HolderDetailsProps) {
 				content
 			)}
 
-			{address && (
+			{address && !isMobile && (
 				<PnlDialog
 					isOpen={isOpen}
 					onOpenChange={setIsOpen}
