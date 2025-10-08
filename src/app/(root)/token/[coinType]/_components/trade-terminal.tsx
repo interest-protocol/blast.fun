@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from "react"
 import { Loader2, Settings2, Wallet, Activity, Pencil, Check, X, Rocket, AlertTriangle, Flame } from "lucide-react"
-import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { TokenAvatar } from "@/components/tokens/token-avatar"
 import { useApp } from "@/context/app.context"
@@ -17,7 +16,6 @@ import { cn } from "@/utils"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { TradeSettings } from "./trade-settings"
-import { SwapSuccessDialog } from "./swap-success-dialog"
 import { MIST_PER_SUI } from "@mysten/sui/utils"
 import { pumpSdk } from "@/lib/pump"
 import { getBuyQuote, getSellQuote } from "@/lib/aftermath"
@@ -43,13 +41,6 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	const [editingQuickSell, setEditingQuickSell] = useState(false)
 	const [tempQuickBuyAmounts, setTempQuickBuyAmounts] = useState<number[]>([])
 	const [tempQuickSellPercentages, setTempQuickSellPercentages] = useState<number[]>([])
-	const [swapSuccessDialog, setSwapSuccessDialog] = useState<{
-		open: boolean
-		tradeType: "buy" | "sell"
-		fromAmount: number
-		toAmount: number
-		txHash?: string
-	} | null>(null)
 
 	const { token: turnstileToken, resetToken: resetTurnstileToken, setIsRequired: setTurnstileRequired } = useTurnstile()
 
@@ -367,15 +358,6 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 		decimals,
 		actualBalance: effectiveBalance,
 		referrerWallet,
-		onSuccess: (type: "buy" | "sell", fromAmount: number, toAmount: number, txHash?: string) => {
-			setSwapSuccessDialog({
-				open: true,
-				tradeType: type,
-				fromAmount,
-				toAmount,
-				txHash,
-			})
-		},
 	})
 
 	const {
@@ -634,13 +616,12 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 							/>
 							<div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-muted/20 rounded-md border border-border/50 shrink-0">
 								{tradeType === "buy" ? (
-									<Image
-										src="/logo/sui-logo.svg"
+									<img
+										src="/assets/currency/sui-fill.svg"
 										alt="SUI"
 										width={18}
 										height={18}
-										className="rounded-full shrink-0"
-										unoptimized={true}
+										className="shrink-0"
 									/>
 								) : (
 									<TokenAvatar
@@ -945,48 +926,6 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 				open={settingsOpen}
 				onOpenChange={setSettingsOpen}
 			/>
-
-			{/* Swap Success Dialog */}
-			{swapSuccessDialog && (
-				<SwapSuccessDialog
-					open={swapSuccessDialog.open}
-					onOpenChange={(open) => {
-						if (!open) {
-							setSwapSuccessDialog(null)
-						}
-					}}
-					tradeType={swapSuccessDialog.tradeType}
-					fromAmount={swapSuccessDialog.fromAmount}
-					toAmount={swapSuccessDialog.toAmount}
-					fromToken={
-						swapSuccessDialog.tradeType === "buy"
-							? {
-									symbol: "SUI",
-									icon: "/logo/SUI.svg",
-									name: "Sui"
-							  }
-							: {
-									symbol: metadata?.symbol || "TOKEN",
-									icon: metadata?.icon_url,
-									name: metadata?.name,
-							  }
-					}
-					toToken={
-						swapSuccessDialog.tradeType === "buy"
-							? {
-									symbol: metadata?.symbol || "TOKEN",
-									icon: metadata?.icon_url,
-									name: metadata?.name,
-							  }
-							: {
-									symbol: "SUI",
-									icon: "/logo/SUI.svg",
-									name: "Sui"
-							  }
-					}
-					txHash={swapSuccessDialog.txHash}
-				/>
-			)}
 		</div>
 	)
 }

@@ -8,12 +8,14 @@ import {
 	ContextMenuItem,
 	ContextMenuTrigger,
 } from "@/components/ui/context-menu"
-import { Loader2, Copy, Download, Upload, Trash2 } from "lucide-react"
+import { Loader2, Copy, Download, Upload, Trash2, ArrowUpDown } from "lucide-react"
 import toast from "react-hot-toast"
 import * as htmlToImage from "html-to-image"
 import type { Token } from "@/types/token"
 import { useUserHoldings } from "@/hooks/use-user-holdings"
+import { useSuiPrice } from "@/hooks/sui/use-sui-price"
 import { formatNumberWithSuffix, formatSmallPrice } from "@/utils/format"
+import { cn } from "@/utils"
 import {
 	resizeImage,
 	saveBackgroundToStorage,
@@ -32,11 +34,14 @@ interface PnlDialogProps {
 
 export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProps) {
 	const { data: pnlData, isLoading, error } = useUserHoldings(pool, address)
+	const suiPrice = useSuiPrice()
 	const cardRef = useRef<HTMLDivElement>(null)
 	const fileInputRef = useRef<HTMLInputElement>(null)
 
 	const [selectedBackground, setSelectedBackground] = useState<string>(DEFAULT_BACKGROUNDS[0])
 	const [customBackgrounds, setCustomBackgrounds] = useState<BackgroundImage[]>([])
+	const [isDragging, setIsDragging] = useState<boolean>(false)
+	const [showInSui, setShowInSui] = useState<boolean>(false)
 
 	useEffect(() => {
 		setCustomBackgrounds(getBackgroundsFromStorage())
@@ -49,6 +54,26 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 	const isProfit = (pnlData?.pnl ?? 0) >= 0
 	const pnlAmount = Math.abs(pnlData?.pnl ?? 0)
 	const pnlPercentage = Math.abs(pnlData?.pnlPercentage ?? 0)
+
+	const formatValue = (usdValue: number | undefined, isPrice: boolean = false) => {
+		if (!usdValue) return isPrice ? "0.00" : "0"
+
+		if (showInSui && suiPrice.usd > 0) {
+			const suiValue = usdValue / suiPrice.usd
+			if (isPrice) {
+				return formatSmallPrice(suiValue) + " SUI"
+			}
+			return formatNumberWithSuffix(suiValue) + " SUI"
+		}
+
+		if (isPrice) {
+			return "$" + formatSmallPrice(usdValue)
+		}
+		return "$" + formatNumberWithSuffix(usdValue)
+	}
+
+	const getCurrencySymbol = () => showInSui ? "" : "$"
+	const getCurrencySuffix = () => showInSui ? " SUI" : ""
 
 	const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0]
@@ -76,6 +101,47 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 
 		deleteBackgroundFromStorage(id)
 		setCustomBackgrounds(customBackgrounds.filter(bg => bg.id !== id))
+	}
+
+	const handleDragOver = (e: React.DragEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		setIsDragging(true)
+	}
+
+	const handleDragLeave = (e: React.DragEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+
+		const rect = e.currentTarget.getBoundingClientRect()
+		const x = e.clientX
+		const y = e.clientY
+		if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
+			setIsDragging(false)
+		}
+	}
+
+	const handleDrop = async (e: React.DragEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		setIsDragging(false)
+
+		const files = Array.from(e.dataTransfer.files)
+		const imageFile = files.find(file => file.type.startsWith('image/'))
+
+		if (!imageFile) {
+			toast.error("Please drop an image file")
+			return
+		}
+
+		try {
+			const resizedImage = await resizeImage(imageFile)
+			const newBackground = saveBackgroundToStorage(resizedImage)
+			setCustomBackgrounds([...customBackgrounds, newBackground])
+			setSelectedBackground(newBackground.dataUrl)
+		} catch (err: any) {
+			toast.error(err?.message || "Failed to upload image")
+		}
 	}
 
 	const handleCopy = async () => {
@@ -161,7 +227,7 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 					<div className="flex flex-col items-center gap-2">
 						<div
 							ref={cardRef}
-							className="relative overflow-hidden rounded-xl shadow-2xl"
+							className="relative overflow-hidden rounded-xl shadow-2xl select-none"
 							style={{
 								width: "600px",
 								height: "340px",
@@ -181,56 +247,71 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 								}}
 							/>
 
-							<div className="absolute inset-0 bg-gradient-to-r from-background/70 via-background/50 to-transparent" />
+							<div className="absolute inset-0 bg-gradient-to-b from-black/50 to-black/70" />
 
-							<div className="relative z-10 flex h-full w-full flex-col justify-between p-6">
-								<div className="flex items-start gap-4">
-									<div className="relative h-24 w-24 flex-shrink-0">
+							<div className="relative z-10 flex h-full w-full flex-col p-6">
+								{/* Blast Branding */}
+								<img
+									src="/logo/blast.svg"
+									alt="Blast"
+									className="absolute top-4 right-4 h-16 w-auto opacity-60"
+									style={{ filter: 'brightness(0) invert(1)' }}
+								/>
+
+								{/* Token Info */}
+								<div className="flex items-center gap-3">
+									<div className="relative h-10 w-10 flex-shrink-0">
 										{iconUrl ? (
 											<img
 												src={iconUrl}
 												alt={symbol}
-												className="h-24 w-24 rounded-full object-cover"
+												className="h-10 w-10 rounded-full object-cover"
 											/>
 										) : (
-											<div className="flex h-24 w-24 items-center justify-center rounded-full bg-muted">
-												<span className="text-3xl font-bold">
-													{symbol?.[0]?.toUpperCase() || '?'}
-												</span>
-											</div>
+											<span className="text-sm font-bold text-white">
+												{symbol?.[0]?.toUpperCase() || '?'}
+											</span>
 										)}
 									</div>
-
-									<div className="pt-1">
-										<div className="text-base font-bold text-gray-300 mb-1">
-											{name || 'Unknown'} ({symbol || '?'})
-										</div>
-										<div className={`text-4xl font-bold mb-1 ${isProfit ? 'text-green-500' : 'text-red-500'}`}>
-											{isProfit ? '+' : '-'}${formatNumberWithSuffix(pnlAmount || 0)}
-										</div>
-										<div className={`text-xl font-semibold ${isProfit ? 'text-green-400' : 'text-red-400'}`}>
-											{isProfit ? '↑' : '↓'} {(pnlPercentage || 0).toFixed(1)}%
-										</div>
+								
+									<div className="text-lg font-semibold text-white">
+										{name || 'Unknown'}
 									</div>
 								</div>
 
-								<div className="flex flex-row gap-12">
-									<div>
-										<div className="text-muted-foreground uppercase text-xs tracking-wider mb-1">ENTRY</div>
-										<div className="font-bold text-lg text-white">
-											${pnlData?.entryPrice ? formatSmallPrice(pnlData.entryPrice) : '0.00'}
+								<div className="flex-1 flex flex-col justify-center">
+									{/* Profit Block */}
+									<div className={cn(
+										"inline-flex px-6 py-3 rounded-md shadow-lg self-start mb-6",
+										isProfit ? "bg-green-400" : "bg-red-400"
+									)}>
+										<div className={cn(
+											"text-5xl font-bold",
+											isProfit ? "text-green-900" : "text-red-900"
+										)}>
+											{isProfit ? '+' : '-'}{getCurrencySymbol()}{showInSui && suiPrice.usd > 0 ? formatNumberWithSuffix(pnlAmount / suiPrice.usd) : formatNumberWithSuffix(pnlAmount || 0)}{getCurrencySuffix()}
 										</div>
 									</div>
-									<div>
-										<div className="text-muted-foreground uppercase text-xs tracking-wider mb-1">SOLD</div>
-										<div className="font-bold text-lg text-white">
-											${pnlData?.sold ? formatNumberWithSuffix(pnlData.sold) : '0'}
+
+									{/* PnL Stats */}
+									<div className="flex flex-col gap-1.5">
+										<div className="flex items-baseline">
+											<span className="text-muted-foreground text-base font-medium w-20" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>PNL</span>
+											<span className={`text-base font-semibold ${isProfit ? 'text-green-400' : 'text-red-400'}`} style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+												{isProfit ? '+' : '-'}{(pnlPercentage || 0).toFixed(2)}%
+											</span>
 										</div>
-									</div>
-									<div>
-										<div className="text-muted-foreground uppercase text-xs tracking-wider mb-1">HOLDING</div>
-										<div className="font-bold text-lg text-white">
-											${pnlData?.holding ? formatNumberWithSuffix(pnlData.holding) : '0'}
+										<div className="flex items-baseline">
+											<span className="text-muted-foreground text-base font-medium w-20" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>Sold</span>
+											<span className="text-base font-semibold text-white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+												{formatValue(pnlData?.sold, false)}
+											</span>
+										</div>
+										<div className="flex items-baseline">
+											<span className="text-muted-foreground text-base font-medium w-20" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>Holding</span>
+											<span className="text-base font-semibold text-white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+												{formatValue(pnlData?.holding, false)}
+											</span>
 										</div>
 									</div>
 								</div>
@@ -305,32 +386,59 @@ export function PnlDialog({ isOpen, onOpenChange, pool, address }: PnlDialogProp
 
 								<button
 									onClick={() => fileInputRef.current?.click()}
-									className="h-16 w-16 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center hover:border-muted-foreground transition-colors gap-1 flex-shrink-0"
+									onDragOver={handleDragOver}
+									onDragLeave={handleDragLeave}
+									onDrop={handleDrop}
+									className={cn(
+										"h-16 w-16 rounded-lg border-2 border-dashed flex flex-col items-center justify-center transition-all gap-1 flex-shrink-0",
+										isDragging ? "border-primary bg-primary/10 scale-105" : "border-border hover:border-muted-foreground"
+									)}
 								>
-									<Upload className="size-5 text-muted-foreground" />
-									<span className="text-[9px] text-muted-foreground uppercase tracking-wide">MAX 1MB</span>
+									{isDragging ? (
+										<>
+											<Upload className="size-5 text-primary animate-pulse" />
+											<span className="text-[9px] text-primary uppercase tracking-wide font-semibold">DROP</span>
+										</>
+									) : (
+										<>
+											<Upload className="size-5 text-muted-foreground" />
+											<span className="text-[9px] text-muted-foreground uppercase tracking-wide">MAX 1MB</span>
+										</>
+									)}
 								</button>
 							</div>
 
-							<div className="flex gap-2">
+							<div className="flex justify-between items-center">
 								<Button
-									onClick={handleDownload}
+									onClick={() => setShowInSui(!showInSui)}
 									variant="outline"
 									size="sm"
 									className="text-xs"
+									disabled={suiPrice.loading || !suiPrice.usd}
 								>
-									<Download className="h-3 w-3 mr-1" />
-									Download
+									<ArrowUpDown className="size-4 mr-1" />
+									{showInSui ? "USD" : "SUI"}
 								</Button>
-								<Button
-									onClick={handleCopy}
-									variant="outline"
-									size="sm"
-									className="text-xs"
-								>
-									<Copy className="h-3 w-3 mr-1" />
-									Copy
-								</Button>
+								<div className="flex gap-2">
+									<Button
+										onClick={handleDownload}
+										variant="outline"
+										size="sm"
+										className="text-xs"
+									>
+										<Download className="size-4 mr-1" />
+										Download
+									</Button>
+									<Button
+										onClick={handleCopy}
+										variant="outline"
+										size="sm"
+										className="text-xs"
+									>
+										<Copy className="size-4 mr-1" />
+										Copy
+									</Button>
+								</div>
 							</div>
 						</div>
 					</div>

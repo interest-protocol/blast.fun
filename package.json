@@ -4,13 +4,8 @@
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
-		"dev": "prisma generate && node scripts/dev-supervisor.cjs -p 3000 -t dev-restart",
-		"dev2": "prisma generate && node scripts/dev-supervisor.cjs -p 3011 -t dev-restart",
-		"dev3": "prisma generate && node scripts/dev-supervisor.cjs -p 3022 -t dev-restart",
-		"dev4": "prisma generate && node scripts/dev-supervisor.cjs -p 3033 -t dev-restart",
-		"dev5": "prisma generate && node scripts/dev-supervisor.cjs -p 3044 -t dev-restart",
-		"dev:nexa": "prisma generate && node scripts/dev-supervisor.cjs -p 42062 -t dev-restart",
-		"build": "prisma generate && next build; node scripts/dev-restart.cjs",
+		"dev": "prisma generate && next dev",
+		"build": "prisma generate && next build",
 		"start": "next start",
 		"lint": "next lint"
 	},

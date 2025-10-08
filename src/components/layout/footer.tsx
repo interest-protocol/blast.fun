@@ -2,15 +2,15 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
 import { ThemeSwitcher } from "../shared/theme-switcher"
 import { TradeSettings } from "@/app/(root)/token/[coinType]/_components/trade-settings"
 import { Settings } from "lucide-react"
-import { BsTelegram, BsTwitterX } from "react-icons/bs"
+import { BsTwitterX } from "react-icons/bs"
 import { Button } from "../ui/button"
-import { cn } from "@/utils"
-import { navigationItems } from "@/constants/navigation"
-import { useMounted } from "@/hooks/use-mounted"
+import { Skeleton } from "../ui/skeleton"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
+import { useBtcPrice } from "@/hooks/use-btc-price"
+import { useSuiPrice } from "@/hooks/sui/use-sui-price"
 
 const socialLinks = [
 	{ href: "https://x.com/blastdotfun", icon: BsTwitterX, label: "X" },
@@ -18,40 +18,50 @@ const socialLinks = [
 ]
 
 export function Footer() {
-	const pathname = usePathname()
 	const [tradeSettingsOpen, setTradeSettingsOpen] = useState(false)
-	const mounted = useMounted()
+	const btcPrice = useBtcPrice()
+	const suiPrice = useSuiPrice()
 
 	return (
 		<>
 			<div className="hidden lg:block fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-xl border-t">
 				<div className="h-12 px-3 flex items-center justify-between">
-					{/* nav */}
-					<div className="flex items-center gap-2">
-						{navigationItems.map((item) => {
-							const Icon = item.icon
-							const isActive = mounted && pathname === item.href
-							return (
-								<Link
-									key={item.href}
-									href={item.href}
-									className={cn(
-										"flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-semibold uppercase rounded-lg transition-all",
-										isActive
-											? "text-foreground bg-destructive/10 border border-destructive/30"
-											: "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-									)}
-								>
-									<Icon className="h-3.5 w-3.5" />
-									<span className="hidden sm:inline">{item.label}</span>
-								</Link>
-							)
-						})}
-					</div>
+					<TooltipProvider>
+						<div className="flex items-center gap-2">
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<button className="text-[#F7931A] flex flex-row h-6 gap-1 items-center hover:brightness-110 transition-all duration-125">
+										<img src="/assets/currency/btc-fill.svg" alt="BTC" width={16} height={16} className="flex-shrink-0" />
+										{btcPrice.loading ? (
+											<Skeleton className="h-3 w-14" />
+										) : (
+											<span className="text-xs font-mono">{`$${(btcPrice.usd / 1000).toFixed(1)}K`}</span>
+										)}
+									</button>
+								</TooltipTrigger>
+								<TooltipContent>
+									<p>Price of Bitcoin in USD</p>
+								</TooltipContent>
+							</Tooltip>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<button className="text-[#6FBCF0] flex flex-row h-6 gap-1 items-center hover:brightness-110 transition-all duration-125">
+										<img src="/assets/currency/sui-fill.svg" alt="SUI" width={16} height={16} className="flex-shrink-0" />
+										{suiPrice.loading ? (
+											<Skeleton className="h-3 w-12" />
+										) : (
+											<span className="text-xs font-mono">{`$${suiPrice.usd.toFixed(2)}`}</span>
+										)}
+									</button>
+								</TooltipTrigger>
+								<TooltipContent>
+									<p>Price of SUI in USD</p>
+								</TooltipContent>
+							</Tooltip>
+						</div>
+					</TooltipProvider>
 
-					{/* socials */}
 					<div className="flex items-center gap-1">
-						{/* trade preset settings */}
 						<Button
 							variant="ghost"
 							size="icon"
@@ -64,7 +74,6 @@ export function Footer() {
 						<ThemeSwitcher />
 						<div className="hidden md:block w-px h-5 bg-border/30 mx-1" />
 
-						{/* socials */}
 						<div className="hidden md:flex items-center gap-1">
 							{socialLinks.map((link) => (
 								<Link

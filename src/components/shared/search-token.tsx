@@ -4,8 +4,6 @@ import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Search, Loader2 } from "lucide-react"
 import { useDebouncedCallback } from "use-debounce"
-import { useQuery } from "@apollo/client"
-import toast from "react-hot-toast"
 import {
 	CommandDialog,
 	CommandEmpty,
@@ -16,7 +14,6 @@ import { Button } from "@/components/ui/button"
 import { nexaClient } from "@/lib/nexa"
 import { TokenAvatar } from "@/components/tokens/token-avatar"
 import { formatNumberWithSuffix } from "@/utils/format"
-import { GET_POOL_BY_COIN_TYPE } from "@/graphql/pools"
 import { QuickBuyButtons } from "@/components/tokens/quick-buy-buttons"
 import { useApp } from "@/context/app.context"
 
@@ -41,33 +38,17 @@ interface SearchResult {
 	}
 }
 
-export function SearchToken() {
+interface SearchTokenProps {
+	mode?: "floating" | "header"
+}
+
+export function SearchToken({ mode = "floating" }: SearchTokenProps) {
 	const [open, setOpen] = useState(false)
 	const [query, setQuery] = useState("")
 	const [searchResults, setSearchResults] = useState<SearchResult[]>([])
 	const [loading, setLoading] = useState(false)
-	const [selectedCoinType, setSelectedCoinType] = useState<string | null>(null)
 	const router = useRouter()
 	const { isConnected } = useApp()
-
-	useQuery(GET_POOL_BY_COIN_TYPE, {
-		variables: { type: selectedCoinType },
-		skip: !selectedCoinType,
-		onCompleted: (data) => {
-			if (data?.coinPool?.poolId) {
-				router.push(`/token/${data.coinPool.poolId}`)
-				setOpen(false)
-				setQuery("")
-				setSearchResults([])
-				setSelectedCoinType(null)
-			}
-		},
-		onError: (error) => {
-			console.error("Error fetching poolId:", error)
-			toast.error("Something went wrong. Please try again later.")
-			setSelectedCoinType(null)
-		}
-	})
 
 	const handleSearch = useDebouncedCallback(async (searchQuery: string) => {
 		if (!searchQuery || searchQuery.length < 2) {
@@ -92,12 +73,17 @@ export function SearchToken() {
 	}, [query, handleSearch])
 
 	const handleSelect = useCallback((coinType: string) => {
-		setSelectedCoinType(coinType)
-	}, [])
+		router.push(`/token/${coinType}`)
+		setOpen(false)
+		setQuery("")
+		setSearchResults([])
+	}, [router])
 
 	useEffect(() => {
+		if (mode === "header") return
+
 		const down = (e: KeyboardEvent) => {
-			if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+			if (e.key === "f" && (e.metaKey || e.ctrlKey)) {
 				e.preventDefault()
 				setOpen((open) => !open)
 			}
@@ -105,19 +91,29 @@ export function SearchToken() {
 
 		document.addEventListener("keydown", down)
 		return () => document.removeEventListener("keydown", down)
-	}, [])
+	}, [mode])
 
 	return (
 		<>
-			{/* floating search */}
-			<Button
-				variant="default"
-				size="icon"
-				className="fixed bottom-[72px] right-6 z-30 size-14 rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 bg-primary hover:bg-primary/90 animate-in fade-in zoom-in lg:bottom-16"
-				onClick={() => setOpen(true)}
-			>
-				<Search className="size-5" />
-			</Button>
+			{mode === "header" ? (
+				<Button
+					variant="outline"
+					size="icon"
+					className="rounded-xl text-muted-foreground hover:text-primary ease-in-out duration-300 transition-all"
+					onClick={() => setOpen(true)}
+				>
+					<Search className="size-4" />
+				</Button>
+			) : (
+				<Button
+					variant="default"
+					size="icon"
+					className="fixed bottom-[72px] right-6 z-30 size-14 rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 bg-primary hover:bg-primary/90 animate-in fade-in zoom-in lg:bottom-16"
+					onClick={() => setOpen(true)}
+				>
+					<Search className="size-5" />
+				</Button>
+			)}
 
 			<CommandDialog
 				open={open}
