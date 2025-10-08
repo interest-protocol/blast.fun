@@ -17,10 +17,6 @@
 
 ## Project-Specific Instructions
 
-### Testing
-- Always run `npx tsc --noEmit` to check TypeScript compilation before suggesting commits
-- Run `npm run build` only when explicitly requested by the user
-
 ### Code Style
 - Follow existing code patterns in the codebase
 - Use existing libraries and utilities rather than assuming new ones
