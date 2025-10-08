@@ -1,38 +1,61 @@
 "use client"
 
-import { MIST_PER_SUI } from "@mysten/sui/utils"
 import { ArrowRight, Zap } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/utils"
-import { useBuyMeme } from "@/hooks/pump/use-buy-meme"
+import { useTrading } from "@/hooks/pump/use-trading"
 import { useRouter } from "next/navigation"
+import { fetchTokenByPool } from "@/lib/fetch-token-by-pool"
+import type { Token } from "@/types/token"
 
-interface QuickBuyProps {
+interface DevBuyProps {
 	poolObjectId: string
 	className?: string
 }
 
 const QUICK_BUY_AMOUNTS = [0.1, 0.5, 1, 5]
 
-export function QuickBuy({ poolObjectId, className }: QuickBuyProps) {
+export function DevBuy({ poolObjectId, className }: DevBuyProps) {
 	const [customAmount, setCustomAmount] = useState("")
-	const [isLoading, setIsLoading] = useState(false)
+	const [token, setToken] = useState<Token | null>(null)
 	const router = useRouter()
-	const { handleBuy } = useBuyMeme(poolObjectId)
+
+	const { buy, isProcessing } = useTrading({
+		pool: token || {
+			id: poolObjectId,
+			coinType: "",
+			pool: { poolId: poolObjectId, migrated: false, bondingCurve: 0 }
+		} as Token
+	})
+
+	useEffect(() => {
+		async function loadToken() {
+			const tokenData = await fetchTokenByPool(poolObjectId)
+			if (tokenData) {
+				setToken({
+					...tokenData,
+					pool: {
+						poolId: tokenData.id,
+						isProtected: !!tokenData.publicKey,
+						burnTax: tokenData.burnTax,
+						migrated: tokenData.migrated || false,
+						bondingCurve: 0,
+						canMigrate: tokenData.canMigrate || false,
+					}
+				} as Token)
+			}
+		}
+		loadToken()
+	}, [poolObjectId])
 
 	const handleQuickBuy = async (amountInSui: number) => {
-		setIsLoading(true)
 		try {
-			const amountInMist = String(amountInSui * Number(MIST_PER_SUI))
-			await handleBuy(amountInMist)
-
+			await buy(String(amountInSui))
 			router.push(`/token/${poolObjectId}`)
 		} catch (error) {
 			console.error("Quick buy failed:", error)
-		} finally {
-			setIsLoading(false)
 		}
 	}
 
@@ -48,12 +71,12 @@ export function QuickBuy({ poolObjectId, className }: QuickBuyProps) {
 		<div className={cn("space-y-3", className)}>
 			<div className="flex items-center justify-between">
 				<p className="font-mono text-xs uppercase text-muted-foreground">
-					QUICK::BUY
+					DEV::BUY
 				</p>
 				<button
 					onClick={() => router.push(`/token/${poolObjectId}`)}
 					className="font-mono text-xs uppercase text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-					disabled={isLoading}
+					disabled={isProcessing}
 				>
 					GO TO TOKEN PAGE <ArrowRight className="h-3 w-3" />
 				</button>
@@ -68,7 +91,7 @@ export function QuickBuy({ poolObjectId, className }: QuickBuyProps) {
 						size="sm"
 						className="font-mono text-xs uppercase border hover:border-primary/50 hover:bg-primary/10 transition-all"
 						onClick={() => handleQuickBuy(amount)}
-						disabled={isLoading}
+						disabled={isProcessing || !token}
 					>
 						{amount} SUI
 					</Button>
@@ -84,7 +107,7 @@ export function QuickBuy({ poolObjectId, className }: QuickBuyProps) {
 						value={customAmount}
 						onChange={(e) => setCustomAmount(e.target.value)}
 						className="font-mono text-sm pr-10"
-						disabled={isLoading}
+						disabled={isProcessing || !token}
 						step="0.1"
 						min="0"
 					/>
@@ -100,7 +123,7 @@ export function QuickBuy({ poolObjectId, className }: QuickBuyProps) {
 						"hover:bg-primary/10 transition-all"
 					)}
 					onClick={handleCustomBuy}
-					disabled={isLoading || !customAmount || parseFloat(customAmount) <= 0}
+					disabled={isProcessing || !customAmount || parseFloat(customAmount) <= 0 || !token}
 				>
 					<Zap className="h-3 w-3" />
 				</Button>
