@@ -14,8 +14,6 @@ import { Button } from "@/components/ui/button"
 import { nexaClient } from "@/lib/nexa"
 import { TokenAvatar } from "@/components/tokens/token-avatar"
 import { formatNumberWithSuffix } from "@/utils/format"
-import { QuickBuy } from "@/components/tokens/quick-buy"
-import { useApp } from "@/context/app.context"
 
 interface SearchResult {
 	type: "coin"
@@ -48,7 +46,6 @@ export function SearchToken({ mode = "floating" }: SearchTokenProps) {
 	const [searchResults, setSearchResults] = useState<SearchResult[]>([])
 	const [loading, setLoading] = useState(false)
 	const router = useRouter()
-	const { isConnected } = useApp()
 
 	const handleSearch = useDebouncedCallback(async (searchQuery: string) => {
 		if (!searchQuery || searchQuery.length < 2) {
@@ -186,25 +183,6 @@ export function SearchToken({ mode = "floating" }: SearchTokenProps) {
 									</div>
 								)}
 							</div>
-
-							{/* Quick Buy */}
-							{isConnected && (
-								<QuickBuy
-									pool={{
-										id: result.coinType,
-										coinType: result.coinType,
-										metadata: {
-											symbol: result.symbol,
-											name: result.name,
-											icon_url: result.icon || result.coinMetadata?.iconUrl || result.coinMetadata?.icon_url || "",
-											decimals: 9,
-											description: "",
-											supply: 0
-										}
-									} as any}
-									className="flex-row ml-auto"
-								/>
-							)}
 						</CommandItem>
 					))}
 				</CommandList>
