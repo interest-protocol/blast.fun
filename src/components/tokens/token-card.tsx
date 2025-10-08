@@ -13,7 +13,7 @@ import { useTokenProtection } from "@/hooks/use-token-protection"
 import type { Token } from "@/types/token"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { CopyableToken } from "../shared/copyable-token"
-import { QuickBuyButtons } from "./quick-buy-buttons"
+import { QuickBuy } from "./quick-buy"
 import { TokenAvatar } from "./token-avatar"
 
 interface TokenCardProps {
@@ -158,7 +158,7 @@ export const TokenCard = memo(function TokenCard({ pool: tokenData, hasRecentTra
 											</div>
 										</TooltipTrigger>
 										<TooltipContent>
-											<p className="font-mono text-xs uppercase">MARKET::CAP</p>
+											<p className="font-mono text-xs uppercase">MARKET CAP</p>
 										</TooltipContent>
 									</Tooltip>
 								)}
@@ -176,7 +176,7 @@ export const TokenCard = memo(function TokenCard({ pool: tokenData, hasRecentTra
 											</div>
 										</TooltipTrigger>
 										<TooltipContent>
-											<p className="font-mono text-xs uppercase">24H::VOLUME</p>
+											<p className="font-mono text-xs uppercase">24H VOLUME</p>
 										</TooltipContent>
 									</Tooltip>
 								)}
@@ -284,7 +284,7 @@ export const TokenCard = memo(function TokenCard({ pool: tokenData, hasRecentTra
 						{/* Token Symbol & Quick Buy Buttons - Far Right */}
 						<div className="flex-shrink-0 ml-auto flex flex-col items-end gap-2">
 							<CopyableToken symbol={token.metadata?.symbol || tokenData.symbol || "[???]"} coinType={tokenData.coinType} className="text-xs" />
-							<QuickBuyButtons pool={token} />
+							<QuickBuy pool={token} />
 						</div>
 					</div>
 				</div>

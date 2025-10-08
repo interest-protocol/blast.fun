@@ -36,7 +36,6 @@ interface UseTradingReturn {
 export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet, onSuccess }: UseTradingOptions): UseTradingReturn {
 	const { address, isConnected } = useApp()
 	const { executeTransaction } = useTransaction()
-	const { user: twitterUser } = useTwitter()
 	const { refreshToken } = useTurnstile()
 
 	const [isProcessing, setIsProcessing] = useState(false)

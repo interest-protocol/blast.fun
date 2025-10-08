@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button"
 import { nexaClient } from "@/lib/nexa"
 import { TokenAvatar } from "@/components/tokens/token-avatar"
 import { formatNumberWithSuffix } from "@/utils/format"
-import { QuickBuyButtons } from "@/components/tokens/quick-buy-buttons"
+import { QuickBuy } from "@/components/tokens/quick-buy"
 import { useApp } from "@/context/app.context"
 
 interface SearchResult {
@@ -187,9 +187,9 @@ export function SearchToken({ mode = "floating" }: SearchTokenProps) {
 								)}
 							</div>
 
-							{/* Quick Buy Buttons */}
+							{/* Quick Buy */}
 							{isConnected && (
-								<QuickBuyButtons
+								<QuickBuy
 									pool={{
 										id: result.coinType,
 										coinType: result.coinType,
