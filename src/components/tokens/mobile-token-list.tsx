@@ -111,7 +111,7 @@ const TabContent = memo(function TabContent({
 
 	if (isLoading) {
 		return (
-			<div className="space-y-2 p-4">
+			<div className="space-y-2">
 				{[...Array(6)].map((_, i) => (
 					<TokenCardSkeleton key={i} />
 				))}
@@ -131,7 +131,7 @@ const TabContent = memo(function TabContent({
 	}
 
 	return (
-		<div className="space-y-2 p-4">
+		<div className="space-y-2">
 			{sortedTokens.map((pool) => (
 				<TokenCard 
 					key={pool.coinType} 
