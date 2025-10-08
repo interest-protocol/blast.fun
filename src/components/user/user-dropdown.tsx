@@ -46,7 +46,7 @@ export function UserDropdown() {
 			{showConnectButton && (
 				<Button
 					variant="outline"
-					className="rounded-xl"
+					className="rounded-xl px-2 ease-in-out duration-300 transition-all text-muted-foreground hover:text-primary"
 					disabled={isConnecting}
 					onClick={() => setIsConnectDialogOpen(true)}
 				>

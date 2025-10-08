@@ -39,7 +39,11 @@ interface SearchResult {
 	}
 }
 
-export function SearchToken() {
+interface SearchTokenProps {
+	mode?: "floating" | "header"
+}
+
+export function SearchToken({ mode = "floating" }: SearchTokenProps) {
 	const [open, setOpen] = useState(false)
 	const [query, setQuery] = useState("")
 	const [searchResults, setSearchResults] = useState<SearchResult[]>([])
@@ -93,8 +97,10 @@ export function SearchToken() {
 	}, [])
 
 	useEffect(() => {
+		if (mode === "header") return
+
 		const down = (e: KeyboardEvent) => {
-			if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+			if (e.key === "f" && (e.metaKey || e.ctrlKey)) {
 				e.preventDefault()
 				setOpen((open) => !open)
 			}
@@ -102,19 +108,29 @@ export function SearchToken() {
 
 		document.addEventListener("keydown", down)
 		return () => document.removeEventListener("keydown", down)
-	}, [])
+	}, [mode])
 
 	return (
 		<>
-			{/* floating search */}
-			<Button
-				variant="default"
-				size="icon"
-				className="fixed bottom-[72px] right-6 z-30 size-14 rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 bg-primary hover:bg-primary/90 animate-in fade-in zoom-in lg:bottom-16"
-				onClick={() => setOpen(true)}
-			>
-				<Search className="size-5" />
-			</Button>
+			{mode === "header" ? (
+				<Button
+					variant="outline"
+					size="icon"
+					className="rounded-xl text-muted-foreground hover:text-primary ease-in-out duration-300 transition-all"
+					onClick={() => setOpen(true)}
+				>
+					<Search className="size-4" />
+				</Button>
+			) : (
+				<Button
+					variant="default"
+					size="icon"
+					className="fixed bottom-[72px] right-6 z-30 size-14 rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 bg-primary hover:bg-primary/90 animate-in fade-in zoom-in lg:bottom-16"
+					onClick={() => setOpen(true)}
+				>
+					<Search className="size-5" />
+				</Button>
+			)}
 
 			<CommandDialog
 				open={open}

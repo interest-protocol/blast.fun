@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { Logo } from "../ui/logo"
 import { UserDropdown } from "../user/user-dropdown"
 import { TradeTicker } from "./trade-ticker"
+import { SearchToken } from "../shared/search-token"
 import { navigationItems } from "@/constants/navigation"
 import { cn } from "@/utils"
 import { useMounted } from "@/hooks/use-mounted"
@@ -47,7 +48,8 @@ export default function Header() {
 
 				<TradeTicker />
 
-				<div className="flex-shrink-0">
+				<div className="flex-shrink-0 flex items-center gap-2">
+					<SearchToken mode="header" />
 					<UserDropdown />
 				</div>
 			</div>
