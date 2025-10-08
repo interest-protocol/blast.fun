@@ -16,7 +16,6 @@ import { cn } from "@/utils"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { TradeSettings } from "./trade-settings"
-import { SwapSuccessDialog } from "./swap-success-dialog"
 import { MIST_PER_SUI } from "@mysten/sui/utils"
 import { pumpSdk } from "@/lib/pump"
 import { getBuyQuote, getSellQuote } from "@/lib/aftermath"
@@ -42,13 +41,6 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	const [editingQuickSell, setEditingQuickSell] = useState(false)
 	const [tempQuickBuyAmounts, setTempQuickBuyAmounts] = useState<number[]>([])
 	const [tempQuickSellPercentages, setTempQuickSellPercentages] = useState<number[]>([])
-	const [swapSuccessDialog, setSwapSuccessDialog] = useState<{
-		open: boolean
-		tradeType: "buy" | "sell"
-		fromAmount: number
-		toAmount: number
-		txHash?: string
-	} | null>(null)
 
 	const { token: turnstileToken, resetToken: resetTurnstileToken, setIsRequired: setTurnstileRequired } = useTurnstile()
 
@@ -366,15 +358,6 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 		decimals,
 		actualBalance: effectiveBalance,
 		referrerWallet,
-		onSuccess: (type: "buy" | "sell", fromAmount: number, toAmount: number, txHash?: string) => {
-			setSwapSuccessDialog({
-				open: true,
-				tradeType: type,
-				fromAmount,
-				toAmount,
-				txHash,
-			})
-		},
 	})
 
 	const {
@@ -943,48 +926,6 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 				open={settingsOpen}
 				onOpenChange={setSettingsOpen}
 			/>
-
-			{/* Swap Success Dialog */}
-			{swapSuccessDialog && (
-				<SwapSuccessDialog
-					open={swapSuccessDialog.open}
-					onOpenChange={(open) => {
-						if (!open) {
-							setSwapSuccessDialog(null)
-						}
-					}}
-					tradeType={swapSuccessDialog.tradeType}
-					fromAmount={swapSuccessDialog.fromAmount}
-					toAmount={swapSuccessDialog.toAmount}
-					fromToken={
-						swapSuccessDialog.tradeType === "buy"
-							? {
-									symbol: "SUI",
-									icon: "/assets/currency/sui-fill.svg",
-									name: "Sui"
-							  }
-							: {
-									symbol: metadata?.symbol || "TOKEN",
-									icon: metadata?.icon_url,
-									name: metadata?.name,
-							  }
-					}
-					toToken={
-						swapSuccessDialog.tradeType === "buy"
-							? {
-									symbol: metadata?.symbol || "TOKEN",
-									icon: metadata?.icon_url,
-									name: metadata?.name,
-							  }
-							: {
-									symbol: "SUI",
-									icon: "/assets/currency/sui-fill.svg",
-									name: "Sui"
-							  }
-					}
-					txHash={swapSuccessDialog.txHash}
-				/>
-			)}
 		</div>
 	)
 }
