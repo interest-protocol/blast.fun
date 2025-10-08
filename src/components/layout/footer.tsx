@@ -13,7 +13,7 @@ import { useBtcPrice } from "@/hooks/use-btc-price"
 import { useSuiPrice } from "@/hooks/sui/use-sui-price"
 
 const socialLinks = [
-	{ href: "https://x.com/blastdotfun", icon: BsTwitterX, label: "X" },
+	{ href: "https://x.com/blastdotfun", icon: BsTwitterX, label: "Follow us on X" },
 	// { href: "https://t.me/blastfun", icon: BsTelegram, label: "Telegram" }
 ]
 
@@ -40,7 +40,7 @@ export function Footer() {
 									</button>
 								</TooltipTrigger>
 								<TooltipContent>
-									<p>Price of Bitcoin in USD</p>
+									<p className="font-mono uppercase">Price of Bitcoin in USD</p>
 								</TooltipContent>
 							</Tooltip>
 							<Tooltip>
@@ -55,36 +55,58 @@ export function Footer() {
 									</button>
 								</TooltipTrigger>
 								<TooltipContent>
-									<p>Price of SUI in USD</p>
+									<p className="font-mono uppercase">Price of SUI in USD</p>
 								</TooltipContent>
 							</Tooltip>
 						</div>
 					</TooltipProvider>
 
 					<div className="flex items-center gap-1">
-						<Button
-							variant="ghost"
-							size="icon"
-							className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
-							onClick={() => setTradeSettingsOpen(true)}
-						>
-							<Settings className="size-4" />
-						</Button>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									variant="ghost"
+									size="icon"
+									className="size-8 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
+									onClick={() => setTradeSettingsOpen(true)}
+								>
+									<Settings className="size-4" />
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p className="font-mono uppercase">Trade Settings</p>
+							</TooltipContent>
+						</Tooltip>
 
-						<ThemeSwitcher />
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<div>
+									<ThemeSwitcher />
+								</div>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p className="font-mono uppercase">Customize Theme</p>
+							</TooltipContent>
+						</Tooltip>
 						<div className="hidden md:block w-px h-5 bg-border/30 mx-1" />
 
 						<div className="hidden md:flex items-center gap-1">
 							{socialLinks.map((link) => (
-								<Link
-									key={link.label}
-									href={link.href}
-									target="_blank"
-									rel="noopener noreferrer"
-									className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
-								>
-									<link.icon className="h-3.5 w-3.5" />
-								</Link>
+								<Tooltip key={link.label}>
+									<TooltipTrigger asChild>
+										<Link
+											href={link.href}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
+										>
+											<link.icon className="size-3.5" />
+										</Link>
+									</TooltipTrigger>
+									<TooltipContent>
+										<p className="font-mono uppercase">{link.label}</p>
+									</TooltipContent>
+								</Tooltip>
 							))}
 						</div>
 					</div>
