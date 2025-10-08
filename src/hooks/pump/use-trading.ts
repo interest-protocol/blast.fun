@@ -21,7 +21,6 @@ interface UseTradingOptions {
 	decimals?: number
 	actualBalance?: string
 	referrerWallet?: string | null
-	onSuccess?: (type: "buy" | "sell", fromAmount: number, toAmount: number, txHash?: string) => void
 }
 
 interface UseTradingReturn {
@@ -33,7 +32,7 @@ interface UseTradingReturn {
 	clearError: () => void
 }
 
-export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet, onSuccess }: UseTradingOptions): UseTradingReturn {
+export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }: UseTradingOptions): UseTradingReturn {
 	const { address, isConnected } = useApp()
 	const { executeTransaction } = useTransaction()
 	const { refreshToken } = useTurnstile()
