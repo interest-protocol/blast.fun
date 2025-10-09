@@ -124,7 +124,9 @@ export function Footer() {
 
 						<Tooltip>
 							<TooltipTrigger asChild>
-								<AudioToggle />
+								<div>
+									<AudioToggle />
+								</div>
 							</TooltipTrigger>
 							<TooltipContent>
 								<p className="font-mono uppercase">Audio Settings</p>
