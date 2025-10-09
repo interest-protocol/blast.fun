@@ -292,7 +292,7 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 		const rawBalance = new BigNumber(selectedCoinData.balance.toString())
 		const humanReadableBalance = rawBalance.shiftedBy(-decimals)
 		const amountToSet = humanReadableBalance.multipliedBy(percentage).dividedBy(100)
-		setAmount(amountToSet.decimalPlaces(9).toFixed())
+		setAmount(amountToSet.toString())
 	}
 
 	// @dev: Handle custom percentage

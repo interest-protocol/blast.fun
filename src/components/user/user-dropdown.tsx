@@ -46,7 +46,7 @@ export function UserDropdown() {
 			{showConnectButton && (
 				<Button
 					variant="outline"
-					className="rounded-xl"
+					className="rounded-xl px-2 ease-in-out duration-300 transition-all text-muted-foreground hover:text-primary"
 					disabled={isConnecting}
 					onClick={() => setIsConnectDialogOpen(true)}
 				>
@@ -57,7 +57,7 @@ export function UserDropdown() {
 			{showTwitterOnlyState && (
 				<Button
 					variant="outline"
-					className="rounded-xl px-2 ease-in-out duration-300 transition-all"
+					className="rounded-lg group px-2 ease-in-out duration-300 transition-all"
 					onClick={() => setIsConnectDialogOpen(true)}
 				>
 					{user && <TwitterUserAvatar user={user} className="h-4 w-4" />}
@@ -70,7 +70,7 @@ export function UserDropdown() {
 			{isConnected && (
 				<Popover open={open} onOpenChange={setOpen}>
 					<PopoverTrigger asChild>
-						<Button variant="outline" className="rounded-xl px-2 ease-in-out duration-300 transition-all">
+						<Button variant="outline" className="rounded-lg group px-2 ease-in-out duration-300 transition-all">
 							{user && <TwitterUserAvatar user={user} className="h-4 w-4" />}
 							<span className="text-muted-foreground group-hover:text-primary transition-colors duration-300 font-semibold text-sm">
 								{user?.username ? `@${user.username}` : domain || formatAddress(address || "")}

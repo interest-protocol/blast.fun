@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from "react"
 import { Loader2, Settings2, Wallet, Activity, Pencil, Check, X, Rocket, AlertTriangle, Flame } from "lucide-react"
-import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { TokenAvatar } from "@/components/tokens/token-avatar"
 import { useApp } from "@/context/app.context"
@@ -42,7 +41,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	const [editingQuickSell, setEditingQuickSell] = useState(false)
 	const [tempQuickBuyAmounts, setTempQuickBuyAmounts] = useState<number[]>([])
 	const [tempQuickSellPercentages, setTempQuickSellPercentages] = useState<number[]>([])
-	
+
 	const { token: turnstileToken, resetToken: resetTurnstileToken, setIsRequired: setTurnstileRequired } = useTurnstile()
 
 	const {
@@ -617,13 +616,12 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 							/>
 							<div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-muted/20 rounded-md border border-border/50 shrink-0">
 								{tradeType === "buy" ? (
-									<Image
-										src="/logo/sui-logo.svg"
+									<img
+										src="/assets/currency/sui-fill.svg"
 										alt="SUI"
 										width={18}
 										height={18}
-										className="rounded-full shrink-0"
-										unoptimized={true}
+										className="shrink-0"
 									/>
 								) : (
 									<TokenAvatar

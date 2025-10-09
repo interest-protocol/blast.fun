@@ -6,6 +6,7 @@ import { TokenListLayout } from "./token-list.layout"
 import { TokenCardSkeleton } from "./token-card.skeleton"
 import { Logo } from "@/components/ui/logo"
 import { TokenListFilters } from "./token-list.filters"
+import { FlashBuyInput } from "./flash-buy-input"
 import { useAboutToBondTokens } from "@/hooks/use-tokens"
 import { useTradeBump } from "@/hooks/use-trade-bump"
 import type { TokenListSettings, TokenFilters } from "@/types/token"
@@ -114,6 +115,7 @@ export const NearGraduation = memo(function NearGraduation({
 				key={pool.coinType}
 				pool={pool}
 				hasRecentTrade={isAnimating(pool.coinType)}
+				column="nearGraduation"
 			/>
 		))
 	}, [filteredAndSortedTokens, isLoading, error, isAnimating])
@@ -123,12 +125,15 @@ export const NearGraduation = memo(function NearGraduation({
 			title="NEAR GRADUATION"
 			glowColor="pink"
 			headerAction={
-				<TokenListFilters
-					columnId="graduating"
-					onSettingsChange={setSettings}
-					defaultSort="bondingProgress"
-					defaultTab="about-to-bond"
-				/>
+				<div className="flex items-center gap-2">
+					<FlashBuyInput column="nearGraduation" />
+					<TokenListFilters
+						columnId="graduating"
+						onSettingsChange={setSettings}
+						defaultSort="bondingProgress"
+						defaultTab="about-to-bond"
+					/>
+				</div>
 			}
 		>
 			{renderContent()}

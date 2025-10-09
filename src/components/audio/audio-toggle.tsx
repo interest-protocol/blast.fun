@@ -29,14 +29,14 @@ export function AudioToggle() {
 		<>
 			<Button
 				size="icon"
-				variant="outline"
+				variant="ghost"
 				onClick={() => setOpen(true)}
-				className="rounded-xl ease-in-out duration-300 transition-all"
+				className="size-8 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
 			>
 				{settings.enabled ? (
-					<Volume2 className="h-6 w-6" />
+					<Volume2 className="size-4" />
 				) : (
-					<VolumeX className="h-6 w-6" />
+					<VolumeX className="size-4" />
 				)}
 			</Button>
 			<AudioDialog open={open} onOpenChange={setOpen} />

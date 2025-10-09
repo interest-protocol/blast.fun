@@ -35,7 +35,6 @@ interface UseTradingReturn {
 export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }: UseTradingOptions): UseTradingReturn {
 	const { address, isConnected } = useApp()
 	const { executeTransaction } = useTransaction()
-	const { user: twitterUser } = useTwitter()
 	const { refreshToken } = useTurnstile()
 
 	const [isProcessing, setIsProcessing] = useState(false)
@@ -229,7 +228,6 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 			throw err
 		} finally {
 			setIsProcessing(false)
-			// Refresh Turnstile token to prevent timeout/duplicate errors
 			refreshToken()
 		}
 	}
@@ -292,14 +290,14 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 
 				await executeTransaction(tx)
 				playSound("sell")
+
 				setSuccess(
-					`ORDER::FILLED - Sold ${amount} ${pool.metadata?.symbol || "TOKEN"} for ${formatMistToSui(quote.amountOut)} SUI via Aftermath`
+					`ORDER::FILLED - Sold ${amount} ${pool.metadata?.symbol || "TOKEN"} for ${formatMistToSui(String(quote.amountOut))} SUI via Aftermath`
 				)
 			} else {
 				// For non-migrated tokens, amountInSmallestUnit has already been set correctly
 				// in the balance check above (either exact balance or the calculated amount)
 				const amountToSell = amountInSmallestUnit
-
 				const quote = await pumpSdk.quoteDump({
 					pool: pool.pool?.poolId || pool.id,
 					amount: amountToSell,
@@ -330,8 +328,9 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 
 				await executeTransaction(dumpTx)
 				playSound("sell")
+
 				setSuccess(
-					`ORDER::FILLED - Sold ${amount} ${pool.metadata?.symbol || "TOKEN"} for ${formatMistToSui(quote.quoteAmountOut)} SUI`
+					`ORDER::FILLED - Sold ${amount} ${pool.metadata?.symbol || "TOKEN"} for ${formatMistToSui(String(quote.quoteAmountOut))} SUI`
 				)
 			}
 		} catch (err) {
@@ -343,7 +342,6 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 			throw err
 		} finally {
 			setIsProcessing(false)
-			// Refresh Turnstile token to prevent timeout/duplicate errors
 			refreshToken()
 		}
 	}
