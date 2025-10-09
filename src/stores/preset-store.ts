@@ -5,13 +5,17 @@ interface PresetStore {
 	slippage: number
 	quickBuyAmounts: number[]
 	quickSellPercentages: number[]
-	flashBuyAmount: number
+	flashBuyAmounts: {
+		newlyCreated: number
+		nearGraduation: number
+		graduated: number
+	}
 
 	// actions
 	setSlippage: (slippage: number) => void
 	setQuickBuyAmounts: (amounts: number[]) => void
 	setQuickSellPercentages: (percentages: number[]) => void
-	setFlashBuyAmount: (amount: number) => void
+	setFlashBuyAmount: (column: 'newlyCreated' | 'nearGraduation' | 'graduated', amount: number) => void
 	resetToDefaults: () => void
 }
 
@@ -21,19 +25,32 @@ export const usePresetStore = create<PresetStore>()(
 			slippage: 5,
 			quickBuyAmounts: [1, 10, 50, 100],
 			quickSellPercentages: [25, 50, 75, 100],
-			flashBuyAmount: 5,
+			flashBuyAmounts: {
+				newlyCreated: 5,
+				nearGraduation: 5,
+				graduated: 5,
+			},
 
 			setSlippage: (slippage) => set({ slippage }),
 			setQuickBuyAmounts: (amounts) => set({ quickBuyAmounts: amounts }),
 			setQuickSellPercentages: (percentages) => set({ quickSellPercentages: percentages }),
-			setFlashBuyAmount: (amount) => set({ flashBuyAmount: amount }),
+			setFlashBuyAmount: (column, amount) => set((state) => ({
+				flashBuyAmounts: {
+					...state.flashBuyAmounts,
+					[column]: amount
+				}
+			})),
 
 			resetToDefaults: () =>
 				set({
 					slippage: 5,
 					quickBuyAmounts: [1, 10, 50, 100],
 					quickSellPercentages: [25, 50, 75, 100],
-					flashBuyAmount: 5,
+					flashBuyAmounts: {
+						newlyCreated: 5,
+						nearGraduation: 5,
+						graduated: 5,
+					},
 				}),
 		}),
 		{

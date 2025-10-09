@@ -10,12 +10,16 @@ import { cn } from "@/utils"
 interface QuickBuyProps {
 	pool: Token
 	className?: string
+	column?: 'newlyCreated' | 'nearGraduation' | 'graduated'
 }
 
-export function QuickBuy({ pool, className }: QuickBuyProps) {
+export function QuickBuy({ pool, className, column }: QuickBuyProps) {
 	const { isConnected } = useApp()
-	const { flashBuyAmount, slippage } = usePresetStore()
+	const { flashBuyAmounts, slippage } = usePresetStore()
 	const { buy, isProcessing } = useTrading({ pool })
+
+	// use column-specific flash buy amount, fallback to newlyCreated if no column specified
+	const flashBuyAmount = column ? flashBuyAmounts[column] : flashBuyAmounts.newlyCreated
 
 	const handleQuickBuy = async (e: React.MouseEvent) => {
 		e.preventDefault()

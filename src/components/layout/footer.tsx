@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { ThemeSwitcher } from "../shared/theme-switcher"
 import { AudioToggle } from "../audio/audio-toggle"
@@ -12,8 +12,6 @@ import { Skeleton } from "../ui/skeleton"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
 import { useBtcPrice } from "@/hooks/use-btc-price"
 import { useSuiPrice } from "@/hooks/sui/use-sui-price"
-import { usePresetStore } from "@/stores/preset-store"
-import { useDebouncedCallback } from "use-debounce"
 
 const socialLinks = [
 	{ href: "https://x.com/blastdotfun", icon: BsTwitterX, label: "Follow us on X" },
@@ -24,16 +22,6 @@ export function Footer() {
 	const [tradeSettingsOpen, setTradeSettingsOpen] = useState(false)
 	const btcPrice = useBtcPrice()
 	const suiPrice = useSuiPrice()
-	const { flashBuyAmount, setFlashBuyAmount } = usePresetStore()
-	const [localFlashBuy, setLocalFlashBuy] = useState(flashBuyAmount)
-
-	const debouncedSetFlashBuy = useDebouncedCallback((value: number) => {
-		setFlashBuyAmount(value)
-	}, 500)
-
-	useEffect(() => {
-		setLocalFlashBuy(flashBuyAmount)
-	}, [flashBuyAmount])
 
 	return (
 		<>
@@ -75,37 +63,6 @@ export function Footer() {
 					</TooltipProvider>
 
 					<div className="flex items-center gap-1">
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<div className="relative flex items-center">
-									<img
-										src="/assets/currency/sui-fill.svg"
-										alt="SUI"
-										width={14}
-										height={14}
-										className="absolute left-2 pointer-events-none"
-									/>
-									<input
-										type="text"
-										value={localFlashBuy}
-										onChange={(e) => {
-											const value = parseFloat(e.target.value)
-											if (!isNaN(value) && value >= 0 && value <= 99999) {
-												setLocalFlashBuy(value)
-												debouncedSetFlashBuy(value)
-											} else if (e.target.value === '') {
-												setLocalFlashBuy(0)
-											}
-										}}
-										className="w-20 h-8 rounded-lg border border-border bg-muted/50 pl-7 text-center text-xs focus:border-primary focus:outline-none transition-all"
-									/>
-								</div>
-							</TooltipTrigger>
-							<TooltipContent>
-								<p className="font-mono uppercase">Flash Buy Amount (SUI)</p>
-							</TooltipContent>
-						</Tooltip>
-
 						<Tooltip>
 							<TooltipTrigger asChild>
 								<Button

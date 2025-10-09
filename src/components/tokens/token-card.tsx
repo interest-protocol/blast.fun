@@ -19,9 +19,10 @@ import { TokenAvatar } from "./token-avatar"
 interface TokenCardProps {
 	pool: Token | any // @dev: Support both new Token type and legacy format
 	hasRecentTrade?: boolean
+	column?: 'newlyCreated' | 'nearGraduation' | 'graduated'
 }
 
-export const TokenCard = memo(function TokenCard({ pool: tokenData, hasRecentTrade = false }: TokenCardProps) {
+export const TokenCard = memo(function TokenCard({ pool: tokenData, hasRecentTrade = false, column }: TokenCardProps) {
 	// @dev: Normalize data structure - support both new Token type and legacy format
 	const token = tokenData.market
 		? tokenData
@@ -284,7 +285,7 @@ export const TokenCard = memo(function TokenCard({ pool: tokenData, hasRecentTra
 						{/* Token Symbol & Quick Buy Buttons - Far Right */}
 						<div className="flex-shrink-0 ml-auto flex flex-col items-end gap-2">
 							<CopyableToken symbol={token.metadata?.symbol || tokenData.symbol || "[???]"} coinType={tokenData.coinType} className="text-xs" />
-							<QuickBuy pool={token} />
+							<QuickBuy pool={token} column={column} />
 						</div>
 					</div>
 				</div>
