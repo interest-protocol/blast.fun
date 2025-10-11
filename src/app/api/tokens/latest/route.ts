@@ -35,8 +35,8 @@ export async function GET(request: Request) {
 			enhancementTimeout: 500
 		})
 
-		// @dev: Process tokens to cache icon URLs and replace with backend URLs
-		const processedTokens = await processTokenIconUrls(enhancedTokens)
+		// @dev: Process tokens to replace with backend URLs (no caching)
+		const processedTokens = processTokenIconUrls(enhancedTokens)
 
 		return NextResponse.json(processedTokens, {
 			headers: {
