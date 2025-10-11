@@ -5,7 +5,7 @@ import {
 import { Ed25519PublicKey } from "@mysten/sui/keypairs/ed25519"
 import type { Transaction } from "@mysten/sui/transactions"
 import { fromHex, toHex } from "@mysten/sui/utils"
-import { blake2b } from "@noble/hashes/blake2"
+import { blake2b } from "@noble/hashes/blake2.js"
 import toast from "react-hot-toast"
 import { getFullnodeUrl, SuiClient } from "@mysten/sui/client"
 import { env } from "@/env"

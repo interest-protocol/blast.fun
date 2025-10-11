@@ -3,12 +3,14 @@
 import { useState, useEffect } from "react"
 import { usePresetStore } from "@/stores/preset-store"
 import { useDebouncedCallback } from "use-debounce"
+import { useApp } from "@/context/app.context"
 
 interface FlashBuyInputProps {
 	column: 'newlyCreated' | 'nearGraduation' | 'graduated'
 }
 
 export function FlashBuyInput({ column }: FlashBuyInputProps) {
+	const { isConnected } = useApp()
 	const { flashBuyAmounts, setFlashBuyAmount } = usePresetStore()
 	const [localValue, setLocalValue] = useState<number | string>(flashBuyAmounts[column])
 
@@ -19,6 +21,10 @@ export function FlashBuyInput({ column }: FlashBuyInputProps) {
 	useEffect(() => {
 		setLocalValue(flashBuyAmounts[column])
 	}, [flashBuyAmounts, column])
+
+	if (!isConnected) {
+		return null
+	}
 
 	return (
 		<div className="relative flex items-center">

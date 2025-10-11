@@ -27,8 +27,8 @@ importers:
         specifier: ^0.17.0
         version: 0.17.0(@tanstack/react-query@5.83.0(react@19.1.0))(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3)
       '@mysten/sui':
-        specifier: ^1.36.2
-        version: 1.36.2(typescript@5.8.3)
+        specifier: 1.38.0
+        version: 1.38.0(typescript@5.8.3)
       '@mysten/wallet-standard':
         specifier: ^0.16.7
         version: 0.16.7(typescript@5.8.3)
@@ -115,7 +115,7 @@ importers:
         version: 5.83.0(react@19.1.0)
       aftermath-ts-sdk:
         specifier: ^1.3.14
-        version: 1.3.14(@mysten/sui@1.36.2(typescript@5.8.3))(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10)
+        version: 1.3.14(@mysten/sui@1.38.0(typescript@5.8.3))(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10)
       axios:
         specifier: ^1.11.0
         version: 1.11.0
@@ -803,6 +803,20 @@ packages:
       '@gql.tada/vue-support':
         optional: true
 
+  '@gql.tada/cli-utils@1.7.1':
+    resolution: {integrity: sha512-wg5ysZNQxtNQm67T3laVWmZzLpGb7QfyYWZdaUD2r1OjDj5Bgftq7eQlplmH+hsdffjuUyhJw/b5XAjeE2mJtg==}
+    peerDependencies:
+      '@0no-co/graphqlsp': ^1.12.13
+      '@gql.tada/svelte-support': 1.0.1
+      '@gql.tada/vue-support': 1.0.1
+      graphql: ^15.5.0 || ^16.0.0 || ^17.0.0
+      typescript: ^5.0.0
+    peerDependenciesMeta:
+      '@gql.tada/svelte-support':
+        optional: true
+      '@gql.tada/vue-support':
+        optional: true
+
   '@gql.tada/internal@1.0.8':
     resolution: {integrity: sha512-XYdxJhtHC5WtZfdDqtKjcQ4d7R1s0d1rnlSs3OcBEUbYiPoJJfZU7tWsVXuv047Z6msvmr4ompJ7eLSK5Km57g==}
     peerDependencies:
@@ -1054,6 +1068,9 @@ packages:
   '@mysten/bcs@1.6.4':
     resolution: {integrity: sha512-HBBrqMtnVp5vy12efJYhj/HnOYGu+x5SqRQpnOJEHEkxypGZ01WNFoCNw7USzDSyJvPauhqdzUXzR+lYM1D5/g==}
 
+  '@mysten/bcs@1.8.0':
+    resolution: {integrity: sha512-bDoLN1nN+XPONsvpNyNyqYHndM3PKWS419GLeRnbLoWyNm4bnyD1X4luEpJLLDq400hBuXiCan4RWjofvyTUIQ==}
+
   '@mysten/dapp-kit@0.17.0':
     resolution: {integrity: sha512-ABW0FFo0IFV8hxNZVsSFRFbW25MtNvio05SOCr9fhBimylV6Z5LVGb/rE/G+rTnENFXKRLanBnerfjpMvLsp1A==}
     peerDependencies:
@@ -1072,8 +1089,15 @@ packages:
     resolution: {integrity: sha512-TRRdzJBa+ZvAQwwjvagecmWNALP6G4oqum8E+959D17KJKBwR5uY9TvlWzUR7dnjNWXIju7OH6KEqgah9hKzUw==}
     engines: {node: '>=18'}
 
+  '@mysten/sui@1.38.0':
+    resolution: {integrity: sha512-tH6V4BJsYi5d97MOiLoOhyldrYxkm/cu8dYV52asqh1i88HrSVMbPAJ9sVoeWN2Ju+QsJ/Go4ldSjdCkaBCyJQ==}
+    engines: {node: '>=18'}
+
   '@mysten/utils@0.1.1':
     resolution: {integrity: sha512-jvhJC6/2la1QHltukQXzfyTZ+VVHxe187JjPx+mEXRUWyAo6jCSdioOQJIfaGu4K4i+37KeiydXRwV/bq/7UJQ==}
+
+  '@mysten/utils@0.2.0':
+    resolution: {integrity: sha512-CM6kJcJHX365cK6aXfFRLBiuyXc5WSBHQ43t94jqlCAIRw8umgNcTb5EnEA9n31wPAQgLDGgbG/rCUISCTJ66w==}
 
   '@mysten/wallet-standard@0.16.7':
     resolution: {integrity: sha512-xWTQYmeIxQ00wppCZKnGRqsnFL0JovxMrqlsfCIwBoVzgYp7xPzlAPjv1cFc4hABDj+PEfd1fCwcnXN8xd8uiw==}
@@ -3646,6 +3670,12 @@ packages:
     peerDependencies:
       typescript: ^5.0.0
 
+  gql.tada@1.8.13:
+    resolution: {integrity: sha512-fYoorairdPgxtE7Sf1X9/6bSN9Kt2+PN8KLg3hcF8972qFnawwUgs1OLVU8efZMHwL7EBHhhKBhrsGPlOs2lZQ==}
+    hasBin: true
+    peerDependencies:
+      typescript: ^5.0.0
+
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
 
@@ -6168,6 +6198,13 @@ snapshots:
       graphql: 16.11.0
       typescript: 5.8.3
 
+  '@gql.tada/cli-utils@1.7.1(@0no-co/graphqlsp@1.14.0(graphql@16.11.0)(typescript@5.8.3))(graphql@16.11.0)(typescript@5.8.3)':
+    dependencies:
+      '@0no-co/graphqlsp': 1.14.0(graphql@16.11.0)(typescript@5.8.3)
+      '@gql.tada/internal': 1.0.8(graphql@16.11.0)(typescript@5.8.3)
+      graphql: 16.11.0
+      typescript: 5.8.3
+
   '@gql.tada/internal@1.0.8(graphql@16.11.0)(typescript@5.8.3)':
     dependencies:
       '@0no-co/graphql.web': 1.1.2(graphql@16.11.0)
@@ -6309,8 +6346,8 @@ snapshots:
   '@interest-protocol/acl-sdk@7.2.0(typescript@5.8.3)':
     dependencies:
       '@interest-protocol/sui-core-sdk': 0.0.1(typescript@5.8.3)
-      '@mysten/sui': 1.36.2(typescript@5.8.3)
-      '@polymedia/suitcase-core': 0.0.36(@mysten/sui@1.36.2(typescript@5.8.3))
+      '@mysten/sui': 1.38.0(typescript@5.8.3)
+      '@polymedia/suitcase-core': 0.0.36(@mysten/sui@1.38.0(typescript@5.8.3))
       tiny-invariant: 1.3.3
     transitivePeerDependencies:
       - '@gql.tada/svelte-support'
@@ -6321,8 +6358,8 @@ snapshots:
     dependencies:
       '@interest-protocol/acl-sdk': 7.2.0(typescript@5.8.3)
       '@interest-protocol/sui-core-sdk': 0.0.1(typescript@5.8.3)
-      '@mysten/sui': 1.36.2(typescript@5.8.3)
-      '@polymedia/suitcase-core': 0.0.36(@mysten/sui@1.36.2(typescript@5.8.3))
+      '@mysten/sui': 1.38.0(typescript@5.8.3)
+      '@polymedia/suitcase-core': 0.0.36(@mysten/sui@1.38.0(typescript@5.8.3))
       ramda: 0.30.1
       tiny-invariant: 1.3.3
     transitivePeerDependencies:
@@ -6332,7 +6369,7 @@ snapshots:
 
   '@interest-protocol/sui-core-sdk@0.0.1(typescript@5.8.3)':
     dependencies:
-      '@mysten/sui': 1.36.2(typescript@5.8.3)
+      '@mysten/sui': 1.38.0(typescript@5.8.3)
       ramda: 0.30.1
       tiny-invariant: 1.3.3
     transitivePeerDependencies:
@@ -6423,6 +6460,11 @@ snapshots:
       '@mysten/utils': 0.1.1
       '@scure/base': 1.2.6
 
+  '@mysten/bcs@1.8.0':
+    dependencies:
+      '@mysten/utils': 0.2.0
+      '@scure/base': 1.2.6
+
   '@mysten/dapp-kit@0.17.0(@tanstack/react-query@5.83.0(react@19.1.0))(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3)':
     dependencies:
       '@mysten/slush-wallet': 0.1.17(typescript@5.8.3)
@@ -6498,7 +6540,30 @@ snapshots:
       - '@gql.tada/vue-support'
       - typescript
 
+  '@mysten/sui@1.38.0(typescript@5.8.3)':
+    dependencies:
+      '@graphql-typed-document-node/core': 3.2.0(graphql@16.11.0)
+      '@mysten/bcs': 1.8.0
+      '@mysten/utils': 0.2.0
+      '@noble/curves': 1.9.6
+      '@noble/hashes': 1.8.0
+      '@scure/base': 1.2.6
+      '@scure/bip32': 1.7.0
+      '@scure/bip39': 1.6.0
+      gql.tada: 1.8.13(graphql@16.11.0)(typescript@5.8.3)
+      graphql: 16.11.0
+      poseidon-lite: 0.2.1
+      valibot: 0.36.0
+    transitivePeerDependencies:
+      - '@gql.tada/svelte-support'
+      - '@gql.tada/vue-support'
+      - typescript
+
   '@mysten/utils@0.1.1':
+    dependencies:
+      '@scure/base': 1.2.6
+
+  '@mysten/utils@0.2.0':
     dependencies:
       '@scure/base': 1.2.6
 
@@ -6638,9 +6703,9 @@ snapshots:
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
 
-  '@polymedia/suitcase-core@0.0.36(@mysten/sui@1.36.2(typescript@5.8.3))':
+  '@polymedia/suitcase-core@0.0.36(@mysten/sui@1.38.0(typescript@5.8.3))':
     dependencies:
-      '@mysten/sui': 1.36.2(typescript@5.8.3)
+      '@mysten/sui': 1.38.0(typescript@5.8.3)
 
   '@preact/signals-core@1.11.0': {}
 
@@ -9216,9 +9281,9 @@ snapshots:
 
   acorn@8.15.0: {}
 
-  aftermath-ts-sdk@1.3.14(@mysten/sui@1.36.2(typescript@5.8.3))(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10):
+  aftermath-ts-sdk@1.3.14(@mysten/sui@1.38.0(typescript@5.8.3))(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10):
     dependencies:
-      '@mysten/sui': 1.36.2(typescript@5.8.3)
+      '@mysten/sui': 1.38.0(typescript@5.8.3)
       '@pythnetwork/pyth-sui-js': 1.2.5(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10)
       bn.js: 5.2.2
       dayjs: 1.11.13
@@ -10306,6 +10371,18 @@ snapshots:
       - '@gql.tada/vue-support'
       - graphql
 
+  gql.tada@1.8.13(graphql@16.11.0)(typescript@5.8.3):
+    dependencies:
+      '@0no-co/graphql.web': 1.1.2(graphql@16.11.0)
+      '@0no-co/graphqlsp': 1.14.0(graphql@16.11.0)(typescript@5.8.3)
+      '@gql.tada/cli-utils': 1.7.1(@0no-co/graphqlsp@1.14.0(graphql@16.11.0)(typescript@5.8.3))(graphql@16.11.0)(typescript@5.8.3)
+      '@gql.tada/internal': 1.0.8(graphql@16.11.0)(typescript@5.8.3)
+      typescript: 5.8.3
+    transitivePeerDependencies:
+      - '@gql.tada/svelte-support'
+      - '@gql.tada/vue-support'
+      - graphql
+
   graceful-fs@4.2.11: {}
 
   graphemer@1.4.0: {}
@@ -10985,7 +11062,7 @@ snapshots:
   ox@0.6.7(typescript@5.8.3)(zod@4.0.8):
     dependencies:
       '@adraffy/ens-normalize': 1.11.0
-      '@noble/curves': 1.9.4
+      '@noble/curves': 1.9.6
       '@noble/hashes': 1.8.0
       '@scure/bip32': 1.7.0
       '@scure/bip39': 1.6.0
@@ -10999,7 +11076,7 @@ snapshots:
   ox@0.6.9(typescript@5.8.3)(zod@4.0.8):
     dependencies:
       '@adraffy/ens-normalize': 1.11.0
-      '@noble/curves': 1.9.4
+      '@noble/curves': 1.9.6
       '@noble/hashes': 1.8.0
       '@scure/bip32': 1.7.0
       '@scure/bip39': 1.6.0
@@ -11014,7 +11091,7 @@ snapshots:
     dependencies:
       '@adraffy/ens-normalize': 1.11.0
       '@noble/ciphers': 1.3.0
-      '@noble/curves': 1.9.4
+      '@noble/curves': 1.9.6
       '@noble/hashes': 1.8.0
       '@scure/bip32': 1.7.0
       '@scure/bip39': 1.6.0

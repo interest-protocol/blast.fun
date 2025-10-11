@@ -720,13 +720,15 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 										</button>
 									</div>
 								) : (
-									<button
-										className="h-9 w-9 flex items-center justify-center rounded-lg border border-border bg-background hover:bg-muted/50 transition-colors"
-										title="Edit quick buy amounts"
-										onClick={() => setEditingQuickBuy(true)}
-									>
-										<Pencil className="h-3 w-3 text-muted-foreground" />
-									</button>
+									isConnected && (
+										<button
+											className="h-9 w-9 flex items-center justify-center rounded-lg border border-border bg-background hover:bg-muted/50 transition-colors"
+											title="Edit quick buy amounts"
+											onClick={() => setEditingQuickBuy(true)}
+										>
+											<Pencil className="h-3 w-3 text-muted-foreground" />
+										</button>
+									)
 								)}
 							</>
 						) : (
@@ -802,13 +804,15 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 										</button>
 									</div>
 								) : (
-									<button
-										className="h-9 w-9 flex items-center justify-center rounded-lg border border-border bg-background hover:bg-muted/50 transition-colors"
-										title="Edit quick sell percentages"
-										onClick={() => setEditingQuickSell(true)}
-									>
-										<Pencil className="h-3 w-3 text-muted-foreground" />
-									</button>
+									isConnected && (
+										<button
+											className="h-9 w-9 flex items-center justify-center rounded-lg border border-border bg-background hover:bg-muted/50 transition-colors"
+											title="Edit quick sell percentages"
+											onClick={() => setEditingQuickSell(true)}
+										>
+											<Pencil className="h-3 w-3 text-muted-foreground" />
+										</button>
+									)
 								)}
 							</>
 						)}
