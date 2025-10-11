@@ -1,5 +1,6 @@
 import NextAuth from "next-auth"
 import { PrismaAdapter } from "@auth/prisma-adapter"
+import type { Adapter } from "next-auth/adapters"
 import authConfig from "@/auth.config"
 import { prisma } from "@/lib/prisma"
 
@@ -82,7 +83,7 @@ const adapter = {
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
 	...authConfig,
-	adapter,
+	adapter: adapter as any as Adapter,
 	session: {
 		strategy: "database",
 		maxAge: 24 * 60 * 60,

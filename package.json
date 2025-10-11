@@ -10,7 +10,7 @@
 		"dev4": "prisma generate && node scripts/dev-supervisor.cjs -p 3033 -t dev-restart",
 		"dev5": "prisma generate && node scripts/dev-supervisor.cjs -p 3044 -t dev-restart",
 		"dev:nexa": "prisma generate && node scripts/dev-supervisor.cjs -p 42062 -t dev-restart",
-		"build": "prisma generate && next build && node scripts/dev-restart.cjs",
+		"build": "prisma generate && next build; node scripts/dev-restart.cjs",
 		"postbuild": "node scripts/dev-restart.cjs",
 		"start": "next start",
 		"lint": "next lint"
@@ -22,7 +22,7 @@
 		"@hookform/resolvers": "^5.1.1",
 		"@interest-protocol/memez-fun-sdk": "16.6.0",
 		"@mysten/dapp-kit": "^0.17.0",
-		"@mysten/sui": "^1.36.2",
+		"@mysten/sui": "1.38.0",
 		"@mysten/wallet-standard": "^0.16.7",
 		"@next/third-parties": "^15.4.4",
 		"@noble/hashes": "^2.0.0",
