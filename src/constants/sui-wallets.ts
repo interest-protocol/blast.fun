@@ -197,13 +197,4 @@ export const SUI_WALLETS: readonly SuiWallet[] = [
 			},
 		},
 	},
-	{
-		title: "Sui Wallet",
-		name: "Sui Wallet",
-		icon: "/wallets/ic_sui_wallet.webp",
-		link: {
-			desktop:
-				"https://chromewebstore.google.com/detail/sui-wallet/opcgpfmipidbgpenhmajoajpbobppdil",
-		},
-	},
 ]
