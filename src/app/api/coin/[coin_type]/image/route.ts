@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
 import { interestProtocolApi } from "@/lib/interest-protocol-api"
-import { CACHE_TTL, redisGet, redisSetEx } from "@/lib/redis/client"
 
 export async function GET(
 	_request: Request,
@@ -12,37 +11,29 @@ export async function GET(
 		return NextResponse.json({ error: "Coin type is required" }, { status: 400 })
 	}
 
-	const cacheKey = `/icon_url/${coin_type}`
-
 	try {
-		// @dev: Get icon URL from Redis cache
-		let iconUrl = await redisGet(cacheKey)
-		
-		if (!iconUrl) {
-			// @dev: Fetch from Interest Protocol REST API if not cached
-			try {
-				const metadata = await interestProtocolApi.getCoinMetadata(
-					decodeURIComponent(coin_type)
-				)
+		// @dev: Fetch from Interest Protocol REST API directly (no Redis caching)
+		let iconUrl: string | undefined
 
-				if (metadata?.iconUrl) {
-					iconUrl = metadata.iconUrl
-					
-					// @dev: Cache the icon URL if found
-					await redisSetEx(cacheKey, CACHE_TTL.ICON_URL, iconUrl)
-				}
-			} catch (error) {
-				console.error("Failed to fetch coin metadata from Interest Protocol:", error)
+		try {
+			const metadata = await interestProtocolApi.getCoinMetadata(
+				decodeURIComponent(coin_type)
+			)
+
+			if (metadata?.iconUrl) {
+				iconUrl = metadata.iconUrl
 			}
-			
-			// @dev: Return 404 if still no icon URL found
-			if (!iconUrl) {
-				const response = new Response(null, { status: 404 })
-				response.headers.set('Cache-Control', 'public, max-age=60, s-maxage=60') // 1 min cache for 404s
-				response.headers.set('CDN-Cache-Control', 'public, max-age=60')
-				response.headers.set('Vercel-CDN-Cache-Control', 'public, max-age=60')
-				return response
-			}
+		} catch (error) {
+			console.error("Failed to fetch coin metadata from Interest Protocol:", error)
+		}
+
+		// @dev: Return 404 if no icon URL found
+		if (!iconUrl) {
+			const response = new Response(null, { status: 404 })
+			response.headers.set('Cache-Control', 'public, max-age=60, s-maxage=60')
+			response.headers.set('CDN-Cache-Control', 'public, max-age=60')
+			response.headers.set('Vercel-CDN-Cache-Control', 'public, max-age=60')
+			return response
 		}
 
 		// @dev: Check if it's a base64 image

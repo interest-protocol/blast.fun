@@ -161,7 +161,7 @@ export function AppContextProvider({ children }: { children: ReactNode }) {
 				// Note: dapp-kit's signAndExecuteTransaction doesn't support options parameter
 				// The wallet should return the full transaction response by default
 				const result = await standardSignAndExecute({
-					transaction: tx,
+					transaction: tx as any,
 				})
 				return result
 			} else if (walletType === "privy") {
