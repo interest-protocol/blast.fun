@@ -14,12 +14,12 @@ export default function Header() {
 	const mounted = useMounted()
 
 	return (
-		<header className="sticky top-0 z-50 border-b border-border/50">
+		<header className="sticky top-0 z-50 border-b border-border/30">
 			<div className="h-8 bg-card/50 border-b border-border/30">
 				<TradeTicker />
 			</div>
 
-			<div className="h-14 px-4 xl:px-8 flex items-center gap-6">
+			<div className="h-12 px-4 flex items-center gap-6">
 				<Link href="/" className="group flex items-center gap-2">
 					<Logo className="size-8 text-foreground group-hover:text-destructive transition-colors duration-200" />
 					<span className="hidden sm:inline-block font-mono font-black text-lg text-foreground group-hover:text-destructive transition-colors duration-200">
