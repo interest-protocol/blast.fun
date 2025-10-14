@@ -30,7 +30,7 @@ export const TokenListLayout = memo(function TokenListLayout({
 	}
 
 	return (
-		<div className={cn("border border-border/50 rounded-xl flex flex-col min-h-0 overflow-hidden", className)}>
+		<div className={cn("bg-card/20 border border-border/50 rounded-xl flex flex-col min-h-0 overflow-hidden", className)}>
 			<div className={cn("px-4 py-3 border-b border-border/50 flex-shrink-0 flex items-center justify-between", headerClassName)}>
 				<h2 className={cn(
 					"font-mono text-xs uppercase tracking-wider font-bold",
