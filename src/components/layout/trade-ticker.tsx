@@ -76,26 +76,26 @@ export function TradeTicker() {
 	}, [])
 
 	return (
-		<div className="relative flex-1 overflow-hidden">
-			<div className="ticker-wrapper">
+		<div className="relative h-full w-full overflow-hidden flex items-center">
+			<div className="ticker-wrapper h-full">
 				<div
 					ref={scrollRef}
-					className="ticker-content"
+					className="ticker-content h-full flex items-center"
 				>
 					{[...trades, ...trades].map((trade, index) => (
 						<Link
 							key={`${trade.id}-${index}`}
 							href={`/token/${trade.coinType}`}
-							className="ticker-item inline-flex items-center gap-2 px-4 py-1.5 hover:bg-accent/30 transition-colors whitespace-nowrap"
+							className="ticker-item inline-flex items-center gap-2 px-4 h-full hover:bg-accent/30 transition-colors whitespace-nowrap"
 						>
-							<span className="font-bold text-xs">{trade.symbol}</span>
+							<span className="font-bold text-xs font-mono">{trade.symbol}</span>
 							<span className={cn(
-								"text-xs font-medium",
+								"text-xs font-medium font-mono",
 								trade.kind === "buy" ? "text-green-500" : "text-red-500"
 							)}>
 								{trade.kind === "buy" ? "↑" : "↓"} {formatNumberWithSuffix(trade.amount)} SUI
 							</span>
-							<span className="text-xs font-bold text-muted-foreground">
+							<span className="text-xs font-bold text-muted-foreground font-mono">
 								by {formatAddressShort(trade.trader)}
 							</span>
 						</Link>

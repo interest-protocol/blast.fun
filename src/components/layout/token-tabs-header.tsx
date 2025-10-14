@@ -222,7 +222,7 @@ export const TokenTabsHeader = memo(function TokenTabsHeader() {
 	}
 
 	return (
-		<div className="border-b border-border bg-background/50 backdrop-blur-sm">
+		<div className="border-b border-border">
 			<div className="flex items-center py-1.5 px-4 gap-2">
 				<SearchToken mode="header" />
 
