@@ -8,6 +8,16 @@ export const throwTransactionIfFailed = (tx: SuiTransactionBlockResponse, custom
     }
 }
 
+export const getCreatedObjectByType = (tx: SuiTransactionBlockResponse, objectType: string): string | null => {
+	if (!tx.objectChanges) return null
+
+	const object = tx.objectChanges.find(
+		(change) => change.type === "created" && "objectType" in change && change.objectType.includes(objectType)
+	)
+
+	return object && "objectId" in object ? object.objectId : null
+}
+
 export const getTxExplorerUrl = (digest: string, network: "mainnet" | "testnet" = "mainnet"): string => {
 	const baseUrl = network === "mainnet" ? "https://suiscan.xyz/mainnet/tx" : "https://suiscan.xyz/testnet/tx"
 	return `${baseUrl}/${digest}`
