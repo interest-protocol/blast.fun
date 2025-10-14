@@ -7,3 +7,8 @@ export const throwTransactionIfFailed = (tx: SuiTransactionBlockResponse, custom
         throw new Error(customMessage || `Transaction ${digest} failed: ${error}`)
     }
 }
+
+export const getTxExplorerUrl = (digest: string, network: "mainnet" | "testnet" = "mainnet"): string => {
+	const baseUrl = network === "mainnet" ? "https://suiscan.xyz/mainnet/tx" : "https://suiscan.xyz/testnet/tx"
+	return `${baseUrl}/${digest}`
+}
