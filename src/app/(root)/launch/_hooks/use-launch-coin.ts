@@ -20,7 +20,6 @@ import {
 } from "@/constants"
 import { useApp } from "@/context/app.context"
 import { useTwitter } from "@/context/twitter.context"
-import { env } from "@/env"
 import { useTransaction } from "@/hooks/sui/use-transaction"
 import { getBytecode } from "@/lib/move-template/coin"
 import initMoveByteCodeTemplate from "@/lib/move-template/move-bytecode-template"
