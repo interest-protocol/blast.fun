@@ -41,9 +41,9 @@ export function SocialAccounts() {
 				variant="ghost"
 				size="icon"
 				onClick={logout}
-				className="hover:bg-card/50"
+				className="text-muted-foreground hover:bg-card/50"
 			>
-				<LogOut className="w-4 h-4" />
+				<LogOut className="size-4" />
 			</Button>
 		</div>
 	)
