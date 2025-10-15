@@ -9,7 +9,7 @@ import { ReactScan } from "@/components/utils/react-scan"
 import { TailwindIndicator } from "@/components/utils/tailwind-indicator"
 import { TwitterAuthProvider } from "@/context/twitter.context"
 import { TurnstileProvider } from "@/context/turnstile.context"
-import { geistMono, geistSans } from "@/fonts"
+import { geistMono, geistSans, hegartySans } from "@/fonts"
 import { ApolloProvider } from "@/providers/apollo-provider"
 import SuiProvider from "@/providers/sui-provider"
 import { PrivyProvider } from "@/providers/privy-provider"
@@ -60,7 +60,7 @@ export default function RootLayout({
 	return (
 		<html lang="en" suppressHydrationWarning>
 			<ReactScan />
-			<body className={cn(geistSans.variable, geistMono.variable, "antialiased")}>
+			<body className={cn(geistSans.variable, geistMono.variable, hegartySans.variable, "antialiased")}>
 				<ThemeProvider attribute="class" defaultTheme="dark" disableTransitionOnChange>
 					<TooltipProvider>
 						<SessionProvider>
