@@ -21,8 +21,8 @@ importers:
         specifier: ^5.1.1
         version: 5.1.1(react-hook-form@7.60.0(react@19.1.0))
       '@interest-protocol/memez-fun-sdk':
-        specifier: 18.0.0
-        version: 18.0.0(typescript@5.8.3)
+        specifier: 18.1.0
+        version: 18.1.0(typescript@5.8.3)
       '@mysten/dapp-kit':
         specifier: ^0.17.0
         version: 0.17.0(@tanstack/react-query@5.83.0(react@19.1.0))(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3)
@@ -1002,11 +1002,14 @@ packages:
   '@interest-protocol/acl-sdk@7.2.0':
     resolution: {integrity: sha512-bjTZyfpEtT1TESsyFRFGgOx6yxxwlVwKcndfBRr+m+Ze7Zrhe3znsRDH3bIgFi5JKxcRXDQwy9z7ADD9DsjglA==}
 
-  '@interest-protocol/memez-fun-sdk@18.0.0':
-    resolution: {integrity: sha512-aUJbmPM9i4gbeyRkeYGlKaYjmRDUXipQPhQtuyrNxcvlZTcuxsrJNjzKooCjW55b1PUoxbmYyPaKpQNF45ToUA==}
+  '@interest-protocol/memez-fun-sdk@18.1.0':
+    resolution: {integrity: sha512-Y19YcCfcoGe/0KyzeycMhXZRCx38dhu1GLv6ygtDswApbb+y+7s8DcYLoFPAUPpm8m/qJYEbnWhiQ85dMkqHXg==}
 
   '@interest-protocol/sui-core-sdk@0.0.1':
     resolution: {integrity: sha512-Rajxynj90qrazuS/kbzzDhkftxp+2oE2gct7Ly/C22jRKztAsY9J8kIhN+9QlTfAkuoPEtABsD9zh8/zx3MSlQ==}
+
+  '@interest-protocol/sui-core-sdk@1.0.0':
+    resolution: {integrity: sha512-T+TmTFE8GIvoV2AWSn6BgGw7s2vAfVYIbAYKeLo/7BSp8lTD9lB2hv03byVTfkft1aO3QyU3yXNxahkg0VFXcA==}
 
   '@isaacs/fs-minipass@4.0.1':
     resolution: {integrity: sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w==}
@@ -6354,10 +6357,10 @@ snapshots:
       - '@gql.tada/vue-support'
       - typescript
 
-  '@interest-protocol/memez-fun-sdk@18.0.0(typescript@5.8.3)':
+  '@interest-protocol/memez-fun-sdk@18.1.0(typescript@5.8.3)':
     dependencies:
       '@interest-protocol/acl-sdk': 7.2.0(typescript@5.8.3)
-      '@interest-protocol/sui-core-sdk': 0.0.1(typescript@5.8.3)
+      '@interest-protocol/sui-core-sdk': 1.0.0(typescript@5.8.3)
       '@mysten/sui': 1.38.0(typescript@5.8.3)
       '@polymedia/suitcase-core': 0.0.36(@mysten/sui@1.38.0(typescript@5.8.3))
       ramda: 0.30.1
@@ -6368,6 +6371,16 @@ snapshots:
       - typescript
 
   '@interest-protocol/sui-core-sdk@0.0.1(typescript@5.8.3)':
+    dependencies:
+      '@mysten/sui': 1.38.0(typescript@5.8.3)
+      ramda: 0.30.1
+      tiny-invariant: 1.3.3
+    transitivePeerDependencies:
+      - '@gql.tada/svelte-support'
+      - '@gql.tada/vue-support'
+      - typescript
+
+  '@interest-protocol/sui-core-sdk@1.0.0(typescript@5.8.3)':
     dependencies:
       '@mysten/sui': 1.38.0(typescript@5.8.3)
       ramda: 0.30.1
