@@ -30,12 +30,6 @@ export function AuthenticationDialog() {
                 }
             }}
         >
-            <DialogTrigger asChild>
-                <Button variant="outline" className="text-muted-foreground w-full" disabled={isConnecting}>
-                    Connect Wallet
-                </Button>
-            </DialogTrigger>
-
             <DialogContent
                 className="flex max-w-sm flex-col gap-0 overflow-hidden p-0 rounded-2xl border-border/50 shadow-xl"
                 showCloseButton={!isConnecting}

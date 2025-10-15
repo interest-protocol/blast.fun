@@ -23,8 +23,12 @@ export function UserDropdown() {
 
 	return (
 		<>
+			<AuthenticationDialog />
+
 			{showConnectButton && (
-				<AuthenticationDialog />
+				<Button variant="outline" className="text-muted-foreground w-full" onClick={() => setIsConnectDialogOpen(true)}>
+					Connect Wallet
+				</Button>
 			)}
 
 			{showPopover && (
@@ -50,7 +54,7 @@ export function UserDropdown() {
 								<div className="p-2 pt-0">
 									<Button
 										variant="outline"
-										className="w-full justify-center"
+										className="w-full"
 										onClick={() => {
 											setOpen(false)
 											setIsConnectDialogOpen(true)
