@@ -1,4 +1,4 @@
-import { MemezPumpSDK, XPumpMigratorSDK } from "@interest-protocol/memez-fun-sdk"
+import { MemezPumpSDK, MemezVestingSDK, XPumpMigratorSDK } from "@interest-protocol/memez-fun-sdk"
 import { getFullnodeUrl } from "@mysten/sui/client"
 import { env } from "@/env"
 import { Network } from "@/types/network"
@@ -11,6 +11,11 @@ export const pumpSdk = new MemezPumpSDK({
 })
 
 export const migratorSdk = new XPumpMigratorSDK({
+	network: env.NEXT_PUBLIC_DEFAULT_NETWORK as Network,
+	fullNodeUrl
+})
+
+export const vestingSdk = new MemezVestingSDK({
 	network: env.NEXT_PUBLIC_DEFAULT_NETWORK as Network,
 	fullNodeUrl
 })

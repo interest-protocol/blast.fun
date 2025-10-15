@@ -14,10 +14,10 @@ import { VestingApi, type VestingPosition } from "@/lib/getVesting"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import BigNumber from "bignumber.js"
-import { useVestingSDK } from "@/app/(root)/vesting/_hooks/use-vesting-sdk"
 import { formatNumber, formatNumberWithPercentage } from "@/lib/format"
 import { Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { vestingSdk } from "@/lib/pump"
 
 interface VestingTabProps {
 	pool: Token
@@ -40,7 +40,6 @@ type SortDirection = "asc" | "desc"
 export function VestingTab({ pool, className }: VestingTabProps) {
 	const [currentTime, setCurrentTime] = useState(Date.now())
 	const { isMobile } = useBreakpoint()
-	const vestingSdk = useVestingSDK()
 	const router = useRouter()
 	const [sortField, setSortField] = useState<SortField>("totalAmount")
 	const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
