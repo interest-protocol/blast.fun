@@ -22,7 +22,7 @@ export default function Header() {
 			<div className="h-12 px-4 flex items-center gap-6">
 				<Link href="/" className="group flex items-center gap-2">
 					<Logo className="size-8 text-foreground group-hover:text-destructive transition-colors duration-200" />
-					<span className="hidden sm:inline-block font-mono font-black text-lg text-foreground group-hover:text-destructive transition-colors duration-200">
+					<span className="hidden sm:inline-block font-hegarty tracking-wider text-lg text-foreground group-hover:text-destructive transition-colors duration-200">
 						BLAST.FUN
 					</span>
 				</Link>
