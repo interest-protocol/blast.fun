@@ -15,7 +15,7 @@ import { cn } from "@/utils"
 import TokenCreationButton from "./create-token-button"
 import { getBase64 } from "../launch.utils"
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible"
-import useBalance from "@/hooks/sui/use-balance"
+import { useBalance } from "@/hooks/sui/use-balance"
 
 const tokenSchema = z.object({
 	name: z.string().min(3, "Minimum 3 characters").max(20, "Maximum 20 characters"),
@@ -68,9 +68,9 @@ interface CreateTokenFormProps {
 
 export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) {
 	const [isDragging, setIsDragging] = useState(false)
-	const [showProtectionSettings, setShowProtectionSettings] = useState(true) // Default to true since sniperProtection defaults to true
+	const [showProtectionSettings, setShowProtectionSettings] = useState(true)
 	const [urlInput, setUrlInput] = useState("")
-	const { balance } = useBalance({ autoRefetch: true, autoRefetchInterval: 5000 })
+	const { balance } = useBalance('0x2::sui::SUI');
 
 	const form = useForm<TokenFormValues>({
 		resolver: zodResolver(tokenSchema),

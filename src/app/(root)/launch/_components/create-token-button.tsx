@@ -8,8 +8,8 @@ import { cn } from "@/utils"
 import { useLaunchCoin } from "../_hooks/use-launch-coin"
 import { TokenFormValues } from "./create-token-form"
 import { TerminalDialog } from "./terminal-dialog"
-import useBalance from "@/hooks/sui/use-balance"
 import toast from "react-hot-toast"
+import { useBalance } from "@/hooks/sui/use-balance"
 
 interface CreateTokenButtonProps {
 	form: UseFormReturn<TokenFormValues>
@@ -18,7 +18,7 @@ interface CreateTokenButtonProps {
 export default function CreateTokenButton({ form }: CreateTokenButtonProps) {
 	const { isLaunching, logs, result, launchToken, resumeLaunch, pendingToken } = useLaunchCoin()
 	const [showTerminal, setShowTerminal] = useState(false)
-	const { balance } = useBalance()
+	const { balance } = useBalance('0x2::sui::SUI');
 
 	const onSubmit = async (data: TokenFormValues) => {
 		// Validate dev buy amount against balance
