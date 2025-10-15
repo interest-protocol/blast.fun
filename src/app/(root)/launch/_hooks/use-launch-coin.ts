@@ -152,39 +152,61 @@ export function useLaunchCoin() {
 			{} as Record<string, string>
 		)
 
-		// should pool be protected based on sniper protection toggle
-		const isProtected = formValues.sniperProtection
-
 		// @dev: Convert burn tax percentage to basis points (0-60% = 0-6000 bps)
 		const burnTaxBps = formValues.burnTax ? Math.floor(parseFloat(formValues.burnTax) * 100) : 0
+		const isProtected = formValues.sniperProtection
+		const hasDevBuy = formValues.devBuyAmount && parseFloat(formValues.devBuyAmount) > 0
 
 		const tx = new Transaction();
-		const firstPurchase = formValues.devBuyAmount
-				? coinWithBalance({
-						balance: parseFloat(formValues.devBuyAmount || "0") * 10 ** 9,
-						type: "0x2::sui::SUI",
-					})
-				: pumpSdk.zeroSuiCoin(tx)
 
-		const { metadataCap, firstBuy } = await pumpSdk.newPoolWithFirstBuy({
-			tx,
-			configurationKey: configKey,
-			metadata,
-			memeCoinTreasuryCap: treasuryCapObjectId,
-			migrationWitness: migrationWitness,
-			totalSupply: TOTAL_POOL_SUPPLY,
-			isProtected,
-			developer: address,
-			quoteCoinType: SUI_TYPE_ARG,
-			burnTax: burnTaxBps,
-			virtualLiquidity: VIRTUAL_LIQUIDITY,
-			targetQuoteLiquidity: TARGET_QUOTE_LIQUIDITY,
-			liquidityProvision: BASE_LIQUIDITY_PROVISION,
-			firstPurchase,
-		})
+		let metadataCap, firstBuy
+		if (hasDevBuy) {
+			const firstPurchase = coinWithBalance({
+				balance: parseFloat(formValues.devBuyAmount || "0") * 10 ** 9,
+				type: "0x2::sui::SUI",
+			})
 
-		tx.transferObjects([firstBuy], tx.pure.address(address))
-		
+			const result = await pumpSdk.newPoolWithFirstBuyAndDevRevenueShare({
+				tx,
+				configurationKey: configKey,
+				metadata,
+				memeCoinTreasuryCap: treasuryCapObjectId,
+				migrationWitness: migrationWitness,
+				totalSupply: TOTAL_POOL_SUPPLY,
+				isProtected,
+				quoteCoinType: SUI_TYPE_ARG,
+				burnTax: burnTaxBps,
+				virtualLiquidity: VIRTUAL_LIQUIDITY,
+				targetQuoteLiquidity: TARGET_QUOTE_LIQUIDITY,
+				liquidityProvision: BASE_LIQUIDITY_PROVISION,
+				firstPurchase,
+			})
+
+			metadataCap = result.metadataCap
+			firstBuy = result.firstBuy
+		} else {
+			const result = await pumpSdk.newPoolWithDevRevenueShare({
+				tx,
+				configurationKey: configKey,
+				metadata,
+				memeCoinTreasuryCap: treasuryCapObjectId,
+				migrationWitness,
+				totalSupply: TOTAL_POOL_SUPPLY,
+				isProtected,
+				quoteCoinType: SUI_TYPE_ARG,
+				burnTax: burnTaxBps,
+				virtualLiquidity: VIRTUAL_LIQUIDITY,
+				targetQuoteLiquidity: TARGET_QUOTE_LIQUIDITY,
+				liquidityProvision: BASE_LIQUIDITY_PROVISION,
+			})
+
+			metadataCap = result.metadataCap
+		}
+
+		if (firstBuy) {
+			tx.transferObjects([firstBuy], tx.pure.address(address))
+		}
+
 		if (metadataCap) {
 			tx.transferObjects([metadataCap], tx.pure.address(address))
 		}
@@ -390,122 +412,5 @@ export function useLaunchCoin() {
 		resumeLaunch,
 		pendingToken,
 		addLog,
-	}
-}
-
-async function newPoolAndBuy({
-	tx = new Transaction(),
-	creationSuiFee = pumpSdk.zeroSuiCoin(tx),
-	memeCoinTreasuryCap,
-	totalSupply = pumpSdk.defaultSupply,
-	isProtected = false,
-	developer,
-	firstPurchase = pumpSdk.zeroSuiCoin(tx),
-	buyAfterPoolCreation = pumpSdk.zeroSuiCoin(tx),
-	metadata = {},
-	configurationKey,
-	migrationWitness,
-	stakeHolders = [],
-	quoteCoinType,
-	burnTax = 0,
-	virtualLiquidity,
-	targetQuoteLiquidity,
-	liquidityProvision = 0,
-}: any) {
-	invariant(burnTax >= 0 && burnTax <= pumpSdk.MAX_BPS, "burnTax must be between 0 and 10_000")
-	invariant(
-		liquidityProvision >= 0 && liquidityProvision <= pumpSdk.MAX_BPS,
-		"liquidityProvision must be between 0 and 10_000"
-	)
-
-	invariant(BigInt(totalSupply) > 0n, "totalSupply must be greater than 0")
-	invariant(isValidSuiAddress(developer), "developer must be a valid Sui address")
-
-	invariant(
-		stakeHolders.every((stakeHolder: any) => isValidSuiAddress(stakeHolder)),
-		"stakeHolders must be a valid Sui address"
-	)
-
-	pumpSdk.assertNotZeroAddress(developer)
-
-	const { memeCoinType, coinMetadataId } = await pumpSdk.getCoinMetadataAndType(memeCoinTreasuryCap)
-
-	const memezMetadata = tx.moveCall({
-		package: pumpSdk.packages.MEMEZ_FUN.latest,
-		module: pumpSdk.modules.METADATA,
-		function: "new",
-		arguments: [
-			tx.object(coinMetadataId),
-			tx.pure.vector("string", Object.keys(metadata)),
-			tx.pure.vector("string", Object.values(metadata)),
-		],
-		typeArguments: [normalizeStructTag(memeCoinType)],
-	})
-
-	const pumpConfig = tx.moveCall({
-		package: pumpSdk.packages.MEMEZ_FUN.latest,
-		module: pumpSdk.modules.PUMP_CONFIG,
-		function: "new",
-		arguments: [
-			tx.pure.vector("u64", [burnTax, virtualLiquidity, targetQuoteLiquidity, liquidityProvision, totalSupply]),
-		],
-	})
-
-	const [pool, metadataCap] = tx.moveCall({
-		package: pumpSdk.packages.MEMEZ_FUN.latest,
-		module: pumpSdk.modules.PUMP,
-		function: "new",
-		arguments: [
-			tx.sharedObjectRef(pumpSdk.sharedObjects.CONFIG({ mutable: false })),
-			pumpSdk.ownedObject(tx, memeCoinTreasuryCap),
-			pumpSdk.ownedObject(tx, creationSuiFee),
-			pumpConfig,
-			pumpSdk.ownedObject(tx, firstPurchase),
-			memezMetadata,
-			tx.pure.vector("address", stakeHolders),
-			tx.pure.bool(isProtected),
-			tx.pure.address(developer),
-			pumpSdk.getVersion(tx),
-		],
-		typeArguments: [
-			normalizeStructTag(memeCoinType),
-			normalizeStructTag(quoteCoinType),
-			normalizeStructTag(configurationKey),
-			normalizeStructTag(migrationWitness),
-		],
-	})
-
-	const memeCoin = tx.moveCall({
-		package: pumpSdk.packages.MEMEZ_FUN.latest,
-		module: pumpSdk.modules.PUMP,
-		function: "pump",
-		arguments: [
-			pool,
-			pumpSdk.ownedObject(tx, buyAfterPoolCreation),
-			tx.pure.option("address", null),
-			tx.pure.option("vector<u8>", null),
-			tx.pure.u64(0),
-			pumpSdk.getVersion(tx),
-		],
-		typeArguments: [pool.memeCoinType, pool.quoteCoinType],
-	})
-
-	tx.transferObjects([memeCoin], tx.pure.address(developer))
-
-	invariant(pool, "Pool not returned from new")
-
-	tx.moveCall({
-		package: "0x2",
-		module: "transfer",
-		function: "public_share_object",
-		arguments: [pool],
-		typeArguments: [
-			`${pumpSdk.packages.MEMEZ_FUN.original}::memez_fun::MemezFun<${pumpSdk.packages.MEMEZ_FUN.original}::memez_pump::Pump, ${normalizeStructTag(memeCoinType)},${normalizeStructTag(quoteCoinType)}>`,
-		],
-	})
-
-	return {
-		metadataCap,
-		tx,
 	}
 }

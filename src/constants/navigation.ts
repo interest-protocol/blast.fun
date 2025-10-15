@@ -17,9 +17,4 @@ export const navigationItems: NavItem[] = [
 		href: "/launch",
 		icon: Rocket,
 	},
-	{
-		label: "LEADERBOARD",
-		href: "/leaderboard",
-		icon: Trophy,
-	},
 ]

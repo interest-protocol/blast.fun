@@ -1,15 +1,34 @@
-import { Suspense } from "react"
-import DiscoveryPageContent from "./page-content"
-import { Loader2 } from "lucide-react"
+"use client"
+
+import { NewlyCreated } from "@/components/tokens/newly-created"
+import { NearGraduation } from "@/components/tokens/near-graduation"
+import { GraduatedComplete } from "@/components/tokens/graduated-complete"
+import { MobileTokenList } from "@/components/tokens/mobile-token-list"
+import { SearchToken } from "@/components/shared/search-token"
+import { useBreakpoint } from "@/hooks/use-breakpoint"
 
 export default function DiscoveryPage() {
+	const { isMobile } = useBreakpoint()
+
+	if (isMobile) {
+		return (
+			<>
+				<div className="h-full">
+					<MobileTokenList />
+				</div>
+				<SearchToken />
+			</>
+		)
+	}
+
 	return (
-		<Suspense fallback={
-			<div className="flex items-center justify-center h-full">
-				<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+		<>
+			<div className="h-full grid grid-cols-1 lg:grid-cols-3 gap-4">
+				<NewlyCreated pollInterval={10000} />
+				<NearGraduation pollInterval={10000} />
+				<GraduatedComplete pollInterval={30000} />
 			</div>
-		}>
-			<DiscoveryPageContent />
-		</Suspense>
+			<SearchToken />
+		</>
 	)
 }
