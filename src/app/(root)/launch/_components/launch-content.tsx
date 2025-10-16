@@ -136,7 +136,7 @@ export default function LaunchContent() {
 						<div className="border-2 shadow-lg rounded-xl">
 							<div className="p-4 border-b">
 								<h3 className="text-lg font-mono uppercase tracking-wider text-foreground/80">
-									TOKEN::PREVIEW
+									TOKEN PREVIEW
 								</h3>
 							</div>
 

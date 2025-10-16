@@ -6,9 +6,7 @@ import {
     DialogDescription,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "../ui/dialog";
-import { Button } from "../ui/button";
 import { WalletList } from "../shared/wallet-list";
 import { useApp } from "@/context/app.context";
 import { Loader2 } from "lucide-react";
