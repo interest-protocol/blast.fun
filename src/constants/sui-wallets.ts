@@ -197,4 +197,16 @@ export const SUI_WALLETS: readonly SuiWallet[] = [
 			},
 		},
 	},
+	{
+		title: "Tokeo",
+		name: "Tokeo",
+		icon: "/wallets/wallet_tokeo.webp",
+		link: {
+			desktop: "https://tokeo.io/",
+			mobile: {
+				ios: "https://tokeo.info/iOSwebsite",
+				android: "https://tokeo.info/Androidwebsite",
+			},
+		},
+	},
 ]
