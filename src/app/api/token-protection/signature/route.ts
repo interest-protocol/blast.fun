@@ -182,8 +182,9 @@ export async function POST(request: NextRequest) {
 				const totalBalanceAfterHuman = currentBalanceHuman + quoteAmountOutHuman
 
 				const percentageAfter = (totalBalanceAfterHuman / totalSupplyHuman) * 100
+				const maxAllowedPercent = Number(settings.maxHoldingPercent) + 0.01
 
-				if (percentageAfter >= Number(settings.maxHoldingPercent+0.01)) {
+				if (percentageAfter >= maxAllowedPercent) {
 					return NextResponse.json({
 						message: `This purchase would give you ${percentageAfter.toFixed(2)}% of total supply, exceeding the ${settings.maxHoldingPercent}% limit`,
 						error: "MAX_HOLDING_EXCEEDED",
