@@ -200,7 +200,7 @@ export const SUI_WALLETS: readonly SuiWallet[] = [
 	{
 		title: "Tokeo",
 		name: "Tokeo",
-		icon: "/wallets/wallet_tokeo.webp",
+		icon: "/wallets/wallet_tokeo.png",
 		link: {
 			desktop: "https://tokeo.io/",
 			mobile: {
