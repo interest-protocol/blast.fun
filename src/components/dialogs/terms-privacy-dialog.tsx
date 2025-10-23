@@ -59,30 +59,30 @@ export function TermsPrivacyDialog() {
 			<DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
 				<DialogHeader>
 					<DialogTitle>{isUpdate ? "Terms Updated" : "Welcome to Blast"}</DialogTitle>
-					<DialogDescription className="pt-3 space-y-3">
-						{isUpdate ? (
-							<>
-								<p>
-									Our Terms of Service and Privacy Policy have been updated. 
-									Please review and accept the new terms to continue using Blast.
-								</p>
-								<p className="text-sm text-muted-foreground">
-									Version: {CURRENT_TERMS_VERSION}
-								</p>
-							</>
-						) : (
-							<>
-								<p>
-									Before you continue, please review and accept our Terms of Service and Privacy Policy.
-								</p>
-								<p className="text-sm">
-									These documents outline important information about your rights and responsibilities 
-									when using the Blast platform.
-								</p>
-							</>
-						)}
-					</DialogDescription>
 				</DialogHeader>
+				<div className="pt-3 space-y-3 text-sm text-muted-foreground">
+					{isUpdate ? (
+						<>
+							<div>
+								Our Terms of Service and Privacy Policy have been updated.
+								Please review and accept the new terms to continue using Blast.
+							</div>
+							<div className="text-sm text-muted-foreground">
+								Version: {CURRENT_TERMS_VERSION}
+							</div>
+						</>
+					) : (
+						<>
+							<div>
+								Before you continue, please review and accept our Terms of Service and Privacy Policy.
+							</div>
+							<div className="text-sm">
+								These documents outline important information about your rights and responsibilities
+								when using the Blast platform.
+							</div>
+						</>
+					)}
+				</div>
 				
 				<div className="py-4 space-y-4">
 					<div className="flex gap-2">

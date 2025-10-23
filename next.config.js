@@ -8,6 +8,7 @@ export default {
     compiler: {
         removeConsole: process.env.NODE_ENV === 'production'
     },
+    serverExternalPackages: ['@prisma/client', 'prisma'],
     images: {
         remotePatterns: [
             {
