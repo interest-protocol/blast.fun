@@ -186,10 +186,14 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 
 	const formatPrice = (price: number) => {
 		// @dev: Format price to show significant digits with subscript for zeros count
+		if (!price || price === 0) {
+			return '$0.00'
+		}
+
 		if (price >= 1) {
 			return `$${price.toFixed(2)}`
 		}
-		
+
 		const priceStr = price.toString()
 		const match = priceStr.match(/^0\.0*(\d{1,4})/)
 		

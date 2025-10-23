@@ -16,6 +16,11 @@ export function useBtcPrice(refreshInterval = 5 * 60 * 1000) {
 	})
 
 	useEffect(() => {
+		// @dev: Only fetch prices on the client side
+		if (typeof window === 'undefined') {
+			return
+		}
+
 		const fetchPrice = async () => {
 			try {
 				const response = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd")
