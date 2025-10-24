@@ -22,7 +22,6 @@ import { getBuyQuote, getSellQuote } from "@/lib/aftermath"
 import BigNumber from "bignumber.js"
 import { BsTwitterX } from "react-icons/bs"
 import { useBurn } from "../_hooks/use-burn"
-import { useTurnstile } from "@/context/turnstile.context"
 
 interface TradeTerminalProps {
 	pool: Token
@@ -41,8 +40,6 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	const [editingQuickSell, setEditingQuickSell] = useState(false)
 	const [tempQuickBuyAmounts, setTempQuickBuyAmounts] = useState<number[]>([])
 	const [tempQuickSellPercentages, setTempQuickSellPercentages] = useState<number[]>([])
-
-	const { token: turnstileToken, resetToken: resetTurnstileToken, setIsRequired: setTurnstileRequired } = useTurnstile()
 
 	const {
 		slippage,
@@ -202,12 +199,6 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 		setTempQuickBuyAmounts(quickBuyAmounts)
 		setTempQuickSellPercentages(quickSellPercentages)
 	}, [quickBuyAmounts, quickSellPercentages])
-
-	// set Turnstile requirement based on pool protection and trade type
-	useEffect(() => {
-		const isRequired = Boolean(pool.pool?.isProtected && tradeType === "buy" && !pool.pool?.migrated)
-		setTurnstileRequired(isRequired)
-	}, [pool.pool?.isProtected, pool.pool?.migrated, tradeType, setTurnstileRequired])
 
 	// state for quote from bonding curve
 	const [quote, setQuote] = useState<{ memeAmountOut?: bigint; memeAmountIn?: bigint; suiAmountOut?: bigint; coinAmountOut?: bigint; burnFee?: bigint } | null>(null)
@@ -426,15 +417,14 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 			}
 
 			// @dev: Refresh all balances after successful buy
-			
-			await buy(amount, slippage, turnstileToken || undefined)
+
+			await buy(amount, slippage)
 			await Promise.all([
 				refetchPortfolio(),
 				refetchTokenBalance(),
 				refetchSuiBalance(),
 			])
 			setAmount("")
-			resetTurnstileToken() // Reset turnstile token after use
 		} else if (tradeType === "sell") {
 			const requiredTokens = parseFloat(amount)
 			if (requiredTokens > balanceInDisplayUnit) {
@@ -885,8 +875,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 							isMigrating ||
 							((tradeType === "sell" || tradeType === "burn") && !hasBalance) ||
 							(tradeType === "buy" && parseFloat(amount) > suiBalanceInDisplayUnit) ||
-							((tradeType === "sell" || tradeType === "burn") && parseFloat(amount) > balanceInDisplayUnit) ||
-							(pool.pool?.isProtected && tradeType === "buy" && !turnstileToken && !pool.pool?.migrated)
+							((tradeType === "sell" || tradeType === "burn") && parseFloat(amount) > balanceInDisplayUnit)
 						}
 					>
 						{(isProcessing || isBurning) ? (

@@ -158,18 +158,6 @@
 		/* @dev: Ensure no overscroll behavior for entire page */
 		overscroll-behavior: none;
 	}
-
-	/* @dev: Turnstile custom styling for flatter/rectangular appearance */
-	.turnstile-container iframe {
-		width: 100% !important;
-		height: 65px !important;
-		border-radius: 8px !important;
-	}
-	
-	.cf-turnstile {
-		width: 100% !important;
-		height: 65px !important;
-	}
 }
 
 /* Ticker Animation */
