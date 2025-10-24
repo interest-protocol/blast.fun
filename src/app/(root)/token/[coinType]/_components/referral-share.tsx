@@ -22,13 +22,15 @@ export function ReferralShare({ pool }: ReferralShareProps) {
     const [inputCode, setInputCode] = useState("")
     const [isInitializing, setIsInitializing] = useState(false)
 
+    const origin = typeof window !== 'undefined' ? window.location.origin : ''
+
     const tokenPageUrl = refCode
-        ? `${window.location.origin}/token/${pool.coinType}?ref=${refCode}`
-        : `${window.location.origin}/token/${pool.coinType}`
+        ? `${origin}/token/${pool.coinType}?ref=${refCode}`
+        : `${origin}/token/${pool.coinType}`
 
     const terminalUrl = refCode
-        ? `${window.location.origin}/api/twitter/embed/${pool.coinType}?ref=${refCode}`
-        : `${window.location.origin}/api/twitter/embed/${pool.coinType}`
+        ? `${origin}/api/twitter/embed/${pool.coinType}?ref=${refCode}`
+        : `${origin}/api/twitter/embed/${pool.coinType}`
 
     const loadReferralCode = useCallback(async () => {
         const code = await getReferralCode()

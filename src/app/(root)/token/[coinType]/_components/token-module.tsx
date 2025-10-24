@@ -16,7 +16,6 @@ import {
 	ResizablePanel,
 	ResizableHandle,
 } from "@/components/ui/resizable"
-import { useBreakpoint } from "@/hooks/use-breakpoint"
 import { TOTAL_POOL_SUPPLY, DEFAULT_TOKEN_DECIMALS } from "@/constants"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { useTokenTabs } from "@/stores/token-tabs"
@@ -31,7 +30,6 @@ interface TokenModuleProps {
 export function TokenModule({ pool, referral }: TokenModuleProps) {
 	const [price, setPrice] = useState<number | null>(pool.market?.price || null)
 	const [marketCap, setMarketCap] = useState<number | null>(pool.market?.marketCap || null)
-	const { isMobile } = useBreakpoint()
 	const { addTab } = useTokenTabs()
 
 	// @dev: add this token tab to our registry for quick switching.
@@ -85,48 +83,48 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 
 	return (
 		<TwitterRelationsProvider pool={pool}>
-				{isMobile ? (
-				<MobileTokenView 
-					pool={pool} 
-					referral={referral} 
-					realtimePrice={price}
-					realtimeMarketCap={marketCap}
-				/>
-			) : (
-				<div className="w-full h-full flex">
-					<div className="flex-1 flex flex-col">
-						{/* Chart and Tabs */}
-						<ResizablePanelGroup
-							direction="vertical"
-							className="flex-1"
-						>
-							<ResizablePanel defaultSize={60} minSize={30}>
-								<NexaChart pool={pool} />
-							</ResizablePanel>
+			{/* Mobile View - shown only on mobile screens */}
+			<MobileTokenView
+				pool={pool}
+				referral={referral}
+				realtimePrice={price}
+				realtimeMarketCap={marketCap}
+			/>
 
-							<ResizableHandle withHandle />
+			{/* Desktop View - shown only on desktop screens */}
+			<div className="w-full h-full hidden lg:flex">
+				<div className="flex-1 flex flex-col">
+					{/* Chart and Tabs */}
+					<ResizablePanelGroup
+						direction="vertical"
+						className="flex-1"
+					>
+						<ResizablePanel defaultSize={60} minSize={30}>
+							<NexaChart pool={pool} />
+						</ResizablePanel>
 
-							<ResizablePanel defaultSize={40} minSize={20}>
-								<TokenTabs pool={pool} className="h-full" />
-							</ResizablePanel>
-						</ResizablePanelGroup>
-					</div>
+						<ResizableHandle withHandle />
 
-					{/* Right-side column */}
-					<div className="w-[400px] border-l flex flex-col h-full overflow-y-auto">
-						<TokenInfo pool={pool} realtimePrice={price} realtimeMarketCap={marketCap} />
-
-						{!pool.pool?.migrated && (
-							<BondingProgress pool={pool} />
-						)}
-
-						<TradeTerminal pool={pool} referral={referral} />
-						<TurnstileSection />
-						<HolderDetails pool={pool} />
-						<ReferralShare pool={pool} />
-					</div>
+						<ResizablePanel defaultSize={40} minSize={20}>
+							<TokenTabs pool={pool} className="h-full" />
+						</ResizablePanel>
+					</ResizablePanelGroup>
 				</div>
-			)}
+
+				{/* Right-side column */}
+				<div className="w-[400px] border-l flex flex-col h-full overflow-y-auto">
+					<TokenInfo pool={pool} realtimePrice={price} realtimeMarketCap={marketCap} />
+
+					{!pool.pool?.migrated && (
+						<BondingProgress pool={pool} />
+					)}
+
+					<TradeTerminal pool={pool} referral={referral} />
+					<TurnstileSection />
+					<HolderDetails pool={pool} />
+					<ReferralShare pool={pool} />
+				</div>
+			</div>
 		</TwitterRelationsProvider>
 	)
 }
