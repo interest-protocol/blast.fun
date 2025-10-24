@@ -121,6 +121,7 @@ export const CACHE_TTL = {
 	CREATOR_DATA: 14400, // 4 hours
 	BONDING_PROGRESS: 30, // 30 seconds
 	ICON_URL: 3600, // 1 hour
+	PROTECTION_SETTINGS: 43200, // 12 hours
 } as const
 
 export const CACHE_PREFIX = {
@@ -131,4 +132,5 @@ export const CACHE_PREFIX = {
 	CREATOR_DATA: "creator_data:",
 	BONDING_PROGRESS: "bonding_progress:",
 	ICON_URL: "icon_url:",
+	PROTECTION_SETTINGS: "protection_settings:",
 } as const
