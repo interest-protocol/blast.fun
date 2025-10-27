@@ -13,7 +13,7 @@ import { suiClient } from "@/lib/sui-client"
 import { TokenSelectionDialog } from "@/components/shared/token-selection-dialog"
 import { useAirdrop } from "../_hooks/use-airdrop"
 import toast from "react-hot-toast"
-import { isValidSuiNSName } from "@mysten/sui/utils"
+import { isValidSuiNSName, normalizeSuiNSName } from "@mysten/sui/utils"
 
 export interface AirdropRecipient {
 	address: string
@@ -85,32 +85,13 @@ export function AirdropTools() {
 		fetchCoins()
 	}, [address, selectedCoin])
 
-	// @dev: Check if input is a SuiNS name
-	const isSuiNSName = (input: string): boolean => {
-		return input.startsWith("@") || input.endsWith(".sui") || (!input.startsWith("0x") && !input.includes(","))
-	}
-
-	// @dev: Resolve SuiNS name to address
 	const resolveSuiNSName = async (name: string): Promise<string | null> => {
 		try {
-			// @dev: Format the name properly for resolution
-			let formattedName = name
-			
-			// @dev: Remove @ if present
-			if (formattedName.startsWith("@")) {
-				formattedName = formattedName.slice(1)
-			}
-			
-			// @dev: Add .sui if not present
-			if (!formattedName.endsWith(".sui")) {
-				formattedName = `${formattedName}.sui`
-			}
-			
-			// @dev: Resolve the name to address
+			const normalizedName = normalizeSuiNSName(name, 'dot')
 			const resolved = await suiClient.resolveNameServiceAddress({
-				name: formattedName,
+				name: normalizedName,
 			})
-			
+
 			return resolved || null
 		} catch (error) {
 			console.error(`Failed to resolve SuiNS name ${name}:`, error)
