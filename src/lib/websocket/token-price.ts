@@ -4,9 +4,13 @@ import { io } from 'socket.io-client'
 
 const URL = 'https://spot.api.sui-prod.bluefin.io'
 
+type PriceCallback = (data: { price: number; suiPrice: number }) => void
+type TradeCallback = (trade: TradeData) => void
+type SocketCallback = PriceCallback | TradeCallback
+
 class TokenPriceSocket {
 	private socket: Socket
-	private activeSubscriptions = new Map<string, Function>()
+	private activeSubscriptions = new Map<string, SocketCallback>()
 
 	constructor() {
 		this.socket = io(URL, {
@@ -24,11 +28,10 @@ class TokenPriceSocket {
 	public subscribeToTokenPrice(
 		pool: string,
 		direction: string,
-		callback: (data: { price: number; suiPrice: number }) => void
+		callback: PriceCallback
 	) {
 		const event = `price-${pool}-${direction}`
 
-        // remove existing
 		const existing = this.activeSubscriptions.get(event)
 		if (existing) {
 			this.socket.off(event, existing as any)
@@ -53,11 +56,10 @@ class TokenPriceSocket {
 
 	public subscribeToCoinTrades(
 		coin: string,
-		callback: (trade: TradeData) => void
+		callback: TradeCallback
 	) {
 		const event = `trades-${coin}`
 
-        // remove existing
 		const existing = this.activeSubscriptions.get(event)
 		if (existing) {
 			this.socket.off(event, existing as any)
