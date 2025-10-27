@@ -6,6 +6,7 @@ import { cn } from "@/utils/index"
 import { Logo } from "@/components/ui/logo"
 import { SuiClient, getFullnodeUrl } from "@mysten/sui/client"
 import Link from "next/link"
+import { suiClient } from "@/lib/sui-client"
 
 interface Launch {
 	coinType: string
@@ -54,11 +55,10 @@ export default function SearchByCreatorPage() {
 			const launches: Launch[] = data.launches || []
 
 			// @dev: Fetch metadata for each token using SuiClient
-			const client = new SuiClient({ url: getFullnodeUrl("mainnet") })
 			const tokensWithMetadata = await Promise.all(
 				launches.map(async (launch) => {
 					try {
-						const metadata = await client.getCoinMetadata({ coinType: launch.coinType })
+						const metadata = await suiClient.getCoinMetadata({ coinType: launch.coinType })
 						return {
 							...launch,
 							name: metadata?.name,

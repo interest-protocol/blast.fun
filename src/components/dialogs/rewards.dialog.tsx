@@ -7,13 +7,14 @@ import { Loader2 } from "lucide-react"
 import toast from "react-hot-toast"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { useApp } from "@/context/app.context"
-import { MemezWalletSDK } from "@interest-protocol/memez-fun-sdk"
-import { getFullnodeUrl, SuiClient } from "@mysten/sui/client"
+import { SuiClient } from "@mysten/sui/client"
 import { Transaction } from "@mysten/sui/transactions"
 import { useCurrentAccount, useSignAndExecuteTransaction } from "@mysten/dapp-kit"
 import type { CoinStruct } from "@mysten/sui/client"
 import type { WalletCoin } from "@/types/blockvision"
 import { useTransaction } from "@/hooks/sui/use-transaction"
+import { walletSdk } from "@/lib/pump"
+import { suiClient } from "@/lib/sui-client"
 
 interface RewardsDialogProps {
 	open: boolean
@@ -29,9 +30,6 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 	const [claimingCoinType, setClaimingCoinType] = useState<string | null>(null)
 	const [memezWalletAddress, setMemezWalletAddress] = useState<string | null>(null)
 	const { executeTransaction } = useTransaction()
-	
-	// Initialize MemezWalletSDK
-	const walletSdk = new MemezWalletSDK()
 
 	// Shared function to merge coins and prepare receive operation
 	const mergeAndPrepareReceive = async (
@@ -258,7 +256,6 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 		const loadingToastId = toast.loading("Preparing your reward...")
 		
 		try {
-			const suiClient = new SuiClient({ url: getFullnodeUrl("mainnet") })
 			const tx = new Transaction()
 			
 			// Merge and prepare receive for this coin
@@ -304,7 +301,6 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 		let progressToastId: string | undefined
 		
 		try {
-			const suiClient = new SuiClient({ url: getFullnodeUrl("mainnet") })
 			const tx = new Transaction()
 			
 			// Process each coin sequentially with progress updates
