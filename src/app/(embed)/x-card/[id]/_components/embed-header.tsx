@@ -1,13 +1,9 @@
 "use client"
 
-import Balance from "@/components/balance"
 import { UserDropdown } from "@/components/user/user-dropdown"
-import { useApp } from "@/context/app.context"
 import { Logo } from "@/components/ui/logo"
 
 export function EmbedHeader() {
-	const { isConnected } = useApp()
-
 	return (
 		<header className="border-b border-border bg-background">
 			<div className="flex items-center justify-between px-3 py-2.5">
