@@ -71,12 +71,6 @@ export function TermsPrivacyDialog() {
 							<li>
 								<strong className="text-primary">Platform Fees:</strong> You agree to pay all applicable fees. Fee calculations are final unless there is a manifest error.
 							</li>
-							<li>
-								<strong className="text-primary">No Warranties:</strong> The platform is provided &ldquo;as is&rdquo; without warranties. GiveRep Labs is not liable for indirect or consequential damages.
-							</li>
-							<li>
-								<strong className="text-primary">Dispute Resolution:</strong> You waive your right to class action lawsuits. All disputes are subject to mandatory, binding arbitration under BVI law.
-							</li>
 						</ol>
 
 						<p className="mt-3">
