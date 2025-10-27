@@ -24,7 +24,7 @@ export function ToolCard({
 			<div className="flex flex-col h-full">
 				{comingSoon && (
 					<div className="mb-3 self-end">
-						<span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground/60 bg-secondary px-2 py-1 rounded">
+						<span className="text-[10px] font-mono uppercase tracking-wider text-destructive/80 bg-destructive/20 px-2 py-1 rounded">
 							Coming Soon
 						</span>
 					</div>
