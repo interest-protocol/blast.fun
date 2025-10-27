@@ -100,5 +100,10 @@
 		"tree-kill": "^1.2.2",
 		"tw-animate-css": "^1.3.0",
 		"typescript": "^5"
+	},
+	"pnpm": {
+		"overrides": {
+			"@mysten/sui": "1.38.0"
+		}
 	}
 }
