@@ -13,7 +13,7 @@ import { useCurrentAccount, useSignAndExecuteTransaction } from "@mysten/dapp-ki
 import type { CoinStruct } from "@mysten/sui/client"
 import type { WalletCoin } from "@/types/blockvision"
 import { useTransaction } from "@/hooks/sui/use-transaction"
-import { walletSdk } from "@/lib/pump"
+import { walletSdk } from "@/lib/memez/sdk"
 import { suiClient } from "@/lib/sui-client"
 
 interface RewardsDialogProps {

@@ -1,7 +1,7 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { fetchMarketTrades } from "@/lib/pump/fetch-market-trades"
+import { fetchMarketTrades } from "@/lib/memez/fetch-market-trades"
 
 interface UseTradesOptions {
   coinType: string

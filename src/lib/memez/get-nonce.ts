@@ -3,7 +3,7 @@ import { Transaction } from "@mysten/sui/transactions"
 import { bcs } from "@mysten/sui/bcs"
 import { normalizeSuiAddress, normalizeStructTag } from "@mysten/sui/utils"
 import { suiClient } from "@/lib/sui-client"
-import { pumpSdk } from "../pump"
+import { pumpSdk } from "."
 
 export interface GetNonceArgs {
 	poolId: string

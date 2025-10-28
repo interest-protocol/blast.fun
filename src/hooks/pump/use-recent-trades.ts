@@ -1,7 +1,7 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { fetchRecentTrades } from "@/lib/pump/fetch-trades"
+import { fetchRecentTrades } from "@/lib/memez/fetch-trades"
 
 interface UseRecentTradesOptions {
 	page?: number

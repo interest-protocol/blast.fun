@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getFullnodeUrl, SuiClient } from "@mysten/sui/client"
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519"
 import { toHex, fromHex } from "@mysten/sui/utils"
-import { MemezWalletSDK } from "@interest-protocol/memez-fun-sdk"
 import { suiSponsorship, GasStationError } from "@3mate/gas-station-sdk"
-import { walletSdk } from "@/lib/pump"
+import { walletSdk } from "@/lib/memez/sdk"
 import { suiClient } from "@/lib/sui-client"
 
 const GAS_STATION_API_KEY = process.env.GAS_STATION_API_KEY || ""

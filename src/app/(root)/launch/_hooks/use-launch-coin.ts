@@ -23,7 +23,7 @@ import { useTwitter } from "@/context/twitter.context"
 import { useTransaction } from "@/hooks/sui/use-transaction"
 import { getBytecode } from "@/lib/move-template/coin"
 import initMoveByteCodeTemplate from "@/lib/move-template/move-bytecode-template"
-import { pumpSdk } from "@/lib/pump"
+import { pumpSdk } from "@/lib/memez/sdk"
 import { getCreatedObjectByType, getTxExplorerUrl } from "@/utils/transaction"
 import { TokenFormValues } from "../_components/create-token-form"
 

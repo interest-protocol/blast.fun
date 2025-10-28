@@ -6,7 +6,7 @@ import toast from "react-hot-toast"
 import { useApp } from "@/context/app.context"
 import { VestingApi, type VestingPosition as ApiVestingPosition, type CoinMetadata } from "@/lib/getVesting"
 import { VestingPosition } from "../vesting.utils"
-import { vestingSdk } from "@/lib/pump"
+import { vestingSdk } from "@/lib/memez/sdk"
 
 export function useVestingApi() {
 	const { address } = useApp()

@@ -16,7 +16,7 @@ import { useTransaction } from "@/hooks/sui/use-transaction"
 import toast from "react-hot-toast"
 import { suiClient } from "@/lib/sui-client"
 import { CoinMetadata } from "@mysten/sui/client"
-import { vestingSdk } from "@/lib/pump"
+import { vestingSdk } from "@/lib/memez/sdk"
 
 interface VestingPositionsProps {
 	shouldRefresh?: boolean

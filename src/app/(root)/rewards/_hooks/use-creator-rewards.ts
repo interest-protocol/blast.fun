@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { useApp } from "@/context/app.context"
 import toast from "react-hot-toast"
-import { migratorSdk } from "@/lib/pump"
+import { migratorSdk } from "@/lib/memez/sdk"
 import { useTransaction } from "@/hooks/sui/use-transaction"
 import { playSound } from "@/lib/audio"
 import { interestProtocolApi } from "@/lib/interest-protocol-api"

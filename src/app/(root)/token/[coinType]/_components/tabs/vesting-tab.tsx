@@ -17,7 +17,7 @@ import BigNumber from "bignumber.js"
 import { formatNumber, formatNumberWithPercentage } from "@/lib/format"
 import { Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { vestingSdk } from "@/lib/pump"
+import { vestingSdk } from "@/lib/memez/sdk"
 
 interface VestingTabProps {
 	pool: Token

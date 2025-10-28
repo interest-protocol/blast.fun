@@ -30,7 +30,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { cn } from "@/utils"
 import BigNumber from "bignumber.js"
-import { vestingSdk } from "@/lib/pump"
+import { vestingSdk } from "@/lib/memez/sdk"
 
 interface CreateVestingProps {
 	onVestingCreated?: () => void

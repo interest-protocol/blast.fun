@@ -5,7 +5,7 @@ import { useApp } from "@/context/app.context"
 import { suiClient } from "@/lib/sui-client"
 import { VestingPosition } from "../vesting.utils"
 import toast from "react-hot-toast"
-import { vestingSdk } from "@/lib/pump"
+import { vestingSdk } from "@/lib/memez/sdk"
 
 export function useVesting() {
 	const { address } = useApp()
