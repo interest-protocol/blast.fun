@@ -1,14 +1,11 @@
-"use client"
+import { constructMetadata } from "@/lib/metadata"
+import ToolsContent from "./_components/tool-content"
 
-import { ToolCard } from "./_components/tool-card"
-import { toolItems } from "@/constants/tools"
+export const metadata = constructMetadata({
+	title: "Tools",
+	description: "Token management tools for airdrops, vesting schedules, DCA strategies, and more",
+})
 
 export default function ToolsPage() {
-	return (
-		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-			{toolItems.map((tool) => (
-				<ToolCard key={tool.title} {...tool} />
-			))}
-		</div>
-	)
+	return <ToolsContent />
 }
