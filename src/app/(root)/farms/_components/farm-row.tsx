@@ -7,7 +7,7 @@ import type { InterestFarm, InterestAccount } from "@interest-protocol/farms"
 import { interestProtocolApi, CoinMetadata } from "@/lib/interest-protocol-api"
 import { TokenAvatar } from "@/components/tokens/token-avatar"
 import { Skeleton } from "@/components/ui/skeleton"
-import { SECONDS_IN_YEAR } from "../farms.const"
+import { SECONDS_IN_YEAR, POW_9 } from "../farms.const"
 import { useSuiPrice } from "@/hooks/sui/use-sui-price"
 import { fetchTokenByCoinType } from "@/lib/fetch-token-by-cointype"
 import { useRouter } from "next/navigation"
@@ -69,6 +69,11 @@ export function FarmRow({ farm, account }: FarmRowProps) {
 	const tokenSymbol = metadata?.symbol || farm.stakeCoinType.split("::").pop() || "UNKNOWN"
 	const tokenName = metadata?.name || tokenSymbol
 
+	const tvlAmount = Number(farm.totalStakeAmount) / Number(POW_9)
+	const tvlUsd = tvlAmount * stakeTokenPrice
+	const stakedAmount = Number(staked) / Number(POW_9)
+	const stakedUsd = stakedAmount * stakeTokenPrice
+
 	return (
 		<button
 			onClick={() => router.push(`/farms/${farm.objectId}`)}
@@ -94,11 +99,17 @@ export function FarmRow({ farm, account }: FarmRowProps) {
 					</div>
 					<div className="hidden md:flex flex-col items-end min-w-[120px]">
 						<p className="font-mono text-xs text-muted-foreground uppercase tracking-wider">TVL</p>
-						<p className="font-mono text-sm font-semibold">{formatNumberWithSuffix(Number(farm.totalStakeAmount) / 1e9)} {tokenSymbol}</p>
+						<p className="font-mono text-sm font-semibold">{formatNumberWithSuffix(tvlAmount)} {tokenSymbol}</p>
+						{stakeTokenPrice > 0 && (
+							<p className="font-mono text-xs text-muted-foreground">${formatNumberWithSuffix(tvlUsd)}</p>
+						)}
 					</div>
 					<div className="hidden md:flex flex-col items-end min-w-[120px]">
 						<p className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Your Stake</p>
-						<p className="font-mono text-sm font-semibold">{formatNumberWithSuffix(Number(staked) / 1e9)} {tokenSymbol}</p>
+						<p className="font-mono text-sm font-semibold">{formatNumberWithSuffix(stakedAmount)} {tokenSymbol}</p>
+						{stakeTokenPrice > 0 && staked > 0n && (
+							<p className="font-mono text-xs text-muted-foreground">${formatNumberWithSuffix(stakedUsd)}</p>
+						)}
 					</div>
 					<ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
 				</div>

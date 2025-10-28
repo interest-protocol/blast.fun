@@ -11,6 +11,7 @@ import { cn } from "@/utils"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { useFarmOperations } from "../_hooks/use-farm-operations"
 import { TokenAvatar } from "@/components/tokens/token-avatar"
+import { POW_9 } from "../../farms.const"
 
 interface FarmTerminalProps {
 	farm: InterestFarm
@@ -26,11 +27,11 @@ export function FarmTerminal({ farm, account, metadata, onOperationSuccess }: Fa
 
 	const { balance: tokenBalance } = useBalance(farm.stakeCoinType)
 	const tokenBalanceBigInt = BigInt(tokenBalance || "0")
-	const tokenBalanceInDisplayUnit = Number(tokenBalanceBigInt) / 1e9
+	const tokenBalanceInDisplayUnit = Number(tokenBalanceBigInt) / Number(POW_9)
 
 	const rewardCoinType = farm.rewardTypes[0] || ""
 	const staked = account?.stakeBalance || 0n
-	const stakedInDisplayUnit = Number(staked) / 1e9
+	const stakedInDisplayUnit = Number(staked) / Number(POW_9)
 
 	const tokenSymbol = metadata?.symbol || "TOKEN"
 
@@ -103,7 +104,7 @@ export function FarmTerminal({ farm, account, metadata, onOperationSuccess }: Fa
 	const isProcessing = isStaking || isUnstaking
 
 	return (
-		<div className="p-4 space-y-4">
+		<div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
 			{/* Deposit/Withdraw Tabs */}
 			<div className="grid grid-cols-2 gap-1 p-1 bg-muted/30 rounded-lg">
 				<button
@@ -133,9 +134,9 @@ export function FarmTerminal({ farm, account, metadata, onOperationSuccess }: Fa
 			</div>
 
 			{/* Input Section */}
-			<div className="border rounded-lg p-6 space-y-6 bg-muted/5">
+			<div className="border rounded-lg p-3 sm:p-6 space-y-4 sm:space-y-6 bg-muted/5">
 				{/* Header */}
-				<div className="flex justify-between items-center text-sm">
+				<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-sm">
 					<div className="flex items-center gap-2 text-muted-foreground">
 						<Wallet className="h-4 w-4" />
 						<span className="font-mono">Balance</span>
@@ -156,35 +157,35 @@ export function FarmTerminal({ farm, account, metadata, onOperationSuccess }: Fa
 				</div>
 
 				{/* Input */}
-				<div className="space-y-4">
+				<div className="space-y-3 sm:space-y-4">
 					<div className="flex items-center gap-2">
 						<input
 							type="text"
 							placeholder="0.00"
 							value={amount}
 							onChange={(e) => setAmount(e.target.value)}
-							className="flex-1 bg-transparent text-3xl font-medium outline-none placeholder:text-muted-foreground/50 text-foreground min-w-0"
+							className="flex-1 bg-transparent text-2xl sm:text-3xl font-medium outline-none placeholder:text-muted-foreground/50 text-foreground min-w-0"
 							disabled={isProcessing}
 							inputMode="decimal"
 						/>
-						<div className="flex items-center gap-2 px-4 py-3 bg-muted/20 rounded-md border border-border/50 shrink-0">
+						<div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 bg-muted/20 rounded-md border border-border/50 shrink-0">
 							<TokenAvatar
 								iconUrl={metadata?.iconUrl}
 								symbol={tokenSymbol}
-								className="w-6 h-6 rounded-full"
+								className="w-5 h-5 sm:w-6 sm:h-6 rounded-full"
 								enableHover={false}
 							/>
-							<span className="text-base font-medium whitespace-nowrap">{tokenSymbol}</span>
+							<span className="text-sm sm:text-base font-medium whitespace-nowrap">{tokenSymbol}</span>
 						</div>
 					</div>
 
 					{/* Quick Actions */}
-					<div className="flex justify-end gap-2">
+					<div className="flex justify-end gap-1.5 sm:gap-2">
 						{[25, 50, 75, 100].map((percentage) => (
 							<button
 								key={percentage}
 								className={cn(
-									"py-2 px-3 rounded-md flex justify-center items-center",
+									"py-1.5 sm:py-2 px-2 sm:px-3 rounded-md flex justify-center items-center",
 									"border border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20",
 									"transition-all duration-200",
 									"group",

@@ -73,12 +73,14 @@ export function FarmDetail({ farmId }: FarmDetailProps) {
 					</Button>
 				</div>
 
-				<div className="mx-auto flex w-full max-w-150 flex-col gap-4 lg:max-w-none lg:flex-row lg:items-start lg:gap-6">
-					<div className="min-w-lg border border-border/80 rounded-lg bg-card/50 shadow-md backdrop-blur-sm">
+				<div className="flex w-full flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
+					<div className="w-full lg:w-auto lg:min-w-[480px] border border-border/80 rounded-lg bg-card/50 shadow-md backdrop-blur-sm">
 						<FarmTerminal farm={farm} account={account} metadata={metadata} onOperationSuccess={fetchFarmData} />
 					</div>
 
-					<FarmInfo farm={farm} account={account} metadata={metadata} onOperationSuccess={fetchFarmData} />
+					<div className="w-full lg:flex-1">
+						<FarmInfo farm={farm} account={account} metadata={metadata} onOperationSuccess={fetchFarmData} />
+					</div>
 				</div>
 			</div>
 		</div>

@@ -12,7 +12,7 @@ import { useSuiPrice } from "@/hooks/sui/use-sui-price"
 import { fetchTokenByCoinType } from "@/lib/fetch-token-by-cointype"
 import { farmsSdk } from "@/lib/farms"
 import { useFarmOperations } from "../_hooks/use-farm-operations"
-import { SECONDS_IN_YEAR } from "../../farms.const"
+import { SECONDS_IN_YEAR, POW_9 } from "../../farms.const"
 
 interface FarmInfoProps {
 	farm: InterestFarm
@@ -29,6 +29,9 @@ export function FarmInfo({ farm, account, metadata, onOperationSuccess }: FarmIn
 
 	const rewardCoinType = farm.rewardTypes[0] || ""
 	const tokenSymbol = metadata?.symbol || "UNKNOWN"
+
+	const tvlAmount = Number(farm.totalStakeAmount) / Number(POW_9)
+	const tvlUsd = tvlAmount * stakeTokenPrice
 
 	const { harvest, isHarvesting } = useFarmOperations({
 		farmId: farm.objectId,
@@ -126,44 +129,46 @@ export function FarmInfo({ farm, account, metadata, onOperationSuccess }: FarmIn
 	}
 
 	return (
-		<div className="flex-1 border border-border/80 shadow-md rounded-lg bg-card/50 backdrop-blur-sm p-6">
+		<div className="w-full border border-border/80 shadow-md rounded-lg bg-card/50 backdrop-blur-sm p-3 sm:p-6">
 			{/* Header */}
-			<div className="flex items-center justify-between gap-4 mb-4 pb-4 border-b border-border/30">
-				<div className="flex items-center gap-4">
+			<div className="flex items-start sm:items-center justify-between gap-3 sm:gap-4 mb-3 sm:mb-4 pb-3 sm:pb-4 border-b border-border/30">
+				<div className="flex items-center gap-3 sm:gap-4">
 					<TokenAvatar
 						iconUrl={metadata?.iconUrl}
 						symbol={tokenSymbol}
-						className="w-16 h-16 rounded-lg"
+						className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg"
 						enableHover={false}
 					/>
 					<div>
-						<h2 className="font-mono text-xl font-bold">{tokenName}</h2>
-						<p className="font-mono text-sm text-muted-foreground">{tokenSymbol}</p>
+						<h2 className="font-mono text-lg sm:text-xl font-bold">{tokenName}</h2>
+						<p className="font-mono text-xs sm:text-sm text-muted-foreground">{tokenSymbol}</p>
 					</div>
 				</div>
-				<div className="text-right">
+				<div className="text-right flex-shrink-0">
 					<p className="font-mono text-xs text-muted-foreground uppercase tracking-wider mb-1">TVL</p>
 					<p className="font-mono text-lg font-semibold">
-						{formatNumberWithSuffix(Number(farm.totalStakeAmount) / 1e9)}
+						{formatNumberWithSuffix(tvlAmount)} <span className="text-muted-foreground text-sm">{tokenSymbol}</span>
 					</p>
-					<p className="font-mono text-xs text-muted-foreground mt-0.5">{tokenSymbol}</p>
+					{stakeTokenPrice > 0 && (
+						<p className="font-mono text-xs text-muted-foreground">${formatNumberWithSuffix(tvlUsd)}</p>
+					)}
 				</div>
 			</div>
 
 			{/* Stats */}
-			<div className="grid grid-cols-2 gap-4">
+			<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
 				{/* APR */}
-				<div className="p-4 rounded-lg border shadow-sm bg-muted/10">
+				<div className="p-3 sm:p-4 rounded-lg border shadow-sm bg-muted/10">
 					<p className="font-mono text-xs text-muted-foreground uppercase tracking-wider mb-2">APR</p>
 					{isAprLoading ? (
-						<Skeleton className="h-8 w-24" />
+						<Skeleton className="h-6 sm:h-8 w-20 sm:w-24" />
 					) : (
-						<p className="font-mono text-2xl font-bold text-green-500">{formatPercentage(apr)}%</p>
+						<p className="font-mono text-xl sm:text-2xl font-bold text-green-500">{formatPercentage(apr)}%</p>
 					)}
 				</div>
 
 				{/* Pending Rewards */}
-				<div className="p-4 rounded-lg border shadow-sm bg-muted/10">
+				<div className="p-3 sm:p-4 rounded-lg border shadow-sm bg-muted/10">
 					<div className="flex items-center justify-between mb-2">
 					<p className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Pending Rewards</p>
 					<div className="relative w-4 h-4">
@@ -190,10 +195,10 @@ export function FarmInfo({ farm, account, metadata, onOperationSuccess }: FarmIn
 						</svg>
 					</div>
 				</div>
-					<div className="flex items-center justify-between">
+					<div className="flex items-center justify-between gap-2">
 						<div>
-							<p className="font-mono text-lg font-semibold text-blue-400">
-								{formatNumberWithSuffix(Number(pendingRewards) / 1e9)}
+							<p className="font-mono text-base sm:text-lg font-semibold text-blue-400">
+								{formatNumberWithSuffix(Number(pendingRewards) / Number(POW_9))}
 							</p>
 							<p className="font-mono text-xs text-muted-foreground mt-0.5">SUI</p>
 						</div>
@@ -202,7 +207,7 @@ export function FarmInfo({ farm, account, metadata, onOperationSuccess }: FarmIn
 								onClick={harvest}
 								disabled={isHarvesting || !account}
 								size="sm"
-								className="font-mono uppercase tracking-wider text-xs h-8 px-3 whitespace-nowrap"
+								className="font-mono uppercase tracking-wider text-xs h-7 sm:h-8 px-2 sm:px-3 whitespace-nowrap"
 							>
 								{isHarvesting ? (
 									<>
