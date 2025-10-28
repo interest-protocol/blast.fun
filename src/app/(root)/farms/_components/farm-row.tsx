@@ -72,7 +72,7 @@ export function FarmRow({ farm, account }: FarmRowProps) {
 	return (
 		<button
 			onClick={() => router.push(`/farms/${farm.objectId}`)}
-			className="w-full border border-border/50 rounded-lg bg-card/50 backdrop-blur-sm overflow-hidden transition-all hover:border-border hover:bg-card/70"
+			className="w-full border border-border/50 rounded-lg bg-card/50 backdrop-blur-sm overflow-hidden transition-all hover:border-border hover:cursor-pointer hover:bg-card/70"
 		>
 			<div className="flex items-center justify-between p-3 md:p-4">
 				<div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
