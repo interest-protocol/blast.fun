@@ -1,13 +1,6 @@
 import { formatAmount } from "@/utils/format"
 import { POW_9 } from "./farms.const"
 
-export function calculatePercentageAmount(
-	balance: bigint,
-	percentage: number,
-): bigint {
-	return (balance * BigInt(percentage)) / 100n
-}
-
 export function parseInputAmount(input: string): bigint {
 	if (!input || input === "") return 0n
 
