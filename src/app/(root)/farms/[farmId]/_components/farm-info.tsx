@@ -8,8 +8,9 @@ import { Loader2 } from "lucide-react"
 import { formatNumberWithSuffix } from "@/utils/format"
 import type { InterestFarm, InterestAccount } from "@interest-protocol/farms"
 import type { CoinMetadata } from "@/lib/interest-protocol-api"
+import type { TokenMetadata } from "@/types/token"
 import { useSuiPrice } from "@/hooks/sui/use-sui-price"
-import { fetchTokenByCoinType } from "@/lib/fetch-token-by-cointype"
+import { nexaClient } from "@/lib/nexa"
 import { farmsSdk } from "@/lib/farms"
 import { useFarmOperations } from "../_hooks/use-farm-operations"
 import { SECONDS_IN_YEAR, POW_9 } from "../../farms.const"
@@ -23,12 +24,15 @@ interface FarmInfoProps {
 
 export function FarmInfo({ farm, account, metadata, onOperationSuccess }: FarmInfoProps) {
 	const [stakeTokenPrice, setStakeTokenPrice] = useState<number>(0)
+	const [rewardMetadata, setRewardMetadata] = useState<TokenMetadata | null>(null)
 	const [pendingRewards, setPendingRewards] = useState<bigint>(0n)
 	const [refreshCountdown, setRefreshCountdown] = useState<number>(60)
 	const suiPrice = useSuiPrice()
 
 	const rewardCoinType = farm.rewardTypes[0] || ""
 	const tokenSymbol = metadata?.symbol || "UNKNOWN"
+	const rewardSymbol = rewardMetadata?.symbol || "SUI"
+	const rewardDecimals = rewardMetadata?.decimals || 9
 
 	const tvlAmount = Number(farm.totalStakeAmount) / Number(POW_9)
 	const tvlUsd = tvlAmount * stakeTokenPrice
@@ -66,9 +70,9 @@ export function FarmInfo({ farm, account, metadata, onOperationSuccess }: FarmIn
 	useEffect(() => {
 		const fetchPrice = async () => {
 			try {
-				const tokenData = await fetchTokenByCoinType(farm.stakeCoinType)
-				if (tokenData?.market?.price) {
-					setStakeTokenPrice(tokenData.market.price)
+				const marketData = await nexaClient.getMarketData(farm.stakeCoinType)
+				if (marketData?.price) {
+					setStakeTokenPrice(marketData.price)
 				}
 			} catch (error) {
 				console.error("Failed to fetch token price:", error)
@@ -77,6 +81,23 @@ export function FarmInfo({ farm, account, metadata, onOperationSuccess }: FarmIn
 
 		fetchPrice()
 	}, [farm.stakeCoinType])
+
+	useEffect(() => {
+		const fetchRewardMetadata = async () => {
+			if (!rewardCoinType) return
+
+			try {
+				const metadata = await nexaClient.getCoinMetadata(rewardCoinType)
+				if (metadata) {
+					setRewardMetadata(metadata)
+				}
+			} catch (error) {
+				console.error("Failed to fetch reward token metadata:", error)
+			}
+		}
+
+		fetchRewardMetadata()
+	}, [rewardCoinType])
 
 	// get pending rewards
 	useEffect(() => {
@@ -198,9 +219,9 @@ export function FarmInfo({ farm, account, metadata, onOperationSuccess }: FarmIn
 					<div className="flex items-center justify-between gap-2">
 						<div>
 							<p className="font-mono text-base sm:text-lg font-semibold text-blue-400">
-								{formatNumberWithSuffix(Number(pendingRewards) / Number(POW_9))}
+								{formatNumberWithSuffix(Number(pendingRewards) / Math.pow(10, rewardDecimals))}
 							</p>
-							<p className="font-mono text-xs text-muted-foreground mt-0.5">SUI</p>
+							<p className="font-mono text-xs text-muted-foreground mt-0.5">{rewardSymbol}</p>
 						</div>
 						{pendingRewards > 0n && (
 							<Button
