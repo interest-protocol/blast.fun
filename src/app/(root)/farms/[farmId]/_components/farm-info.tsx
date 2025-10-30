@@ -9,7 +9,6 @@ import { formatNumberWithSuffix } from "@/utils/format"
 import type { InterestFarm, InterestAccount } from "@interest-protocol/farms"
 import type { CoinMetadata } from "@/lib/interest-protocol-api"
 import type { TokenMetadata } from "@/types/token"
-import { useSuiPrice } from "@/hooks/sui/use-sui-price"
 import { nexaClient } from "@/lib/nexa"
 import { farmsSdk } from "@/lib/farms"
 import { useFarmOperations } from "../_hooks/use-farm-operations"
@@ -24,10 +23,10 @@ interface FarmInfoProps {
 
 export function FarmInfo({ farm, account, metadata, onOperationSuccess }: FarmInfoProps) {
 	const [stakeTokenPrice, setStakeTokenPrice] = useState<number>(0)
+	const [rewardTokenPrice, setRewardTokenPrice] = useState<number>(0)
 	const [rewardMetadata, setRewardMetadata] = useState<TokenMetadata | null>(null)
 	const [pendingRewards, setPendingRewards] = useState<bigint>(0n)
 	const [refreshCountdown, setRefreshCountdown] = useState<number>(60)
-	const suiPrice = useSuiPrice()
 
 	const rewardCoinType = farm.rewardTypes[0] || ""
 	const tokenSymbol = metadata?.symbol || "UNKNOWN"
@@ -46,9 +45,9 @@ export function FarmInfo({ farm, account, metadata, onOperationSuccess }: FarmIn
 		onSuccess: onOperationSuccess,
 	})
 
-	const isAprLoading = suiPrice.loading || stakeTokenPrice === 0
+	const isAprLoading = stakeTokenPrice === 0 || rewardTokenPrice === 0
 	const apr = useMemo(() => {
-		if (!rewardCoinType || !farm.rewardData[rewardCoinType] || suiPrice.loading || stakeTokenPrice === 0) {
+		if (!rewardCoinType || !farm.rewardData[rewardCoinType] || stakeTokenPrice === 0 || rewardTokenPrice === 0) {
 			return 0
 		}
 
@@ -60,27 +59,37 @@ export function FarmInfo({ farm, account, metadata, onOperationSuccess }: FarmIn
 			return 0
 		}
 
-		const numerator = Number(rewardsPerSecond) * Number(SECONDS_IN_YEAR) * suiPrice.usd
+		const numerator = Number(rewardsPerSecond) * Number(SECONDS_IN_YEAR) * rewardTokenPrice
 		const denominator = Number(totalStakedAmount) * stakeTokenPrice
 		const aprValue = (numerator / denominator) * 100
 
 		return isFinite(aprValue) ? aprValue : 0
-	}, [rewardCoinType, farm.rewardData, farm.totalStakedAmount, suiPrice.usd, suiPrice.loading, stakeTokenPrice])
+	}, [rewardCoinType, farm.rewardData, farm.totalStakedAmount, rewardTokenPrice, stakeTokenPrice])
 
 	useEffect(() => {
-		const fetchPrice = async () => {
+		const fetchPrices = async () => {
+			if (!rewardCoinType) return
+
 			try {
-				const marketData = await nexaClient.getMarketData(farm.stakeCoinType)
-				if (marketData?.coinPrice) {
-					setStakeTokenPrice(marketData.coinPrice)
+				const [stakeMarketData, rewardMarketData] = await Promise.all([
+					nexaClient.getMarketData(farm.stakeCoinType),
+					nexaClient.getMarketData(rewardCoinType),
+				])
+
+				if (stakeMarketData?.coinPrice) {
+					setStakeTokenPrice(stakeMarketData.coinPrice)
+				}
+
+				if (rewardMarketData?.coinPrice) {
+					setRewardTokenPrice(rewardMarketData.coinPrice)
 				}
 			} catch (error) {
-				console.error("Failed to fetch token price:", error)
+				console.error("Failed to fetch token prices:", error)
 			}
 		}
 
-		fetchPrice()
-	}, [farm.stakeCoinType])
+		fetchPrices()
+	}, [farm.stakeCoinType, rewardCoinType])
 
 	useEffect(() => {
 		const fetchRewardMetadata = async () => {

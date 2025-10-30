@@ -8,8 +8,7 @@ import { interestProtocolApi, CoinMetadata } from "@/lib/interest-protocol-api"
 import { TokenAvatar } from "@/components/tokens/token-avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { SECONDS_IN_YEAR, POW_9 } from "../farms.const"
-import { useSuiPrice } from "@/hooks/sui/use-sui-price"
-import { fetchTokenByCoinType } from "@/lib/fetch-token-by-cointype"
+import { nexaClient } from "@/lib/nexa"
 import { useRouter } from "next/navigation"
 
 interface FarmRowProps {
@@ -21,15 +20,15 @@ export function FarmRow({ farm, account }: FarmRowProps) {
 	const router = useRouter()
 	const [metadata, setMetadata] = useState<CoinMetadata | null>(null)
 	const [stakeTokenPrice, setStakeTokenPrice] = useState<number>(0)
-	const suiPrice = useSuiPrice()
+	const [rewardTokenPrice, setRewardTokenPrice] = useState<number>(0)
 
 	const rewardCoinType = farm.rewardTypes[0] || ""
 	const staked = account?.stakeBalance || 0n
 
-	const isAprLoading = suiPrice.loading || stakeTokenPrice === 0
+	const isAprLoading = stakeTokenPrice === 0 || rewardTokenPrice === 0
 
 	const apr = useMemo(() => {
-		if (!rewardCoinType || !farm.rewardData[rewardCoinType] || suiPrice.loading || stakeTokenPrice === 0) {
+		if (!rewardCoinType || !farm.rewardData[rewardCoinType] || stakeTokenPrice === 0 || rewardTokenPrice === 0) {
 			return 0
 		}
 
@@ -41,30 +40,50 @@ export function FarmRow({ farm, account }: FarmRowProps) {
 			return 0
 		}
 
-		const numerator = Number(rewardsPerSecond) * Number(SECONDS_IN_YEAR) * suiPrice.usd
+		const numerator = Number(rewardsPerSecond) * Number(SECONDS_IN_YEAR) * rewardTokenPrice
 		const denominator = Number(totalStakedAmount) * stakeTokenPrice
 		const aprValue = (numerator / denominator) * 100
 
 		return isFinite(aprValue) ? aprValue : 0
-	}, [rewardCoinType, farm.rewardData, farm.totalStakedAmount, suiPrice.usd, suiPrice.loading, stakeTokenPrice])
+	}, [rewardCoinType, farm.rewardData, farm.totalStakedAmount, rewardTokenPrice, stakeTokenPrice])
 
 	useEffect(() => {
-		const fetchMetadataAndPrice = async () => {
+		const fetchMetadata = async () => {
 			try {
 				const meta = await interestProtocolApi.getCoinMetadata(farm.stakeCoinType)
 				setMetadata(meta)
-
-				const tokenData = await fetchTokenByCoinType(farm.stakeCoinType)
-				if (tokenData?.market?.price) {
-					setStakeTokenPrice(tokenData.market.price)
-				}
 			} catch (error) {
-				console.error("Failed to fetch token metadata or price:", error)
+				console.error("Failed to fetch token metadata:", error)
 			}
 		}
 
-		fetchMetadataAndPrice()
+		fetchMetadata()
 	}, [farm.stakeCoinType])
+
+	useEffect(() => {
+		const fetchPrices = async () => {
+			if (!rewardCoinType) return
+
+			try {
+				const [stakeMarketData, rewardMarketData] = await Promise.all([
+					nexaClient.getMarketData(farm.stakeCoinType),
+					nexaClient.getMarketData(rewardCoinType),
+				])
+
+				if (stakeMarketData?.coinPrice) {
+					setStakeTokenPrice(stakeMarketData.coinPrice)
+				}
+
+				if (rewardMarketData?.coinPrice) {
+					setRewardTokenPrice(rewardMarketData.coinPrice)
+				}
+			} catch (error) {
+				console.error("Failed to fetch token prices:", error)
+			}
+		}
+
+		fetchPrices()
+	}, [farm.stakeCoinType, rewardCoinType])
 
 	const tokenSymbol = metadata?.symbol || farm.stakeCoinType.split("::").pop() || "UNKNOWN"
 	const tokenName = metadata?.name || tokenSymbol
