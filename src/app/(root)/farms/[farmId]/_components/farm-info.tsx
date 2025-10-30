@@ -42,6 +42,8 @@ export function FarmInfo({ farm, account, metadata, onOperationSuccess }: FarmIn
 		rewardCoinType,
 		account,
 		tokenSymbol,
+		rewardSymbol,
+		rewardDecimals,
 		onSuccess: onOperationSuccess,
 	})
 

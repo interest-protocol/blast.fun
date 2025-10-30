@@ -1,16 +1,18 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Loader2, Wallet } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useApp } from "@/context/app.context"
 import { useBalance } from "@/hooks/sui/use-balance"
 import type { InterestFarm, InterestAccount } from "@interest-protocol/farms"
 import type { CoinMetadata } from "@/lib/interest-protocol-api"
+import type { TokenMetadata } from "@/types/token"
 import { cn } from "@/utils"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { useFarmOperations } from "../_hooks/use-farm-operations"
 import { TokenAvatar } from "@/components/tokens/token-avatar"
+import { nexaClient } from "@/lib/nexa"
 import { POW_9 } from "../../farms.const"
 
 interface FarmTerminalProps {
@@ -24,6 +26,7 @@ export function FarmTerminal({ farm, account, metadata, onOperationSuccess }: Fa
 	const { isConnected, setIsConnectDialogOpen } = useApp()
 	const [actionType, setActionType] = useState<"deposit" | "withdraw">("deposit")
 	const [amount, setAmount] = useState("")
+	const [rewardMetadata, setRewardMetadata] = useState<TokenMetadata | null>(null)
 
 	const { balance: tokenBalance } = useBalance(farm.stakeCoinType)
 	const tokenBalanceBigInt = BigInt(tokenBalance || "0")
@@ -34,6 +37,25 @@ export function FarmTerminal({ farm, account, metadata, onOperationSuccess }: Fa
 	const stakedInDisplayUnit = Number(staked) / Number(POW_9)
 
 	const tokenSymbol = metadata?.symbol || "TOKEN"
+	const rewardSymbol = rewardMetadata?.symbol || "SUI"
+	const rewardDecimals = rewardMetadata?.decimals || 9
+
+	useEffect(() => {
+		const fetchRewardMetadata = async () => {
+			if (!rewardCoinType) return
+
+			try {
+				const metadata = await nexaClient.getCoinMetadata(rewardCoinType)
+				if (metadata) {
+					setRewardMetadata(metadata)
+				}
+			} catch (error) {
+				console.error("Failed to fetch reward token metadata:", error)
+			}
+		}
+
+		fetchRewardMetadata()
+	}, [rewardCoinType])
 
 	const { stake, unstake, isStaking, isUnstaking } = useFarmOperations({
 		farmId: farm.objectId,
@@ -41,6 +63,8 @@ export function FarmTerminal({ farm, account, metadata, onOperationSuccess }: Fa
 		rewardCoinType,
 		account,
 		tokenSymbol,
+		rewardSymbol,
+		rewardDecimals,
 		onSuccess: () => {
 			setAmount("")
 			onOperationSuccess()

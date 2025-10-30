@@ -15,6 +15,8 @@ interface UseFarmOperationsProps {
 	rewardCoinType: string
 	account?: InterestAccount
 	tokenSymbol?: string
+	rewardSymbol?: string
+	rewardDecimals?: number
 	onSuccess?: () => void
 }
 
@@ -24,6 +26,8 @@ export function useFarmOperations({
 	rewardCoinType,
 	account,
 	tokenSymbol = "tokens",
+	rewardSymbol = "SUI",
+	rewardDecimals = 9,
 	onSuccess,
 }: UseFarmOperationsProps) {
 	const { address } = useApp()
@@ -102,7 +106,7 @@ export function useFarmOperations({
 		setIsHarvesting(true)
 		try {
 			const pendingRewards = account.rewards[rewardCoinType] || 0n
-			const rewardsInSui = Number(pendingRewards) / Number(POW_9)
+			const rewardsAmount = Number(pendingRewards) / Math.pow(10, rewardDecimals)
 
 			const { tx, rewardCoin } = await farmsSdk.harvest({
 				farm: farmId,
@@ -113,7 +117,7 @@ export function useFarmOperations({
 			tx.transferObjects([rewardCoin], address)
 			await executeTransaction(tx)
 
-			toast.success(`Harvested ${formatNumberWithSuffix(rewardsInSui)} SUI rewards`)
+			toast.success(`Harvested ${formatNumberWithSuffix(rewardsAmount)} ${rewardSymbol} rewards`)
 			onSuccess?.()
 		} catch (error) {
 			console.error("Harvest error:", error)
@@ -163,11 +167,11 @@ export function useFarmOperations({
 			await executeTransaction(tx)
 
 			const amountInTokens = Number(amountBigInt) / Number(POW_9)
-			const rewardsInSui = Number(pendingRewards) / Number(POW_9)
+			const rewardsAmount = Number(pendingRewards) / Math.pow(10, rewardDecimals)
 
 			if (hasRewards && isMaxWithdrawal) {
 				toast.success(
-					`Unstaked ${formatNumberWithSuffix(amountInTokens)} ${tokenSymbol} and harvested ${formatNumberWithSuffix(rewardsInSui)} SUI rewards`
+					`Unstaked ${formatNumberWithSuffix(amountInTokens)} ${tokenSymbol} and harvested ${formatNumberWithSuffix(rewardsAmount)} ${rewardSymbol} rewards`
 				)
 			} else {
 				toast.success(`Unstaked ${formatNumberWithSuffix(amountInTokens)} ${tokenSymbol}`)
