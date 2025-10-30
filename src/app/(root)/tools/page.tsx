@@ -1,9 +1,11 @@
-import { AirdropTools } from "./_components/airdrop-tools"
+import { constructMetadata } from "@/lib/metadata"
+import ToolsContent from "./_components/tool-content"
+
+export const metadata = constructMetadata({
+	title: "Tools",
+	description: "Token management tools for airdrops, vesting schedules, DCA strategies, and more",
+})
 
 export default function ToolsPage() {
-	return (
-		<div className="flex justify-center py-8">
-			<AirdropTools />
-		</div>
-	)
+	return <ToolsContent />
 }

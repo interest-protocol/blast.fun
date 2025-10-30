@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { enhanceTokensWithTimeout } from "@/lib/token-response-handler"
+import { enhanceTokens } from "@/lib/enhance-token"
 import { processTokenIconUrls } from "@/lib/process-token-icon-urls"
 
 export const revalidate = 5
@@ -7,12 +7,8 @@ export const revalidate = 5
 export async function GET(request: Request) {
 	try {
 		const { searchParams } = new URL(request.url)
-
-		// @dev: forward any filter params from client
 		const params = new URLSearchParams()
-		searchParams.forEach((value, key) => {
-			params.append(key, value)
-		})
+		searchParams.forEach((value, key) => params.append(key, value))
 
 		const response = await fetch(
 			`https://spot.api.sui-prod.bluefin.io/internal-api/insidex/memezone/bonded?platforms=xpump&${params}`,
@@ -29,20 +25,14 @@ export async function GET(request: Request) {
 		}
 
 		const tokens = await response.json()
-		
-		// @dev: Try to enhance tokens with a timeout (bonded tokens are always migrated)
-		const { tokens: enhancedTokens, isEnhanced } = await enhanceTokensWithTimeout(tokens, {
-			enhancementTimeout: 500,
-			isBonded: true
-		})
 
-		// @dev: Process tokens to replace with backend URLs (no caching)
+		// get protection, create data and process token images
+		const enhancedTokens = await enhanceTokens(tokens)
 		const processedTokens = processTokenIconUrls(enhancedTokens)
 
 		return NextResponse.json(processedTokens, {
 			headers: {
-				"Cache-Control": "public, s-maxage=5, stale-while-revalidate=59",
-				"X-Data-Status": isEnhanced ? "enhanced" : "basic"
+				"Cache-Control": "public, s-maxage=5, stale-while-revalidate=59"
 			}
 		})
 	} catch (error) {

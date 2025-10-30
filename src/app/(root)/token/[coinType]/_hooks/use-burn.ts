@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useApp } from "@/context/app.context"
 import { useTransaction } from "@/hooks/sui/use-transaction"
 import { coinWithBalance } from "@mysten/sui/transactions"
-import { pumpSdk } from "@/lib/pump"
+import { pumpSdk } from "@/lib/memez/sdk"
 import BigNumber from "bignumber.js"
 import type { Token } from "@/types/token"
 

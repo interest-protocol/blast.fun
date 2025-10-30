@@ -20,7 +20,6 @@ import { TOTAL_POOL_SUPPLY, DEFAULT_TOKEN_DECIMALS } from "@/constants"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { useTokenTabs } from "@/stores/token-tabs"
 import { TwitterRelationsProvider } from "../_context/twitter-relations.context"
-import { TurnstileSection } from "@/components/trading/turnstile-section"
 
 interface TokenModuleProps {
 	pool: Token
@@ -120,7 +119,6 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 					)}
 
 					<TradeTerminal pool={pool} referral={referral} />
-					<TurnstileSection />
 					<HolderDetails pool={pool} />
 					<ReferralShare pool={pool} />
 				</div>

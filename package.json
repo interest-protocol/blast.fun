@@ -10,8 +10,7 @@
 		"dev4": "prisma generate && node scripts/dev-supervisor.cjs -p 3033 -t dev-restart",
 		"dev5": "prisma generate && node scripts/dev-supervisor.cjs -p 3044 -t dev-restart",
 		"dev:nexa": "prisma generate && node scripts/dev-supervisor.cjs -p 42062 -t dev-restart",
-		"build": "prisma generate && next build; node scripts/dev-restart.cjs",
-		"postbuild": "node scripts/dev-restart.cjs",
+		"build": "prisma generate && next build",
 		"start": "next start",
 		"lint": "next lint"
 	},
@@ -20,6 +19,7 @@
 		"@apollo/client": "^3.13.8",
 		"@auth/prisma-adapter": "^2.10.0",
 		"@hookform/resolvers": "^5.1.1",
+		"@interest-protocol/farms": "1.0.0",
 		"@interest-protocol/memez-fun-sdk": "18.1.0",
 		"@mysten/dapp-kit": "^0.17.0",
 		"@mysten/sui": "1.38.0",
@@ -101,5 +101,10 @@
 		"tree-kill": "^1.2.2",
 		"tw-animate-css": "^1.3.0",
 		"typescript": "^5"
+	},
+	"pnpm": {
+		"overrides": {
+			"@mysten/sui": "1.38.0"
+		}
 	}
 }

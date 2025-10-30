@@ -1,67 +1,96 @@
-import type { Socket } from 'socket.io-client';
+import type { Socket } from 'socket.io-client'
 import type { TradeData } from '@/types/trade'
-import { io } from 'socket.io-client';
+import { io } from 'socket.io-client'
 
-const URL = 'https://socket.insidex.trade';
+const URL = 'https://spot.api.sui-prod.bluefin.io'
+
+type PriceCallback = (data: { price: number; suiPrice: number }) => void
+type TradeCallback = (trade: TradeData) => void
+type SocketCallback = PriceCallback | TradeCallback
 
 class TokenPriceSocket {
-    private socket: Socket;
+	private socket: Socket
+	private activeSubscriptions = new Map<string, SocketCallback>()
 
-    constructor() {
-        this.socket = io(URL, {
-            transports: ['websocket'],
-            reconnection: true,
-            reconnectionDelay: 1000,
-            reconnectionDelayMax: 5000,
-            reconnectionAttempts: 5
-        });
-    }
+	constructor() {
+		this.socket = io(URL, {
+			path: '/price-feed-socket/insidex',
+			transports: ['websocket'],
+			reconnection: false,
+			timeout: 10000
+		})
 
-    disconnectSocket() {
-        this.socket.disconnect();
-    }
+		this.socket.on('ping', () => {
+			this.socket.emit('pong')
+		})
+	}
 
-    public subscribeToTokenPrice(
-        pool: string,
-        direction: string,
-        callback: (data: { price: number; suiPrice: number }) => void
-    ) {
-        this.socket.emit('subscribe-price', {
-            pool,
-            direction
-        });
+	public subscribeToTokenPrice(
+		pool: string,
+		direction: string,
+		callback: PriceCallback
+	) {
+		const event = `price-${pool}-${direction}`
 
-        this.socket.on(`price-${pool}-${direction}`, callback);
-    }
+		const existing = this.activeSubscriptions.get(event)
+		if (existing) {
+			this.socket.off(event, existing as any)
+		}
 
-    public unsubscribeFromTokenPrice(pool: string, direction: string) {
-        this.socket.emit('unsubscribe-price', {
-            pool,
-            direction
-        });
+		this.activeSubscriptions.set(event, callback)
+		this.socket.emit('subscribe-price', { pool, direction })
+		this.socket.on(event, callback)
+	}
 
-        this.socket.off(`price-${pool}-${direction}`);
-    }
+	public unsubscribeFromTokenPrice(pool: string, direction: string) {
+		const event = `price-${pool}-${direction}`
+		const callback = this.activeSubscriptions.get(event)
 
-    public subscribeToCoinTrades(
-        coin: string,
-        callback: (trade: TradeData) => void
-    ) {
-        this.socket.emit('subscribe-trades', {
-            coin
-        });
+		if (callback) {
+			this.socket.off(event, callback as any)
+			this.activeSubscriptions.delete(event)
+		}
 
-        this.socket.on(`trades-${coin}`, callback);
-    }
+		this.socket.emit('unsubscribe-price', { pool, direction })
+	}
 
-    public unsubscribeFromCoinTrades(coin: string) {
-        this.socket.emit('unsubscribe-trades', {
-            coin
-        });
+	public subscribeToCoinTrades(
+		coin: string,
+		callback: TradeCallback
+	) {
+		const event = `trades-${coin}`
 
-        this.socket.off(`trades-${coin}`);
-    }
+		const existing = this.activeSubscriptions.get(event)
+		if (existing) {
+			this.socket.off(event, existing as any)
+		}
+
+		this.activeSubscriptions.set(event, callback)
+		this.socket.emit('subscribe-trades', { coin })
+		this.socket.on(event, callback)
+	}
+
+	public unsubscribeFromCoinTrades(coin: string) {
+		const event = `trades-${coin}`
+		const callback = this.activeSubscriptions.get(event)
+
+		if (callback) {
+			this.socket.off(event, callback as any)
+			this.activeSubscriptions.delete(event)
+		}
+
+		this.socket.emit('unsubscribe-trades', { coin })
+	}
+
+	public disconnectSocket() {
+		this.activeSubscriptions.forEach((callback, event) => {
+			this.socket.off(event, callback as any)
+		})
+
+		this.activeSubscriptions.clear()
+		this.socket.disconnect()
+	}
 }
 
-const tokenPriceSocket = new TokenPriceSocket();
-export default tokenPriceSocket;
+const tokenPriceSocket = new TokenPriceSocket()
+export default tokenPriceSocket

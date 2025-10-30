@@ -3,18 +3,16 @@ import { prisma } from "@/lib/prisma"
 import { MIST_PER_SUI, normalizeSuiAddress, toHex } from "@mysten/sui/utils"
 import { bcs } from "@mysten/sui/bcs"
 import { getServerKeypair } from "@/lib/server-keypair"
-import { getNextNonceFromPool } from "@/lib/pump/get-nonce"
+import { getNextNonceFromPool } from "@/lib/memez/get-nonce"
 import { auth } from "@/auth"
-import { verifyTurnstileToken, isTurnstileVerificationSuccessful } from "@/lib/turnstile"
-import { pumpSdk } from "@/lib/pump"
+import { pumpSdk } from "@/lib/memez/sdk"
 import { fetchCoinBalance } from "@/lib/fetch-portfolio"
 import { TOTAL_POOL_SUPPLY } from "@/constants"
-import { SLUSH_WALLET_BYPASS_TOKEN } from "@/lib/slush-wallet-detector"
 
 export async function POST(request: NextRequest) {
 	try {
 		const body = await request.json()
-		const { poolId, amount, walletAddress, turnstileToken, coinType, decimals } = body
+		const { poolId, amount, walletAddress, coinType, decimals } = body
 		
 		// Get authenticated user from session
 		const session = await auth()
@@ -25,27 +23,6 @@ export async function POST(request: NextRequest) {
 
 		if (!poolId || !amount || !walletAddress || !coinType) {
 			return NextResponse.json({ message: "Missing required fields" }, { status: 400 })
-		}
-
-		// Verify Turnstile token if provided
-		if (turnstileToken) {
-			// @dev: Skip verification for Slush wallet bypass token
-			if (turnstileToken === SLUSH_WALLET_BYPASS_TOKEN) {
-				console.log("Slush wallet bypass token detected, skipping Turnstile verification")
-			} else {
-				// Extract remote IP from request headers
-				const remoteIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-					request.headers.get('x-real-ip') ||
-					request.headers.get('cf-connecting-ip') || ""
-
-				const verificationResult = await verifyTurnstileToken(turnstileToken, remoteIp)
-				
-				if (!isTurnstileVerificationSuccessful(verificationResult)) {
-					return NextResponse.json({ 
-						message: "Security verification failed. Please try again.",
-					}, { status: 418 })
-				}
-			}
 		}
 
 		const poolSettings = await prisma.tokenProtectionSettings.findUnique({ where: { poolId } })

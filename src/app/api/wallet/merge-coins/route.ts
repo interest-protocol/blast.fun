@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getFullnodeUrl, SuiClient } from "@mysten/sui/client"
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519"
 import { toHex, fromHex } from "@mysten/sui/utils"
-import { MemezWalletSDK } from "@interest-protocol/memez-fun-sdk"
 import { suiSponsorship, GasStationError } from "@3mate/gas-station-sdk"
+import { walletSdk } from "@/lib/memez/sdk"
+import { suiClient } from "@/lib/sui-client"
 
 const GAS_STATION_API_KEY = process.env.GAS_STATION_API_KEY || ""
 
@@ -38,15 +38,10 @@ export async function POST(req: NextRequest) {
 			)
 		}
 
-		// Initialize SDK and SUI client
-		const walletSdk = new MemezWalletSDK()
-		const suiClient = new SuiClient({ url: getFullnodeUrl("mainnet") })
-
 		// Create a temporary keypair for this transaction
 		const tempKeypair = new Ed25519Keypair()
 		const tempAddress = tempKeypair.toSuiAddress()
 
-		// Use MemezWalletSDK to create the merge transaction
 		const { tx } = walletSdk.mergeCoins({
 			coinType: coinType,
 			coins: coins,

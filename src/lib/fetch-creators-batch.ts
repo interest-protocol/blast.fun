@@ -41,11 +41,8 @@ function bandValue(count: number, thresholds: number[]): string {
 	return `>${formatFollowerCount(lastThreshold)}`
 }
 
-export async function fetchCreatorsBatch(tokens: any[], poolMap: Map<string, any>) {
-	const creatorAddresses = [...new Set(tokens.map((token: any) => {
-		const pool = poolMap.get(token.coinType)
-		return pool?.creatorAddress || token.dev
-	}).filter(Boolean))]
+export async function fetchCreatorsBatch(tokens: any[]) {
+	const creatorAddresses = [...new Set(tokens.map((token: any) => token.dev).filter(Boolean))]
 
 	if (creatorAddresses.length === 0) {
 		return new Map()
@@ -55,7 +52,7 @@ export async function fetchCreatorsBatch(tokens: any[], poolMap: Map<string, any
 		where: {
 			OR: [
 				{ creatorAddress: { in: creatorAddresses } },
-				{ poolObjectId: { in: tokens.map((t: any) => poolMap.get(t.coinType)?.poolId || t.id).filter(Boolean) } }
+				{ poolObjectId: { in: tokens.map((t: any) => t.poolId).filter(Boolean) } }
 			]
 		},
 		select: {

@@ -1,5 +1,5 @@
-import "@/app/globals.css"
-import "@/app/animations.css"
+import "@/styles/globals.css"
+import "@/styles/animations.css"
 
 import type { Metadata } from "next"
 import { GoogleAnalytics } from '@next/third-parties/google'
@@ -8,11 +8,9 @@ import { Toaster } from "react-hot-toast"
 import { ReactScan } from "@/components/utils/react-scan"
 import { TailwindIndicator } from "@/components/utils/tailwind-indicator"
 import { TwitterAuthProvider } from "@/context/twitter.context"
-import { TurnstileProvider } from "@/context/turnstile.context"
 import { geistMono, geistSans, hegartySans } from "@/fonts"
 import { ApolloProvider } from "@/providers/apollo-provider"
 import SuiProvider from "@/providers/sui-provider"
-import { PrivyProvider } from "@/providers/privy-provider"
 import { ThemeProvider } from "@/providers/theme-provider"
 import { cn } from "@/utils"
 import { TooltipProvider } from "@/components/ui/tooltip"
@@ -65,30 +63,26 @@ export default function RootLayout({
 					<TooltipProvider>
 						<SessionProvider>
 							<TwitterAuthProvider>
-								<TurnstileProvider>
-									<ApolloProvider>
-										<PrivyProvider>
-											<SuiProvider>
-												{children}
-												<TermsPrivacyDialog />
+								<ApolloProvider>
+									<SuiProvider>
+										{children}
+										<TermsPrivacyDialog />
 
-												<TailwindIndicator />
-												<Toaster
-													position="bottom-center"
-													reverseOrder={true}
-													toastOptions={{
-														style: {
-															backgroundColor: "var(--card)",
-															color: "var(--foreground)",
-															padding: "12px 12px",
-															border: "1px solid var(--border)",
-														},
-													}}
-												/>
-											</SuiProvider>
-										</PrivyProvider>
-									</ApolloProvider>
-								</TurnstileProvider>
+										<TailwindIndicator />
+										<Toaster
+											position="bottom-center"
+											reverseOrder={true}
+											toastOptions={{
+												style: {
+													backgroundColor: "var(--card)",
+													color: "var(--foreground)",
+													padding: "12px 12px",
+													border: "1px solid var(--border)",
+												},
+											}}
+										/>
+									</SuiProvider>
+								</ApolloProvider>
 							</TwitterAuthProvider>
 						</SessionProvider>
 					</TooltipProvider>

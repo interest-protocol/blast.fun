@@ -11,9 +11,7 @@ import { VestingTab } from "./tabs/vesting-tab"
 import { HoldersTab } from "./tabs/holders-tab"
 import { useHoldersData } from "../_hooks/use-holders-data"
 import { HolderDetails } from "./holder-details"
-import { MobileMarketStats } from "./mobile-market-stats"
 import { TokenInfo } from "./token-info"
-import { TurnstileSection } from "@/components/trading/turnstile-section"
 import type { Token } from "@/types/token"
 
 interface MobileTab {
@@ -77,7 +75,6 @@ export default function MobileTokenView({
 							realtimeMarketCap={realtimeMarketCap || null}
 						/>
 						<TradeTerminal pool={pool} referral={referral} />
-						<TurnstileSection />
 						<HolderDetails pool={pool} />
 					</div>
 				)}

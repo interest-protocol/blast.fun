@@ -105,11 +105,11 @@ export function PortfolioContent() {
 				<div className="flex flex-col gap-4">
 					<div className="flex items-center justify-between">
 						<div>
-							<h1 className="font-mono text-2xl font-bold uppercase tracking-wider text-foreground/80">
-								PORTFOLIO TRACKER
+							<h1 className="font-hegarty text-2xl uppercase tracking-wider">
+								PORTFOLIO
 							</h1>
-							<p className="font-mono text-xs uppercase tracking-wider text-muted-foreground/60 mt-1">
-								MONITOR HOLDINGS AND PERFORMANCE
+							<p className="font-mono text-sm text-muted-foreground mt-1">
+								Monitor your holdings and current performance.
 							</p>
 						</div>
 						<Button
