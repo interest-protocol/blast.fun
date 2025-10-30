@@ -27,6 +27,7 @@ export interface TokenMarketData {
 	volume24h: number
 	liquidity: number
 	price: number
+	coinPrice: number
 	bondingProgress: number
 	circulating?: number
 	circulatingUpdatedAt?: number

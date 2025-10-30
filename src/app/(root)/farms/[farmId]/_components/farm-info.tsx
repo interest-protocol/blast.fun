@@ -71,8 +71,8 @@ export function FarmInfo({ farm, account, metadata, onOperationSuccess }: FarmIn
 		const fetchPrice = async () => {
 			try {
 				const marketData = await nexaClient.getMarketData(farm.stakeCoinType)
-				if (marketData?.price) {
-					setStakeTokenPrice(marketData.price)
+				if (marketData?.coinPrice) {
+					setStakeTokenPrice(marketData.coinPrice)
 				}
 			} catch (error) {
 				console.error("Failed to fetch token price:", error)
