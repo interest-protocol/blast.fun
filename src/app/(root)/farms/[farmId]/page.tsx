@@ -2,7 +2,7 @@ import { Metadata } from "next"
 import { FarmDetail } from "./_components/farm-detail"
 
 export const metadata: Metadata = {
-	title: "Farm | XPUMP",
+	title: "Farms",
 	description: "Stake your tokens and earn rewards",
 }
 
