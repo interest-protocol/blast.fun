@@ -24,8 +24,8 @@ importers:
         specifier: ^5.1.1
         version: 5.1.1(react-hook-form@7.60.0(react@19.1.0))
       '@interest-protocol/farms':
-        specifier: 0.0.2-alpha.0
-        version: 0.0.2-alpha.0(typescript@5.8.3)
+        specifier: 1.0.0
+        version: 1.0.0(typescript@5.8.3)
       '@interest-protocol/memez-fun-sdk':
         specifier: 18.1.0
         version: 18.1.0(typescript@5.8.3)
@@ -994,8 +994,8 @@ packages:
   '@interest-protocol/acl-sdk@7.2.0':
     resolution: {integrity: sha512-bjTZyfpEtT1TESsyFRFGgOx6yxxwlVwKcndfBRr+m+Ze7Zrhe3znsRDH3bIgFi5JKxcRXDQwy9z7ADD9DsjglA==}
 
-  '@interest-protocol/farms@0.0.2-alpha.0':
-    resolution: {integrity: sha512-SQmzdMUkBaN5TrB4uqpyGZeLIcoCLAe4RPn+CwYlskAGGCgFojismGZswXzc7KvdXTMHffULEBvlvgLPIc9zvw==}
+  '@interest-protocol/farms@1.0.0':
+    resolution: {integrity: sha512-WD0LOjHrM8tWRAfCniagirgYi0zvp9IYBxHjDE0x2actc8RAE+7fZ4KBVAw/82eddZRA4pLhp2KiMcxDVaFAxg==}
 
   '@interest-protocol/memez-fun-sdk@18.1.0':
     resolution: {integrity: sha512-Y19YcCfcoGe/0KyzeycMhXZRCx38dhu1GLv6ygtDswApbb+y+7s8DcYLoFPAUPpm8m/qJYEbnWhiQ85dMkqHXg==}
@@ -6337,7 +6337,7 @@ snapshots:
       - '@gql.tada/vue-support'
       - typescript
 
-  '@interest-protocol/farms@0.0.2-alpha.0(typescript@5.8.3)':
+  '@interest-protocol/farms@1.0.0(typescript@5.8.3)':
     dependencies:
       '@interest-protocol/sui-core-sdk': 1.0.0(typescript@5.8.3)
       '@mysten/sui': 1.38.0(typescript@5.8.3)
