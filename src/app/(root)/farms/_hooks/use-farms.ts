@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react"
 import { useApp } from "@/context/app.context"
 import { farmsSdk } from "@/lib/farms"
-import { FARMS } from "../farms.const"
+import { FARMS } from "@interest-protocol/farms"
+import { env } from "@/env"
+import { Network } from "@/types/network"
 import toast from "react-hot-toast"
 import type { InterestFarm, InterestAccount } from "@interest-protocol/farms"
 
@@ -20,8 +22,11 @@ export function useFarms() {
 
 		setIsLoading(true)
 		try {
+			const farms = FARMS[env.NEXT_PUBLIC_DEFAULT_NETWORK as Network]
+			const farmIds = Object.values(farms).map((farm) => farm.objectId)
+
 			const [farmsData, allAccounts] = await Promise.all([
-				Promise.all(FARMS.map((farmId) => farmsSdk.getFarm(farmId))),
+				Promise.all(farmIds.map((farmId) => farmsSdk.getFarm(farmId))),
 				farmsSdk.getAccounts(address),
 			])
 
