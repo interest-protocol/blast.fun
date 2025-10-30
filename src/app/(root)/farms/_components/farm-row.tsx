@@ -35,18 +35,18 @@ export function FarmRow({ farm, account }: FarmRowProps) {
 
 		const rewardData = farm.rewardData[rewardCoinType]
 		const rewardsPerSecond = rewardData.rewardsPerSecond
-		const totalStakeAmount = farm.totalStakeAmount
+		const totalStakedAmount = farm.totalStakedAmount
 
-		if (totalStakeAmount === 0n || rewardsPerSecond === 0n) {
+		if (totalStakedAmount === 0n || rewardsPerSecond === 0n) {
 			return 0
 		}
 
 		const numerator = Number(rewardsPerSecond) * Number(SECONDS_IN_YEAR) * suiPrice.usd
-		const denominator = Number(totalStakeAmount) * stakeTokenPrice
+		const denominator = Number(totalStakedAmount) * stakeTokenPrice
 		const aprValue = (numerator / denominator) * 100
 
 		return isFinite(aprValue) ? aprValue : 0
-	}, [rewardCoinType, farm.rewardData, farm.totalStakeAmount, suiPrice.usd, suiPrice.loading, stakeTokenPrice])
+	}, [rewardCoinType, farm.rewardData, farm.totalStakedAmount, suiPrice.usd, suiPrice.loading, stakeTokenPrice])
 
 	useEffect(() => {
 		const fetchMetadataAndPrice = async () => {
@@ -69,7 +69,7 @@ export function FarmRow({ farm, account }: FarmRowProps) {
 	const tokenSymbol = metadata?.symbol || farm.stakeCoinType.split("::").pop() || "UNKNOWN"
 	const tokenName = metadata?.name || tokenSymbol
 
-	const tvlAmount = Number(farm.totalStakeAmount) / Number(POW_9)
+	const tvlAmount = Number(farm.totalStakedAmount) / Number(POW_9)
 	const tvlUsd = tvlAmount * stakeTokenPrice
 	const stakedAmount = Number(staked) / Number(POW_9)
 	const stakedUsd = stakedAmount * stakeTokenPrice
