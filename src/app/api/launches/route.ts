@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { getFullnodeUrl, SuiClient } from "@mysten/sui/client"
+import { suiClient } from "@/lib/sui-client"
 
 export async function POST(request: NextRequest) {
 	try {
@@ -35,12 +36,9 @@ export async function POST(request: NextRequest) {
 			return NextResponse.json({ error: "Twitter authentication required" }, { status: 401 })
 		}
 		
-		// Get coinType from the tokenTxHash using SuiClient
-		const client = new SuiClient({ url: getFullnodeUrl("mainnet") })
 		let coinType = ""
-		
 		try {
-			const tx = await client.waitForTransaction({ 
+			const tx = await suiClient.waitForTransaction({ 
 				digest: tokenTxHash, 
 				options: { showObjectChanges: true } 
 			})

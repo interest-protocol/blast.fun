@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback, useEffect } from "react"
-import { Edit2, Loader2, CheckCircle, Upload, X, Link2, Globe, MessageCircle, Twitter } from "lucide-react"
+import { Edit2, Loader2, CheckCircle, Upload, X, Globe, MessageCircle } from "lucide-react"
 import {
 	Dialog,
 	DialogContent,
@@ -18,8 +18,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { Token } from "@/types/token"
 import { useApp } from "@/context/app.context"
 import { useTransaction } from "@/hooks/sui/use-transaction"
-import { pumpSdk } from "@/lib/pump"
-import { coinWithBalance, Transaction } from "@mysten/sui/transactions"
+import { pumpSdk } from "@/lib/memez/sdk"
+import { Transaction } from "@mysten/sui/transactions"
 import { getBase64ForMetadata } from "./metadata-image-utils"
 import { cn } from "@/utils"
 

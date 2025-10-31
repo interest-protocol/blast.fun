@@ -20,7 +20,6 @@ import {
 import { useTrading } from "@/hooks/pump/use-trading"
 import { useTokenBalance } from "@/hooks/sui/use-token-balance"
 import { usePortfolio } from "@/hooks/nexa/use-portfolio"
-import { useMarketData } from "@/hooks/use-market-data"
 import type { Token } from "@/types/token"
 import { cn } from "@/utils"
 
@@ -35,7 +34,6 @@ export function TradingPanel({ pool, referrerWallet, refCode }: TradingPanelProp
 	const [amount, setAmount] = useState("")
 	const [slippage, setSlippage] = useState("15")
 
-	const { data: marketData } = useMarketData(pool.coinType)
 	const { balance: tokenBalance } = useTokenBalance(pool.coinType)
 	const { balance: actualBalance, refetch: refetchPortfolio } = usePortfolio(pool.coinType)
 	const metadata = pool.metadata

@@ -4,6 +4,7 @@ import { TwitterUser } from "@/context/twitter.context"
 import { getFxtwitterProfileImage } from "@/lib/twitter"
 import { cn } from "@/utils"
 import { useEffect, useState } from "react"
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 
 interface UserAvatarProps {
 	user: TwitterUser
@@ -25,5 +26,18 @@ export function TwitterUserAvatar({ user, className }: UserAvatarProps) {
 		fetchUpdatedProfileImage()
 	}, [user.username])
 
-	return <img src={profileImageUrl || user.profile_image_url || ""} className={cn("rounded-md", className)} />
+	const fallback = (user.name || user.username || "?")[0]?.toUpperCase() || "?"
+
+	return (
+		<Avatar className={cn("rounded-md", className)}>
+			<AvatarImage
+				src={profileImageUrl || user.profile_image_url || ""}
+				alt={user.username || "User"}
+			/>
+
+			<AvatarFallback className="rounded-md text-xs">
+				{fallback}
+			</AvatarFallback>
+		</Avatar>
+	)
 }

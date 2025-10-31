@@ -43,7 +43,7 @@ export default function Header() {
 								)}
 							>
 								<Icon className="size-3.5" />
-								<span className="hidden xl:inline">{item.label}</span>
+								{item.label}
 							</Link>
 						)
 					})}

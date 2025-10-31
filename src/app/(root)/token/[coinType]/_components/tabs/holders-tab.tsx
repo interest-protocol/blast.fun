@@ -520,7 +520,7 @@ export function HoldersTab({ pool, className, activeTab = "holders", onTabChange
 
 						return (
 							<div
-								key={holder.account}
+								key={`${holder.account}-${holder.isVesting ? 'vesting' : 'regular'}`}
 								className="relative group hover:bg-muted/5 transition-all duration-200"
 							>
 								{isAggregatedBurn && holder.burnBreakdown ? (

@@ -19,7 +19,7 @@ import { usePortfolio } from "@/hooks/nexa/use-portfolio"
 import { useApp } from "@/context/app.context"
 import { useTransaction } from "@/hooks/sui/use-transaction"
 import { coinWithBalance } from "@mysten/sui/transactions"
-import { pumpSdk } from "@/lib/pump"
+import { pumpSdk } from "@/lib/memez/sdk"
 import BigNumber from "bignumber.js"
 
 interface BurnDialogProps {

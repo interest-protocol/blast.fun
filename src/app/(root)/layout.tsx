@@ -30,7 +30,7 @@ export default function Layout({
 			<main className="flex-1 overflow-hidden pb-12">
 				{shouldHavePadding ? (
 					<div className={cn(
-						"h-full overflow-auto p-2"
+						"h-full overflow-auto p-4"
 					)}>
 						{children}
 					</div>

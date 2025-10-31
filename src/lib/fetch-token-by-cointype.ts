@@ -81,6 +81,7 @@ export async function fetchTokenByCoinType(coinType: string): Promise<Token | nu
 				volume24h: (marketData as any)?.coin24hTradeVolumeUsd || 0,
 				liquidity: (marketData as any)?.totalLiquidityUsd || 0,
 				price: (marketData as any)?.coinPrice || 0,
+				coinPrice: (marketData as any)?.coinPrice || 0,
 				bondingProgress: pool.bondingCurve || 0,
 				circulating: (marketData as any)?.coinSupply,
 				price5MinsAgo: (marketData as any)?.price5MinsAgo,
