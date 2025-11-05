@@ -7,6 +7,7 @@ import { migratorSdk } from "@/lib/memez/sdk"
 import { useTransaction } from "@/hooks/sui/use-transaction"
 import { playSound } from "@/lib/audio"
 import { interestProtocolApi } from "@/lib/interest-protocol-api"
+import { formatAddress } from "@mysten/sui/utils"
 
 export interface CreatorReward {
 	id: string
@@ -202,19 +203,15 @@ export function useCreatorRewards() {
 		setIsTransferring(positionId)
 
 		try {
-			// @dev: Create PTB for transferring position ownership
 			const { Transaction } = await import('@mysten/sui/transactions')
 			const tx = new Transaction()
 
-			// @dev: Transfer the position object to the recipient
 			tx.transferObjects([tx.object(position.objectId)], tx.pure.address(recipientAddress))
 
 			const result = await executeTransaction(tx)
 
 			if (result) {
-				toast.success(`Successfully transferred position to ${recipientAddress.slice(0, 6)}...${recipientAddress.slice(-4)}`)
-
-				// @dev: Refresh the list after transfer
+				toast.success(`Successfully transferred position to ${formatAddress(recipientAddress)}`)
 				await fetchRewards()
 
 				return true

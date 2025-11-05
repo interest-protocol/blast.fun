@@ -7,12 +7,6 @@ import { suiClient } from "@/lib/sui-client"
 
 const GAS_STATION_API_KEY = process.env.GAS_STATION_API_KEY || ""
 
-interface CoinToMerge {
-	objectId: string
-	version: string
-	digest: string
-}
-
 export async function POST(req: NextRequest) {
 	try {
 		const { coins, coinType, walletAddress } = await req.json()
@@ -38,7 +32,6 @@ export async function POST(req: NextRequest) {
 			)
 		}
 
-		// Create a temporary keypair for this transaction
 		const tempKeypair = new Ed25519Keypair()
 		const tempAddress = tempKeypair.toSuiAddress()
 
@@ -48,14 +41,11 @@ export async function POST(req: NextRequest) {
 			wallet: walletAddress,
 		})
 		
-		// Set sender to temporary address for sponsorship
 		tx.setSender(tempAddress)
 		
-		// Build the transaction
 		const txBytes = await tx.build({ client: suiClient, onlyTransactionKind: true })
 		const txBytesHex = toHex(txBytes)
 		
-		// Sponsor the transaction using SDK
 		let sponsorData
 		try {
 			sponsorData = await suiSponsorship({
@@ -74,11 +64,8 @@ export async function POST(req: NextRequest) {
 			throw error
 		}
 
-		// Sign the sponsored transaction with the temporary keypair
 		const sponsoredTxBytes = fromHex(sponsorData.txBytesHex)
 		const signature = await tempKeypair.signTransaction(sponsoredTxBytes)
-		
-		// Execute the sponsored transaction
 		const result = await suiClient.executeTransactionBlock({
 			transactionBlock: sponsoredTxBytes,
 			signature: [signature.signature, sponsorData.sponsorSignature],
@@ -99,7 +86,6 @@ export async function POST(req: NextRequest) {
 			)
 		}
 
-		// Return success with transaction details
 		return NextResponse.json({
 			success: true,
 			transactionDigest: result.digest,
@@ -110,7 +96,6 @@ export async function POST(req: NextRequest) {
 				storageRebate: result.effects?.gasUsed?.storageRebate || "0",
 			}
 		})
-
 	} catch (error) {
 		console.error("Error in merge-coins API:", error)
 		return NextResponse.json(

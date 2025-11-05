@@ -4,7 +4,6 @@ import { blockVisionService } from "@/services/blockvision.service"
 export async function POST(req: NextRequest) {
 	try {
 		const { address } = await req.json()
-
 		if (!address) {
 			return NextResponse.json(
 				{ error: "Address is required" },
@@ -12,9 +11,7 @@ export async function POST(req: NextRequest) {
 			)
 		}
 
-		// Use BlockVision service to fetch wallet coins
 		const result = await blockVisionService.getAccountCoins(address)
-
 		if (!result.success || !result.data) {
 			console.error("Failed to fetch wallet coins:", result.error)
 			return NextResponse.json(
@@ -23,7 +20,6 @@ export async function POST(req: NextRequest) {
 			)
 		}
 
-		// Return the coins in the expected format
 		return NextResponse.json({ 
 			coins: result.data,
 			success: true 
@@ -37,11 +33,9 @@ export async function POST(req: NextRequest) {
 	}
 }
 
-// Also support GET for easier testing
 export async function GET(req: NextRequest) {
 	const searchParams = req.nextUrl.searchParams
 	const address = searchParams.get("address")
-
 	if (!address) {
 		return NextResponse.json(
 			{ error: "Address is required" },
@@ -49,9 +43,7 @@ export async function GET(req: NextRequest) {
 		)
 	}
 
-	// Use BlockVision service to fetch wallet coins
 	const result = await blockVisionService.getAccountCoins(address)
-
 	if (!result.success || !result.data) {
 		console.error("Failed to fetch wallet coins:", result.error)
 		return NextResponse.json(
