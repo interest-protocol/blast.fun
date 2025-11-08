@@ -16,7 +16,6 @@ export function useSuiPrice(refreshInterval = 5 * 60 * 1000) {
 	})
 
 	useEffect(() => {
-		// @dev: Only fetch prices on the client side
 		if (typeof window === 'undefined') {
 			return
 		}

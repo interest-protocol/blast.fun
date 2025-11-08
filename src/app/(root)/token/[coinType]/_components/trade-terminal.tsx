@@ -10,6 +10,7 @@ import { useTrading } from "@/hooks/pump/use-trading"
 import { useTokenBalance } from "@/hooks/sui/use-token-balance"
 import { usePortfolio } from "@/hooks/nexa/use-portfolio"
 import { useTokenProtection } from "@/hooks/use-token-protection"
+import { useSuiPrice } from "@/hooks/sui/use-sui-price"
 import { usePresetStore } from "@/stores/preset-store"
 import type { Token } from "@/types/token"
 import { cn } from "@/utils"
@@ -52,6 +53,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	const { balance: tokenBalance, refetch: refetchTokenBalance } = useTokenBalance(pool.coinType)
 	const { balance: actualBalance, refetch: refetchPortfolio } = usePortfolio(pool.coinType)
 	const { balance: suiBalance, refetch: refetchSuiBalance } = useTokenBalance("0x2::sui::SUI")
+	const { usd: suiPrice } = useSuiPrice()
 
 	// derived states
 	const metadata = pool.metadata
@@ -62,21 +64,18 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 	const hasBalance = balanceInDisplayUnit > 0
 	const suiBalanceInDisplayUnit = suiBalance ? Number(suiBalance) / Number(MIST_PER_SUI) : 0
 
-
-	// Precise balance calculation for MAX button using BigNumber
+	// balance calculation for max
 	const balanceInDisplayUnitPrecise = useMemo(() => {
-		// Guard against undefined or null effectiveBalance
 		if (!effectiveBalance || effectiveBalance === undefined || effectiveBalance === null) {
 			return "0"
 		}
 
-		// Additional safety check to ensure effectiveBalance is a valid value
 		try {
 			const balanceBN = new BigNumber(effectiveBalance)
-			// Check if BigNumber is valid
 			if (balanceBN.isNaN()) {
 				return "0"
 			}
+
 			const divisor = new BigNumber(10).pow(decimals)
 			return balanceBN.dividedBy(divisor).toFixed()
 		} catch (error) {
@@ -85,7 +84,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 		}
 	}, [effectiveBalance, decimals])
 
-	// @dev: Calculate max buyable amount based on max holding percentage
+	// calculate max buyable amount based on max holding percentage
 	const [maxBuyableAmountSui, setMaxBuyableAmountSui] = useState<string | null>(null)
 	const [isCalculatingMax, setIsCalculatingMax] = useState(false)
 
@@ -190,9 +189,6 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 
 		calculateMaxBuyable()
 	}, [tradeType, protectionSettings?.maxHoldingPercent, pool.pool, decimals, effectiveBalance, suiBalanceInDisplayUnit])
-
-	// @dev: prices for USD calculations from server data
-	const suiPrice = 4
 
 	// initialize temp amounts with store values
 	useEffect(() => {
@@ -308,7 +304,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 		return 0
 	}, [quote, tradeType, decimals])
 
-	// @dev: Calculate burn percentage for display
+	// calculate burn percentage for display
 	const burnPercentage = useMemo(() => {
 		if (!quote || !quote.burnFee || !quote.memeAmountIn || tradeType !== "sell") return 0
 		
@@ -325,10 +321,17 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 
 		if (tradeType === "buy") {
 			return (parseFloat(amount) * suiPrice).toFixed(2)
-		} else {
+		} else if (tradeType === "sell") {
 			return (calculateOutputAmount * suiPrice).toFixed(2)
+		} else if (tradeType === "burn") {
+			const tokenPriceInSui = marketData?.price || 0
+			const tokenAmount = parseFloat(amount) || 0
+			const valueInSui = tokenAmount * tokenPriceInSui
+			return (valueInSui * suiPrice).toFixed(2)
 		}
-	}, [amount, tradeType, suiPrice, calculateOutputAmount])
+
+		return "0.00"
+	}, [amount, tradeType, suiPrice, calculateOutputAmount, marketData?.price])
 
 	// fetch referrer wallet if referral code exists
 	useEffect(() => {
@@ -370,20 +373,15 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 		if (tradeType === "buy") {
 			setAmount(value.toString())
 		} else if (tradeType === "sell" || tradeType === "burn") {
-			// @dev: For sell and burn, calculate percentage
 			const percentage = value
-
-			// Safety check: ensure we have a valid balance before calculating
 			if (!balanceInDisplayUnitPrecise || balanceInDisplayUnitPrecise === "0") {
 				setAmount("0")
 				return
 			}
 
 			if (percentage === 100) {
-				// Use precise balance for 100%
 				setAmount(balanceInDisplayUnitPrecise)
 			} else {
-				// For other percentages, use BigNumber for precise calculation
 				try {
 					const balanceBN = new BigNumber(balanceInDisplayUnitPrecise)
 					const percentageBN = new BigNumber(percentage).dividedBy(100)
@@ -416,14 +414,13 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 				return
 			}
 
-			// @dev: Refresh all balances after successful buy
-
 			await buy(amount, slippage)
 			await Promise.all([
 				refetchPortfolio(),
 				refetchTokenBalance(),
 				refetchSuiBalance(),
 			])
+
 			setAmount("")
 		} else if (tradeType === "sell") {
 			const requiredTokens = parseFloat(amount)
@@ -432,12 +429,12 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 			}
 
 			await sell(amount, slippage)
-			// @dev: Refresh all balances after successful sell
 			await Promise.all([
 				refetchPortfolio(),
 				refetchTokenBalance(),
 				refetchSuiBalance(),
 			])
+
 			setAmount("")
 		} else if (tradeType === "burn") {
 			const requiredTokens = parseFloat(amount)
@@ -446,11 +443,11 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
 			}
 
 			await burn(amount)
-			// @dev: Refresh balances after burn
 			await Promise.all([
 				refetchPortfolio(),
 				refetchTokenBalance(),
 			])
+
 			setAmount("")
 		}
 	}
