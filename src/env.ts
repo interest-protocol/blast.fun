@@ -20,13 +20,11 @@ export const env = createEnv({
 		NEXT_PUBLIC_DEFAULT_NETWORK: z.union([z.literal("mainnet"), z.literal("testnet")]),
 		NEXT_PUBLIC_FEE_ADDRESS: z.string().min(1),
 		NEXT_PUBLIC_GRAPHQL_API_URL: z.url(),
-		NEXT_PUBLIC_NEXA_BASE_URL: z.string().url(),
 	},
 	runtimeEnv: {
 		NEXT_PUBLIC_DEFAULT_NETWORK: process.env.NEXT_PUBLIC_DEFAULT_NETWORK,
 		NEXT_PUBLIC_FEE_ADDRESS: process.env.NEXT_PUBLIC_FEE_ADDRESS,
 		NEXT_PUBLIC_GRAPHQL_API_URL: process.env.NEXT_PUBLIC_GRAPHQL_API_URL,
-		NEXT_PUBLIC_NEXA_BASE_URL: process.env.NEXT_PUBLIC_NEXA_BASE_URL,
 
 		VERCEL_URL: process.env.VERCEL_URL,
 

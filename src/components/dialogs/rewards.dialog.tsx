@@ -9,7 +9,7 @@ import { formatNumberWithSuffix } from "@/utils/format"
 import { useApp } from "@/context/app.context"
 import { SuiClient } from "@mysten/sui/client"
 import { Transaction } from "@mysten/sui/transactions"
-import { useCurrentAccount, useSignAndExecuteTransaction } from "@mysten/dapp-kit"
+import { useSignAndExecuteTransaction } from "@mysten/dapp-kit"
 import type { CoinStruct } from "@mysten/sui/client"
 import type { WalletCoin } from "@/types/blockvision"
 import { useTransaction } from "@/hooks/sui/use-transaction"
@@ -23,7 +23,6 @@ interface RewardsDialogProps {
 
 export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 	const { address, isConnected } = useApp()
-	const currentAccount = useCurrentAccount()
 	const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction()
 	const [walletCoins, setWalletCoins] = useState<WalletCoin[]>([])
 	const [isLoading, setIsLoading] = useState(false)
@@ -31,15 +30,12 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 	const [memezWalletAddress, setMemezWalletAddress] = useState<string | null>(null)
 	const { executeTransaction } = useTransaction()
 
-	// Shared function to merge coins and prepare receive operation
 	const mergeAndPrepareReceive = async (
 		coin: WalletCoin,
 		tx: Transaction,
 		suiClient: SuiClient
 	): Promise<{ success: boolean; error?: string }> => {
 		try {
-			
-			// Get all coins of this type with retry logic for rate limiting
 			const allCoins: CoinStruct[] = []
 			let cursor: string | null | undefined = undefined
 			let hasNextPage = true
@@ -56,18 +52,18 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 							coinType: coin.coinType,
 							cursor,
 						})
-						break // Success, exit retry loop
+						break
 					} catch (error: any) {
 						if (error?.status === 429 || error?.message?.includes('429')) {
 							retries++
 							if (retries >= maxRetries) {
 								throw new Error(`Rate limited after ${maxRetries} retries`)
 							}
-							// Exponential backoff: 1s, 2s, 4s
+							
 							const waitTime = Math.pow(2, retries - 1) * 1000
 							await new Promise(resolve => setTimeout(resolve, waitTime))
 						} else {
-							throw error // Re-throw non-rate-limit errors
+							throw error
 						}
 					}
 				}
@@ -87,20 +83,17 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 			
 			let finalCoinId = ""
 			
-			// Merge if needed
+			// merge coins
 			if (allCoins.length > 1) {
 				const BATCH_SIZE = 500
 				let remainingCoins = [...allCoins]
 				
-				// Keep merging until we have 1 coin
 				while (remainingCoins.length > 1) {
-					// Split into batches of 500
 					const batches: typeof allCoins[] = []
 					for (let i = 0; i < remainingCoins.length; i += BATCH_SIZE) {
 						batches.push(remainingCoins.slice(i, Math.min(i + BATCH_SIZE, remainingCoins.length)))
 					}
 					
-					// Merge all batches in parallel
 					const mergePromises = batches.map(async (batch, index) => {
 				
 						const mergeResponse = await fetch("/api/wallet/merge-coins", {
@@ -133,10 +126,8 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 						return mergeData
 					})
 					
-					// Wait for all parallel merges to complete
+					// wait for all parallel merges to complete
 					await Promise.all(mergePromises)
-					
-					// Wait for chain to update
 					await new Promise(resolve => setTimeout(resolve, 3000))
 					
 					// Fetch all updated coins (with pagination to get all)
@@ -195,8 +186,6 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 				throw new Error("No final coin ID after merge")
 			}
 			
-			
-			// Add receive operation to the transaction
 			const { object } = walletSdk.receive({
 				tx,
 				type: `0x2::coin::Coin<${coin.coinType}>`,
@@ -204,12 +193,9 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 				wallet: memezWalletAddress!,
 			})
 			
-			// Transfer to user's wallet
 			tx.transferObjects([object], address!)
 			
-			
 			return { success: true }
-			
 		} catch (error) {
 			console.error(`  ❌ Failed to process ${coin.symbol}:`, error)
 			return { 

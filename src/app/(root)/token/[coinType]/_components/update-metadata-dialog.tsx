@@ -48,7 +48,6 @@ export function UpdateMetadataDialog({ open, onOpenChange, pool }: UpdateMetadat
 				memeCoinType: pool.coinType,
 				curveType: pool.pool.curve
 			})
-			console.log({poolMetadata})
 		}
 		fetchPoolMetadata()
 	}, [metadata])
