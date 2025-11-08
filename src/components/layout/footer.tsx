@@ -6,7 +6,7 @@ import { ThemeSwitcher } from "../shared/theme-switcher"
 import { AudioToggle } from "../audio/audio-toggle"
 import { TradeSettings } from "@/app/(root)/token/[coinType]/_components/trade-settings"
 import { Settings } from "lucide-react"
-import { BsTwitterX } from "react-icons/bs"
+import { BsTelegram, BsTwitterX } from "react-icons/bs"
 import { Button } from "../ui/button"
 import { Skeleton } from "../ui/skeleton"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
@@ -15,7 +15,7 @@ import { useSuiPrice } from "@/hooks/sui/use-sui-price"
 
 const socialLinks = [
 	{ href: "https://x.com/blastdotfun", icon: BsTwitterX, label: "Follow us on X" },
-	// { href: "https://t.me/blastfun", icon: BsTelegram, label: "Telegram" }
+	{ href: "https://t.me/blastdotfun_official", icon: BsTelegram, label: "Join us on Telegram" }
 ]
 
 export function Footer() {
