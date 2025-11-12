@@ -56,24 +56,18 @@ export function useFarmOperations({
 			})
 
 			if (!account) {
-				const { tx: createAccountTx, account: newAccountRef } = await farmsSdk.newAccount({
+				const { tx, account } = await farmsSdk.newAccount({
 					farm: farmId,
 				})
-
-				createAccountTx.transferObjects([newAccountRef], createAccountTx.pure.address(address))
-				await executeTransaction(createAccountTx)
-
-				const allAccounts = await farmsSdk.getAccounts(address)
-				const newAccount = allAccounts.find((acc) => acc.farm === farmId)
-				if (!newAccount) {
-					throw new Error("Failed to find newly created farm account")
-				}
-
-				const { tx: stakeTx } = await farmsSdk.stake({
+				
+				const { tx: stakeTx } = await farmsSdk.stakeUnchecked({
+					tx,
 					farm: farmId,
-					account: newAccount.objectId,
+					account,
 					depositCoin,
 				})
+
+				tx.transferObjects([account], tx.pure.address(address))
 
 				await executeTransaction(stakeTx)
 			} else {
