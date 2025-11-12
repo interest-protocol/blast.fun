@@ -99,8 +99,8 @@ export function useFarmOperations({
 
 		setIsHarvesting(true)
 		try {
-			const pendingRewards = account.rewards[rewardCoinType] || 0n
-			const rewardsAmount = Number(pendingRewards) / Math.pow(10, rewardDecimals)
+			const rewards = await farmsSdk.pendingRewards(account.objectId)
+			const rewardsAmount = Number(rewards[0].amount) / Math.pow(10, rewardDecimals)
 
 			const { tx, rewardCoin } = await farmsSdk.harvest({
 				farm: farmId,
