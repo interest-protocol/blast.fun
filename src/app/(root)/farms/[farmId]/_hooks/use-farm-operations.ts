@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useApp } from "@/context/app.context"
 import { useTransaction } from "@/hooks/sui/use-transaction"
 import { farmsSdk } from "@/lib/farms"
-import { coinWithBalance } from "@mysten/sui/transactions"
+import { coinWithBalance, Transaction } from "@mysten/sui/transactions"
 import toast from "react-hot-toast"
 import type { InterestAccount } from "@interest-protocol/farms"
 import { formatNumberWithSuffix } from "@/utils/format"
@@ -136,22 +136,27 @@ export function useFarmOperations({
 			}
 
 			const isMaxWithdrawal = amountBigInt === account.stakeBalance
-			const pendingRewards = account.rewards[rewardCoinType] || 0n
-			const hasRewards = pendingRewards > 0n
+
+			const rewards = await farmsSdk.pendingRewards(account.objectId);
+			const rewardsAmount = Number(rewards[0].amount) / Math.pow(10, rewardDecimals)
+			const hasRewards = rewardsAmount > 0n
+
+			const tx = new Transaction();
 
 			// harvest rewards if available and withdrawing max amount
 			if (hasRewards && isMaxWithdrawal) {
-				const { tx: harvestTx, rewardCoin } = await farmsSdk.harvest({
+				const { rewardCoin } = await farmsSdk.harvest({
+					tx,
 					farm: farmId,
 					account: account.objectId,
 					rewardType: rewardCoinType,
 				})
 
-				harvestTx.transferObjects([rewardCoin], address)
-				await executeTransaction(harvestTx)
+				tx.transferObjects([rewardCoin], address)
 			}
 
-			const { tx, unstakeCoin } = await farmsSdk.unstake({
+			const { unstakeCoin } = await farmsSdk.unstake({
+				tx,
 				farm: farmId,
 				account: account.objectId,
 				amount: amountBigInt,
@@ -161,8 +166,6 @@ export function useFarmOperations({
 			await executeTransaction(tx)
 
 			const amountInTokens = Number(amountBigInt) / Number(POW_9)
-			const rewardsAmount = Number(pendingRewards) / Math.pow(10, rewardDecimals)
-
 			if (hasRewards && isMaxWithdrawal) {
 				toast.success(
 					`Unstaked ${formatNumberWithSuffix(amountInTokens)} ${tokenSymbol} and harvested ${formatNumberWithSuffix(rewardsAmount)} ${rewardSymbol} rewards`
