@@ -64,7 +64,7 @@ export default function MobileTokenView({
 
 			<div className="flex-1 overflow-hidden">
 				{activeTab === "chart" && (
-					<NexaChart pool={pool} className="w-full h-full" />
+					<NexaChart coinType={pool.coinType} className="w-full h-full" />
 				)}
 
 				{activeTab === "trade" && (
