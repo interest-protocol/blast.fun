@@ -19,21 +19,26 @@ const convertTokenToOption = (token: NexaToken): TokenOption => ({
     decimals: token.decimals,
 });
 
-export const useTokenCategories = (activeCategory: TokenCategory) => {
+export const useTokenCategories = (
+    activeCategory: TokenCategory,
+    enabled: boolean = true
+) => {
     const latestTokensQuery = useLatestTokens(undefined, {
-        enabled: activeCategory === "newly-created",
-        refetchInterval: activeCategory === "newly-created" ? 10000 : undefined,
+        enabled: enabled && activeCategory === "newly-created",
+        refetchInterval:
+            enabled && activeCategory === "newly-created" ? 10000 : undefined,
     });
 
     const aboutToBondQuery = useAboutToBondTokens(undefined, {
-        enabled: activeCategory === "near-graduated",
+        enabled: enabled && activeCategory === "near-graduated",
         refetchInterval:
-            activeCategory === "near-graduated" ? 10000 : undefined,
+            enabled && activeCategory === "near-graduated" ? 10000 : undefined,
     });
 
     const bondedTokensQuery = useBondedTokens(undefined, {
-        enabled: activeCategory === "graduated",
-        refetchInterval: activeCategory === "graduated" ? 30000 : undefined,
+        enabled: enabled && activeCategory === "graduated",
+        refetchInterval:
+            enabled && activeCategory === "graduated" ? 30000 : undefined,
     });
 
     const { data, isLoading, error } =

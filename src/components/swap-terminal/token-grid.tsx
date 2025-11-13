@@ -18,26 +18,24 @@ export const TokenGrid: FC<TokenGridProps> = ({
     searchQuery,
     onSelectToken,
 }) => {
-    if (isLoading && tokens.length === 0) {
+    if (isLoading && tokens.length === 0)
         return (
-            <div className="flex items-center justify-center py-12">
+            <div className="flex w-full justify-center items-center">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
         );
-    }
 
-    if (tokens.length === 0) {
+    if (tokens.length === 0)
         return (
-            <div className="text-center py-12 text-muted-foreground text-sm">
+            <div className="flex w-full justify-center items-center text-center text-muted-foreground text-sm">
                 {searchQuery.length >= 2
                     ? "No tokens found."
                     : "No tokens available."}
             </div>
         );
-    }
 
     return (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+        <div className="p-4 grid overflow-y-auto grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
             {tokens.map((token) => (
                 <button
                     key={token.coinType}
@@ -64,4 +62,3 @@ export const TokenGrid: FC<TokenGridProps> = ({
         </div>
     );
 };
-
