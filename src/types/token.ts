@@ -1,27 +1,39 @@
+export type MinimalPool = {
+	pool?: string;
+	liqUsd?: number | string;
+} & Partial<Record<string, number>> & { [k: string]: unknown };
+
 export interface TokenMetadata {
+	createdAt: number
+
 	name: string
 	symbol: string
 	description: string
-	icon_url: string
+
 	decimals: number
 	supply: number
-	Website?: string
-	X?: string
-	Telegram?: string
-	Discord?: string
+	icon_url: string
+
+	telegram?: string
+	twitter?: string
+	website?: string
 }
 
 export interface TokenCreator {
 	address: string
 	launchCount: number
-	trustedFollowers: string
-	followers: string
+
 	twitterHandle?: string | null
 	twitterId?: string | null
+	trustedFollowers: string
+	followers: string
+
 	hideIdentity?: boolean
 }
 
 export interface TokenMarketData {
+	coinMetadata: TokenMetadata
+
 	marketCap: number
 	holdersCount: number
 	volume24h: number
@@ -29,10 +41,10 @@ export interface TokenMarketData {
 	price: number
 	coinPrice: number
 	bondingProgress: number
-	circulating?: number
-	circulatingUpdatedAt?: number
 
 	top10Holdings?: number
+
+	coinDev?: string
 	devHoldings?: number
 
 	tradeCount?: number
@@ -43,6 +55,8 @@ export interface TokenMarketData {
 	price1HrAgo?: number
 	price4HrAgo?: number
 	price1DayAgo?: number
+
+	pools?: MinimalPool[]
 }
 
 export interface TokenPoolData {
@@ -67,22 +81,13 @@ export interface TokenPoolData {
 }
 
 export interface Token {
-	id: string
-	_id?: string
 	coinType: string
-	treasuryCap: string
-	treasuryCapOwner?: any
+	createdAt: number
 
 	metadata: TokenMetadata
 	creator: TokenCreator
 	market: TokenMarketData
 	pool?: TokenPoolData
-
-	// @dev: flags
-	createdAt: number
-	lastTradeAt: string
-	updatedAt?: string
-	nsfw?: boolean
 }
 
 export interface TokenFilters {
@@ -137,11 +142,4 @@ export type TokenSortOption =
 export interface TokenListSettings {
 	sortBy: TokenSortOption
 	filters: TokenFilters
-}
-
-export interface TokensResponse {
-	tokens: Token[]
-	totalCount: number
-	hasMore: boolean
-	nextCursor?: string
 }
