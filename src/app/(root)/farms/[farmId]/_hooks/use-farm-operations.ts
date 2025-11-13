@@ -4,7 +4,7 @@ import { useTransaction } from "@/hooks/sui/use-transaction"
 import { farmsSdk } from "@/lib/farms"
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions"
 import toast from "react-hot-toast"
-import type { InterestAccount } from "@interest-protocol/farms"
+import { FarmsSDK, type InterestAccount } from "@interest-protocol/farms"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { parseInputAmount } from "../../farms.utils"
 import { POW_9 } from "../../farms.const"
@@ -34,6 +34,7 @@ export function useFarmOperations({
 	const { executeTransaction } = useTransaction()
 	const [isStaking, setIsStaking] = useState(false)
 	const [isHarvesting, setIsHarvesting] = useState(false)
+	const [isCompounding, setIsCompounding] = useState(false)
 	const [isUnstaking, setIsUnstaking] = useState(false)
 
 	const stake = async (amount: string) => {
@@ -121,6 +122,47 @@ export function useFarmOperations({
 		}
 	}
 
+	const compound = async () => {
+		if (!address || !account) {
+			toast.error("No farm account found")
+			return
+		}
+
+		setIsCompounding(true)
+		try {
+			const isMatchingType = rewardCoinType === stakeCoinType
+			if (!isMatchingType) {
+				setIsCompounding(false)
+				return harvest()
+			}
+
+			const rewards = await farmsSdk.pendingRewards(account.objectId)
+			const rewardsAmount = Number(rewards[0].amount) / Math.pow(10, rewardDecimals)
+
+			const { tx, rewardCoin } = await farmsSdk.harvest({
+				farm: farmId,
+				account: account.objectId,
+				rewardType: rewardCoinType,
+			})
+
+			await farmsSdk.stake({
+				tx,
+				farm: farmId,
+				account: account.objectId,
+				depositCoin: rewardCoin
+			});
+
+			await executeTransaction(tx)
+			toast.success(`Harvested and restaked ${formatNumberWithSuffix(rewardsAmount)} ${tokenSymbol}`)
+			onSuccess?.()
+		} catch (error) {
+			console.error("Compound error:", error)
+			toast.error(`Failed to compound rewards for ${tokenSymbol}`)
+		} finally {
+			setIsStaking(false)
+		}
+	}
+
 	const unstake = async (amount: string) => {
 		if (!address || !account) {
 			toast.error("No farm account found")
@@ -186,9 +228,11 @@ export function useFarmOperations({
 	return {
 		stake,
 		harvest,
+		compound,
 		unstake,
 		isStaking,
 		isHarvesting,
+		isCompounding,
 		isUnstaking,
 	}
 }
