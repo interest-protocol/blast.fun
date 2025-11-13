@@ -5,7 +5,7 @@ import { TokenAvatar } from "@/components/tokens/token-avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
-import { formatNumberWithSuffix } from "@/utils/format"
+import { formatAmountWithSuffix, formatNumberWithSuffix } from "@/utils/format"
 import type { InterestFarm, InterestAccount } from "@interest-protocol/farms"
 import type { CoinMetadata } from "@/lib/interest-protocol-api"
 import type { TokenMetadata } from "@/types/token"
@@ -67,6 +67,14 @@ export function FarmInfo({ farm, account, metadata, onOperationSuccess }: FarmIn
 
 		return isFinite(aprValue) ? aprValue : 0
 	}, [rewardCoinType, farm.rewardData, farm.totalStakedAmount, rewardTokenPrice, stakeTokenPrice])
+
+	const expectedMonthlyRewards = useMemo(() => {
+		if (!apr || !stakeTokenPrice || !rewardTokenPrice || !account?.stakeBalance || account.stakeBalance === 0n) return 0;
+	
+		const monthlyRewards = (Number(account.stakeBalance) * stakeTokenPrice * (apr / 100)) / rewardTokenPrice / 12;
+	
+		return isFinite(monthlyRewards) ? monthlyRewards : 0;
+	}, [apr, stakeTokenPrice, rewardTokenPrice, account?.stakeBalance]);
 
 	useEffect(() => {
 		const fetchPrices = async () => {
@@ -197,6 +205,10 @@ export function FarmInfo({ farm, account, metadata, onOperationSuccess }: FarmIn
 					) : (
 						<p className="font-mono text-xl sm:text-2xl font-bold text-green-500">{formatPercentage(apr)}%</p>
 					)}
+
+					<p className="font-mono uppercase text-xs text-muted-foreground mt-0.5">
+						{formatAmountWithSuffix(expectedMonthlyRewards)} {tokenSymbol} Monthly
+					</p>
 				</div>
 
 				{/* Pending Rewards */}
