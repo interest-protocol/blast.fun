@@ -10,7 +10,7 @@ import { FlashBuyInput } from "./flash-buy-input"
 import { useLatestTokens } from "@/hooks/use-tokens"
 import { useTradeBump } from "@/hooks/use-trade-bump"
 import type { TokenListSettings, TokenFilters } from "@/types/token"
-import { sortTokens, applyDefaultSort } from "@/utils/token-sorting"
+import { sortTokens, } from "@/utils/token-sorting"
 
 interface NewlyCreatedProps {
 	pollInterval?: number
