@@ -21,6 +21,7 @@ interface CollapsibleTokenCategoryProps {
     onSelectToken: (token: TokenOption) => void;
     isOpen: boolean;
     onToggle: (category: TokenCategory, isOpen: boolean) => void;
+    disabledCoinTypes?: string[];
 }
 
 export const CollapsibleTokenCategory: FC<CollapsibleTokenCategoryProps> = ({
@@ -30,6 +31,7 @@ export const CollapsibleTokenCategory: FC<CollapsibleTokenCategoryProps> = ({
     onSelectToken,
     isOpen,
     onToggle,
+    disabledCoinTypes = [],
 }) => {
     const { tokens, isLoading } = useTokenCategories(category, isOpen);
 
@@ -71,12 +73,13 @@ export const CollapsibleTokenCategory: FC<CollapsibleTokenCategoryProps> = ({
                     <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 )}
             </CollapsibleTrigger>
-            <CollapsibleContent className="flex flex-1 items-stretch border-b border-border/50 overflow-hidden">
+            <CollapsibleContent className="flex flex-1 border-b border-border/50 overflow-hidden">
                 <TokenGrid
                     tokens={filteredTokens}
                     isLoading={isLoading}
                     searchQuery={searchQuery}
                     onSelectToken={onSelectToken}
+                    disabledCoinTypes={disabledCoinTypes}
                 />
             </CollapsibleContent>
         </Collapsible>

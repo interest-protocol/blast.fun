@@ -68,14 +68,12 @@ const SwapTerminal: FC = () => {
                     onSettingsClick={() => setSettingsOpen(true)}
                 />
             </Dialog>
-
             <SlippageSettingsDialog
                 open={settingsOpen}
                 onOpenChange={setSettingsOpen}
                 slippage={swapTerminal.slippage}
                 onSlippageChange={swapTerminal.setSlippage}
             />
-
             <TokenSearchDialog
                 open={tokenSearchOpen !== null}
                 onOpenChange={(open) => {
@@ -87,6 +85,9 @@ const SwapTerminal: FC = () => {
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
                 onSelectToken={handleSelectToken}
+                fromToken={swapTerminal.fromToken}
+                toToken={swapTerminal.toToken}
+                selectingSide={tokenSearchOpen}
             />
         </>
     );

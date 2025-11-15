@@ -2,7 +2,6 @@
 
 import { FC } from "react";
 import { TokenAvatar } from "../tokens/token-avatar";
-import { SUI_TYPE_ARG } from "@mysten/sui/utils";
 import { TokenOption } from "./types";
 
 interface TokenSelectorButtonProps {
@@ -21,24 +20,14 @@ export const TokenSelectorButton: FC<TokenSelectorButtonProps> = ({
         >
             {token ? (
                 <>
-                    {token.coinType === SUI_TYPE_ARG ? (
-                        <img
-                            src="/assets/currency/sui-fill.svg"
-                            alt="SUI"
-                            width={18}
-                            height={18}
-                            className="shrink-0"
-                        />
-                    ) : (
-                        <TokenAvatar
-                            iconUrl={token.iconUrl}
-                            symbol={token.symbol}
-                            name={token.name}
-                            className="w-[18px] h-[18px] rounded-full shrink-0"
-                            fallbackClassName="text-xs"
-                            enableHover={false}
-                        />
-                    )}
+                    <TokenAvatar
+                        iconUrl={token.iconUrl}
+                        symbol={token.symbol}
+                        name={token.name}
+                        className="w-[18px] h-[18px] rounded-full shrink-0"
+                        fallbackClassName="text-xs"
+                        enableHover={false}
+                    />
                     <span className="text-sm font-medium whitespace-nowrap">
                         {token.symbol}
                     </span>
@@ -51,4 +40,3 @@ export const TokenSelectorButton: FC<TokenSelectorButtonProps> = ({
         </button>
     );
 };
-

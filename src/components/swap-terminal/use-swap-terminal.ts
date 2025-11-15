@@ -49,6 +49,7 @@ export const useSwapTerminal = () => {
     useEffect(() => {
         if (!fromToken) {
             setFromToken({
+                iconUrl: "/assets/currency/sui-fill.svg",
                 coinType: SUI_TYPE_ARG,
                 symbol: "SUI",
                 name: "Sui",
@@ -60,18 +61,17 @@ export const useSwapTerminal = () => {
     // Handle token selection
     const handleSelectToken = useCallback(
         (token: TokenOption, side: "from" | "to") => {
+            // Prevent selecting the same coinType for both sides
             if (side === "from") {
-                setFromToken(token);
-                // If swapping to the same token, swap the other side
                 if (toToken?.coinType === token.coinType) {
-                    setToToken(fromToken);
+                    return; // Don't allow selecting the same token
                 }
+                setFromToken(token);
             } else {
-                setToToken(token);
-                // If swapping from the same token, swap the other side
                 if (fromToken?.coinType === token.coinType) {
-                    setFromToken(toToken);
+                    return; // Don't allow selecting the same token
                 }
+                setToToken(token);
             }
         },
         [fromToken, toToken]
@@ -112,7 +112,9 @@ export const useSwapTerminal = () => {
     // Calculate to amount price display
     const toAmountPriceDisplay = useMemo(() => {
         if (toAmount && parseFloat(toAmount) > 0) {
-            return `≈ ${formatNumberWithSuffix(parseFloat(toAmount))} ${toToken?.symbol || ""}`;
+            return `≈ ${formatNumberWithSuffix(parseFloat(toAmount))} ${
+                toToken?.symbol || ""
+            }`;
         }
         return "Enter amount to see quote";
     }, [toAmount, toToken]);
@@ -143,4 +145,3 @@ export const useSwapTerminal = () => {
         handleMaxClick,
     };
 };
-
