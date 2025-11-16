@@ -47,12 +47,9 @@ export const NewlyCreated = memo(function NewlyCreated({
 		// @dev: Apply additional client-side social filters if needed
 		if (settings.filters.hasWebsite || settings.filters.hasTwitter || settings.filters.hasTelegram) {
 			tokens = tokens.filter((token) => {
-				const metadata = token.metadata || token
-				if (!metadata) return false
-
-				if (settings.filters.hasWebsite && (!metadata.Website || metadata.Website === '')) return false
-				if (settings.filters.hasTwitter && (!metadata.X || metadata.X === '')) return false
-				if (settings.filters.hasTelegram && (!metadata.Telegram || metadata.Telegram === '')) return false
+				if (settings.filters.hasWebsite && (!token.website || token.website === '')) return false
+				if (settings.filters.hasTwitter && (!token.twitter || token.twitter === '')) return false
+				if (settings.filters.hasTelegram && (!token.telegram || token.telegram === '')) return false
 
 				return true
 			})

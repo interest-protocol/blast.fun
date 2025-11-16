@@ -6,7 +6,6 @@ import { GraduatedComplete } from "@/components/tokens/graduated-complete";
 import { MobileTokenList } from "@/components/tokens/mobile-token-list";
 import { SearchToken } from "@/components/shared/search-token";
 import { useBreakpoint } from "@/hooks/use-breakpoint";
-import SwapTerminal from "@/components/swap-terminal";
 
 export default function DiscoveryPage() {
     const { isMobile } = useBreakpoint();
