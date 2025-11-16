@@ -3,16 +3,11 @@
 import { FC, useMemo } from "react";
 import { Loader2, Wallet } from "lucide-react";
 import { TokenGrid } from "./token-grid";
-import { TokenOption } from "./types";
+import type { WalletTabProps } from "./swap-terminal.types";
 import { useWalletTokens } from "./use-wallet-tokens";
 import { useApp } from "@/context/app.context";
 import { Button } from "../ui/button";
-
-interface WalletTabProps {
-    searchQuery: string;
-    onSelectToken: (token: TokenOption) => void;
-    disabledCoinTypes?: string[];
-}
+import { MIN_SEARCH_LENGTH } from "./swap-terminal.data";
 
 export const WalletTab: FC<WalletTabProps> = ({
     searchQuery,
@@ -23,7 +18,7 @@ export const WalletTab: FC<WalletTabProps> = ({
     const { setIsConnectDialogOpen } = useApp();
 
     const filteredTokens = useMemo(() => {
-        if (!searchQuery || searchQuery.length < 2) return tokens;
+        if (!searchQuery || searchQuery.length < MIN_SEARCH_LENGTH) return tokens;
 
         const query = searchQuery.toLowerCase();
         return tokens.filter(

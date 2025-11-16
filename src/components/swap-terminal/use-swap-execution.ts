@@ -3,15 +3,8 @@ import { useApp } from "@/context/app.context";
 import { useTransaction } from "@/hooks/sui/use-transaction";
 import { executeSwap } from "@/lib/aftermath";
 import toast from "react-hot-toast";
-import { TokenOption } from "./types";
-
-interface UseSwapExecutionProps {
-    fromToken: TokenOption | null;
-    toToken: TokenOption | null;
-    fromAmount: string;
-    slippage: number;
-    onSuccess?: () => void;
-}
+import type { UseSwapExecutionProps } from "./swap-terminal.types";
+import { DEFAULT_DECIMALS } from "./swap-terminal.data";
 
 export const useSwapExecution = ({
     fromToken,
@@ -40,7 +33,7 @@ export const useSwapExecution = ({
         }
 
         try {
-            const decimals = fromToken.decimals || 9;
+            const decimals = fromToken.decimals || DEFAULT_DECIMALS;
             const amountIn = BigInt(
                 Math.floor(parseFloat(fromAmount) * Math.pow(10, decimals))
             );

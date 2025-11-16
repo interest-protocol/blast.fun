@@ -2,33 +2,11 @@
 
 import { FC } from "react";
 import { DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
-import { TokenOption } from "./types";
+import type { SwapDialogContentProps } from "./swap-terminal.types";
 import { TokenInputSection } from "./token-input-section";
 import { SwapDirectionButton } from "./swap-direction-button";
 import { SettingsBar } from "./settings-bar";
 import { SwapActionButton } from "./swap-action-button";
-
-interface SwapDialogContentProps {
-    fromToken: TokenOption | null;
-    toToken: TokenOption | null;
-    fromAmount: string;
-    toAmount: string;
-    fromBalanceDisplay: number;
-    toBalanceDisplay: number;
-    usdValue: number;
-    isLoadingQuote: boolean;
-    isSwapping: boolean;
-    isConnected: boolean;
-    slippage: number;
-    isValidAmount: boolean;
-    toAmountPriceDisplay: string;
-    onFromAmountChange: (amount: string) => void;
-    onTokenSelect: (side: "from" | "to") => void;
-    onSwapTokens: () => void;
-    onSwap: () => void;
-    onMaxClick: () => void;
-    onSettingsClick: () => void;
-}
 
 export const SwapDialogContent: FC<SwapDialogContentProps> = ({
     fromToken,

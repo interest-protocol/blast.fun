@@ -1,13 +1,7 @@
 import { useEffect, useState } from "react";
 import { getSwapQuote } from "@/lib/aftermath";
-import { TokenOption } from "./types";
-
-interface UseSwapQuoteProps {
-    fromToken: TokenOption | null;
-    toToken: TokenOption | null;
-    fromAmount: string;
-    slippage: number;
-}
+import type { TokenOption, UseSwapQuoteProps } from "./swap-terminal.types";
+import { DEFAULT_DECIMALS } from "./swap-terminal.data";
 
 export const useSwapQuote = ({
     fromToken,
@@ -32,7 +26,7 @@ export const useSwapQuote = ({
 
             try {
                 setIsLoadingQuote(true);
-                const decimals = fromToken.decimals || 9;
+                const decimals = fromToken.decimals || DEFAULT_DECIMALS;
                 const amountIn = BigInt(
                     Math.floor(parseFloat(fromAmount) * Math.pow(10, decimals))
                 );
@@ -44,7 +38,7 @@ export const useSwapQuote = ({
                     slippagePercentage: slippage,
                 });
 
-                const outDecimals = toToken.decimals || 9;
+                const outDecimals = toToken.decimals || DEFAULT_DECIMALS;
                 const amountOut =
                     Number(quote.amountOut) / Math.pow(10, outDecimals);
                 setToAmount(amountOut.toFixed(6));

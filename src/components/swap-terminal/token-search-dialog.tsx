@@ -6,22 +6,16 @@ import { useDebouncedCallback } from "use-debounce";
 import { normalizeStructTag } from "@mysten/sui/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
-import { TokenOption } from "./types";
+import type { TokenOption, TokenSearchDialogProps } from "./swap-terminal.types";
 import { BlastTab } from "./blast-tab";
 import { TokensTab } from "./tokens-tab";
 import { SearchResultsView } from "./search-results-view";
 import { nexaClient } from "@/lib/nexa";
-
-interface TokenSearchDialogProps {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-    searchQuery: string;
-    onSearchChange: (query: string) => void;
-    onSelectToken: (token: TokenOption) => void;
-    fromToken: TokenOption | null;
-    toToken: TokenOption | null;
-    selectingSide: "from" | "to" | null;
-}
+import {
+    SEARCH_DEBOUNCE_MS,
+    MIN_SEARCH_LENGTH,
+    DEFAULT_DECIMALS,
+} from "./swap-terminal.data";
 
 export const TokenSearchDialog: FC<TokenSearchDialogProps> = ({
     open,
@@ -31,7 +25,6 @@ export const TokenSearchDialog: FC<TokenSearchDialogProps> = ({
     onSelectToken,
     fromToken,
     toToken,
-    selectingSide,
 }) => {
     const [activeTab, setActiveTab] = useState("tokens");
     const [globalSearchResults, setGlobalSearchResults] = useState<
@@ -39,7 +32,6 @@ export const TokenSearchDialog: FC<TokenSearchDialogProps> = ({
     >([]);
     const [isSearching, setIsSearching] = useState(false);
 
-    // Disable both selected tokens everywhere
     const disabledCoinTypes = [fromToken?.coinType, toToken?.coinType]
         .filter(
             (coinType): coinType is string =>
@@ -48,7 +40,7 @@ export const TokenSearchDialog: FC<TokenSearchDialogProps> = ({
         .map((coinType) => normalizeStructTag(coinType));
 
     const handleGlobalSearch = useDebouncedCallback(async (query: string) => {
-        if (!query || query.length < 2) {
+        if (!query || query.length < MIN_SEARCH_LENGTH) {
             setGlobalSearchResults([]);
             return;
         }
@@ -75,7 +67,7 @@ export const TokenSearchDialog: FC<TokenSearchDialogProps> = ({
                         result.icon ||
                         result.coinMetadata?.iconUrl ||
                         result.coinMetadata?.icon_url,
-                    decimals: result.decimals || 9,
+                    decimals: result.decimals || DEFAULT_DECIMALS,
                 })
             );
             setGlobalSearchResults(tokenOptions);
@@ -85,13 +77,12 @@ export const TokenSearchDialog: FC<TokenSearchDialogProps> = ({
         } finally {
             setIsSearching(false);
         }
-    }, 500);
+    }, SEARCH_DEBOUNCE_MS);
 
     useEffect(() => {
         handleGlobalSearch(searchQuery);
     }, [searchQuery, handleGlobalSearch]);
 
-    // Reset search results when dialog closes
     useEffect(() => {
         if (!open) {
             setGlobalSearchResults([]);
@@ -99,7 +90,7 @@ export const TokenSearchDialog: FC<TokenSearchDialogProps> = ({
         }
     }, [open]);
 
-    const hasSearchQuery = searchQuery.length >= 2;
+    const hasSearchQuery = searchQuery.length >= MIN_SEARCH_LENGTH;
     const showGlobalSearch = hasSearchQuery;
 
     return (
@@ -111,7 +102,6 @@ export const TokenSearchDialog: FC<TokenSearchDialogProps> = ({
                     </DialogTitle>
                 </DialogHeader>
 
-                {/* Search Input */}
                 <div className="flex items-center border-b px-4 py-3">
                     <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
                     <input
@@ -164,7 +154,6 @@ export const TokenSearchDialog: FC<TokenSearchDialogProps> = ({
                                 onSelectToken={onSelectToken}
                                 fromToken={fromToken}
                                 toToken={toToken}
-                                selectingSide={selectingSide}
                             />
                         </TabsContent>
                         <TabsContent
@@ -176,7 +165,6 @@ export const TokenSearchDialog: FC<TokenSearchDialogProps> = ({
                                 onSelectToken={onSelectToken}
                                 fromToken={fromToken}
                                 toToken={toToken}
-                                selectingSide={selectingSide}
                             />
                         </TabsContent>
                     </Tabs>

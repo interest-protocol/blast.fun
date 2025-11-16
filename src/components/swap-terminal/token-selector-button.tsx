@@ -2,12 +2,7 @@
 
 import { FC } from "react";
 import { TokenAvatar } from "../tokens/token-avatar";
-import { TokenOption } from "./types";
-
-interface TokenSelectorButtonProps {
-    token: TokenOption | null;
-    onClick: () => void;
-}
+import type { TokenSelectorButtonProps } from "./swap-terminal.types";
 
 export const TokenSelectorButton: FC<TokenSelectorButtonProps> = ({
     token,

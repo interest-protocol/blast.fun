@@ -3,23 +3,8 @@
 import { FC } from "react";
 import { Wallet, Loader2 } from "lucide-react";
 import { formatNumberWithSuffix } from "@/utils/format";
-import { SUI_TYPE_ARG, MIST_PER_SUI } from "@mysten/sui/utils";
-import { TokenOption } from "./types";
+import type { TokenInputSectionProps } from "./swap-terminal.types";
 import { TokenSelectorButton } from "./token-selector-button";
-
-interface TokenInputSectionProps {
-    token: TokenOption | null;
-    amount: string;
-    onAmountChange: (amount: string) => void;
-    balance: number;
-    usdValue?: number;
-    isLoading?: boolean;
-    isReadOnly?: boolean;
-    onTokenSelect: () => void;
-    showMaxButton?: boolean;
-    onMaxClick?: () => void;
-    priceDisplay?: string;
-}
 
 export const TokenInputSection: FC<TokenInputSectionProps> = ({
     token,

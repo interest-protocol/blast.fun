@@ -1,7 +1,12 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { nexaClient } from "@/lib/nexa";
-import { TokenOption } from "./types";
+import type { TokenOption } from "./swap-terminal.types";
+import {
+    SEARCH_DEBOUNCE_MS,
+    MIN_SEARCH_LENGTH,
+    DEFAULT_DECIMALS,
+} from "./swap-terminal.data";
 
 export const useTokenSearch = () => {
     const [searchQuery, setSearchQuery] = useState("");
@@ -9,7 +14,7 @@ export const useTokenSearch = () => {
     const [isSearching, setIsSearching] = useState(false);
 
     const handleSearch = useDebouncedCallback(async (query: string) => {
-        if (!query || query.length < 2) {
+        if (!query || query.length < MIN_SEARCH_LENGTH) {
             setSearchResults([]);
             return;
         }
@@ -36,7 +41,7 @@ export const useTokenSearch = () => {
                         result.icon ||
                         result.coinMetadata?.iconUrl ||
                         result.coinMetadata?.icon_url,
-                    decimals: result.decimals || 9,
+                    decimals: result.decimals || DEFAULT_DECIMALS,
                 })
             );
             setSearchResults(tokenOptions);
@@ -46,7 +51,7 @@ export const useTokenSearch = () => {
         } finally {
             setIsSearching(false);
         }
-    }, 500);
+    }, SEARCH_DEBOUNCE_MS);
 
     const resetSearch = useCallback(() => {
         setSearchQuery("");

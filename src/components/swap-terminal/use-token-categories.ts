@@ -7,9 +7,12 @@ import {
     useBondedTokens,
 } from "@/hooks/use-tokens";
 import type { NexaToken } from "@/types/token";
-import { TokenOption } from "./types";
-
-type TokenCategory = "newly-created" | "near-graduated" | "graduated";
+import type { TokenOption, TokenCategory } from "./swap-terminal.types";
+import {
+    NEWLY_CREATED_REFETCH_INTERVAL,
+    NEAR_GRADUATED_REFETCH_INTERVAL,
+    GRADUATED_REFETCH_INTERVAL,
+} from "./swap-terminal.data";
 
 const convertTokenToOption = (token: NexaToken): TokenOption => ({
     coinType: token.coinType,
@@ -26,19 +29,25 @@ export const useTokenCategories = (
     const latestTokensQuery = useLatestTokens(undefined, {
         enabled: enabled && activeCategory === "newly-created",
         refetchInterval:
-            enabled && activeCategory === "newly-created" ? 10000 : undefined,
+            enabled && activeCategory === "newly-created"
+                ? NEWLY_CREATED_REFETCH_INTERVAL
+                : undefined,
     });
 
     const aboutToBondQuery = useAboutToBondTokens(undefined, {
         enabled: enabled && activeCategory === "near-graduated",
         refetchInterval:
-            enabled && activeCategory === "near-graduated" ? 10000 : undefined,
+            enabled && activeCategory === "near-graduated"
+                ? NEAR_GRADUATED_REFETCH_INTERVAL
+                : undefined,
     });
 
     const bondedTokensQuery = useBondedTokens(undefined, {
         enabled: enabled && activeCategory === "graduated",
         refetchInterval:
-            enabled && activeCategory === "graduated" ? 30000 : undefined,
+            enabled && activeCategory === "graduated"
+                ? GRADUATED_REFETCH_INTERVAL
+                : undefined,
     });
 
     const { data, isLoading, error } =

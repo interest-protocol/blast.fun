@@ -4,16 +4,9 @@ import { FC } from "react";
 import { Loader2 } from "lucide-react";
 import { normalizeStructTag } from "@mysten/sui/utils";
 import { TokenAvatar } from "../tokens/token-avatar";
-import { TokenOption } from "./types";
+import type { TokenGridProps } from "./swap-terminal.types";
 import { cn } from "@/utils";
-
-interface TokenGridProps {
-    tokens: TokenOption[];
-    isLoading: boolean;
-    searchQuery: string;
-    onSelectToken: (token: TokenOption) => void;
-    disabledCoinTypes?: string[];
-}
+import { MIN_SEARCH_LENGTH } from "./swap-terminal.data";
 
 export const TokenGrid: FC<TokenGridProps> = ({
     tokens,
@@ -32,7 +25,7 @@ export const TokenGrid: FC<TokenGridProps> = ({
     if (tokens.length === 0)
         return (
             <div className="flex w-full justify-center items-center text-center text-muted-foreground text-sm">
-                {searchQuery.length >= 2
+                {searchQuery.length >= MIN_SEARCH_LENGTH
                     ? "No tokens found."
                     : "No tokens available."}
             </div>

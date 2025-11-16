@@ -3,23 +3,9 @@
 import { FC, useState, useCallback } from "react";
 import { normalizeStructTag } from "@mysten/sui/utils";
 import { CollapsibleTokenCategory } from "./collapsible-token-category";
-import { TokenOption } from "./types";
-
-type TokenCategory = "newly-created" | "near-graduated" | "graduated";
-
-const CATEGORIES: { key: TokenCategory; label: string }[] = [
-    { key: "newly-created", label: "NEWLY CREATED" },
-    { key: "near-graduated", label: "NEAR GRADUATED" },
-    { key: "graduated", label: "GRADUATED" },
-];
-
-interface BlastTabProps {
-    searchQuery: string;
-    onSelectToken: (token: TokenOption) => void;
-    fromToken: TokenOption | null;
-    toToken: TokenOption | null;
-    selectingSide: "from" | "to" | null;
-}
+import type { TokenCategory } from "./swap-terminal.types";
+import type { BlastTabProps } from "./swap-terminal.types";
+import { CATEGORIES, DEFAULT_EXPANDED_CATEGORY } from "./swap-terminal.data";
 
 export const BlastTab: FC<BlastTabProps> = ({
     searchQuery,
@@ -27,7 +13,6 @@ export const BlastTab: FC<BlastTabProps> = ({
     fromToken,
     toToken,
 }) => {
-    // Disable both selected tokens everywhere
     const disabledCoinTypes = [fromToken?.coinType, toToken?.coinType]
         .filter(
             (coinType): coinType is string =>
@@ -35,7 +20,7 @@ export const BlastTab: FC<BlastTabProps> = ({
         )
         .map((coinType) => normalizeStructTag(coinType));
     const [expandedCategory, setExpandedCategory] =
-        useState<TokenCategory | null>("newly-created");
+        useState<TokenCategory | null>(DEFAULT_EXPANDED_CATEGORY);
 
     const handleToggle = useCallback(
         (category: TokenCategory, isOpen: boolean) => {

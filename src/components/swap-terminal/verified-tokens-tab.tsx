@@ -2,14 +2,9 @@
 
 import { FC, useMemo } from "react";
 import { TokenGrid } from "./token-grid";
-import { TokenOption } from "./types";
+import type { VerifiedTokensTabProps } from "./swap-terminal.types";
 import { useVerifiedTokens } from "./use-verified-tokens";
-
-interface VerifiedTokensTabProps {
-    searchQuery: string;
-    onSelectToken: (token: TokenOption) => void;
-    disabledCoinTypes?: string[];
-}
+import { MIN_SEARCH_LENGTH } from "./swap-terminal.data";
 
 export const VerifiedTokensTab: FC<VerifiedTokensTabProps> = ({
     searchQuery,
@@ -19,7 +14,7 @@ export const VerifiedTokensTab: FC<VerifiedTokensTabProps> = ({
     const { tokens, isLoading } = useVerifiedTokens();
 
     const filteredTokens = useMemo(() => {
-        if (!searchQuery || searchQuery.length < 2) return tokens;
+        if (!searchQuery || searchQuery.length < MIN_SEARCH_LENGTH) return tokens;
 
         const query = searchQuery.toLowerCase();
         return tokens.filter(

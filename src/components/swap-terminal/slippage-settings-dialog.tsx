@@ -3,13 +3,8 @@
 import { FC } from "react";
 import { Dialog, DialogContent } from "../ui/dialog";
 import { Button } from "../ui/button";
-
-interface SlippageSettingsDialogProps {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-    slippage: number;
-    onSlippageChange: (slippage: number) => void;
-}
+import type { SlippageSettingsDialogProps } from "./swap-terminal.types";
+import { SLIPPAGE_OPTIONS } from "./swap-terminal.data";
 
 export const SlippageSettingsDialog: FC<SlippageSettingsDialogProps> = ({
     open,
@@ -30,7 +25,7 @@ export const SlippageSettingsDialog: FC<SlippageSettingsDialogProps> = ({
                         Slippage Tolerance
                     </h3>
                     <div className="flex gap-2">
-                        {[0.1, 0.5, 1, 3].map((value) => (
+                        {SLIPPAGE_OPTIONS.map((value) => (
                             <Button
                                 key={value}
                                 variant={

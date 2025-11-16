@@ -2,16 +2,21 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import { useSuiPrice } from "@/hooks/sui/use-sui-price";
 import { SUI_TYPE_ARG } from "@mysten/sui/utils";
 import { formatNumberWithSuffix } from "@/utils/format";
-import { TokenOption } from "./types";
+import type { TokenOption } from "./swap-terminal.types";
 import { useSwapQuote } from "./use-swap-quote";
 import { useTokenBalances } from "./use-token-balances";
 import { useSwapExecution } from "./use-swap-execution";
+import {
+    DEFAULT_SLIPPAGE,
+    DEFAULT_SUI_TOKEN,
+    SUI_RESERVE_AMOUNT,
+} from "./swap-terminal.data";
 
 export const useSwapTerminal = () => {
     const [fromToken, setFromToken] = useState<TokenOption | null>(null);
     const [toToken, setToToken] = useState<TokenOption | null>(null);
     const [fromAmount, setFromAmount] = useState("");
-    const [slippage, setSlippage] = useState(1);
+    const [slippage, setSlippage] = useState(DEFAULT_SLIPPAGE);
     const [isSwapping, setIsSwapping] = useState(false);
 
     const { usd: suiPrice } = useSuiPrice();
@@ -39,37 +44,27 @@ export const useSwapTerminal = () => {
         },
     });
 
-    // Calculate USD value
     const usdValue = useMemo(() => {
         if (!fromAmount || parseFloat(fromAmount) <= 0) return 0;
         return parseFloat(fromAmount) * suiPrice;
     }, [fromAmount, suiPrice]);
 
-    // Default to SUI for from token
     useEffect(() => {
         if (!fromToken) {
-            setFromToken({
-                iconUrl: "/assets/currency/sui-fill.svg",
-                coinType: SUI_TYPE_ARG,
-                symbol: "SUI",
-                name: "Sui",
-                decimals: 9,
-            });
+            setFromToken(DEFAULT_SUI_TOKEN);
         }
     }, [fromToken]);
 
-    // Handle token selection
     const handleSelectToken = useCallback(
         (token: TokenOption, side: "from" | "to") => {
-            // Prevent selecting the same coinType for both sides
             if (side === "from") {
                 if (toToken?.coinType === token.coinType) {
-                    return; // Don't allow selecting the same token
+                    return;
                 }
                 setFromToken(token);
             } else {
                 if (fromToken?.coinType === token.coinType) {
-                    return; // Don't allow selecting the same token
+                    return;
                 }
                 setToToken(token);
             }
@@ -77,7 +72,6 @@ export const useSwapTerminal = () => {
         [fromToken, toToken]
     );
 
-    // Swap tokens
     const handleSwapTokens = useCallback(() => {
         const temp = fromToken;
         setFromToken(toToken);
@@ -87,7 +81,6 @@ export const useSwapTerminal = () => {
         setToAmount(tempAmount);
     }, [fromToken, toToken, fromAmount, toAmount, setToAmount]);
 
-    // Execute swap with loading state
     const handleSwap = useCallback(async () => {
         try {
             setIsSwapping(true);
@@ -97,19 +90,17 @@ export const useSwapTerminal = () => {
         }
     }, [executeSwap]);
 
-    // Handle max button click
     const handleMaxClick = useCallback(() => {
         if (!fromToken) return;
 
         if (fromToken.coinType === SUI_TYPE_ARG) {
-            const maxSui = Math.max(0, fromBalanceDisplay - 0.02);
+            const maxSui = Math.max(0, fromBalanceDisplay - SUI_RESERVE_AMOUNT);
             setFromAmount(maxSui.toString());
         } else {
             setFromAmount(fromBalanceDisplay.toString());
         }
     }, [fromToken, fromBalanceDisplay]);
 
-    // Calculate to amount price display
     const toAmountPriceDisplay = useMemo(() => {
         if (toAmount && parseFloat(toAmount) > 0) {
             return `≈ ${formatNumberWithSuffix(parseFloat(toAmount))} ${

@@ -1,28 +1,24 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { TokenOption } from "./types";
+import type { TokenOption, VerifiedTokenData } from "./swap-terminal.types";
 import { normalizeStructTag, SUI_TYPE_ARG } from "@mysten/sui/utils";
-
-interface VerifiedTokenData {
-    type: string;
-    symbol: string;
-    name: string;
-    logoUrl?: string;
-    decimals?: number;
-}
-
-const VERIFIED_TOKENS_URL =
-    "https://interest-protocol.github.io/tokens/sui.json";
+import {
+    VERIFIED_TOKENS_URL,
+    DEFAULT_DECIMALS,
+    SUI_ICON_URL,
+    VERIFIED_TOKENS_STALE_TIME,
+    VERIFIED_TOKENS_REFETCH_INTERVAL,
+} from "./swap-terminal.data";
 
 const convertToTokenOption = (token: VerifiedTokenData): TokenOption => ({
     coinType: token.type,
     symbol: token.symbol,
     name: token.name,
-    decimals: token.decimals || 9,
+    decimals: token.decimals || DEFAULT_DECIMALS,
     iconUrl:
         normalizeStructTag(token.type) === normalizeStructTag(SUI_TYPE_ARG)
-            ? "/assets/currency/sui-fill.svg"
+            ? SUI_ICON_URL
             : token.logoUrl,
 });
 
@@ -37,8 +33,8 @@ export const useVerifiedTokens = () => {
             const tokens = await response.json();
             return Array.isArray(tokens) ? tokens : [];
         },
-        staleTime: 5 * 60 * 1000, // 5 minutes
-        refetchInterval: 10 * 60 * 1000, // 10 minutes
+        staleTime: VERIFIED_TOKENS_STALE_TIME,
+        refetchInterval: VERIFIED_TOKENS_REFETCH_INTERVAL,
     });
 
     const tokens: TokenOption[] = data ? data.map(convertToTokenOption) : [];

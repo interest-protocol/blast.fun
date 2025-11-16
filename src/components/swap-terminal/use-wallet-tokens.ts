@@ -1,18 +1,14 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { TokenOption } from "./types";
+import type { TokenOption, WalletCoin } from "./swap-terminal.types";
 import { useApp } from "@/context/app.context";
 import { normalizeStructTag, SUI_TYPE_ARG } from "@mysten/sui/utils";
-
-interface WalletCoin {
-    coinType: string;
-    balance: string;
-    decimals: number;
-    symbol: string;
-    name: string;
-    iconUrl?: string;
-}
+import {
+    SUI_ICON_URL,
+    WALLET_TOKENS_STALE_TIME,
+    WALLET_TOKENS_REFETCH_INTERVAL,
+} from "./swap-terminal.data";
 
 const convertToTokenOption = (coin: WalletCoin): TokenOption => ({
     coinType: coin.coinType,
@@ -20,7 +16,7 @@ const convertToTokenOption = (coin: WalletCoin): TokenOption => ({
     name: coin.name,
     iconUrl:
         normalizeStructTag(coin.coinType) === normalizeStructTag(SUI_TYPE_ARG)
-            ? "/assets/currency/sui-fill.svg"
+            ? SUI_ICON_URL
             : coin.iconUrl,
     decimals: coin.decimals,
 });
@@ -51,8 +47,8 @@ export const useWalletTokens = () => {
             return result.coins || [];
         },
         enabled: isConnected && !!address,
-        staleTime: 30 * 1000, // 30 seconds
-        refetchInterval: 60 * 1000, // 1 minute
+        staleTime: WALLET_TOKENS_STALE_TIME,
+        refetchInterval: WALLET_TOKENS_REFETCH_INTERVAL,
     });
 
     const tokens: TokenOption[] = data ? data.map(convertToTokenOption) : [];

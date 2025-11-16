@@ -2,11 +2,7 @@
 
 import { FC } from "react";
 import { Activity, Settings2 } from "lucide-react";
-
-interface SettingsBarProps {
-    slippage: number;
-    onSettingsClick: () => void;
-}
+import type { SettingsBarProps } from "./swap-terminal.types";
 
 export const SettingsBar: FC<SettingsBarProps> = ({
     slippage,

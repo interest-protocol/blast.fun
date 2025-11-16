@@ -4,7 +4,7 @@ import { FC, useState, useCallback } from "react";
 import { Button } from "../ui/button";
 import { Dialog } from "../ui/dialog";
 import { ArrowLeftRight } from "lucide-react";
-import { TokenOption } from "./types";
+import type { TokenOption } from "./swap-terminal.types";
 import { TokenSearchDialog } from "./token-search-dialog";
 import { SlippageSettingsDialog } from "./slippage-settings-dialog";
 import { SwapDialogContent } from "./swap-dialog-content";
@@ -87,7 +87,6 @@ const SwapTerminal: FC = () => {
                 onSelectToken={handleSelectToken}
                 fromToken={swapTerminal.fromToken}
                 toToken={swapTerminal.toToken}
-                selectingSide={tokenSearchOpen}
             />
         </>
     );

@@ -7,7 +7,6 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from "../ui/collapsible";
-import { TokenOption } from "./types";
 import { TokenGrid } from "./token-grid";
 import { useVerifiedTokens } from "./use-verified-tokens";
 import { useWalletTokens } from "./use-wallet-tokens";
@@ -19,22 +18,8 @@ import {
 import type { NexaToken } from "@/types/token";
 import { useApp } from "@/context/app.context";
 import { cn } from "@/utils";
-
-interface SearchResultsViewProps {
-    searchQuery: string;
-    globalSearchResults: TokenOption[];
-    isSearching: boolean;
-    onSelectToken: (token: TokenOption) => void;
-    disabledCoinTypes: string[];
-}
-
-type SectionKey =
-    | "global"
-    | "verified"
-    | "wallet"
-    | "newly-created"
-    | "near-graduated"
-    | "graduated";
+import type { TokenOption, SearchResultsViewProps, SectionKey } from "./swap-terminal.types";
+import { MIN_SEARCH_LENGTH } from "./swap-terminal.data";
 
 const convertTokenToOption = (token: NexaToken): TokenOption => ({
     coinType: token.coinType,
@@ -45,7 +30,7 @@ const convertTokenToOption = (token: NexaToken): TokenOption => ({
 });
 
 const filterTokens = (tokens: TokenOption[], query: string): TokenOption[] => {
-    if (!query || query.length < 2) return tokens;
+    if (!query || query.length < MIN_SEARCH_LENGTH) return tokens;
     const lowerQuery = query.toLowerCase();
     return tokens.filter(
         (token) =>
@@ -67,7 +52,6 @@ export const SearchResultsView: FC<SearchResultsViewProps> = ({
         new Set(["global", "verified"])
     );
 
-    // Fetch data from all sources
     const { tokens: verifiedTokens, isLoading: isLoadingVerified } =
         useVerifiedTokens();
     const { tokens: walletTokens, isLoading: isLoadingWallet } =
@@ -79,7 +63,6 @@ export const SearchResultsView: FC<SearchResultsViewProps> = ({
     const { data: graduatedData, isLoading: isLoadingGraduated } =
         useBondedTokens();
 
-    // Global search results are already filtered by the API, so use them as-is
     const filteredGlobalResults = useMemo(
         () => globalSearchResults,
         [globalSearchResults]
@@ -169,8 +152,6 @@ export const SearchResultsView: FC<SearchResultsViewProps> = ({
         },
     ];
 
-    // Filter out sections with no tokens (unless they're loading)
-    // For wallet, only show if connected
     const visibleSections = sections.filter((section) => {
         if (section.key === "wallet" && !isConnected) {
             return false;

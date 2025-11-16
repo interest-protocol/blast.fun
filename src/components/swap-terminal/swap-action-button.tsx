@@ -4,18 +4,7 @@ import { FC } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { cn } from "@/utils";
-import { TokenOption } from "./types";
-
-interface SwapActionButtonProps {
-    fromToken: TokenOption | null;
-    toToken: TokenOption | null;
-    fromAmount: string;
-    isSwapping: boolean;
-    isLoadingQuote: boolean;
-    isConnected: boolean;
-    isValidAmount: boolean;
-    onClick: () => void;
-}
+import type { SwapActionButtonProps } from "./swap-terminal.types";
 
 export const SwapActionButton: FC<SwapActionButtonProps> = ({
     fromToken,

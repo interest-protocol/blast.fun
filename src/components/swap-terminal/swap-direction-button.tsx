@@ -2,10 +2,7 @@
 
 import { FC } from "react";
 import { ArrowLeftRight } from "lucide-react";
-
-interface SwapDirectionButtonProps {
-    onClick: () => void;
-}
+import type { SwapDirectionButtonProps } from "./swap-terminal.types";
 
 export const SwapDirectionButton: FC<SwapDirectionButtonProps> = ({
     onClick,

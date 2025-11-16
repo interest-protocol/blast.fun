@@ -8,29 +8,17 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from "../ui/collapsible";
-import { TokenOption } from "./types";
+import type { TokenOption, TokenSection, TokensTabProps } from "./swap-terminal.types";
 import { VerifiedTokensTab } from "./verified-tokens-tab";
 import { WalletTab } from "./wallet-tab";
 import { cn } from "@/utils";
-
-type TokenSection = "verified" | "wallet";
-
-interface TokensTabProps {
-    searchQuery: string;
-    onSelectToken: (token: TokenOption) => void;
-    fromToken: TokenOption | null;
-    toToken: TokenOption | null;
-    selectingSide: "from" | "to" | null;
-}
 
 export const TokensTab: FC<TokensTabProps> = ({
     searchQuery,
     onSelectToken,
     fromToken,
     toToken,
-    selectingSide,
 }) => {
-    // Disable both selected tokens everywhere
     const disabledCoinTypes = [fromToken?.coinType, toToken?.coinType]
         .filter(
             (coinType): coinType is string =>
