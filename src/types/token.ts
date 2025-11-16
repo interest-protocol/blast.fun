@@ -1,3 +1,5 @@
+import { NexaTokenPool } from "./pool";
+
 export interface TokenMetadata {
     name: string;
     symbol: string;
@@ -110,26 +112,7 @@ export interface NexaToken {
     suiPrice: number;
     marketCap: number;
     sellVolume: number;
-    pools: ReadonlyArray<{
-        _id: string;
-        pool: string;
-        "0x2::sui::SUI": number;
-        "0xcee208b8ae33196244b389e61ffd1202e7a1ae06c8ec210d33402ff649038892::aida::AIDA": number;
-        amountAAdded: number;
-        amountAClaimed: number;
-        amountARemoved: number;
-        amountBAdded: number;
-        amountBClaimed: number;
-        amountBRemoved: number;
-        platform: string;
-        swapCount: number;
-        coinA: string;
-        coinB: string;
-        liqA: number;
-        liqB: number;
-        liqUsd: number;
-        price: number;
-    }>;
+    pools: ReadonlyArray<NexaTokenPool>;
     sniperHoldings: number;
     bundleHoldings: number;
     sniperHoldingsPercent: number;
