@@ -3,7 +3,6 @@
 import { use, useEffect, useState } from "react"
 import { useToken } from "@/hooks/pump/use-token"
 import { XCardTrading } from "./_components/x-card-trading"
-import { SplashLoader } from "@/components/shared/splash-loader"
 import { EmbedHeader } from "./_components/embed-header"
 import { useSearchParams } from "next/navigation"
 import { useReferrals } from "@/hooks/use-referrals"

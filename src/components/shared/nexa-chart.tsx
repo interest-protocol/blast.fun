@@ -1,19 +1,18 @@
 "use client"
 
-import { Token } from "@/types/token"
 import { useState } from "react"
 import { cn } from "@/utils"
 import { useApp } from "@/context/app.context"
 
 interface NexaChartProps {
-	pool: Token
+	coinType: string
 	className?: string
 }
 
-export function NexaChart({ pool, className }: NexaChartProps) {
+export function NexaChart({ coinType, className }: NexaChartProps) {
 	const [isLoading, setIsLoading] = useState(true)
 	const { address } = useApp();
-	const chartUrl = `https://app.nexa.xyz/xpump-tv-chart/${pool.coinType}?address=${address}`
+	const chartUrl = `https://app.nexa.xyz/xpump-tv-chart/${coinType}?address=${address}`
 
 	return (
 		<div className={cn("relative w-full h-full", className)}>

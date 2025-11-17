@@ -9,8 +9,6 @@ interface BondingProgressProps {
 
 export function BondingProgress({ pool }: BondingProgressProps) {
 	const { data } = useBondingProgress(pool.coinType)
-	
-	// Use real-time data if available, otherwise fall back to pool data
 	const progress = data?.progress ?? (pool.market?.bondingProgress || 0)
 
 	return (

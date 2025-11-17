@@ -74,7 +74,7 @@ export function XCardTrading({ pool, referrerWallet, refCode }: XCardTradingProp
 					<TradingPanel pool={pool} referrerWallet={referrerWallet} refCode={refCode} />
 				) : (
 					<div className="h-full">
-						<NexaChart pool={pool} className="w-full h-full" />
+						<NexaChart coinType={pool.coinType} className="w-full h-full" />
 					</div>
 				)}
 			</div>

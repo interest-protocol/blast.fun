@@ -99,7 +99,7 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 						className="flex-1"
 					>
 						<ResizablePanel defaultSize={60} minSize={30}>
-							<NexaChart pool={pool} />
+							<NexaChart coinType={pool.coinType} />
 						</ResizablePanel>
 
 						<ResizableHandle withHandle />
