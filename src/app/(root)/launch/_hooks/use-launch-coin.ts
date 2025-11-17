@@ -1,11 +1,8 @@
-import { invariant } from "@apollo/client/utilities/globals"
 import { CONFIG_KEYS, MIGRATOR_WITNESSES, Modules, PACKAGES } from "@interest-protocol/memez-fun-sdk"
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions"
 import {
 	formatAddress,
 	formatDigest,
-	isValidSuiAddress,
-	normalizeStructTag,
 	normalizeSuiAddress,
 	SUI_TYPE_ARG,
 } from "@mysten/sui/utils"

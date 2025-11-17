@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useApp } from "@/context/app.context"
 import { useTransaction } from "@/hooks/sui/use-transaction"
 import { farmsSdk } from "@/lib/farms"
-import { coinWithBalance } from "@mysten/sui/transactions"
+import { coinWithBalance, Transaction } from "@mysten/sui/transactions"
 import toast from "react-hot-toast"
 import type { InterestAccount } from "@interest-protocol/farms"
 import { formatNumberWithSuffix } from "@/utils/format"
@@ -56,24 +56,18 @@ export function useFarmOperations({
 			})
 
 			if (!account) {
-				const { tx: createAccountTx, account: newAccountRef } = await farmsSdk.newAccount({
+				const { tx, account } = await farmsSdk.newAccount({
 					farm: farmId,
 				})
-
-				createAccountTx.transferObjects([newAccountRef], createAccountTx.pure.address(address))
-				await executeTransaction(createAccountTx)
-
-				const allAccounts = await farmsSdk.getAccounts(address)
-				const newAccount = allAccounts.find((acc) => acc.farm === farmId)
-				if (!newAccount) {
-					throw new Error("Failed to find newly created farm account")
-				}
-
-				const { tx: stakeTx } = await farmsSdk.stake({
+				
+				const { tx: stakeTx } = await farmsSdk.stakeUnchecked({
+					tx,
 					farm: farmId,
-					account: newAccount.objectId,
+					account,
 					depositCoin,
 				})
+
+				tx.transferObjects([account], tx.pure.address(address))
 
 				await executeTransaction(stakeTx)
 			} else {
@@ -105,8 +99,8 @@ export function useFarmOperations({
 
 		setIsHarvesting(true)
 		try {
-			const pendingRewards = account.rewards[rewardCoinType] || 0n
-			const rewardsAmount = Number(pendingRewards) / Math.pow(10, rewardDecimals)
+			const rewards = await farmsSdk.pendingRewards(account.objectId)
+			const rewardsAmount = Number(rewards[0].amount) / Math.pow(10, rewardDecimals)
 
 			const { tx, rewardCoin } = await farmsSdk.harvest({
 				farm: farmId,
@@ -142,22 +136,27 @@ export function useFarmOperations({
 			}
 
 			const isMaxWithdrawal = amountBigInt === account.stakeBalance
-			const pendingRewards = account.rewards[rewardCoinType] || 0n
-			const hasRewards = pendingRewards > 0n
+
+			const rewards = await farmsSdk.pendingRewards(account.objectId);
+			const rewardsAmount = Number(rewards[0].amount) / Math.pow(10, rewardDecimals)
+			const hasRewards = rewardsAmount > 0n
+
+			const tx = new Transaction();
 
 			// harvest rewards if available and withdrawing max amount
 			if (hasRewards && isMaxWithdrawal) {
-				const { tx: harvestTx, rewardCoin } = await farmsSdk.harvest({
+				const { rewardCoin } = await farmsSdk.harvest({
+					tx,
 					farm: farmId,
 					account: account.objectId,
 					rewardType: rewardCoinType,
 				})
 
-				harvestTx.transferObjects([rewardCoin], address)
-				await executeTransaction(harvestTx)
+				tx.transferObjects([rewardCoin], address)
 			}
 
-			const { tx, unstakeCoin } = await farmsSdk.unstake({
+			const { unstakeCoin } = await farmsSdk.unstake({
+				tx,
 				farm: farmId,
 				account: account.objectId,
 				amount: amountBigInt,
@@ -167,8 +166,6 @@ export function useFarmOperations({
 			await executeTransaction(tx)
 
 			const amountInTokens = Number(amountBigInt) / Number(POW_9)
-			const rewardsAmount = Number(pendingRewards) / Math.pow(10, rewardDecimals)
-
 			if (hasRewards && isMaxWithdrawal) {
 				toast.success(
 					`Unstaked ${formatNumberWithSuffix(amountInTokens)} ${tokenSymbol} and harvested ${formatNumberWithSuffix(rewardsAmount)} ${rewardSymbol} rewards`

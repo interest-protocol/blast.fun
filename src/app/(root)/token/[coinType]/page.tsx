@@ -21,16 +21,13 @@ export async function generateMetadata({ params }: { params: Promise<{ coinType:
 	const marketCap = tokenData.market?.marketCap || 0
 	const formattedMcap = formatNumberWithSuffix(marketCap)
 
-	// @dev: Use the blast.fun API endpoint for coin images
 	const processedImageUrl = `https://blast.fun/api/coin/${coinType}/image`
-
 	const ogParams: Record<string, string> = {
 		name: name,
 		ticker: symbol,
 		marketCap: `$${formattedMcap}`,
 		image: processedImageUrl
 	}
-
 	const ogImageUrl = `${BASE_DOMAIN}/api/og?${new URLSearchParams(ogParams).toString()}`
 
 	return constructMetadata({
