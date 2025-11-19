@@ -1,0 +1,37 @@
+"use client";
+
+import { FC } from "react";
+import { TokenAvatar } from "../tokens/token-avatar";
+import type { TokenSelectorButtonProps } from "./swap-terminal.types";
+
+export const TokenSelectorButton: FC<TokenSelectorButtonProps> = ({
+    token,
+    onClick,
+}) => {
+    return (
+        <button
+            onClick={onClick}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 bg-muted/20 rounded-md border border-border/50 hover:bg-muted/30 transition-colors shrink-0"
+        >
+            {token ? (
+                <>
+                    <TokenAvatar
+                        iconUrl={token.iconUrl}
+                        symbol={token.symbol}
+                        name={token.name}
+                        className="w-[18px] h-[18px] rounded-full shrink-0"
+                        fallbackClassName="text-xs"
+                        enableHover={false}
+                    />
+                    <span className="text-sm font-medium whitespace-nowrap">
+                        {token.symbol}
+                    </span>
+                </>
+            ) : (
+                <span className="text-sm font-medium text-muted-foreground">
+                    Select
+                </span>
+            )}
+        </button>
+    );
+};

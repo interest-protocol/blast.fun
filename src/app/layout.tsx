@@ -57,7 +57,7 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en" suppressHydrationWarning>
-			<ReactScan />
+			{/* <ReactScan /> */}
 			<body className={cn(geistSans.variable, geistMono.variable, hegartySans.variable, "antialiased")}>
 				<ThemeProvider attribute="class" defaultTheme="dark" disableTransitionOnChange>
 					<TooltipProvider>
@@ -67,7 +67,6 @@ export default function RootLayout({
 									<SuiProvider>
 										{children}
 										<TermsPrivacyDialog />
-
 										<TailwindIndicator />
 										<Toaster
 											position="bottom-center"
