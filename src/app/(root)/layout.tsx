@@ -1,46 +1,46 @@
-"use client"
+"use client";
 
-import Header from "@/components/layout/header"
-import { Footer } from "@/components/layout/footer"
-import { MobileNavigation } from "@/components/layout/mobile-nav"
-import { TokenTabsHeader } from "@/components/layout/token-tabs-header"
-import { usePathname } from "next/navigation"
-import { useBreakpoint } from "@/hooks/use-breakpoint"
-import { cn } from "@/utils"
+import Header from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
+import { MobileNavigation } from "@/components/layout/mobile-nav";
+import { TokenTabsHeader } from "@/components/layout/token-tabs-header";
+import { usePathname } from "next/navigation";
+import { useBreakpoint } from "@/hooks/use-breakpoint";
+import { cn } from "@/utils";
+import SwapTerminal from "@/components/swap-terminal";
 
 export default function Layout({
-	children,
+    children,
 }: Readonly<{
-	children: React.ReactNode
+    children: React.ReactNode;
 }>) {
-	const pathname = usePathname()
-	const { isMobile, width } = useBreakpoint()
+    const pathname = usePathname();
+    const { isMobile, width } = useBreakpoint();
 
-	const isTokenPage = pathname.startsWith('/token/')
-	const isHomePage = pathname === "/"
+    const isTokenPage = pathname.startsWith("/token/");
+    const isHomePage = pathname === "/";
 
-	// during initial load (width === 0), default to desktop behavior for padding
-	const shouldHavePadding = !isTokenPage && !(width > 0 && isMobile && isHomePage)
+    // during initial load (width === 0), default to desktop behavior for padding
+    const shouldHavePadding =
+        !isTokenPage && !(width > 0 && isMobile && isHomePage);
 
-	return (
-		<div className="flex flex-col h-screen overflow-hidden">
-			<Header />
-			<TokenTabsHeader />
+    return (
+        <div className="flex flex-col h-screen overflow-hidden">
+            <Header />
+            <TokenTabsHeader />
 
-			<main className="flex-1 overflow-hidden pb-12">
-				{shouldHavePadding ? (
-					<div className={cn(
-						"h-full overflow-auto p-4"
-					)}>
-						{children}
-					</div>
-				) : (
-					children
-				)}
-			</main>
-
-			<Footer />
-			<MobileNavigation />
-		</div>
-	)
+            <main className="flex-1 overflow-hidden pb-12">
+                {shouldHavePadding ? (
+                    <div className={cn("h-full overflow-auto p-4")}>
+                        {children}
+                    </div>
+                ) : (
+                    children
+                )}
+            </main>
+            <SwapTerminal />
+            <Footer />
+            <MobileNavigation />
+        </div>
+    );
 }
