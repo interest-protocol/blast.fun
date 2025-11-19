@@ -1,10 +1,11 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useApp } from "@/context/app.context";
 import { useTransaction } from "@/hooks/sui/use-transaction";
 import { executeSwap } from "@/lib/aftermath";
 import toast from "react-hot-toast";
 import type { UseSwapExecutionProps } from "./swap-terminal.types";
 import { DEFAULT_DECIMALS } from "./swap-terminal.data";
+import { RouterCompleteTradeRoute } from "aftermath-ts-sdk";
 
 export const useSwapExecution = ({
     fromToken,
@@ -13,6 +14,7 @@ export const useSwapExecution = ({
     slippage,
     onSuccess,
 }: UseSwapExecutionProps) => {
+    const [route, setRoute] = useState<RouterCompleteTradeRoute | null>(null);
     const { address, isConnected, setIsConnectDialogOpen } = useApp();
     const { executeTransaction } = useTransaction();
 
@@ -69,4 +71,3 @@ export const useSwapExecution = ({
 
     return { handleSwap, isConnected };
 };
-

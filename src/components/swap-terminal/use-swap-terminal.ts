@@ -28,10 +28,8 @@ export const useSwapTerminal = () => {
         slippage,
     });
 
-    const { fromBalanceDisplay, toBalanceDisplay } = useTokenBalances(
-        fromToken,
-        toToken
-    );
+    const { fromBalanceDisplay, toBalanceDisplay, refreshBalances } =
+        useTokenBalances(fromToken, toToken);
 
     const { handleSwap: executeSwap, isConnected } = useSwapExecution({
         fromToken,
@@ -86,6 +84,7 @@ export const useSwapTerminal = () => {
             setIsSwapping(true);
             await executeSwap();
         } finally {
+            refreshBalances();
             setIsSwapping(false);
         }
     }, [executeSwap]);

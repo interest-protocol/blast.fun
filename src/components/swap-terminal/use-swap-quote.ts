@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getSwapQuote } from "@/lib/aftermath";
-import type { TokenOption, UseSwapQuoteProps } from "./swap-terminal.types";
+import type { UseSwapQuoteProps } from "./swap-terminal.types";
 import { DEFAULT_DECIMALS } from "./swap-terminal.data";
 
 export const useSwapQuote = ({
@@ -55,4 +55,3 @@ export const useSwapQuote = ({
 
     return { toAmount, isLoadingQuote, setToAmount };
 };
-

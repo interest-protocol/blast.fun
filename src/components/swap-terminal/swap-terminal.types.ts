@@ -177,4 +177,3 @@ export interface VerifiedTokenData {
     logoUrl?: string;
     decimals?: number;
 }
-

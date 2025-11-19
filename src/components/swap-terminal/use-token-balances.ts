@@ -8,8 +8,16 @@ export const useTokenBalances = (
     fromToken: TokenOption | null,
     toToken: TokenOption | null
 ) => {
-    const { balance: fromBalance } = useTokenBalance(fromToken?.coinType);
-    const { balance: toBalance } = useTokenBalance(toToken?.coinType);
+    const { balance: fromBalance, refetch: refetchFromBalance } =
+        useTokenBalance(fromToken?.coinType);
+    const { balance: toBalance, refetch: refetchToBalance } = useTokenBalance(
+        toToken?.coinType
+    );
+
+    const refreshBalances = () => {
+        refetchFromBalance();
+        refetchToBalance();
+    };
 
     const fromBalanceDisplay = useMemo(() => {
         if (!fromToken || !fromBalance) return 0;
@@ -29,6 +37,5 @@ export const useTokenBalances = (
         return Number(toBalance) / Math.pow(10, decimals);
     }, [toToken, toBalance]);
 
-    return { fromBalanceDisplay, toBalanceDisplay };
+    return { fromBalanceDisplay, toBalanceDisplay, refreshBalances };
 };
-
