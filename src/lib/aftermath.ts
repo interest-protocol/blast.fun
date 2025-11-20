@@ -1,4 +1,4 @@
-import { Aftermath, RouterCompleteTradeRoute } from "aftermath-ts-sdk";
+import { Aftermath } from "aftermath-ts-sdk";
 import { Transaction } from "@mysten/sui/transactions";
 import { SUI_TYPE_ARG } from "@mysten/sui/utils";
 import { env } from "@/env";
@@ -45,9 +45,8 @@ export async function getSwapQuote({
                 feePercentage: 0.01,
             },
         });
-        if (!route) {
-            throw new Error("No route found for swap");
-        }
+
+        if (!route) throw new Error("No route found for swap");
 
         const slippageMultiplier = 1 - slippagePercentage / 100;
         const minAmountOut = BigInt(
