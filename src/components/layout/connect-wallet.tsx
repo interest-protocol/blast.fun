@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button"
 import { Logo } from "@/components/ui/logo"
-
 interface ConnectWalletProps {
     title?: string
     subtitle?: string
@@ -11,7 +10,7 @@ interface ConnectWalletProps {
     className?: string
 }
 
-export default function ConnectWallet({
+export function ConnectWallet({
     title = "WALLET NOT CONNECTED",
     subtitle,
     buttonText = "CONNECT WALLET",
