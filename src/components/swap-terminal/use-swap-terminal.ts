@@ -12,11 +12,16 @@ import {
     SUI_RESERVE_AMOUNT,
 } from "./swap-terminal.data";
 
+import { useLocalStorage } from "hooks-ts";
+
 export const useSwapTerminal = () => {
     const [fromToken, setFromToken] = useState<TokenOption | null>(null);
     const [toToken, setToToken] = useState<TokenOption | null>(null);
     const [fromAmount, setFromAmount] = useState("");
-    const [slippage, setSlippage] = useState(DEFAULT_SLIPPAGE);
+    const [slippage, setSlippage] = useLocalStorage(
+        "swap-terminal-slippage",
+        DEFAULT_SLIPPAGE
+    );
     const [isSwapping, setIsSwapping] = useState(false);
 
     const { usd: suiPrice } = useSuiPrice();
