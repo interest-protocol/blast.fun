@@ -1,3 +1,5 @@
+"use client"
+
 import { FC } from "react"
 import { Loader2 } from "lucide-react"
 
