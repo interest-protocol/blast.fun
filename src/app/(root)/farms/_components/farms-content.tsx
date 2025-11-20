@@ -1,3 +1,4 @@
+import { FC } from "react"
 import { Loader2 } from "lucide-react"
 
 import { useApp } from "@/context/app.context"
@@ -6,9 +7,9 @@ import { useFarms } from "../_hooks/use-farms"
 import { FarmRow } from "./farm-row"
 import { EmptyFarm } from "./empty-farm"
 import { FarmsHeader } from "./farms-header"
-import { ConnectWallet } from "@/components/layout/connect-wallet"
+import ConnectWallet from "@/components/layout/connect-wallet/index"
 
-export default function FarmsContent() {
+const FarmsContent: FC = () => {
 	const { isConnected, setIsConnectDialogOpen } = useApp()
 	const { farmsWithAccounts, isLoading } = useFarms()
 
@@ -47,3 +48,5 @@ export default function FarmsContent() {
 		</div>
 	)
 }
+
+export default FarmsContent;
