@@ -1,10 +1,11 @@
 "use client";
 
-import { FC } from "react";
+import { FC, useCallback } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { cn } from "@/utils";
 import type { SwapActionButtonProps } from "./swap-terminal.types";
+import { useApp } from "@/context/app.context";
 
 export const SwapActionButton: FC<SwapActionButtonProps> = ({
     fromToken,
@@ -16,18 +17,26 @@ export const SwapActionButton: FC<SwapActionButtonProps> = ({
     isValidAmount,
     onClick,
 }) => {
+    const { setIsConnectDialogOpen } = useApp();
+
+    const handleButtonClick = useCallback(() => {
+        if (!isConnected) setIsConnectDialogOpen(true);
+        else onClick();
+    }, [isConnected, setIsConnectDialogOpen, onClick]);
+
     const isDisabled =
-        !fromToken ||
-        !toToken ||
-        !fromAmount ||
-        isSwapping ||
-        isLoadingQuote ||
-        !isValidAmount;
+        isConnected &&
+        (!fromToken ||
+            !toToken ||
+            !fromAmount ||
+            isSwapping ||
+            isLoadingQuote ||
+            !isValidAmount);
 
     return (
         <Button
-            onClick={onClick}
             disabled={isDisabled}
+            onClick={handleButtonClick}
             className={cn(
                 "w-full h-10 font-mono text-xs uppercase",
                 "bg-green-400/50 hover:bg-green-500/90 text-foreground",
@@ -52,4 +61,3 @@ export const SwapActionButton: FC<SwapActionButtonProps> = ({
         </Button>
     );
 };
-
