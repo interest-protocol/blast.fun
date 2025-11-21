@@ -1,5 +1,6 @@
 "use client";
 
+import { Nav } from "@stylin.js/elements";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navigationItems } from "@/constants/navigation";
@@ -17,11 +18,14 @@ export function MobileNavigation() {
 
     return (
         <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border/50">
-            <nav
-                className={cn(
-                    "grid items-center w-full h-16 px-2 gap-1",
-                    navItems && `grid-cols-${navItems.length + 1}`
-                )}
+            <Nav
+                px="1rem"
+                py="0.5rem"
+                gap="0.5rem"
+                width="100%"
+                display="grid"
+                alignItems="center"
+                gridTemplateColumns={`repeat(${navItems.length + 1}, 1fr)`}
             >
                 {navItems.slice(0, navItems.length / 2).map((item) => {
                     const isActive = pathname === item.href;
@@ -86,7 +90,7 @@ export function MobileNavigation() {
                         </Link>
                     );
                 })}
-            </nav>
+            </Nav>
         </div>
     );
 }

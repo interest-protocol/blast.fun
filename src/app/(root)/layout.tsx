@@ -7,7 +7,6 @@ import { TokenTabsHeader } from "@/components/layout/token-tabs-header";
 import { usePathname } from "next/navigation";
 import { useBreakpoint } from "@/hooks/use-breakpoint";
 import { cn } from "@/utils";
-import SwapTerminal from "@/components/swap-terminal";
 
 export default function Layout({
     children,
