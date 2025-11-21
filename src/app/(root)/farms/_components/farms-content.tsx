@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
 import { Logo } from "@/components/ui/logo"
 import { useFarms } from "../_hooks/use-farms"
-import { FarmRow } from "./farm-row"
+import FarmRow from "./farm-row"
 
 export default function FarmsContent() {
 	const { isConnected, setIsConnectDialogOpen } = useApp()
