@@ -3,7 +3,6 @@
 import { FC } from "react"
 import { ChevronRight } from "lucide-react"
 
-import { TokenAvatar } from "@/components/tokens/token-avatar"
 import { useRouter } from "next/navigation"
 import { FarmRowProps } from "./farm-row.types"
 import { useFarmPrices } from "../../_hooks/use-farm-prices"
