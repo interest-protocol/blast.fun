@@ -9,7 +9,6 @@ import SwapTerminal from "../swap-terminal";
 
 export function MobileNavigation() {
     const pathname = usePathname();
-
     const { hideMainNav } = useCustomNavigation();
 
     if (hideMainNav) return null;
@@ -18,7 +17,12 @@ export function MobileNavigation() {
 
     return (
         <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border/50">
-            <nav className="flex justify-evenly items-center w-full h-16 px-2 gap-1">
+            <nav
+                className={cn(
+                    "grid items-center w-full h-16 px-2 gap-1",
+                    navItems && `grid-cols-${navItems.length + 1}`
+                )}
+            >
                 {navItems.slice(0, navItems.length / 2).map((item) => {
                     const isActive = pathname === item.href;
                     const Icon = item.icon;
@@ -39,7 +43,7 @@ export function MobileNavigation() {
                             />
                             <span
                                 className={cn(
-                                    "text-[10px] font-mono uppercase tracking-wider transition-all duration-300",
+                                    "text-[9px] font-mono uppercase tracking-wider transition-all duration-300",
                                     isActive
                                         ? "text-primary/90 font-semibold"
                                         : "text-muted-foreground/60"
@@ -71,7 +75,7 @@ export function MobileNavigation() {
                             />
                             <span
                                 className={cn(
-                                    "text-[10px] font-mono uppercase tracking-wider transition-all duration-300",
+                                    "text-[9px] font-mono uppercase tracking-wider transition-all duration-300",
                                     isActive
                                         ? "text-primary/90 font-semibold"
                                         : "text-muted-foreground/60"
