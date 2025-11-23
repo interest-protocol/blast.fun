@@ -12,7 +12,7 @@ interface FarmWithAccount {
 	account?: InterestAccount
 }
 
-export function useFarms() {
+export const useFarms = () => {
 	const { address, isConnected } = useApp()
 	const [farmsWithAccounts, setFarmsWithAccounts] = useState<FarmWithAccount[]>([])
 	const [isLoading, setIsLoading] = useState(false)
