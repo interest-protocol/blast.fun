@@ -32,7 +32,7 @@ export const TokenGrid: FC<TokenGridProps> = ({
         );
 
     return (
-        <div className="p-4 grid overflow-y-auto grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+        <div className="p-4 items-start grid overflow-y-auto grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
             {tokens.map((token) => {
                 const normalizedTokenCoinType = normalizeStructTag(
                     token.coinType
