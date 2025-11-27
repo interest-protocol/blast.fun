@@ -1,5 +1,6 @@
 import { FC } from "react";
-import { FarmInfoHeaderProps } from "../farm-info-header.types";
+
+import { FarmInfoHeaderProps } from "./farm-info-header.types";
 import { TokenAvatar } from "@/components/tokens/token-avatar";
 import { formatNumberWithSuffix } from "@/utils/format";
 
