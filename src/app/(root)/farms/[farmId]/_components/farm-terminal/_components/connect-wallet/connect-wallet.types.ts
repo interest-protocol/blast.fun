@@ -1,3 +1,3 @@
 export interface ConnectWalletProps {
-    onConnect: () => void;
+    onConnect: () => void
 }
