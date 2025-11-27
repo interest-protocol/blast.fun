@@ -1,29 +1,13 @@
 "use client"
 
 import { Terminal, ArrowRight } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { FC, useEffect, useRef, useState } from "react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { cn } from "@/utils"
-import { LogEntry } from "../_hooks/use-launch-coin"
 import { useRouter } from "next/navigation"
+import { TerminalDialogProps } from "./terminal-dialog.types"
 
-interface TerminalDialogProps {
-	open: boolean
-	onOpenChange: (open: boolean) => void
-	logs: LogEntry[]
-	isLaunching: boolean
-	result: {
-		poolObjectId: string
-		poolTxDigest: string
-	} | null
-	pendingToken: {
-		treasuryCapObjectId: string
-		txDigest: string
-	} | null
-	onResume?: () => void
-}
-
-export function TerminalDialog({ open, onOpenChange, logs, isLaunching, result, pendingToken, onResume }: TerminalDialogProps) {
+const TerminalDialog: FC<TerminalDialogProps> = ({ open, onOpenChange, logs, isLaunching, result, pendingToken, onResume }) => {
 	const logsEndRef = useRef<HTMLDivElement>(null)
 	const [cursorBlink, setCursorBlink] = useState(true)
 	const router = useRouter()
@@ -169,3 +153,5 @@ export function TerminalDialog({ open, onOpenChange, logs, isLaunching, result, 
 		</Dialog>
 	)
 }
+
+export default TerminalDialog;
