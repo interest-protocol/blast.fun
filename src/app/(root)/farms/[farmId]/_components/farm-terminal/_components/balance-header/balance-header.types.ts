@@ -1,5 +1,5 @@
-export interface BalanceHeaderProps {
-    actionType: "deposit" | "withdraw"
+import { ActionProps } from "../../farm-terminal.types"
+export interface BalanceHeaderProps extends ActionProps {
     balance: number
     tokenSymbol: string
     onMaxClick: () => void

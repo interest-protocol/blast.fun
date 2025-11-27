@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { cn } from "@/utils"
 import { FC } from "react"
-import { FarmTerminalButtonProps } from "./farm-termina-button.types"
+import { FarmTerminalButtonProps } from "./farm-terminal-button.types"
 import { Loader2 } from "lucide-react"
 import { formatNumberWithSuffix } from "@/utils/format"
 

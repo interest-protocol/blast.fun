@@ -1,5 +1,6 @@
-export interface FarmTerminalButtonProps {
-    actionType: "deposit" | "withdraw"
+import { ActionProps } from "../../farm-terminal.types"
+
+export interface FarmTerminalButtonProps extends ActionProps {
     amount: string
     isProcessing: boolean
     tokenBalanceInDisplayUnit: number

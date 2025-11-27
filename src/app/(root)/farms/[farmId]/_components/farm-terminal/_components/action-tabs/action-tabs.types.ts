@@ -1,5 +1,5 @@
-export interface ActionTabsProps {
-    actionType: "deposit" | "withdraw"
-    setActionType: (value: "deposit" | "withdraw") => void
+import { ActionProps, ActionType } from "../../farm-terminal.types"
+export interface ActionTabsProps extends ActionProps {
+    setActionType: (value: ActionType) => void
     stakedInDisplayUnit: number
 }
