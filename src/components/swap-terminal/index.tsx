@@ -53,7 +53,8 @@ const SwapTerminal: FC = () => {
                     toAmount={swapTerminal.toAmount}
                     fromBalanceDisplay={swapTerminal.fromBalanceDisplay}
                     toBalanceDisplay={swapTerminal.toBalanceDisplay}
-                    usdValue={swapTerminal.usdValue}
+                    usdValueIn={swapTerminal.usdValueIn}
+                    usdValueOut={swapTerminal.usdValueOut}
                     isLoadingQuote={swapTerminal.isLoadingQuote}
                     isSwapping={swapTerminal.isSwapping}
                     isConnected={swapTerminal.isConnected}

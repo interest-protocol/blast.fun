@@ -15,13 +15,13 @@ export const SwapDialogContent: FC<SwapDialogContentProps> = ({
     toAmount,
     fromBalanceDisplay,
     toBalanceDisplay,
-    usdValue,
+    usdValueIn,
+    usdValueOut,
     isLoadingQuote,
     isSwapping,
     isConnected,
     slippage,
     isValidAmount,
-    toAmountPriceDisplay,
     onFromAmountChange,
     onTokenSelect,
     onSwapTokens,
@@ -41,7 +41,7 @@ export const SwapDialogContent: FC<SwapDialogContentProps> = ({
                 amount={fromAmount}
                 onAmountChange={onFromAmountChange}
                 balance={fromBalanceDisplay}
-                usdValue={usdValue}
+                usdValue={usdValueIn}
                 isLoading={isSwapping}
                 onTokenSelect={() => onTokenSelect("from")}
                 showMaxButton
@@ -51,12 +51,12 @@ export const SwapDialogContent: FC<SwapDialogContentProps> = ({
             <TokenInputSection
                 token={toToken}
                 amount={toAmount}
+                usdValue={usdValueOut}
                 onAmountChange={() => {}}
                 balance={toBalanceDisplay}
                 isLoading={isLoadingQuote}
                 isReadOnly
                 onTokenSelect={() => onTokenSelect("to")}
-                priceDisplay={toAmountPriceDisplay}
             />
             <SettingsBar
                 slippage={slippage}
