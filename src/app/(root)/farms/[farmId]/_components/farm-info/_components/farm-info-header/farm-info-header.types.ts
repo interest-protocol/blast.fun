@@ -1,10 +1,10 @@
 export interface FarmInfoHeaderProps {
-    tokenName: string;
-    tokenSymbol: string;
+    tokenName: string
+    tokenSymbol: string
     metadata: {
-        iconUrl?: string;
+        iconUrl?: string
     } | null;
-    tvlAmount: number;
-    tvlUsd: number;
-    stakeTokenPrice: number;
+    tvlAmount: number
+    tvlUsd: number
+    stakeTokenPrice: number
 }

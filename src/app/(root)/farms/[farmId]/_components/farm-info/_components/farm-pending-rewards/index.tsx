@@ -1,9 +1,9 @@
-import { FC } from "react";
-import { Loader2 } from "lucide-react";
+import { FC } from "react"
+import { Loader2 } from "lucide-react"
 
-import { Button } from "@/components/ui/button";
-import { formatNumberWithSuffix } from "@/utils/format";
-import { FarmPendingRewardsProps } from "./farm-pending-rewards.types";
+import { Button } from "@/components/ui/button"
+import { formatNumberWithSuffix } from "@/utils/format"
+import { FarmPendingRewardsProps } from "./farm-pending-rewards.types"
 
 const FarmPendingRewards: FC<FarmPendingRewardsProps> = ({
     pendingRewards,
@@ -69,4 +69,4 @@ const FarmPendingRewards: FC<FarmPendingRewardsProps> = ({
     </div>
 )
 
-export default FarmPendingRewards;
+export default FarmPendingRewards

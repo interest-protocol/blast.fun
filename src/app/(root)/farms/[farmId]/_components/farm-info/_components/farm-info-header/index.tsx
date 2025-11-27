@@ -38,4 +38,4 @@ const FarmInfoHeader: FC<FarmInfoHeaderProps> = ({
         </div>
     );
 }
-export default FarmInfoHeader;
+export default FarmInfoHeader
