@@ -1,5 +1,5 @@
 import { constructMetadata } from "@/lib/metadata"
-import { PortfolioContent } from "./_components/portfolio-content"
+import PortfolioContent from "./_components/portfolio-content"
 
 export const metadata = constructMetadata({
 	title: "Portfolio",
