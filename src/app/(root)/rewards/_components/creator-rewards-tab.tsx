@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { TokenAvatar } from "@/components/tokens/token-avatar"
 import { useCreatorRewards } from "../_hooks/use-creator-rewards"
-import { TransferPositionDialog } from "./transfer-position-dialog"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { Loader2, Coins } from "lucide-react"
+import TransferPositionDialog from "./transfer-position-dialog"
 
 export function CreatorRewardsTab() {
 	const { isConnected, setIsConnectDialogOpen } = useApp()
