@@ -3,13 +3,13 @@
 import { useEffect, useState } from "react"
 import { useApp } from "@/context/app.context"
 import { PortfolioTable } from "./portfolio-table"
-import { PortfolioStats } from "./portfolio-stats"
 import { fetchPortfolio } from "@/lib/fetch-portfolio"
 import type { PortfolioResponse } from "@/types/portfolio"
 import { Loader2, Gift } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { RewardsDialog } from "@/components/dialogs/rewards.dialog"
 import { Logo } from "@/components/ui/logo"
+import PortfolioStats from "./portfolio-stats"
 
 export function PortfolioContent() {
 	const { address, isConnected, setIsConnectDialogOpen } = useApp()
