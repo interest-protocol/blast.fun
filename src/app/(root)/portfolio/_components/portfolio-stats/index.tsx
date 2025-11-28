@@ -1,5 +1,3 @@
-"use client"
-
 import { FC } from "react"
 import { TrendingUp, TrendingDown, DollarSign, Coins } from "lucide-react"
 
