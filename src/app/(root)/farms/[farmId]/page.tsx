@@ -6,7 +6,10 @@ export const metadata: Metadata = {
 	description: "Stake your tokens and earn rewards",
 }
 
-export default async function FarmDetailPage({ params }: { params: Promise<{ farmId: string }> }) {
+const FarmDetailPage = async ({ params }: { params: Promise<{ farmId: string }> }) => {
 	const { farmId } = await params
 	return <FarmDetail farmId={farmId} />
 }
+
+export default FarmDetailPage
+

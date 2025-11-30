@@ -6,13 +6,13 @@ import { useState, useCallback, FC } from "react"
 import { TwitterUserAvatar } from "@/components/user/user-avatar"
 import { useApp } from "@/context/app.context"
 import { useTwitter } from "@/context/twitter.context"
-import type { TokenFormValues } from "../create-token-form"
 import CreateTokenForm from "../create-token-form"
 import { ConfettiProvider } from "@/components/shared/confetti"
 import { Logo } from "@/components/ui/logo"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import WalletNotConnected from "./wallet-not-connected"
 import TwitterNotLogged from "./twitter-not-logged"
+import { TokenFormValues } from "../create-token-form/create-token-form.types"
 
 const LaunchContent: FC = () => {
 	const { isConnected } = useApp()
