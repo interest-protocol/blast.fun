@@ -1,10 +1,10 @@
 "use client"
 
 import SearchForm from "./_components/search-form"
-import { SearchResults } from "./_components/search-results"
+import SearchResults from "./_components/search-results"
 import { useSearchCreator } from "./_hooks/use-search-creator"
 
-const  SearchByCreatorPage = () => {
+const SearchByCreatorPage = () => {
   const {
     query,
     setQuery,

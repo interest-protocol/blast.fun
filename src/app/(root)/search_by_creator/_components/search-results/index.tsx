@@ -5,7 +5,7 @@ import { Logo } from "@/components/ui/logo"
 import TokenItem from "../token-item"
 import { SearchResultsProps } from "./search-results.types"
 
-export const SearchResults: FC<SearchResultsProps> = ({ loading, error, searched, tokens }) => {
+const SearchResults: FC<SearchResultsProps> = ({ loading, error, searched, tokens }) => {
   if (loading) {
     return (
       <div className="p-12 text-center">
@@ -60,3 +60,5 @@ export const SearchResults: FC<SearchResultsProps> = ({ loading, error, searched
     </div>
   )
 }
+
+export default SearchResults
