@@ -6,6 +6,8 @@ export const metadata = constructMetadata({
 	description: "Earn rewards for trading, referring friends, and creating tokens",
 })
 
-export default function RewardPage() {
+const RewardPage = () => {
 	return <RewardsContent />
 }
+
+export default RewardPage
