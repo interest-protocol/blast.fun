@@ -1,4 +1,6 @@
-export function FarmsHeader() {
+import { FC } from "react"
+
+const FarmsHeader: FC = () => {
     return (
         <div className="flex items-center justify-between">
             <div>
@@ -10,3 +12,5 @@ export function FarmsHeader() {
         </div>
     )
 }
+
+export default FarmsHeader

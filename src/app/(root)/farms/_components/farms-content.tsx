@@ -6,9 +6,9 @@ import { Loader2 } from "lucide-react"
 import { useApp } from "@/context/app.context"
 import { useFarms } from "../_hooks/use-farms"
 
-import { EmptyFarm } from "./empty-farm"
 import FarmRow from "./farm-row"
-import { FarmsHeader } from "./farms-header"
+import EmptyFarm from "./empty-farm"
+import FarmsHeader from "./farms-header"
 import ConnectWallet from "@/components/layout/connect-wallet/index"
 
 const FarmsContent: FC = () => {
