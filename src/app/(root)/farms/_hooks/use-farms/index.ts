@@ -12,7 +12,7 @@ interface FarmWithAccount {
 	account?: InterestAccount
 }
 
-const useFarms = () => {
+export const useFarms = () => {
 	const { address, isConnected } = useApp()
 	const [farmsWithAccounts, setFarmsWithAccounts] = useState<FarmWithAccount[]>([])
 	const [isLoading, setIsLoading] = useState(false)
@@ -54,5 +54,3 @@ const useFarms = () => {
 		refetch: fetchFarmsData,
 	}
 }
-
-export default useFarms
