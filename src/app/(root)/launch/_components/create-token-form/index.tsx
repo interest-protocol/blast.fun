@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Upload, Shield, Users, DollarSign, ShieldCheck, UserX, XIcon, Wallet, Twitter } from "lucide-react"
-import { useCallback, useEffect, useState, useMemo } from "react"
+import { useCallback, useEffect, useState, useMemo, FC } from "react"
 import { useForm } from "react-hook-form"
 import toast from "react-hot-toast"
 import z from "zod"
@@ -12,61 +12,14 @@ import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/utils"
-import TokenCreationButton from "./create-token-button"
-import { getBase64 } from "../launch.utils"
+import TokenCreationButton from "../create-token-button"
+import { getBase64 } from "../../launch.utils"
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible"
 import { useBalance } from "@/hooks/sui/use-balance"
+import { CreateTokenFormProps, TokenFormValues } from "./create-token-form.types"
+import { tokenSchema } from "./create-token-form.utils"
 
-const tokenSchema = z.object({
-	name: z.string().min(3, "Minimum 3 characters"),
-	symbol: z
-		.string()
-		.min(2, "Minimum 2 characters")
-		.max(10, "Maximum 10 characters")
-		.regex(/^[a-zA-Z][\x21-\x7E]*$/),
-	description: z.string().min(10, "Minimum 10 characters").max(256, "Maximum 256 characters"),
-	imageUrl: z.string().optional(),
-	website: z.union([
-		z.literal(""),
-		z.string().url("Invalid URL")
-	]).optional(),
-	telegram: z.union([
-		z.literal(""),
-		z.string().url("Invalid URL")
-	]).optional(),
-	twitter: z.union([
-		z.literal(""),
-		z.string().url("Invalid URL")
-	]).optional(),
-	hideIdentity: z.boolean(),
-	sniperProtection: z.boolean(),
-	requireTwitter: z.boolean(),
-	revealTraderIdentity: z.boolean(),
-	minFollowerCount: z.string().optional().refine(
-		(val) => !val || Number(val) >= 0,
-		"Must be a positive number"
-	),
-	maxHoldingPercent: z.string().optional().refine(
-		(val) => !val || (Number(val) >= 0.1 && Number(val) <= 100),
-		"Must be between 0.1% and 100%"
-	),
-	devBuyAmount: z.string().optional().refine(
-		(val) => !val || Number(val) >= 0,
-		"Must be a positive number"
-	),
-	burnTax: z.string().optional().refine(
-		(val) => !val || (Number(val) >= 0 && Number(val) <= 60),
-		"Must be between 0% and 60%"
-	),
-})
-
-export type TokenFormValues = z.infer<typeof tokenSchema>
-
-interface CreateTokenFormProps {
-	onFormChange?: (values: Partial<TokenFormValues>) => void
-}
-
-export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) {
+const CreateTokenForm: FC<CreateTokenFormProps> = ({ onFormChange }) => {
 	const [isDragging, setIsDragging] = useState(false)
 	const [showProtectionSettings, setShowProtectionSettings] = useState(true)
 	const [urlInput, setUrlInput] = useState("")
@@ -815,3 +768,5 @@ export default function CreateTokenForm({ onFormChange }: CreateTokenFormProps) 
 		</div>
 	)
 }
+
+export default CreateTokenForm;
