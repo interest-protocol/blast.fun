@@ -8,8 +8,8 @@ import { SearchFormProps } from "../search-form.types"
 
 const SearchForm: FC<SearchFormProps> = ({ query, setQuery, loading, onSubmit }) => {
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit();
+    e.preventDefault()
+    onSubmit()
   }
 
   return (
@@ -52,4 +52,4 @@ const SearchForm: FC<SearchFormProps> = ({ query, setQuery, loading, onSubmit })
   )
 }
 
-export default SearchForm;
+export default SearchForm

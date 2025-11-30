@@ -1,7 +1,7 @@
-import { FC } from "react";
-import Link from "next/link";
+import { FC } from "react"
+import Link from "next/link"
 
-import { TokenItemProps } from "./token-item.types";
+import { TokenItemProps } from "./token-item.types"
 
 const TokenItem: FC<TokenItemProps> = ({ token }) => {
   return (
@@ -50,4 +50,4 @@ const TokenItem: FC<TokenItemProps> = ({ token }) => {
   );
 }
 
-export default TokenItem;
+export default TokenItem
