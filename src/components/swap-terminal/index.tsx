@@ -41,7 +41,7 @@ const SwapTerminal: FC = () => {
         <>
             <Button
                 onClick={() => setIsOpen(!isOpen)}
-                className="fixed bottom-[72px] right-6 z-30 size-14 rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 bg-primary hover:bg-primary/90 animate-in fade-in zoom-in lg:bottom-14"
+                className="cursor-pointer size-12 lg:size-14 rounded-full shadow-lg hover:shadow-xl hover:scale-110 hover:translate-y-[-1rem] transition-all duration-300 bg-primary hover:bg-primary/90 animate-in fade-in zoom-in"
             >
                 <ArrowLeftRight className="size-5" />
             </Button>

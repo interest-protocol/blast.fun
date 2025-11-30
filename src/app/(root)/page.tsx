@@ -28,7 +28,6 @@ export default function DiscoveryPage() {
                 <NearGraduation pollInterval={10000} />
                 <GraduatedComplete pollInterval={30000} />
             </div>
-            <SearchToken />
         </>
     );
 }

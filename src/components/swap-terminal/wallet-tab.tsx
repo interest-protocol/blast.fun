@@ -18,7 +18,8 @@ export const WalletTab: FC<WalletTabProps> = ({
     const { setIsConnectDialogOpen } = useApp();
 
     const filteredTokens = useMemo(() => {
-        if (!searchQuery || searchQuery.length < MIN_SEARCH_LENGTH) return tokens;
+        if (!searchQuery || searchQuery.length < MIN_SEARCH_LENGTH)
+            return tokens;
 
         const query = searchQuery.toLowerCase();
         return tokens.filter(
@@ -31,7 +32,7 @@ export const WalletTab: FC<WalletTabProps> = ({
 
     if (!isConnected) {
         return (
-            <div className="flex flex-col items-center justify-center p-8 text-center min-h-[200px]">
+            <div className="flex flex-col w-full items-center justify-center p-8 text-center min-h-[200px]">
                 <Wallet className="h-12 w-12 text-muted-foreground mb-4" />
                 <p className="text-sm font-mono uppercase tracking-wider text-foreground mb-2">
                     WALLET::NOT_CONNECTED
@@ -49,7 +50,6 @@ export const WalletTab: FC<WalletTabProps> = ({
         );
     }
 
-
     return (
         <TokenGrid
             tokens={filteredTokens}
@@ -60,4 +60,3 @@ export const WalletTab: FC<WalletTabProps> = ({
         />
     );
 };
-
