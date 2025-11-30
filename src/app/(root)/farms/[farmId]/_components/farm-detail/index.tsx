@@ -8,8 +8,8 @@ import { farmsSdk } from "@/lib/farms"
 import type { InterestFarm, InterestAccount } from "@interest-protocol/farms"
 import { interestProtocolApi, CoinMetadata } from "@/lib/interest-protocol-api"
 import { FarmTerminal } from "../farm-terminal"
-import { FarmInfo } from "../farm-info"
 import { FarmDetailProps } from "./farm-detail.types"
+import FarmInfo from "../farm-info"
 
 const FarmDetail: FC<FarmDetailProps> = ({ farmId }) => {
     const router = useRouter()
