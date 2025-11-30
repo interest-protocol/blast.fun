@@ -7,7 +7,6 @@ import { TokenTabsHeader } from "@/components/layout/token-tabs-header";
 import { usePathname } from "next/navigation";
 import { useBreakpoint } from "@/hooks/use-breakpoint";
 import { cn } from "@/utils";
-import SwapTerminal from "@/components/swap-terminal";
 
 export default function Layout({
     children,
@@ -28,7 +27,6 @@ export default function Layout({
         <div className="flex flex-col h-screen overflow-hidden">
             <Header />
             <TokenTabsHeader />
-
             <main className="flex-1 overflow-hidden pb-12">
                 {shouldHavePadding ? (
                     <div className={cn("h-full overflow-auto p-4")}>
@@ -38,7 +36,6 @@ export default function Layout({
                     children
                 )}
             </main>
-            <SwapTerminal />
             <Footer />
             <MobileNavigation />
         </div>
