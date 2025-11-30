@@ -1,3 +1,5 @@
+"use client"
+
 import { FC, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Loader2 } from "lucide-react"
@@ -7,9 +9,9 @@ import { useApp } from "@/context/app.context"
 import { farmsSdk } from "@/lib/farms"
 import type { InterestFarm, InterestAccount } from "@interest-protocol/farms"
 import { interestProtocolApi, CoinMetadata } from "@/lib/interest-protocol-api"
-import { FarmTerminal } from "../farm-terminal"
 import { FarmDetailProps } from "./farm-detail.types"
 import FarmInfo from "../farm-info"
+import FarmTerminal from "../farm-terminal"
 
 const FarmDetail: FC<FarmDetailProps> = ({ farmId }) => {
     const router = useRouter()
