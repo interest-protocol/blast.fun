@@ -9,10 +9,10 @@ import { useFarmPrices } from "../../_hooks/use-farm-prices"
 import { useFarmMetadata } from "../../_hooks/use-farm-metadata"
 import { useFarmValues } from "../../_hooks/use-farm-values"
 import useFarmApr from "../../_hooks/use-farm-apr"
-import { FarmTvl } from "./farm-tvl"
 import FarmStake from "./farm-stake"
 import FarmApr from "./farm-apr"
 import TokenInfo from "./token-info"
+import FarmTvl from "./farm-tvl"
 
 const FarmRow: FC<FarmRowProps> = ({ farm, account }) => {
 	const router = useRouter()

@@ -1,4 +1,5 @@
 import { FC } from 'react'
+
 import { FarmStakeProps } from './farm-stake.types'
 import { formatNumberWithSuffix } from '@/utils/format'
 
