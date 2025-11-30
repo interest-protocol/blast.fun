@@ -1,21 +1,22 @@
+/* eslint-disable @next/next/no-img-element */
 "use client"
 
-import { Loader2, ShieldCheck } from "lucide-react"
-import { useState, useCallback } from "react"
-import { Button } from "@/components/ui/button"
+import { ShieldCheck } from "lucide-react"
+import { useState, useCallback, FC } from "react"
 import { TwitterUserAvatar } from "@/components/user/user-avatar"
 import { useApp } from "@/context/app.context"
 import { useTwitter } from "@/context/twitter.context"
-import type { TokenFormValues } from "./create-token-form"
-import CreateTokenForm from "./create-token-form"
+import type { TokenFormValues } from "../create-token-form"
+import CreateTokenForm from "../create-token-form"
 import { ConfettiProvider } from "@/components/shared/confetti"
 import { Logo } from "@/components/ui/logo"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { WalletList } from "@/components/shared/wallet-list"
+import WalletNotConnected from "./wallet-not-connected"
+import TwitterNotLogged from "./twitter-not-logged"
 
-export default function LaunchContent() {
-	const { isConnected, isConnecting, connect } = useApp()
-	const { isLoggedIn, isLoading, login, user } = useTwitter()
+const LaunchContent: FC = () => {
+	const { isConnected } = useApp()
+	const { isLoggedIn, user } = useTwitter()
 	const [tokenData, setTokenData] = useState<Partial<TokenFormValues>>({})
 	const [protectionActive, setProtectionActive] = useState(false)
 
@@ -27,97 +28,13 @@ export default function LaunchContent() {
 
 	if (!isConnected) {
 		return (
-			<div className="container max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[calc(100vh-12rem)]">
-				{isConnecting && (
-					<div className="fixed inset-0 bg-background/95 backdrop-blur-md z-50 flex items-center justify-center">
-						<div className="flex flex-col items-center space-y-6">
-							<div className="relative">
-								<div className="absolute inset-0 bg-primary/20 blur-2xl animate-pulse" />
-								<Loader2 className="h-16 w-16 animate-spin text-foreground/60 relative" />
-								<div className="absolute inset-0 animate-ping">
-									<Loader2 className="h-16 w-16 text-primary opacity-10" />
-								</div>
-							</div>
-							<div className="text-center space-y-2">
-								<p className="text-sm font-mono uppercase text-foreground/80 animate-pulse tracking-wider">
-									WALLET::CONNECTING
-								</p>
-								<p className="text-xs font-mono uppercase text-muted-foreground/60">
-									ESTABLISHING_SECURE_CONNECTION...
-								</p>
-							</div>
-						</div>
-					</div>
-				)}
-
-				<div className="w-full space-y-8 text-center">
-					<div className="space-y-6">
-						<h1 className="text-4xl font-bold font-mono uppercase tracking-wider text-foreground/80 sm:text-5xl">
-							WALLET::REQUIRED
-						</h1>
-						<p className="text-sm font-mono uppercase max-w-md mx-auto text-muted-foreground">
-							CONNECT_WALLET_TO_LAUNCH_TOKENS
-						</p>
-					</div>
-
-					<div className="w-full max-w-md mx-auto space-y-4">
-						<div className="border-t border-foreground/10 pt-6">
-							<p className="text-xs font-mono text-muted-foreground/60 mb-6 uppercase">AVAILABLE::WALLETS</p>
-							<WalletList onSelect={connect} isConnecting={isConnecting} />
-						</div>
-					</div>
-				</div>
-			</div>
+			<WalletNotConnected />
 		)
 	}
 
 	if (!isLoggedIn) {
 		return (
-			<div className="container max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[calc(100vh-12rem)]">
-				{isLoading && (
-					<div className="fixed inset-0 bg-background/95 backdrop-blur-md z-50 flex items-center justify-center">
-						<div className="flex flex-col items-center space-y-6">
-							<div className="relative">
-								<div className="absolute inset-0 bg-primary/20 blur-2xl animate-pulse" />
-								<Loader2 className="h-16 w-16 animate-spin text-foreground/60 relative" />
-								<div className="absolute inset-0 animate-ping">
-									<Loader2 className="h-16 w-16 text-primary opacity-10" />
-								</div>
-							</div>
-							<div className="text-center space-y-2">
-								<p className="text-sm font-mono uppercase text-foreground/80 animate-pulse tracking-wider">
-									IDENTITY::VERIFYING
-								</p>
-								<p className="text-xs font-mono uppercase text-muted-foreground/60">
-									AUTHENTICATING_SOCIAL_CREDENTIALS...
-								</p>
-							</div>
-						</div>
-					</div>
-				)}
-
-				<div className="w-full space-y-8 text-center">
-					<div className="space-y-6">
-						<h1 className="text-4xl font-bold font-mono uppercase tracking-wider text-foreground/80 sm:text-5xl">
-							IDENTITY::REQUIRED
-						</h1>
-						<p className="text-sm font-mono uppercase max-w-md mx-auto text-muted-foreground">
-							X_AUTH_REQUIRED_FOR_TOKEN_LAUNCH
-						</p>
-					</div>
-
-					<div className="w-full max-w-md mx-auto space-y-6">
-						<div className="border-t border-foreground/10 pt-8">
-							<Button
-								className="w-full font-mono uppercase tracking-wider py-6 text-base border-2 border-foreground/20 hover:border-primary/50 transition-all duration-300"
-								onClick={login}
-							>
-								CONNECT X
-							</Button>
-						</div>
-					</div>
-				</div>
-			</div>
+			<TwitterNotLogged />
 		)
 	}
 
@@ -254,3 +171,5 @@ export default function LaunchContent() {
 		</ConfettiProvider>
 	)
 }
+
+export default LaunchContent;
