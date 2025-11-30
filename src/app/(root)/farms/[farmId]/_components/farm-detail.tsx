@@ -8,8 +8,8 @@ import { useApp } from "@/context/app.context"
 import { farmsSdk } from "@/lib/farms"
 import type { InterestFarm, InterestAccount } from "@interest-protocol/farms"
 import { FarmTerminal } from "./farm-terminal"
-import { FarmInfo } from "./farm-info"
 import { interestProtocolApi, CoinMetadata } from "@/lib/interest-protocol-api"
+import FarmInfo from "./farm-info"
 
 interface FarmDetailProps {
 	farmId: string
