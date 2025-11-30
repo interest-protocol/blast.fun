@@ -1,17 +1,19 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { FC, useEffect, useState } from "react"
 import { useApp } from "@/context/app.context"
-import { PortfolioTable } from "./portfolio-table"
-import { PortfolioStats } from "./portfolio-stats"
 import { fetchPortfolio } from "@/lib/fetch-portfolio"
 import type { PortfolioResponse } from "@/types/portfolio"
-import { Loader2, Gift } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { RewardsDialog } from "@/components/dialogs/rewards.dialog"
-import { Logo } from "@/components/ui/logo"
+import PortfolioTable from "./portfolio-table"
+import PortfolioEmpty from "./portfolio-empty"
+import PortfolioLoading from "./portfolio-loading"
+import PortfolioHeader from "./portfolio-header"
+import PortfolioWalletConnect from "./portfolio-wallet-connect"
+import PortfolioError from "./portfolio-error"
+import PortfolioStats from "./portfolio-stats"
 
-export function PortfolioContent() {
+const PortfolioContent:FC = () => {
 	const { address, isConnected, setIsConnectDialogOpen } = useApp()
 	const [portfolio, setPortfolio] = useState<PortfolioResponse | null>(null)
 	const [isLoading, setIsLoading] = useState(false)
@@ -46,82 +48,26 @@ export function PortfolioContent() {
 
 	if (!isConnected) {
 		return (
-			<div className="container max-w-6xl mx-auto px-4 py-8">
-				<div className="flex flex-col items-center justify-center min-h-[60vh]">
-					<Logo className="w-12 h-12 mx-auto mb-4 text-foreground/20" />
-					<p className="font-mono text-sm uppercase tracking-wider text-muted-foreground">
-						WALLET NOT CONNECTED
-					</p>
-					<p className="font-mono text-xs uppercase text-muted-foreground/60 mt-2">
-						CONNECT YOUR WALLET TO VIEW PORTFOLIO
-					</p>
-					<Button
-						onClick={() => setIsConnectDialogOpen(true)}
-						className="font-mono uppercase tracking-wider mt-6"
-						variant="outline"
-					>
-						CONNECT WALLET
-					</Button>
-				</div>
-			</div>
+			<PortfolioWalletConnect openDialog={() => setIsConnectDialogOpen(true)} />
 		)
 	}
 
 	if (isLoading && !portfolio) {
 		return (
-			<div className="container max-w-6xl mx-auto px-4 py-8">
-				<div className="flex flex-col items-center justify-center min-h-[60vh]">
-					<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-					<p className="mt-4 font-mono text-sm uppercase tracking-wider text-muted-foreground">
-						LOADING PORTFOLIO
-					</p>
-					<p className="font-mono text-xs uppercase text-muted-foreground/60 mt-2">
-						FETCHING YOUR HOLDINGS
-					</p>
-				</div>
-			</div>
+			<PortfolioLoading />
 		)
 	}
 
 	if (error) {
 		return (
-			<div className="container max-w-6xl mx-auto px-4 py-8">
-				<div className="flex flex-col items-center justify-center min-h-[60vh]">
-					<Logo className="w-12 h-12 mx-auto mb-4 text-destructive/20" />
-					<p className="font-mono text-sm uppercase tracking-wider text-destructive">
-						ERROR LOADING PORTFOLIO
-					</p>
-					<p className="font-mono text-xs uppercase text-muted-foreground/60 mt-2">
-						{error}
-					</p>
-				</div>
-			</div>
+			<PortfolioError error={error} />
 		)
 	}
 
 	return (
 		<div className="container max-w-6xl mx-auto px-4 py-8">
 			<div className="space-y-6">
-				<div className="flex flex-col gap-4">
-					<div className="flex items-center justify-between">
-						<div>
-							<h1 className="font-hegarty text-2xl uppercase tracking-wider">
-								PORTFOLIO
-							</h1>
-							<p className="font-mono text-sm text-muted-foreground mt-1">
-								Monitor your holdings and current performance.
-							</p>
-						</div>
-						<Button
-							onClick={() => setIsRewardsOpen(true)}
-							variant="outline"
-							className="font-mono uppercase tracking-wider flex items-center gap-2 border-2"
-						>
-							<Gift className="h-4 w-4" />
-							CLAIM REWARDS
-						</Button>
-					</div>
-				</div>
+				<PortfolioHeader claimRewards={() => setIsRewardsOpen(true)} />
 
 				{portfolio && (
 					<>
@@ -135,15 +81,7 @@ export function PortfolioContent() {
 				)}
 
 				{portfolio && portfolio.balances.length === 0 && (
-					<div className="flex flex-col items-center justify-center py-16 border-2 border-dashed border-border/50 rounded-lg bg-background/50 backdrop-blur-sm">
-						<Logo className="w-12 h-12 mx-auto mb-4 text-foreground/20" />
-						<p className="font-mono text-sm uppercase tracking-wider text-muted-foreground">
-							NO HOLDINGS DETECTED
-						</p>
-						<p className="font-mono text-xs uppercase text-muted-foreground/60 mt-2">
-							START TRADING TO BUILD YOUR PORTFOLIO
-						</p>
-					</div>
+					<PortfolioEmpty />
 				)}
 			</div>
 			
@@ -154,3 +92,5 @@ export function PortfolioContent() {
 		</div>
 	)
 }
+
+export default PortfolioContent;

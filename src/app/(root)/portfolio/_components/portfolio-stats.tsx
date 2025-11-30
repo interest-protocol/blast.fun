@@ -5,12 +5,10 @@ import type { PortfolioResponse } from "@/types/portfolio"
 import { formatNumber } from "@/lib/format"
 import { TrendingUp, TrendingDown, DollarSign, Coins } from "lucide-react"
 import { cn } from "@/utils"
+import { FC } from "react"
+import { PortfolioStatsProps } from "./portfolio.types"
 
-interface PortfolioStatsProps {
-	portfolio: PortfolioResponse
-}
-
-export function PortfolioStats({ portfolio }: PortfolioStatsProps) {
+const PortfolioStats:FC<PortfolioStatsProps> = ({ portfolio }) => {
 	const totalValue = portfolio.balances.reduce((sum, item) => sum + (item.value || 0), 0)
 	const totalPnl = portfolio.balances.reduce((sum, item) => sum + (item.unrealizedPnl || 0), 0)
 	const totalInvested = portfolio.balances.reduce((sum, item) => 
@@ -87,3 +85,5 @@ export function PortfolioStats({ portfolio }: PortfolioStatsProps) {
 		</div>
 	)
 }
+
+export default PortfolioStats
