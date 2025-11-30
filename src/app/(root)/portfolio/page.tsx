@@ -6,6 +6,8 @@ export const metadata = constructMetadata({
 	description: "Track your crypto portfolio and PNL"
 })
 
-export default function PortfolioPage() {
+const PortfolioPage = () => {
 	return <PortfolioContent />
 }
+
+export default PortfolioPage
