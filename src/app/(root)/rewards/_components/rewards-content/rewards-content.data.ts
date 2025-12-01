@@ -1,4 +1,4 @@
-import { CreatorRewardsTab } from "../creator-rewards-tab";
+import CreatorRewardsTab from "../creator-rewards-tab";
 
 export const REWARDS_TABS = [
     {
