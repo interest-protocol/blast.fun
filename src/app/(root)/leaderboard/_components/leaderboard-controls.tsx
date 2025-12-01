@@ -7,7 +7,7 @@ import { cn } from "@/utils/index"
 import { FC } from "react"
 import { LeaderboardControlsProps } from "../leaderboard.types"
 
-export const LeaderboardControls:FC<LeaderboardControlsProps> = ({
+const LeaderboardControls:FC<LeaderboardControlsProps> = ({
   timeRange,
   onTimeRangeChange,
   loading,
@@ -87,3 +87,5 @@ export const LeaderboardControls:FC<LeaderboardControlsProps> = ({
     </div>
   </div>
 )
+
+export default LeaderboardControls

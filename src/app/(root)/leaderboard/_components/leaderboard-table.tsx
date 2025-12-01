@@ -1,13 +1,14 @@
 "use client"
 
-import { Loader2 } from "lucide-react"
-import { cn } from "@/utils/index"
-import { LeaderboardRow } from "./leaderboard-row"
-import { LeaderboardHeader } from "./leaderboard-header"
-import { LeaderboardTableProps } from "../leaderboard.types"
 import { FC } from "react"
+import { Loader2 } from "lucide-react"
 
-export const LeaderboardTable:FC<LeaderboardTableProps> = ({
+import { cn } from "@/utils/index"
+import { LeaderboardTableProps } from "../leaderboard.types"
+import LeaderboardHeader from "./leaderboard-header"
+import LeaderboardRow from "./leaderboard-row"
+
+const LeaderboardTable:FC<LeaderboardTableProps> = ({
   data,
   suinsNames,
   sortBy,
@@ -77,3 +78,5 @@ export const LeaderboardTable:FC<LeaderboardTableProps> = ({
     </div>
   </div>
 )
+
+export default LeaderboardTable

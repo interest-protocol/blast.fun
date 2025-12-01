@@ -1,9 +1,10 @@
 "use client"
 
-import { Skeleton } from "@/components/ui/skeleton"
 import { FC } from "react"
 
-export const LeaderboardSkeleton: FC = () => (
+import { Skeleton } from "@/components/ui/skeleton"
+
+const LeaderboardSkeleton: FC = () => (
   <div className="w-full">
     <div className="relative">
       <div className="grid grid-cols-12 py-2 border-b border-border/50 text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground sticky top-0 bg-card/95 backdrop-blur-sm z-10 select-none">
@@ -40,3 +41,5 @@ export const LeaderboardSkeleton: FC = () => (
     </div>
   </div>
 )
+
+export default LeaderboardSkeleton

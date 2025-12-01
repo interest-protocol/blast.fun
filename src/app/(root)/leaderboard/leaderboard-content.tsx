@@ -1,16 +1,23 @@
 "use client"
 
 import { useState, useMemo, useEffect, FC } from "react"
-import { useLeaderboard, type TimeRange, type SortBy } from "@/hooks/use-leaderboard"
 import { useRouter, useSearchParams } from "next/navigation"
+
+import {
+  copyToClipboard,
+  exportToCSV,
+  getAvailableCycles,
+  getCurrentCycle,
+  getCycleDateRange
+} from "./_components/leaderboard-utils"
 import { useSuiNSNames } from "@/hooks/use-suins"
-import { copyToClipboard, exportToCSV, getAvailableCycles, getCurrentCycle, getCycleDateRange } from "./_components/leaderboard-utils"
-import { CycleSelector } from "./_components/cycle-selector"
-import { LeaderboardControls } from "./_components/leaderboard-controls"
-import { LeaderboardSkeleton } from "./_components/leaderboard-skeleton"
-import { LeaderboardError } from "./_components/leaderboard-error"
-import { LeaderboardEmpty } from "./_components/leaderboard-empty"
-import { LeaderboardTable } from "./_components/leaderboard-table"
+import LeaderboardError from "./_components/leaderboard-error"
+import LeaderboardEmpty from "./_components/leaderboard-empty"
+import LeaderboardTable from "./_components/leaderboard-table"
+import LeaderboardControls from "./_components/leaderboard-controls"
+import LeaderboardSkeleton from "./_components/leaderboard-skeleton"
+import { useLeaderboard, type TimeRange, type SortBy } from "@/hooks/use-leaderboard"
+import CycleSelector from "./_components/cycle-selector"
 
 const LeaderboardContent: FC = () => {
   const router = useRouter()

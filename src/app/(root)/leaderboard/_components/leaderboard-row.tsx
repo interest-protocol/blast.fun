@@ -6,7 +6,7 @@ import { formatPrice } from "@/lib/format"
 import { FC } from "react"
 import { LeaderboardRowProps } from "../leaderboard.types"
 
-export const LeaderboardRow:FC<LeaderboardRowProps> = ({ rank, user, totalVolume, tradeCount, suinsName }: LeaderboardRowProps) => {
+const LeaderboardRow:FC<LeaderboardRowProps> = ({ rank, user, totalVolume, tradeCount, suinsName }: LeaderboardRowProps) => {
   const getRankDisplay = (rank: number) => {
     if (rank === 1) return <Trophy className="h-4 w-4 text-yellow-500" />
     if (rank === 2) return <Medal className="h-4 w-4 text-gray-400" />
@@ -64,3 +64,5 @@ export const LeaderboardRow:FC<LeaderboardRowProps> = ({ rank, user, totalVolume
     </div>
   )
 }
+
+export default LeaderboardRow

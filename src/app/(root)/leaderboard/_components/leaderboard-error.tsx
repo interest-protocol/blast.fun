@@ -1,10 +1,10 @@
 "use client"
 
+import { FC } from "react"
 import { Logo } from "@/components/ui/logo"
 import { LeaderboardEmptyProps as LeaderboardErrorProps } from "../leaderboard.types"
-import { FC } from "react"
 
-export const LeaderboardError:FC<LeaderboardErrorProps> = ({
+const LeaderboardError:FC<LeaderboardErrorProps> = ({
   title = "ERROR::LOADING::LEADERBOARD",
   subtitle = "CHECK_CONNECTION",
 }) => (
@@ -14,3 +14,5 @@ export const LeaderboardError:FC<LeaderboardErrorProps> = ({
     <p className="font-mono text-xs uppercase text-muted-foreground/60 mt-2">{subtitle}</p>
   </div>
 )
+
+export default LeaderboardError

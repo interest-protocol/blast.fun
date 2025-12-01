@@ -5,7 +5,7 @@ import { cn } from "@/utils/index"
 import { FC } from "react"
 import { CycleSelectorProps } from "../leaderboard.types"
 
-export const CycleSelector:FC<CycleSelectorProps> = ({
+const CycleSelector:FC<CycleSelectorProps> = ({
   currentCycle,
   selectedCycle,
   availableCycles,
@@ -49,3 +49,5 @@ export const CycleSelector:FC<CycleSelectorProps> = ({
     </SelectContent>
   </Select>
 )
+
+export default CycleSelector

@@ -1,10 +1,11 @@
 "use client"
 
-import { Trophy } from "lucide-react"
 import { FC } from "react"
+import { Trophy } from "lucide-react"
+
 import { LeaderboardEmptyProps } from "../leaderboard.types"
 
-export const LeaderboardEmpty:FC<LeaderboardEmptyProps> = ({
+const LeaderboardEmpty:FC<LeaderboardEmptyProps> = ({
   title = "NO::TRADING::DATA",
   subtitle = "BE_THE_FIRST_TO_TRADE",
 }) => (
@@ -14,3 +15,5 @@ export const LeaderboardEmpty:FC<LeaderboardEmptyProps> = ({
     <p className="font-mono text-xs uppercase text-muted-foreground/60 mt-2">{subtitle}</p>
   </div>
 )
+
+export default LeaderboardEmpty
