@@ -2,7 +2,7 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/utils"
-import { CreatorRewardsTab } from "./creator-rewards-tab"
+import CreatorRewardsTab from "./creator-rewards-tab"
 
 const rewardsTabs = [
 	{

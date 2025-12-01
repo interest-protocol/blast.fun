@@ -6,10 +6,10 @@ import { UseFormReturn } from "react-hook-form"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/utils"
 import { useLaunchCoin } from "../_hooks/use-launch-coin"
-import { TokenFormValues } from "./create-token-form"
 import { TerminalDialog } from "./terminal-dialog"
 import toast from "react-hot-toast"
 import { useBalance } from "@/hooks/sui/use-balance"
+import { TokenFormValues } from "./create-token-form/create-token-form.types"
 
 interface CreateTokenButtonProps {
 	form: UseFormReturn<TokenFormValues>
