@@ -6,13 +6,13 @@ import { useApp } from "@/context/app.context"
 import { fetchPortfolio } from "@/lib/fetch-portfolio"
 import type { PortfolioResponse } from "@/types/portfolio"
 import { RewardsDialog } from "@/components/dialogs/rewards.dialog"
-import { PortfolioTable } from "../portfolio-table"
 import LoadingPortfolio from "./_components/loading-portfolio"
 import { ErrorPortfolio } from "./_components/error-portfolio"
 import EmptyPortfolio from "./_components/empty-porfolio"
 import ConnectWallet from "@/components/layout/connect-wallet"
 import PortfolioStats from "../portfolio-stats"
 import PortfolioContentHeader from "./_components/portfolio-content-header"
+import PortfolioTable from "../portfolio-table"
 
 const PortfolioContent: FC = () => {
     const { address, isConnected, setIsConnectDialogOpen } = useApp()
