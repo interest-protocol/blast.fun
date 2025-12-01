@@ -22,21 +22,37 @@ import { getBytecode } from "@/lib/move-template/coin"
 import initMoveByteCodeTemplate from "@/lib/move-template/move-bytecode-template"
 import { pumpSdk } from "@/lib/memez/sdk"
 import { getCreatedObjectByType, getTxExplorerUrl } from "@/utils/transaction"
-import { TokenFormValues } from "../_components/create-token-form"
-import { LaunchDataProps, LaunchResultProps, LogEntryProps, PendingTokenProps } from "./use-launch-coin.types"
+import { TokenFormValues } from "../_components/create-token-form/create-token-form.types"
 
-export const useLaunchCoin = () => {
+interface LaunchResult {
+	treasuryCapObjectId: string
+	tokenTxDigest: string
+	poolObjectId: string
+	poolTxDigest: string
+}
+
+export interface LogEntry {
+	timestamp: string
+	message: string
+	type: "info" | "success" | "error" | "warning"
+}
+
+export function useLaunchCoin() {
 	const [isLaunching, setIsLaunching] = useState(false)
-	const [logs, setLogs] = useState<LogEntryProps[]>([])
-	const [result, setResult] = useState<LaunchResultProps | null>(null)
-	const [pendingToken, setPendingToken] = useState<PendingTokenProps | null>(null)
+	const [logs, setLogs] = useState<LogEntry[]>([])
+	const [result, setResult] = useState<LaunchResult | null>(null)
+	const [pendingToken, setPendingToken] = useState<{
+		treasuryCapObjectId: string
+		txDigest: string
+		formValues: TokenFormValues
+	} | null>(null)
 
 	const { isLoggedIn, user: twitterUser } = useTwitter()
 	const { isConnected, address } = useApp()
 	const { executeTransaction } = useTransaction()
 	const { confettiPlayer } = useConfetti()
 
-	const addLog = (message: string, type: LogEntryProps["type"] = "info") => {
+	const addLog = (message: string, type: LogEntry["type"] = "info") => {
 		const timestamp = new Date().toLocaleTimeString("en-US", {
 			hour12: false,
 			hour: "2-digit",
@@ -210,7 +226,18 @@ export const useLaunchCoin = () => {
 		}
 	}
 
-	const saveLaunchData = async (launchData: LaunchDataProps): Promise<void> => {
+	const saveLaunchData = async (launchData: {
+		poolObjectId: string
+		tokenTxHash: string
+		poolTxHash: string
+		hideIdentity: boolean
+		protectionSettings?: {
+			requireTwitter: boolean
+			revealTraderIdentity: boolean
+			minFollowerCount?: string
+			maxHoldingPercent?: string
+		}
+	}): Promise<void> => {
 		try {
 			const response = await fetch("/api/launches", {
 				method: "POST",
@@ -233,7 +260,7 @@ export const useLaunchCoin = () => {
 		}
 	}
 
-	const launchToken = async (formValues: TokenFormValues): Promise<LaunchResultProps> => {
+	const launchToken = async (formValues: TokenFormValues): Promise<LaunchResult> => {
 		setIsLaunching(true)
 		setLogs([])
 		setResult(null)
@@ -309,7 +336,7 @@ export const useLaunchCoin = () => {
 		}
 	}
 
-	const resumeLaunch = async (): Promise<LaunchResultProps> => {
+	const resumeLaunch = async (): Promise<LaunchResult> => {
 		if (!pendingToken) {
 			throw new Error("No pending launch to resume")
 		}
