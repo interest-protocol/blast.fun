@@ -9,7 +9,7 @@ import LoadingState from "./_components/loading-state"
 import EmptyState from "./_components/empty-state"
 import ClaimAllCard from "./_components/claim-all-card"
 import RewardCard from "./_components/reward-card"
-import { TransferPositionDialog } from "../transfer-position-dialog"
+import TransferPositionDialog from "../transfer-position-dialog"
 
 const CreatorRewardsTab: FC = () => {
     const { isConnected, setIsConnectDialogOpen } = useApp()
