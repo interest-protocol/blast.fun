@@ -2,9 +2,10 @@
 
 import type React from "react"
 
-import { Download, Copy, Check } from "lucide-react"
-import { cn } from "@/utils/index"
 import { FC } from "react"
+import { Download, Copy, Check } from "lucide-react"
+
+import { cn } from "@/utils/index"
 import { LeaderboardControlsProps } from "../leaderboard.types"
 
 const LeaderboardControls:FC<LeaderboardControlsProps> = ({

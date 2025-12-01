@@ -4,7 +4,7 @@ import { FC } from "react"
 import { Search, Loader2 } from "lucide-react"
 
 import { cn } from "@/utils/index"
-import { SearchFormProps } from "../search-form.types"
+import { SearchFormProps } from "./search-form.types"
 
 const SearchForm: FC<SearchFormProps> = ({ query, setQuery, loading, onSubmit }) => {
   const handleSubmit = (e: React.FormEvent) => {
