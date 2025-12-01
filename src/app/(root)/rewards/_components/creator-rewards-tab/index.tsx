@@ -1,6 +1,7 @@
 "use client"
 
 import { FC, useState } from "react"
+
 import { useApp } from "@/context/app.context"
 import { useCreatorRewards } from "../../_hooks/use-creator-rewards"
 import NotConnectedState from "./_components/not-connected-state"
@@ -9,7 +10,6 @@ import EmptyState from "./_components/empty-state"
 import ClaimAllCard from "./_components/claim-all-card"
 import RewardCard from "./_components/reward-card"
 import { TransferPositionDialog } from "../transfer-position-dialog"
-
 
 const CreatorRewardsTab: FC = () => {
     const { isConnected, setIsConnectDialogOpen } = useApp()
