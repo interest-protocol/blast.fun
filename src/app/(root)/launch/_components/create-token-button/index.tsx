@@ -5,11 +5,11 @@ import { FC, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/utils"
 import { useLaunchCoin } from "../../_hooks/use-launch-coin"
-import { TokenFormValues } from "../create-token-form"
-import { TerminalDialog } from "../terminal-dialog"
 import toast from "react-hot-toast"
 import { useBalance } from "@/hooks/sui/use-balance"
 import { CreateTokenButtonProps } from "./create-token-button.types"
+import TerminalDialog from "../terminal-dialog"
+import { TokenFormValues } from "../create-token-form/create-token-form.types"
 
 const CreateTokenButton:FC<CreateTokenButtonProps> =({ form }) => {
 	const { handleSubmit, reset, getValues, formState } = form;

@@ -6,6 +6,8 @@ export const metadata = constructMetadata({
 	description: "Stake eligible memecoins to earn rewards.",
 })
 
-export default function FarmsPage() {
+const FarmsPage = () => {
 	return <FarmsContent />
 }
+
+export default FarmsPage

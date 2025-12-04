@@ -22,7 +22,7 @@ import { getBytecode } from "@/lib/move-template/coin"
 import initMoveByteCodeTemplate from "@/lib/move-template/move-bytecode-template"
 import { pumpSdk } from "@/lib/memez/sdk"
 import { getCreatedObjectByType, getTxExplorerUrl } from "@/utils/transaction"
-import { TokenFormValues } from "../_components/create-token-form"
+import { TokenFormValues } from "../_components/create-token-form/create-token-form.types"
 
 interface LaunchResult {
 	treasuryCapObjectId: string

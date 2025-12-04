@@ -20,7 +20,7 @@ interface UseFarmOperationsProps {
 	onSuccess?: () => void
 }
 
-export function useFarmOperations({
+export const useFarmOperations = ({
 	farmId,
 	stakeCoinType,
 	rewardCoinType,
@@ -29,7 +29,7 @@ export function useFarmOperations({
 	rewardSymbol = "SUI",
 	rewardDecimals = 9,
 	onSuccess,
-}: UseFarmOperationsProps) {
+}: UseFarmOperationsProps) => {
 	const { address } = useApp()
 	const { executeTransaction } = useTransaction()
 	const [isStaking, setIsStaking] = useState(false)

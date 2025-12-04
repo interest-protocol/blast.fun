@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
-import { useSuiPrice } from "@/hooks/sui/use-sui-price";
+import { usePrice } from "@/hooks/sui/use-price";
 import { SUI_TYPE_ARG } from "@mysten/sui/utils";
 import { formatNumberWithSuffix } from "@/utils/format";
 import type { TokenOption } from "./swap-terminal.types";
@@ -24,7 +24,13 @@ export const useSwapTerminal = () => {
     );
     const [isSwapping, setIsSwapping] = useState(false);
 
-    const { usd: suiPrice } = useSuiPrice();
+    const { price: tokenInPrice = 0 } = usePrice({
+        coinType: fromToken?.coinType || "",
+    });
+
+    const { price: tokenOutPrice = 0 } = usePrice({
+        coinType: toToken?.coinType || "",
+    });
 
     const { toAmount, isLoadingQuote, setToAmount } = useSwapQuote({
         fromToken,
@@ -47,10 +53,15 @@ export const useSwapTerminal = () => {
         },
     });
 
-    const usdValue = useMemo(() => {
+    const usdValueIn = useMemo(() => {
         if (!fromAmount || parseFloat(fromAmount) <= 0) return 0;
-        return parseFloat(fromAmount) * suiPrice;
-    }, [fromAmount, suiPrice]);
+        return parseFloat(fromAmount) * tokenInPrice;
+    }, [fromAmount, tokenInPrice]);
+
+    const usdValueOut = useMemo(() => {
+        if (!toAmount || parseFloat(toAmount) <= 0) return 0;
+        return parseFloat(toAmount) * tokenOutPrice;
+    }, [toAmount, tokenOutPrice]);
 
     useEffect(() => {
         if (!fromToken) {
@@ -125,7 +136,8 @@ export const useSwapTerminal = () => {
         toAmount,
         fromBalanceDisplay,
         toBalanceDisplay,
-        usdValue,
+        usdValueIn,
+        usdValueOut,
         isLoadingQuote,
         isSwapping,
         isConnected,
