@@ -2,6 +2,7 @@ import "@/styles/globals.css"
 import "@/styles/animations.css"
 
 import type { Metadata } from "next"
+import { Analytics } from '@vercel/analytics/next'
 import { GoogleAnalytics } from '@next/third-parties/google'
 import { SessionProvider } from "next-auth/react"
 import { Toaster } from "react-hot-toast"
@@ -86,6 +87,7 @@ export default function RootLayout({
 						</SessionProvider>
 					</TooltipProvider>
 				</ThemeProvider>
+				<Analytics />
 			</body>
 
 			{process.env.NEXT_PUBLIC_VERCEL_ENV === "production" && (
