@@ -2,8 +2,9 @@
 
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
+
 import { Button } from "@/components/ui/button"
-import { AirdropTools } from "./_components/airdrop-tools"
+import AirdropTools from "./_components/airdrop-tools"
 
 export default function AirdropPage() {
 	return (
