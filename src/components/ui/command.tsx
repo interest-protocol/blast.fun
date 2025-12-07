@@ -13,6 +13,9 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 
+let commandDialogCounter = 0;
+const commandDialogIds = new Map<number, string>();
+
 function Command({
     className,
     ...props
@@ -42,7 +45,17 @@ function CommandDialog({
     className?: string
     showCloseButton?: boolean
 }) {
-    const dialogId = React.useId()
+    const idRef = React.useRef<string | null>(null);
+    
+    if (!idRef.current) {
+        const instanceId = commandDialogCounter++;
+        if (!commandDialogIds.has(instanceId)) {
+            commandDialogIds.set(instanceId, `command-dialog-${instanceId}`);
+        }
+        idRef.current = commandDialogIds.get(instanceId)!;
+    }
+    
+    const dialogId = idRef.current;
     
     return (
         <Dialog {...props}>
