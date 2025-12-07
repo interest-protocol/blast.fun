@@ -13,9 +13,6 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 
-let commandDialogCounter = 0;
-const commandDialogIds = new Map<number, string>();
-
 function Command({
     className,
     ...props
@@ -45,31 +42,17 @@ function CommandDialog({
     className?: string
     showCloseButton?: boolean
 }) {
-    const idRef = React.useRef<string | null>(null);
-    
-    if (!idRef.current) {
-        const instanceId = commandDialogCounter++;
-        if (!commandDialogIds.has(instanceId)) {
-            commandDialogIds.set(instanceId, `command-dialog-${instanceId}`);
-        }
-        idRef.current = commandDialogIds.get(instanceId)!;
-    }
-    
-    const dialogId = idRef.current;
-    
     return (
         <Dialog {...props}>
             <DialogHeader className="sr-only">
-                <DialogTitle id={`${dialogId}-title`}>{title}</DialogTitle>
-                <DialogDescription id={`${dialogId}-description`}>
+                <DialogTitle suppressHydrationWarning>{title}</DialogTitle>
+                <DialogDescription suppressHydrationWarning>
                     {description}
                 </DialogDescription>
             </DialogHeader>
             <DialogContent
                 className={cn("overflow-hidden p-0", className)}
                 showCloseButton={showCloseButton}
-                aria-labelledby={`${dialogId}-title`}
-                aria-describedby={`${dialogId}-description`}
             >
                 <Command className="[&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
                     {children}
