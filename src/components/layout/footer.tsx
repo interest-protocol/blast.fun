@@ -16,8 +16,9 @@ import {
     TooltipTrigger,
 } from "../ui/tooltip";
 import { useBtcPrice } from "@/hooks/use-btc-price";
-import { useSuiPrice } from "@/hooks/sui/use-sui-price";
+import { usePrice } from "@/hooks/sui/use-price";
 import SwapTerminal from "../swap-terminal";
+import { SUI_TYPE_ARG } from "@mysten/sui/utils";
 
 const socialLinks = [
     {
@@ -35,7 +36,7 @@ const socialLinks = [
 export function Footer() {
     const [tradeSettingsOpen, setTradeSettingsOpen] = useState(false);
     const btcPrice = useBtcPrice();
-    const suiPrice = useSuiPrice();
+    const suiPrice = usePrice({ coinType: SUI_TYPE_ARG });
 
     return (
         <>
@@ -78,10 +79,10 @@ export function Footer() {
                                             height={16}
                                             className="flex-shrink-0"
                                         />
-                                        {suiPrice.loading ? (
+                                        {suiPrice.isLoading ? (
                                             <Skeleton className="h-3 w-12" />
                                         ) : (
-                                            <span className="text-xs font-mono">{`$${suiPrice.usd.toFixed(
+                                            <span className="text-xs font-mono">{`$${suiPrice.price?.toFixed(
                                                 2
                                             )}`}</span>
                                         )}

@@ -85,7 +85,8 @@ export interface SwapDialogContentProps {
     toAmount: string;
     fromBalanceDisplay: number;
     toBalanceDisplay: number;
-    usdValue: number;
+    usdValueIn: number;
+    usdValueOut: number;
     isLoadingQuote: boolean;
     isSwapping: boolean;
     isConnected: boolean;
