@@ -5,11 +5,11 @@ import { ExternalLink, TrendingUp, ChartLine } from "lucide-react"
 import type { Token } from "@/types/token"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { TradingPanel } from "./trading-panel"
 import { NexaChart } from "@/components/shared/nexa-chart"
 import { useMarketData } from "@/hooks/use-market-data"
 import { formatNumberWithSuffix, formatAmountWithSuffix } from "@/utils/format"
 import { cn } from "@/utils"
+import TradingPanel from "./trading-panel"
 
 interface XCardTradingProps {
 	pool: Token
