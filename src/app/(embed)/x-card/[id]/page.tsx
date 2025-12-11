@@ -1,14 +1,15 @@
 "use client"
 
-import { use, useEffect, useState } from "react"
+import { FC, use, useEffect, useState } from "react"
 import { useToken } from "@/hooks/pump/use-token"
 import { XCardTrading } from "./_components/x-card-trading"
 import { EmbedHeader } from "./_components/embed-header"
 import { useSearchParams } from "next/navigation"
 import { useReferrals } from "@/hooks/use-referrals"
 import { Logo } from "@/components/ui/logo"
+import { XCardProps } from "./x-card.types"
 
-export default function XCardPage({ params }: { params: Promise<{ id: string }> }) {
+const XCardPage: FC<XCardProps> = ({ params }) => {
 	const { id: coinType } = use(params)
 	const { data: pool, isLoading, error } = useToken(coinType)
 	const searchParams = useSearchParams()
@@ -88,3 +89,5 @@ export default function XCardPage({ params }: { params: Promise<{ id: string }> 
 		</div>
 	)
 }
+
+export default XCardPage
