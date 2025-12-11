@@ -2,11 +2,11 @@
 
 import { use, useEffect, useState } from "react"
 import { useToken } from "@/hooks/pump/use-token"
-import { XCardTrading } from "./_components/x-card-trading"
 import { EmbedHeader } from "./_components/embed-header"
 import { useSearchParams } from "next/navigation"
 import { useReferrals } from "@/hooks/use-referrals"
 import { Logo } from "@/components/ui/logo"
+import XCardTrading from "./_components/x-card-trading"
 
 export default function XCardPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id: coinType } = use(params)
