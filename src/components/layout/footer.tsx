@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ThemeSwitcher } from "../shared/theme-switcher";
-import { AudioToggle } from "../audio/audio-toggle";
 import { TradeSettings } from "@/app/(root)/token/[coinType]/_components/trade-settings";
 import { Settings } from "lucide-react";
 import { BsTelegram, BsTwitterX } from "react-icons/bs";
@@ -18,6 +17,7 @@ import {
 import { useBtcPrice } from "@/hooks/use-btc-price";
 import { useSuiPrice } from "@/hooks/sui/use-sui-price";
 import SwapTerminal from "../swap-terminal";
+import AudioToggle from "../audio/audio-toggle";
 
 const socialLinks = [
     {
