@@ -1,8 +1,10 @@
+import { FC } from "react"
 import Link from "next/link"
-import { buttonVariants } from "@/components/ui/button"
-import { cn } from "@/utils"
 
-export default function NotFound() {
+import { cn } from "@/utils"
+import { buttonVariants } from "@/components/ui/button"
+
+const NotFound: FC = () => {
 	return (
 		<div className="h-screen mx-auto flex flex-col items-center justify-center space-y-8 p-6">
 			<div className="flex flex-col items-center">
@@ -16,5 +18,7 @@ export default function NotFound() {
 				<div className="flex items-center">Go Home</div>
 			</Link>
 		</div>
-	)
+	);
 }
+
+export default NotFound;
