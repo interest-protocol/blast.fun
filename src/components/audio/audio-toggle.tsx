@@ -1,13 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, FC } from "react"
 import { Volume2, VolumeX } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { AudioDialog } from "./audio-dialog"
-import { audioManager, type AudioSettings } from "@/lib/audio-manager"
-import { useMounted } from "@/hooks/use-mounted"
 
-export function AudioToggle() {
+import { AudioDialog } from "./audio-dialog"
+import { Button } from "@/components/ui/button"
+import { useMounted } from "@/hooks/use-mounted"
+import { audioManager, type AudioSettings } from "@/lib/audio-manager"
+
+const AudioToggle: FC = () => {
 	const [open, setOpen] = useState(false)
 	const [settings, setSettings] = useState<AudioSettings>(audioManager.getSettings())
 
@@ -43,3 +44,5 @@ export function AudioToggle() {
 		</>
 	)
 }
+
+export default AudioToggle
