@@ -27,8 +27,8 @@ importers:
         specifier: 1.2.0
         version: 1.2.0(typescript@5.8.3)
       '@interest-protocol/memez-fun-sdk':
-        specifier: 18.1.0
-        version: 18.1.0(typescript@5.8.3)
+        specifier: 19.1.0
+        version: 19.1.0(typescript@5.8.3)
       '@mysten/dapp-kit':
         specifier: ^0.17.0
         version: 0.17.0(@tanstack/react-query@5.83.0(react@19.2.1))(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(babel-plugin-macros@3.1.0)(react-dom@19.1.0(react@19.2.1))(react@19.2.1)(typescript@5.8.3)
@@ -1078,8 +1078,8 @@ packages:
   '@interest-protocol/farms@1.2.0':
     resolution: {integrity: sha512-jd+7DntuSvhSXew3JFA4SBXcdz83OL25C9Db0aL+3LZBzKKL/ocja2SOWwWNEYdIqJsRDZTr8l0wpO3DiKSxaQ==}
 
-  '@interest-protocol/memez-fun-sdk@18.1.0':
-    resolution: {integrity: sha512-Y19YcCfcoGe/0KyzeycMhXZRCx38dhu1GLv6ygtDswApbb+y+7s8DcYLoFPAUPpm8m/qJYEbnWhiQ85dMkqHXg==}
+  '@interest-protocol/memez-fun-sdk@19.1.0':
+    resolution: {integrity: sha512-H4+6E2F42sPFiJ+zsQH7WfffNaEtNVxuFmXhvIFj3/t7/IWw2c3zgMXX4zZEL304kjPCxKc4MaLykjl321SkNQ==}
 
   '@interest-protocol/sui-core-sdk@0.0.1':
     resolution: {integrity: sha512-Rajxynj90qrazuS/kbzzDhkftxp+2oE2gct7Ly/C22jRKztAsY9J8kIhN+9QlTfAkuoPEtABsD9zh8/zx3MSlQ==}
@@ -6612,7 +6612,7 @@ snapshots:
       - '@gql.tada/vue-support'
       - typescript
 
-  '@interest-protocol/memez-fun-sdk@18.1.0(typescript@5.8.3)':
+  '@interest-protocol/memez-fun-sdk@19.1.0(typescript@5.8.3)':
     dependencies:
       '@interest-protocol/acl-sdk': 7.2.0(typescript@5.8.3)
       '@interest-protocol/sui-core-sdk': 1.0.0(typescript@5.8.3)
