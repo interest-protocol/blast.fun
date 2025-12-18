@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { usePrice } from "@/hooks/sui/use-price";
 import { SUI_TYPE_ARG } from "@mysten/sui/utils";
