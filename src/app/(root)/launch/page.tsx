@@ -6,6 +6,8 @@ export const metadata = constructMetadata({
 	description: "Launch your token on blast.fun - The premier token launchpad on the Sui blockchain",
 })
 
-export default function LaunchPage() {
+const LaunchPage = () => {
 	return <LaunchContent />
 }
+
+export default LaunchPage;
