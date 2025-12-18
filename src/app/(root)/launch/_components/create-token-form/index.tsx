@@ -570,7 +570,7 @@ const CreateTokenForm: FC<CreateTokenFormProps> = ({ onFormChange }) => {
                                         </FormLabel>
                                         {balance && (
                                             <span className="font-mono text-xs text-muted-foreground">
-                                                BALANCE: {balance} SUI
+                                                BALANCE: {Number(balance) / 10 ** 9} SUI
                                             </span>
                                         )}
                                     </div>
