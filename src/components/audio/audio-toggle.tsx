@@ -3,10 +3,10 @@
 import { useState, useEffect, FC } from "react"
 import { Volume2, VolumeX } from "lucide-react"
 
-import { AudioDialog } from "./audio-dialog"
 import { Button } from "@/components/ui/button"
 import { useMounted } from "@/hooks/use-mounted"
 import { audioManager, type AudioSettings } from "@/lib/audio-manager"
+import AudioDialog from "./audio-dialog"
 
 const AudioToggle: FC = () => {
 	const [open, setOpen] = useState(false)
