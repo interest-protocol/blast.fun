@@ -5,7 +5,6 @@ import Link from "next/link"
 import { memo } from "react"
 import { BsTwitterX } from "react-icons/bs"
 import { CreatorDisplay } from "@/components/creator/creator-display"
-import { CreatorHoverCard } from "@/components/creator/creator-hover-card"
 import { ProtectionBadges } from "@/components/shared/protection-badges"
 import { RelativeAge } from "@/components/shared/relative-age"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -14,6 +13,7 @@ import { formatNumberWithSuffix } from "@/utils/format"
 import { CopyableToken } from "../shared/copyable-token"
 import { QuickBuy } from "./quick-buy"
 import { TokenAvatar } from "./token-avatar"
+import CreatorHoverCard from "../creator/creator-hover-card"
 
 interface TokenCardProps {
 	pool: Token | any
