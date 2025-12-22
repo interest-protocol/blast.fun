@@ -1,17 +1,9 @@
 "use client"
 
-import { useResolveSuiNSName } from "@mysten/dapp-kit"
-import { formatAddress } from "@mysten/sui/utils"
-import { forwardRef, useMemo } from "react"
-
-interface CreatorDisplayProps extends React.HTMLAttributes<HTMLElement> {
-	twitterHandle?: string
-	twitterId?: string
-	walletAddress?: string
-	className?: string
-	onClick?: (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void
-	asLink?: boolean
-}
+import { forwardRef, useMemo } from "react";
+import { useResolveSuiNSName } from "@mysten/dapp-kit";
+import { CreatorDisplayProps } from "./creator-display.types";
+import { useCreatorDisplayData } from "./_hooks/use-display-data";
 
 export const CreatorDisplay = forwardRef<
 	HTMLButtonElement | HTMLAnchorElement,
@@ -29,35 +21,11 @@ export const CreatorDisplay = forwardRef<
 		!twitterHandle && walletAddress ? walletAddress : null
 	)
 
-	const displayData = useMemo(() => {
-		// priority: handle > resolved domain > wallet address
-		if (twitterHandle) {
-			// @dev: Use twitterId for stable link if available, fallback to handle
-			const href = twitterId 
-				? `https://x.com/i/user/${twitterId}`
-				: `https://x.com/${twitterHandle}`
-			
-			return {
-				display: `@${twitterHandle}`,
-				href,
-				type: 'twitter' as const
-			}
-		}
-
-		if (resolvedDomain) {
-			return {
-				display: resolvedDomain,
-				href: null,
-				type: 'domain' as const
-			}
-		}
-
-		return {
-			display: formatAddress(walletAddress || ""),
-			href: null,
-			type: 'wallet' as const
-		}
-	}, [twitterHandle, twitterId, resolvedDomain, walletAddress])
+	const displayData = useCreatorDisplayData({
+		twitterHandle,
+		twitterId,
+		walletAddress,
+	})
 
 	const handleClick = (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
 		if (onClick) {
@@ -94,4 +62,4 @@ export const CreatorDisplay = forwardRef<
 	)
 })
 
-CreatorDisplay.displayName = "CreatorDisplay"
+CreatorDisplay.displayName = "CreatorDisplay";
