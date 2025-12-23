@@ -15,7 +15,7 @@ import { ThemeProvider } from "@/providers/theme-provider"
 import { cn } from "@/utils"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { siteConfig, BASE_DOMAIN } from "@/constants"
-import { TermsPrivacyDialog } from "@/components/dialogs/terms-privacy-dialog"
+import TermsPrivacyDialog from "@/components/dialogs/terms-privacy-dialog"
 
 const ogImageUrl = `${BASE_DOMAIN}/api/og`
 

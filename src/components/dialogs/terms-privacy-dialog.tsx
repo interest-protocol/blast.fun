@@ -16,7 +16,7 @@ import { needsTermsUpdate } from "@/utils/version"
 const TERMS_VERSION_KEY = "blast-terms-version"
 const CURRENT_TERMS_VERSION = "1.0.0"
 
-export function TermsPrivacyDialog() {
+const TermsPrivacyDialog = () => {
 	const pathname = usePathname()
 	const [open, setOpen] = useState(false)
 	const [isUpdate, setIsUpdate] = useState(false)
@@ -43,7 +43,7 @@ export function TermsPrivacyDialog() {
 	}
 
 	return (
-		<Dialog open={open} onOpenChange={() => {}}>
+		<Dialog open={open} onOpenChange={() => { }}>
 			<DialogContent
 				className="gap-0 p-0 sm:max-h-[min(600px,80vh)] sm:max-w-md"
 				onPointerDownOutside={(e) => e.preventDefault()}
@@ -57,19 +57,26 @@ export function TermsPrivacyDialog() {
 					<div className="overflow-y-auto px-6 py-4 text-sm text-muted-foreground">
 						<ol className="flex list-decimal flex-col gap-2 pl-4">
 							<li>
-								<strong className="text-primary">Risk Warning:</strong> Digital assets and memecoins can fluctuate significantly. There is material risk of economic loss. We provide no investment advice or fiduciary obligation.
+								<strong className="text-primary">Risk Warning:</strong>
+								Digital assets and memecoins can fluctuate significantly. There is material risk of economic loss.
+								We provide no investment advice or fiduciary obligation.
 							</li>
 							<li>
-								<strong className="text-primary">Eligibility:</strong> You must be of legal age in your jurisdiction and not located in any prohibited country.
+								<strong className="text-primary">Eligibility:</strong>
+								You must be of legal age in your jurisdiction and not located in any prohibited country.
 							</li>
 							<li>
-								<strong className="text-primary">Account Security:</strong> You are solely responsible for maintaining the security of your wallet credentials and account.
+								<strong className="text-primary">Account Security:</strong>
+								You are solely responsible for maintaining the security of your wallet credentials and account.
 							</li>
 							<li>
-								<strong className="text-primary">Prohibited Activities:</strong> Do not use the platform for illegal activities, market manipulation, or to post abusive, defamatory, or dishonest content.
+								<strong className="text-primary">Prohibited Activities:</strong>
+								Do not use the platform for illegal activities, market manipulation, or to post abusive,
+								defamatory, or dishonest content.
 							</li>
 							<li>
-								<strong className="text-primary">Platform Fees:</strong> You agree to pay all applicable fees. Fee calculations are final unless there is a manifest error.
+								<strong className="text-primary">Platform Fees:</strong>
+								You agree to pay all applicable fees. Fee calculations are final unless there is a manifest error.
 							</li>
 						</ol>
 
@@ -101,5 +108,7 @@ export function TermsPrivacyDialog() {
 				</DialogHeader>
 			</DialogContent>
 		</Dialog>
-	)
+	);
 }
+
+export default TermsPrivacyDialog;
