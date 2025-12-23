@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { TwitterUserAvatar } from "./user-avatar"
 import { MultiWallet } from "../shared/multi-wallet"
 import { SocialAccounts } from "../shared/social-accounts"
-import { AuthenticationDialog } from "../dialogs/authentication.dialog"
+import AuthenticationDialog from "../dialogs/authentication.dialog"
 
 export function UserDropdown() {
 	const [open, setOpen] = useState(false)
