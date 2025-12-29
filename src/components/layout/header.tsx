@@ -1,7 +1,9 @@
 "use client"
 
+import { FC } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+
 import { Logo } from "../ui/logo"
 import { UserDropdown } from "../user/user-dropdown"
 import { TradeTicker } from "./trade-ticker"
@@ -9,7 +11,7 @@ import { navigationItems } from "@/constants/navigation"
 import { cn } from "@/utils"
 import { useMounted } from "@/hooks/use-mounted"
 
-export default function Header() {
+const Header: FC = () => {
 	const pathname = usePathname()
 	const mounted = useMounted()
 
@@ -58,3 +60,5 @@ export default function Header() {
 		</header>
 	)
 }
+
+export default Header;
