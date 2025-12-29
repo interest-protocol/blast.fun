@@ -1,24 +1,15 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, FC } from "react"
 import Link from "next/link"
 import tradeBumpSocket, { type TradeEvent } from "@/lib/websocket/trade-bump-socket"
 import { formatNumberWithSuffix, formatAddressShort } from "@/utils/format"
 import { cn } from "@/utils"
 import { useRecentTrades } from "@/hooks/pump/use-recent-trades"
+import { TickerItem } from "./trade-ticker/trade-ticker.types"
+import { de } from "date-fns/locale"
 
-type TickerItem = {
-	id: string
-	coinType: string
-	name: string
-	symbol: string
-	kind: "buy" | "sell"
-	amount: number
-	trader: string
-	timestamp: number
-}
-
-export function TradeTicker() {
+const TradeTicker: FC = () => {
 	const [trades, setTrades] = useState<TickerItem[]>([])
 	const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -107,5 +98,7 @@ export function TradeTicker() {
 			<div className="pointer-events-none absolute left-0 top-0 h-full w-20 bg-gradient-to-r from-background to-transparent z-10" />
 			<div className="pointer-events-none absolute right-0 top-0 h-full w-20 bg-gradient-to-l from-background to-transparent z-10" />
 		</div>
-	)
+	);
 }
+
+export default TradeTicker;
