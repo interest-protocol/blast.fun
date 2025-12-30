@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useApp } from "@/context/app.context"
 import { farmsSdk } from "@/lib/farms"
 import { FARMS } from "@interest-protocol/farms"
@@ -16,8 +16,15 @@ export const useFarms = () => {
   const { address, isConnected } = useApp()
   const [farmsWithAccounts, setFarmsWithAccounts] = useState<FarmWithAccount[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const abortControllerRef = useRef<AbortController | null>(null)
+  const isMountedRef = useRef(true)
 
   const fetchFarmsData = async () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+    abortControllerRef.current = new AbortController()
+
     setIsLoading(true)
     try {
       const farms = FARMS[env.NEXT_PUBLIC_DEFAULT_NETWORK as Network]
@@ -27,6 +34,8 @@ export const useFarms = () => {
         farmIds.map((farmId) => farmsSdk.getFarm(farmId))
       )
 
+      if (!isMountedRef.current) return
+
       let farmsWithAccountsData = farmsData.map((farm) => ({
         farm,
         account: undefined as InterestAccount | undefined,
@@ -34,23 +43,42 @@ export const useFarms = () => {
 
       if (address && isConnected) {
         const allAccounts = await farmsSdk.getAccounts(address)
+        
+        if (!isMountedRef.current) return
+
         farmsWithAccountsData = farmsData.map((farm) => {
           const account = allAccounts.find((acc) => acc.farm === farm.objectId)
           return { farm, account }
         })
       }
 
-      setFarmsWithAccounts(farmsWithAccountsData)
+      if (isMountedRef.current) {
+        setFarmsWithAccounts(farmsWithAccountsData)
+      }
     } catch (error) {
-      console.error("Error fetching farms data:", error)
-      toast.error("Failed to fetch farms data")
+      if (error instanceof Error && error.name !== "AbortError") {
+        console.error("Error fetching farms data:", error)
+        if (isMountedRef.current) {
+          toast.error("Failed to fetch farms data")
+        }
+      }
     } finally {
-      setIsLoading(false)
+      if (isMountedRef.current) {
+        setIsLoading(false)
+      }
     }
   }
 
   useEffect(() => {
+    isMountedRef.current = true
     fetchFarmsData()
+
+    return () => {
+      isMountedRef.current = false
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
   }, [address, isConnected])
 
   return {
