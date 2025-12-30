@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react"
 
-import type { TokenMetadata } from "@/types/token"
 import { nexaClient } from "@/lib/nexa"
+import { useCallback } from "react"
+import type { TokenMetadata } from "@/types/token"
 import { useBalance } from "@/hooks/sui/use-balance"
 import { FarmTerminalProps } from "../../farm-terminal.types"
 import { useFarmOperations } from "../../../../_hooks/use-farm-operations"
@@ -66,28 +67,24 @@ const useFarmTerminal = ({
     await unstake(amount)
   }
 
-  const handleMaxClick = () => {
-    const balance =
-      actionType === "deposit" ? tokenBalanceInDisplayUnit : stakedInDisplayUnit
-
-    if (balance <= 0) {
-      setAmount("0")
-      return
-    }
-    setAmount(balance.toString())
+ const handleMaxClick = useCallback(() => {
+  const balance = actionType === "deposit" ? tokenBalanceInDisplayUnit : stakedInDisplayUnit
+  if (balance <= 0) {
+    setAmount("0")
+    return
   }
+  setAmount(balance.toString())
+}, [actionType, tokenBalanceInDisplayUnit, stakedInDisplayUnit])
 
-  const handleQuickAmount = (percentage: number) => {
-    const balance =
-      actionType === "deposit" ? tokenBalanceInDisplayUnit : stakedInDisplayUnit
-
-    if (balance <= 0) {
-      setAmount("0")
-      return
-    }
-    const calculated = (balance * percentage) / 100
-    setAmount(calculated.toString())
+const handleQuickAmount = useCallback((percentage: number) => {
+  const balance = actionType === "deposit" ? tokenBalanceInDisplayUnit : stakedInDisplayUnit
+  if (balance <= 0) {
+    setAmount("0")
+    return
   }
+  const calculated = (balance * percentage) / 100
+  setAmount(calculated.toString())
+}, [actionType, tokenBalanceInDisplayUnit, stakedInDisplayUnit])
 
   const isProcessing = isStaking || isUnstaking
 
