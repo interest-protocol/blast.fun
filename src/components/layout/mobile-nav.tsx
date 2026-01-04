@@ -8,7 +8,7 @@ import { cn } from "@/utils";
 import { useCustomNavigation } from "@/hooks/use-custom-navigation";
 import SwapTerminal from "../swap-terminal";
 
-export function MobileNavigation() {
+const MobileNavigation = ()  => {
     const pathname = usePathname();
     const { hideMainNav } = useCustomNavigation();
 
@@ -94,3 +94,5 @@ export function MobileNavigation() {
         </div>
     );
 }
+
+export default MobileNavigation;
