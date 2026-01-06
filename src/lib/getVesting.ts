@@ -44,7 +44,7 @@ export interface CoinMetadata {
 }
 
 const BASE_URL = "https://api.interestlabs.io/v1/vesting"
-const METADATA_BASE_URL = "https://api.interestlabs.io/v1/coins"
+const METADATA_BASE_URL = "https://coin-metadata-api-production.up.railway.app/api/v1/fetch-coins"
 
 export class VestingApi {
 	static async getVestingsByCoinType(
@@ -117,22 +117,18 @@ export class VestingApi {
 	}
 
 	static async getCoinMetadata(coinTypes: string[]): Promise<CoinMetadata[]> {
-		if (coinTypes.length === 0) return []
+	if (coinTypes.length === 0) return []
 
-		// @dev: Join coin types with comma and encode for URL
-		const coinTypesParam = coinTypes.map(encodeURIComponent).join(',')
-		const url = `${METADATA_BASE_URL}/mainnet/metadatas?coinTypes=${coinTypesParam}`
+	const coinTypesParam = coinTypes.map(encodeURIComponent).join(',')
+	const url = `${METADATA_BASE_URL}?coinTypes=${coinTypesParam}`
 
-		const response = await fetch(url, {
-			headers: {
-				'Chain': 'sui'
-			}
-		})
+	const response = await fetch(url)
 
-		if (!response.ok) {
-			throw new Error(`Failed to fetch coin metadata: ${response.statusText}`)
-		}
-
-		return response.json()
+	if (!response.ok) {
+		throw new Error(`Failed to fetch coin metadata: ${response.statusText}`)
 	}
+
+	return response.json()
+}
+
 }
