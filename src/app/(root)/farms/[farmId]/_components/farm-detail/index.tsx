@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { useApp } from "@/context/app.context"
 import { farmsSdk } from "@/lib/farms"
 import type { InterestFarm, InterestAccount } from "@interest-protocol/farms"
-import { interestProtocolApi, CoinMetadata } from "@/lib/interest-protocol-api"
+import { coinMetadataApi, CoinMetadata } from "@/lib/coin-metadata-api"
 import { FarmDetailProps } from "./farm-detail.types"
 import FarmInfo from "../farm-info"
 import FarmTerminal from "../farm-terminal"
@@ -33,7 +33,7 @@ const FarmDetail: FC<FarmDetailProps> = ({ farmId }) => {
                 setAccount(farmAccount)
             }
 
-            const meta = await interestProtocolApi.getCoinMetadata(farmData.stakeCoinType)
+            const meta = await coinMetadataApi.getCoinMetadata(farmData.stakeCoinType)
             setMetadata(meta)
         } catch (error) {
             console.error("Failed to fetch farm data:", error)
