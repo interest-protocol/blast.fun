@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react"
 
-import { interestProtocolApi, CoinMetadata } from "@/lib/interest-protocol-api"
+import { coinMetadataApi, CoinMetadata } from "@/lib/coin-metadata-api"
 
 export const useFarmMetadata = (stakeCoinType: string) => {
 	const [metadata, setMetadata] = useState<CoinMetadata | null>(null)
 
 	useEffect(() => {
-		interestProtocolApi
+		coinMetadataApi
 			.getCoinMetadata(stakeCoinType)
 			.then(setMetadata)
 			.catch((err) => console.error("Failed to fetch metadata:", err))
