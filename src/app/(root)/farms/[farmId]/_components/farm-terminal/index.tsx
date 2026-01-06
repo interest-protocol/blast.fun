@@ -13,8 +13,6 @@ import FarmTerminalButton from "./_components/farm-terminal-button"
 import useFarmTerminal from "./_hooks/use-farm-terminal"
 
 const FarmTerminal: FC<FarmTerminalProps> = ({ farm, account, metadata, onOperationSuccess }) => {
-    const { isConnected, setIsConnectDialogOpen } = useApp()
-
     const {
         actionType,
         setActionType,
@@ -29,10 +27,6 @@ const FarmTerminal: FC<FarmTerminalProps> = ({ farm, account, metadata, onOperat
         handleMaxClick,
         handleQuickAmount,
     } = useFarmTerminal({ farm, account, metadata, onOperationSuccess })
-
-    if (!isConnected) {
-        return <ConnectWallet onConnect={() => setIsConnectDialogOpen(true)} />
-    }
 
     return (
         <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
