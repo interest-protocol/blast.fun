@@ -13,7 +13,7 @@ export default function DiscoveryPage() {
                 <div className="h-full">
                     <MobileTokenList />
                 </div>
-                <SearchToken />
+               
             </div>
 
             <div className="hidden lg:grid h-full grid-cols-1 lg:grid-cols-3 gap-4">
