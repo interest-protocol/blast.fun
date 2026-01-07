@@ -9,10 +9,7 @@ export default function DiscoveryPage() {
     return (
         <>
             <div className="block lg:hidden">
-                <div className="h-full">
-                    <MobileTokenList />
-                </div>
-               
+                <MobileTokenList />
             </div>
 
             <div className="hidden lg:grid h-full grid-cols-1 lg:grid-cols-3 gap-4">
