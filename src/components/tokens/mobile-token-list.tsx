@@ -201,7 +201,7 @@ export const MobileTokenList = memo(function MobileTokenList() {
 			</div>
 
 			{/* @dev: Content */}
-			<div className="flex-1 overflow-y-auto">
+			<div className="flex-1 overflow-y-auto pb-[12rem]">
 				{TABS.map((tab) => (
 					<TabContent 
 						key={tab.key}
