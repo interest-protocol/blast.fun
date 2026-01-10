@@ -11,6 +11,8 @@ const API_ENDPOINTS = {
 
 type EndpointType = keyof typeof API_ENDPOINTS;
 
+const CACHE_TTL_SECONDS = 3 * 24 * 60 * 60;
+
 async function fetchTokens(
     endpoint: EndpointType,
     filters?: TokenFilters
@@ -30,11 +32,10 @@ async function fetchTokens(
     }
 
     const response = await fetch(url.toString(), {
-        next: { revalidate: 1 },
+        next: { revalidate: CACHE_TTL_SECONDS }, 
         headers: {
             Accept: "application/json",
-            "cloudflare-cache": "5",
-            "cache-control": "no-store",
+            "cache-control": `public, max-age=${CACHE_TTL_SECONDS}`,
         },
     });
 
@@ -47,51 +48,42 @@ async function fetchTokens(
 
 export function useLatestTokens(
     filters?: TokenFilters,
-    options?: {
-        enabled?: boolean;
-        refetchInterval?: number;
-    }
+    options?: { enabled?: boolean; refetchInterval?: number }
 ) {
     return useQuery({
         queryKey: ["tokens", "latest", filters],
         queryFn: () => fetchTokens("latest", filters),
         enabled: options?.enabled ?? true,
         refetchInterval: options?.refetchInterval ?? 2500,
-        staleTime: 1000,
-        gcTime: 5000,
+        staleTime: CACHE_TTL_SECONDS * 1000,
+        gcTime: CACHE_TTL_SECONDS * 1000,
     });
 }
 
 export function useAboutToBondTokens(
     filters?: TokenFilters,
-    options?: {
-        enabled?: boolean;
-        refetchInterval?: number;
-    }
+    options?: { enabled?: boolean; refetchInterval?: number }
 ) {
     return useQuery({
         queryKey: ["tokens", "aboutToBond", filters],
         queryFn: () => fetchTokens("aboutToBond", filters),
         enabled: options?.enabled ?? true,
         refetchInterval: options?.refetchInterval ?? 5000,
-        staleTime: 1000,
-        gcTime: 5000,
+        staleTime: CACHE_TTL_SECONDS * 1000,
+        gcTime: CACHE_TTL_SECONDS * 1000,
     });
 }
 
 export function useBondedTokens(
     filters?: TokenFilters,
-    options?: {
-        enabled?: boolean;
-        refetchInterval?: number;
-    }
+    options?: { enabled?: boolean; refetchInterval?: number }
 ) {
     return useQuery({
         queryKey: ["tokens", "bonded", filters],
         queryFn: () => fetchTokens("bonded", filters),
         enabled: options?.enabled ?? true,
         refetchInterval: options?.refetchInterval ?? 30000,
-        staleTime: 1000,
-        gcTime: 5000,
+        staleTime: CACHE_TTL_SECONDS * 1000,
+        gcTime: CACHE_TTL_SECONDS * 1000,
     });
 }
