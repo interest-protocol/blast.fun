@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { cn } from "@/utils";
 import {
     HoverCard,
@@ -26,9 +26,15 @@ export function TokenAvatar({
     enableHover = true,
 }: TokenAvatarProps) {
     const [imageError, setImageError] = useState(false);
-    const [preloadHover, setPreloadHover] = useState(false);
-    const displayChar =
-        symbol?.[0]?.toUpperCase() || name?.[0]?.toUpperCase() || "?";
+    const [imageLoaded, setImageLoaded] = useState(false);
+    const imgRef = useRef<HTMLImageElement>(null);
+
+    const displayChar = symbol?.[0]?.toUpperCase() || name?.[0]?.toUpperCase() || "?";
+
+    useEffect(() => {
+        setImageError(false);
+        setImageLoaded(false);
+    }, [iconUrl]);
 
     const renderFallback = () => (
         <div
@@ -43,15 +49,36 @@ export function TokenAvatar({
     );
 
     const renderImage = () => (
-        <>
-            <img
-                src={iconUrl}
-                alt={symbol || name || "Token"}
-                className={cn("shadow-md object-cover", className)}
-                onError={() => setImageError(true)}
-            />
-            {preloadHover && <link rel="preload" as="image" href={iconUrl} />}
-        </>
+        <div className="relative">
+            {!imageLoaded && !imageError && (
+                <div
+                    className={cn(
+                        "absolute inset-0 bg-muted/50 animate-pulse rounded",
+                        className
+                    )}
+                />
+            )}
+            
+            {!imageError && (
+                <img
+                    ref={imgRef}
+                    src={iconUrl}
+                    alt={symbol || name || "Token"}
+                    className={cn(
+                        "shadow-md object-cover transition-opacity duration-300",
+                        className,
+                        imageLoaded ? "opacity-100" : "opacity-0"
+                    )}
+                    loading="lazy"
+                    decoding="async"
+                    onLoad={() => setImageLoaded(true)}
+                    onError={() => {
+                        setImageError(true);
+                        setImageLoaded(false);
+                    }}
+                />
+            )}
+        </div>
     );
 
     if (!iconUrl || imageError) return renderFallback();
@@ -61,10 +88,7 @@ export function TokenAvatar({
     return (
         <HoverCard openDelay={200} closeDelay={100}>
             <HoverCardTrigger asChild>
-                <div
-                    className="cursor-pointer"
-                    onMouseEnter={() => setPreloadHover(true)}
-                >
+                <div className="cursor-pointer">
                     {renderImage()}
                 </div>
             </HoverCardTrigger>
@@ -78,6 +102,7 @@ export function TokenAvatar({
                         src={iconUrl}
                         alt={symbol || name || "Token"}
                         className="rounded-md object-cover w-[150px] h-[150px]"
+                        loading="lazy"
                     />
                     {symbol && (
                         <div className="absolute bottom-1 left-1 right-1 bg-black/60 backdrop-blur-sm rounded px-2 py-1">

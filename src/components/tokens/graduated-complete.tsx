@@ -1,6 +1,7 @@
 "use client";
 
-import { memo, useCallback, useState, useMemo } from "react";
+import { memo, useCallback, useState, useMemo, useRef } from "react";
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { TokenCard } from "./token-card";
 import { TokenListLayout } from "./token-list.layout";
 import { TokenCardSkeleton } from "./token-card.skeleton";
@@ -26,6 +27,7 @@ export const GraduatedComplete = memo(function GraduatedComplete({
         },
     });
     const { bumpOrder, isAnimating } = useTradeBump();
+    const parentRef = useRef<HTMLDivElement>(null);
 
     // @dev: Build filter params for bonded tokens
     const filterParams = useMemo<TokenFilters>(() => {
@@ -97,6 +99,13 @@ export const GraduatedComplete = memo(function GraduatedComplete({
         return [...bumped, ...sortedNonBumped];
     }, [data, settings, bumpOrder]);
 
+    const rowVirtualizer = useVirtualizer({
+        count: filteredAndSortedTokens.length,
+        getScrollElement: () => parentRef.current,
+        estimateSize: () => 76,
+        overscan: 5,
+    });
+
     const renderContent = useCallback(() => {
         if (error) {
             return (
@@ -124,15 +133,47 @@ export const GraduatedComplete = memo(function GraduatedComplete({
             );
         }
 
-        return filteredAndSortedTokens.map((pool) => (
-            <TokenCard
-                key={pool.coinType}
-                pool={pool}
-                hasRecentTrade={isAnimating(pool.coinType)}
-                column="graduated"
-            />
-        ));
-    }, [filteredAndSortedTokens, isLoading, error, isAnimating]);
+        return (
+            <div
+                ref={parentRef}
+                className="overflow-auto"
+                style={{ height: '100%', width: '100%' }}
+            >
+                <div
+                    style={{
+                        height: `${rowVirtualizer.getTotalSize()}px`,
+                        width: '100%',
+                        position: 'relative',
+                    }}
+                >
+                    {rowVirtualizer.getVirtualItems().map((virtualItem) => {
+                        const pool = filteredAndSortedTokens[virtualItem.index];
+                        return (
+                            <div
+                                key={virtualItem.key}
+                                data-index={virtualItem.index}
+                                ref={rowVirtualizer.measureElement}
+                                style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    width: '100%',
+                                    transform: `translateY(${virtualItem.start}px)`,
+                                }}
+                            >
+                                <TokenCard
+                                    key={pool.coinType}
+                                    pool={pool}
+                                    hasRecentTrade={isAnimating(pool.coinType)}
+                                    column="graduated"
+                                />
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    }, [filteredAndSortedTokens, isLoading, error, isAnimating, rowVirtualizer]);
 
     return (
         <TokenListLayout
