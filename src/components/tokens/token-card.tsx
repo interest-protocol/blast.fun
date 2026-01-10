@@ -19,9 +19,10 @@ interface TokenCardProps {
 	pool: Token | any
 	hasRecentTrade?: boolean
 	column?: 'newlyCreated' | 'nearGraduation' | 'graduated'
+	priority?: boolean
 }
 
-export const TokenCard = memo(function TokenCard({ pool: token, hasRecentTrade = false, column }: TokenCardProps) {
+export const TokenCard = memo(function TokenCard({ pool: token, hasRecentTrade = false, column, priority = false }: TokenCardProps) {
 	const protectionSettings = token.protectionSettings
 	const bondingProgress = (token.bondingProgress || 0) * 100
 
@@ -46,37 +47,37 @@ export const TokenCard = memo(function TokenCard({ pool: token, hasRecentTrade =
 									<div className="relative h-full w-full">
 										{/* background for incomplete progress */}
 										<div
-											className={`absolute inset-0 rounded-md ${
-												bondingProgress >= 100
-													? "bg-gradient-to-br from-yellow-600/30 to-amber-600/30" // True gold for graduated
-													: bondingProgress >= 30
-														? "bg-gradient-to-br from-pink-400/30 to-rose-500/30" // Pink for near graduation
-														: "bg-gradient-to-br from-blue-400/30 to-cyan-500/30" // Blue for new
-											}`}
+											className={`absolute inset-0 rounded-md ${bondingProgress >= 100
+												? "bg-gradient-to-br from-yellow-600/30 to-amber-600/30" // True gold for graduated
+												: bondingProgress >= 30
+													? "bg-gradient-to-br from-pink-400/30 to-rose-500/30" // Pink for near graduation
+													: "bg-gradient-to-br from-blue-400/30 to-cyan-500/30" // Blue for new
+												}`}
 										/>
 
 										{/* gradient conic progress */}
 										<div
 											className="absolute inset-0 rounded-md"
 											style={{
-												background: `conic-gradient(${
-													bondingProgress >= 100
-														? "rgb(202, 138, 4)" // True gold color
-														: bondingProgress >= 30
-															? "rgb(236, 72, 153)" // Pink for near graduation
-															: "rgb(59, 130, 246)" // Blue
-												} ${Math.min(bondingProgress, 100)}%, transparent ${Math.min(bondingProgress, 100)}%)`,
+												background: `conic-gradient(${bondingProgress >= 100
+													? "rgb(202, 138, 4)" // True gold color
+													: bondingProgress >= 30
+														? "rgb(236, 72, 153)" // Pink for near graduation
+														: "rgb(59, 130, 246)" // Blue
+													} ${Math.min(bondingProgress, 100)}%, transparent ${Math.min(bondingProgress, 100)}%)`,
 											}}
 										/>
 
 										<div className="absolute inset-[3px] flex items-center justify-center overflow-hidden rounded bg-background">
 											<TokenAvatar
-												iconUrl={token.iconUrl}
-												symbol={token.symbol}
+												size={56} 
 												name={token.name}
+												enableHover={true}
+												priority={priority}
+												symbol={token.symbol}
+												iconUrl={token.iconUrl}
 												className="h-full w-full object-cover"
 												fallbackClassName="w-full h-full flex items-center justify-center"
-												enableHover={true}
 											/>
 										</div>
 									</div>

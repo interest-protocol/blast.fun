@@ -107,12 +107,13 @@ export const NewlyCreated = memo(function NewlyCreated({
 			)
 		}
 
-		return filteredAndSortedTokens.map((pool) => (
+		return filteredAndSortedTokens.map((pool, index) => (
 			<TokenCard
 				key={pool.coinType}
 				pool={pool}
-				hasRecentTrade={isAnimating(pool.coinType)}
 				column="newlyCreated"
+				 priority={index < 20}
+				hasRecentTrade={isAnimating(pool.coinType)}
 			/>
 		))
 	}, [filteredAndSortedTokens, isLoading, error, isAnimating])
