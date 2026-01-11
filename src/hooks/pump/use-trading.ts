@@ -55,41 +55,41 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 	}, [success])
 
 	const getProtectedPoolSignature = async (amount: string) => {
-		if (!pool.pool?.isProtected) return null
+		if (!pool.isProtected) return null;  
+
+		if (!pool.isProtected && !pool.pool?.isProtected) return null;
 
 		try {
 			const response = await fetch("/api/token-protection/signature", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
-					poolId: pool.pool?.poolId || pool.id,
+					poolId: pool.poolId || pool.pool?.poolId || pool.id, 
 					amount,
 					walletAddress: address,
 					coinType: pool.coinType,
 					decimals: decimals,
-					// Twitter credentials are now obtained from the authenticated session on the server
 				}),
-			})
+			});
+
+			console.log("Response status da signature:", response.status); 
 
 			if (!response.ok) {
-				const error = await response.json()
-
-				if (error.requiresTwitter) {
-					throw new Error("You must be authenticated with X to interact with this token.")
+				const errorData = await response.json().catch(() => ({}));
+				console.error("Erro no fetch signature:", errorData);
+				if (errorData.requiresTwitter) {
+					throw new Error("You must be authenticated with X to interact with this token.");
 				}
-
-				throw new Error(error.message || "SIGNATURE::FAILED")
+				throw new Error(errorData.message || "SIGNATURE::FAILED");
 			}
 
-			const data = await response.json()
-			return data
+			const data = await response.json();
+			return data;
 		} catch (error) {
-			if (error instanceof Error) {
-				throw error
-			}
-			throw new Error("SIGNATURE::VALIDATION_FAILED")
+			console.error("Falha ao obter assinatura:", error);
+			throw error instanceof Error ? error : new Error("SIGNATURE::VALIDATION_FAILED");
 		}
-	}
+	};
 
 	const buy = async (amountInSui: string, slippagePercent = 15) => {
 		if (!isConnected || !address) {
@@ -160,7 +160,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 								const currentBalanceBigInt = BigInt(currentBalance)
 
 								const quote = await pumpSdk.quotePump({
-									pool: pool.pool?.poolId || pool.id,
+									pool: pool.poolId || pool.pool?.poolId || pool.id, 
 									amount: amountInMist,
 								})
 
@@ -183,8 +183,10 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 					}
 				}
 
+
+
 				const quote = await pumpSdk.quotePump({
-					pool: pool.pool?.poolId || pool.id,
+					pool: pool.poolId || pool.pool?.poolId || pool.id, 
 					amount: amountInMist,
 				})
 
@@ -197,9 +199,13 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 				const quoteCoin = tx.splitCoins(tx.gas, [tx.pure.u64(amountInMist)])
 
 				const signatureData = await getProtectedPoolSignature(amountInSui)
+
+				console.log("Pool protegido?", pool.pool?.isProtected || "não definido");
+				console.log("Signature data obtida:", signatureData);
+
 				const { memeCoin, tx: pumpTx } = await pumpSdk.pump({
 					tx,
-					pool: pool.pool?.poolId || pool.id,
+					pool: pool.poolId,
 					quoteCoin,
 					minAmountOut,
 					referrer: referrerWallet ?? undefined,
@@ -218,7 +224,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 			}
 		} catch (err) {
 			let errorMessage = err instanceof Error ? err.message : "UNKNOWN_ERROR"
-			if(errorMessage.includes("MoveAbort") && errorMessage.includes(", 3)")) {
+			if (errorMessage.includes("MoveAbort") && errorMessage.includes(", 3)")) {
 				errorMessage = SLIPPAGE_TOLERANCE_ERROR
 			}
 			setError(errorMessage)
@@ -331,7 +337,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 			}
 		} catch (err) {
 			let errorMessage = err instanceof Error ? err.message : "UNKNOWN_ERROR"
-			if(errorMessage.includes("MoveAbort") && errorMessage.includes(", 3)")) {
+			if (errorMessage.includes("MoveAbort") && errorMessage.includes(", 3)")) {
 				errorMessage = SLIPPAGE_TOLERANCE_ERROR
 			}
 			setError(errorMessage)

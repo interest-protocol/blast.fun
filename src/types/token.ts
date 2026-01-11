@@ -71,9 +71,14 @@ export interface TokenPoolData {
 export interface Token {
     id: string;
     _id?: string;
+    poolId: string;
     coinType: string;
     treasuryCap: string;
     treasuryCapOwner?: any;
+
+    isProtected: boolean;
+
+
 
     metadata: TokenMetadata;
     creator: TokenCreator;
