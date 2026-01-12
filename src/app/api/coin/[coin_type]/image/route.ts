@@ -30,9 +30,12 @@ export async function GET(
 		// @dev: Return 404 if no icon URL found
 		if (!iconUrl) {
 			const response = new Response(null, { status: 404 })
-			response.headers.set('Cache-Control', 'public, max-age=60, s-maxage=60')
-			response.headers.set('CDN-Cache-Control', 'public, max-age=60')
-			response.headers.set('Vercel-CDN-Cache-Control', 'public, max-age=60')
+			response.headers.set(
+				'Cache-Control',
+				'no-store, no-cache, must-revalidate, proxy-revalidate'
+			)
+			response.headers.set('Pragma', 'no-cache')
+			response.headers.set('Expires', '0')
 			return response
 		}
 
@@ -42,10 +45,10 @@ export async function GET(
 			const [header, base64Data] = iconUrl.split(',')
 			const mimeMatch = header.match(/data:([^;]+)/)
 			const mimeType = mimeMatch ? mimeMatch[1] : 'image/png'
-			
+
 			// @dev: Convert base64 to buffer
 			const buffer = Buffer.from(base64Data, 'base64')
-			
+
 			const response = new Response(buffer, {
 				status: 200,
 				headers: {
@@ -55,12 +58,12 @@ export async function GET(
 					'Vercel-CDN-Cache-Control': 'public, max-age=1800'
 				}
 			})
-			
+
 			return response
 		} else {
 			// @dev: For regular URLs, redirect to the actual image
 			const response = NextResponse.redirect(iconUrl, { status: 302 })
-			
+
 			// @dev: Set cache headers for 30 minutes as requested
 			response.headers.set('Cache-Control', 'public, max-age=1800, s-maxage=1800')
 			response.headers.set('CDN-Cache-Control', 'public, max-age=1800')
