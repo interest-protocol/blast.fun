@@ -29,14 +29,17 @@ export async function GET(
 
 		// @dev: Return 404 if no icon URL found
 		if (!iconUrl) {
-			const response = new Response(null, { status: 404 })
-			response.headers.set(
-				'Cache-Control',
-				'no-store, no-cache, must-revalidate, proxy-revalidate'
-			)
-			response.headers.set('Pragma', 'no-cache')
-			response.headers.set('Expires', '0')
-			return response
+			return new Response(null, {
+				status: 404,
+				headers: {
+					'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+					'Pragma': 'no-cache',
+					'Expires': '0',
+					'Surrogate-Control': 'no-store',
+					'CDN-Cache-Control': 'no-store',
+					'Vercel-CDN-Cache-Control': 'no-store'
+				}
+			})
 		}
 
 		// @dev: Check if it's a base64 image
