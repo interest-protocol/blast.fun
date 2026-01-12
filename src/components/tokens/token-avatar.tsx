@@ -28,7 +28,7 @@ export function TokenAvatar({
   const [preloadHover, setPreloadHover] = useState(false);
   
   const [retryAttempt, setRetryAttempt] = useState(0);
-  const maxRetries = 3;
+  const maxRetries = 5;
 
   const displayChar =
     symbol?.[0]?.toUpperCase() || name?.[0]?.toUpperCase() || "?";
