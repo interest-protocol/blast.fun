@@ -9,7 +9,6 @@ import {
 } from "lucide-react"
 import { BsTwitterX } from "react-icons/bs"
 import { TokenAvatar } from "@/components/tokens/token-avatar"
-import { CopyableAddress } from "@/components/shared/copyable-address"
 import { cn } from "@/utils"
 import { formatNumberWithSuffix, formatSmallPrice } from "@/utils/format"
 import type { Token } from "@/types/token"
@@ -18,6 +17,7 @@ import { UpdateMetadataDialog } from "./update-metadata-dialog"
 import { useApp } from "@/context/app.context"
 import { useTokenProtection } from "@/hooks/use-token-protection"
 import { ProtectionBadges } from "@/components/shared/protection-badges"
+import CopyableAddress from "@/components/shared/copyable-address"
 
 interface TokenInfoProps {
 	pool: Token
