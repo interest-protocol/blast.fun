@@ -1,18 +1,14 @@
 "use client"
 
-import { formatAddress } from "@mysten/sui/utils"
+import { FC } from "react"
 import { Check, Copy } from "lucide-react"
-import { useClipboard } from "@/hooks/use-clipboard"
+
 import { cn } from "@/utils"
+import { useClipboard } from "@/hooks/use-clipboard"
+import { CopyableTokenProps } from "./copyable-token.types"
 
-interface CopyableTokenProps {
-    symbol: string
-    coinType: string
-    className?: string
-}
-
-export function CopyableToken({ symbol, coinType, className }: CopyableTokenProps) {
-    const { copy, copied } = useClipboard()
+const CopyableToken: FC<CopyableTokenProps> = ({ symbol, coinType, className }) => {
+    const { copy, copied } = useClipboard();
 
     return (
         <div
@@ -31,5 +27,7 @@ export function CopyableToken({ symbol, coinType, className }: CopyableTokenProp
 
             {copied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
         </div>
-    )
+    );
 }
+
+export default CopyableToken;
