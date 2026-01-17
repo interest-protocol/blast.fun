@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ThemeSwitcher } from "../shared/theme-switcher";
-import { TradeSettings } from "@/app/(root)/token/[coinType]/_components/trade-settings";
+import { TradeSettings } from "@/views/token/coin-type/_components/trade-settings";
 import { Settings } from "lucide-react";
 import { BsTelegram, BsTwitterX } from "react-icons/bs";
 import { Button } from "../ui/button";

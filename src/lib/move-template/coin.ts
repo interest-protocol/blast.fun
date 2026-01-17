@@ -4,7 +4,7 @@ import BigNumber from "bignumber.js";
 
 import { DEFAULT_TOKEN_DECIMALS } from "@/constants";
 import * as template from "./move-bytecode-template";
-import { TokenFormValues } from "@/app/(root)/launch/_components/create-token-form/create-token-form.types";
+import { TokenFormValues } from "@/views/launch/_components/create-token-form/create-token-form.types";
 
 const Address = bcs.bytes(32).transform({
     // To change the input type, you need to provide a type definition for the input

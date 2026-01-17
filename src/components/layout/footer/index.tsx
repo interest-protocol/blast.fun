@@ -5,7 +5,7 @@ import { FC, useState } from "react";
 import { Settings } from "lucide-react";
 
 import { ThemeSwitcher } from "../../shared/theme-switcher";
-import { TradeSettings } from "@/app/(root)/token/[coinType]/_components/trade-settings";
+import { TradeSettings } from "@/views/token/coin-type/_components/trade-settings";
 import { Button } from "../../ui/button";
 import { Skeleton } from "../../ui/skeleton";
 import {
@@ -15,7 +15,6 @@ import {
     TooltipTrigger,
 } from "../../ui/tooltip";
 import { useBtcPrice } from "@/hooks/use-btc-price";
-import { useSuiPrice } from "@/hooks/sui/use-sui-price";
 import SwapTerminal from "../../swap-terminal";
 import { socialLinks } from "./footer.data";
 import { AudioToggle } from "@/components/audio/audio-toggle";

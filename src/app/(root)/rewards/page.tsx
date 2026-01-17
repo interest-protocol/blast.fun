@@ -1,13 +1,13 @@
-import { constructMetadata } from "@/lib/metadata"
-import RewardsContent from "./_components/rewards-content"
+import { FC } from "react";
+
+import Rewards from "@/views/rewards";
+import { constructMetadata } from "@/lib/metadata";
 
 export const metadata = constructMetadata({
 	title: "Rewards",
 	description: "Earn rewards for trading, referring friends, and creating tokens",
 })
 
-const RewardPage = () => {
-	return <RewardsContent />
-}
+const RewardPage: FC = () => <Rewards/>;
 
-export default RewardPage
+export default RewardPage;

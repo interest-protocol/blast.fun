@@ -1,15 +1,14 @@
 import { FC } from "react"
 
-import { constructMetadata } from "@/lib/metadata"
-import ToolsContent from "./_components/tool-content"
+import Tools from "@/views/tools";
+import { constructMetadata } from "@/lib/metadata";
 
 export const metadata = constructMetadata({
 	title: "Tools",
 	description: "Token management tools for airdrops, vesting schedules, DCA strategies, and more",
 })
 
-const ToolsPage: FC = () => {
-	return <ToolsContent />
-}
+const ToolsPage: FC = () =>  <Tools />
+
 
 export default ToolsPage;
