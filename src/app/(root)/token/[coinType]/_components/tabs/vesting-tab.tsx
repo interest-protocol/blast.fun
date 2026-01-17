@@ -323,7 +323,7 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 							{/* Add Vesting Card - Mobile Empty State */}
 							<div
 								className="bg-card border rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors"
-								onClick={() => router.push(`/vesting?coin_type=${encodeURIComponent(pool.coinType)}`)}
+								onClick={() => router.push(`/tools/vesting?coin_type=${encodeURIComponent(pool.coinType)}`)}
 							>
 								<Plus className="h-8 w-8 mb-2 text-muted-foreground" />
 								<span className="text-sm font-medium text-muted-foreground">Add Vesting</span>
@@ -353,7 +353,7 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 						<Button
 							variant="outline"
 							size="sm"
-							onClick={() => router.push(`/vesting?coin_type=${encodeURIComponent(pool.coinType)}`)}
+							onClick={() => router.push(`/tools/vesting?coin_type=${encodeURIComponent(pool.coinType)}`)}
 						>
 							<Plus className="h-4 w-4 mr-2" />
 							Add Vesting
@@ -468,7 +468,7 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 						{/* Add Vesting Card - Mobile (at bottom) */}
 						<div
 							className="bg-card border rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors"
-							onClick={() => router.push(`/vesting?coin_type=${encodeURIComponent(pool.coinType)}`)}
+							onClick={() => router.push(`/tools/vesting?coin_type=${encodeURIComponent(pool.coinType)}`)}
 						>
 							<Plus className="h-8 w-8 mb-2 text-muted-foreground" />
 							<span className="text-sm font-medium text-muted-foreground">Add Vesting</span>
@@ -629,7 +629,7 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 					<Button
 						variant="outline"
 						size="sm"
-						onClick={() => router.push(`/vesting?coin_type=${encodeURIComponent(pool.coinType)}`)}
+						onClick={() => router.push(`/tools/vesting?coin_type=${encodeURIComponent(pool.coinType)}`)}
 					>
 						<Plus className="h-4 w-4 mr-2" />
 						Add Vesting

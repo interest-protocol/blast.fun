@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { interestProtocolApi } from "@/lib/interest-protocol-api"
+import { coinMetadataApi } from "@/lib/coin-metadata-api"
 
 export async function GET(
 	_request: Request,
@@ -16,7 +16,7 @@ export async function GET(
 		let iconUrl: string | undefined
 
 		try {
-			const metadata = await interestProtocolApi.getCoinMetadata(
+			const metadata = await coinMetadataApi.getCoinMetadata(
 				decodeURIComponent(coin_type)
 			)
 

@@ -1,4 +1,4 @@
-import { CoinMetadata } from "@/lib/interest-protocol-api"
+import { CoinMetadata } from "@/lib/coin-metadata-api"
 import { InterestAccount, InterestFarm } from "@interest-protocol/farms"
 
 export type ActionType = "deposit" | "withdraw"

@@ -1,21 +1,18 @@
 "use client"
 
 import { Terminal } from "lucide-react"
-import { useState } from "react"
-import { UseFormReturn } from "react-hook-form"
+import { FC, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/utils"
-import { useLaunchCoin } from "../_hooks/use-launch-coin"
+import { useLaunchCoin } from "../../_hooks/use-launch-coin"
 import toast from "react-hot-toast"
 import { useBalance } from "@/hooks/sui/use-balance"
-import { TokenFormValues } from "./create-token-form/create-token-form.types"
-import TerminalDialog from "./terminal-dialog"
+import { CreateTokenButtonProps } from "./create-token-button.types"
+import TerminalDialog from "../terminal-dialog"
+import { TokenFormValues } from "../create-token-form/create-token-form.types"
 
-interface CreateTokenButtonProps {
-	form: UseFormReturn<TokenFormValues>
-}
-
-export default function CreateTokenButton({ form }: CreateTokenButtonProps) {
+const CreateTokenButton:FC<CreateTokenButtonProps> =({ form }) => {
+	const { handleSubmit, reset, getValues, formState } = form;
 	const { isLaunching, logs, result, launchToken, resumeLaunch, pendingToken } = useLaunchCoin()
 	const [showTerminal, setShowTerminal] = useState(false)
 	const { balance } = useBalance('0x2::sui::SUI');
@@ -35,7 +32,7 @@ export default function CreateTokenButton({ form }: CreateTokenButtonProps) {
 		setShowTerminal(true)
 		try {
 			await launchToken(data)
-			form.reset()
+			reset()
 		} catch (error) {
 			// keep terminal open on error to show recovery
 			console.error("Launch failed:", error)
@@ -45,7 +42,7 @@ export default function CreateTokenButton({ form }: CreateTokenButtonProps) {
 	const handleResume = async () => {
 		try {
 			await resumeLaunch()
-			form.reset()
+			reset()
 		} catch (error) {
 			console.error("Resume failed:", error)
 		}
@@ -84,10 +81,10 @@ export default function CreateTokenButton({ form }: CreateTokenButtonProps) {
 					)}
 					variant="outline"
 					disabled={
-						!form.formState.isValid || 
-						(!!form.getValues("devBuyAmount") && !!balance && Number(form.getValues("devBuyAmount")) > Number(balance))
+						!formState.isValid || 
+						(!!getValues("devBuyAmount") && !!balance && Number(getValues("devBuyAmount")) > Number(balance))
 					}
-					onClick={form.handleSubmit(onSubmit)}
+					onClick={handleSubmit(onSubmit)}
 				>
 					<Terminal className="mr-2 h-4 w-4 transition-colors duration-300" />
 					<span className="relative">INITIALIZE::DEPLOYMENT</span>
@@ -106,3 +103,5 @@ export default function CreateTokenButton({ form }: CreateTokenButtonProps) {
 		</>
 	)
 }
+
+export default CreateTokenButton;
