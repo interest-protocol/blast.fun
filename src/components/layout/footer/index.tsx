@@ -17,8 +17,8 @@ import {
 import { useBtcPrice } from "@/hooks/use-btc-price";
 import { useSuiPrice } from "@/hooks/sui/use-sui-price";
 import SwapTerminal from "../../swap-terminal";
-import AudioToggle from "../../audio/audio-toggle";
 import { socialLinks } from "./footer.data";
+import { AudioToggle } from "@/components/audio/audio-toggle";
 
 const Footer: FC = () => {
     const [tradeSettingsOpen, setTradeSettingsOpen] = useState(false);
