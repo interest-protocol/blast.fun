@@ -8,7 +8,7 @@ import { useMounted } from "@/hooks/use-mounted"
 import { audioManager, type AudioSettings } from "@/lib/audio-manager"
 import AudioDialog from "./audio-dialog"
 
-export const AudioToggle: FC = () => {
+const AudioToggle: FC = () => {
 	const [open, setOpen] = useState(false)
 	const [settings, setSettings] = useState<AudioSettings>(audioManager.getSettings())
 
@@ -44,3 +44,5 @@ export const AudioToggle: FC = () => {
 		</>
 	)
 }
+
+export default AudioToggle
