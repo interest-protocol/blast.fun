@@ -1,12 +1,12 @@
 "use client";
 
 import Header from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
 import { TokenTabsHeader } from "@/components/layout/token-tabs-header";
 import { usePathname } from "next/navigation";
 import { useBreakpoint } from "@/hooks/use-breakpoint";
 import { cn } from "@/utils";
 import MobileNavigation from "@/components/layout/mobile-nav";
+import Footer from "@/components/layout/footer";
 
 export default function Layout({
     children,

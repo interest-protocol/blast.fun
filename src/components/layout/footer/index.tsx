@@ -5,7 +5,7 @@ import { FC, useState } from "react";
 import { Settings } from "lucide-react";
 
 import { ThemeSwitcher } from "../../shared/theme-switcher";
-import { TradeSettings } from "@/app/(root)/token/[coinType]/_components/trade-settings";
+import { TradeSettings } from "@/views/token/coin-type/_components/trade-settings";
 import { Button } from "../../ui/button";
 import { Skeleton } from "../../ui/skeleton";
 import {
@@ -15,15 +15,16 @@ import {
     TooltipTrigger,
 } from "../../ui/tooltip";
 import { useBtcPrice } from "@/hooks/use-btc-price";
-import { useSuiPrice } from "@/hooks/sui/use-sui-price";
 import SwapTerminal from "../../swap-terminal";
 import { socialLinks } from "./footer.data";
 import { AudioToggle } from "@/components/audio/audio-toggle";
+import { usePrice } from "@/hooks/sui/use-price";
+import { SUI_TYPE_ARG } from "@mysten/sui/utils";
 
 const Footer: FC = () => {
     const [tradeSettingsOpen, setTradeSettingsOpen] = useState(false);
     const btcPrice = useBtcPrice();
-    const suiPrice = useSuiPrice();
+    const suiPrice = usePrice({ coinType: SUI_TYPE_ARG });
 
     return (
         <>
@@ -33,8 +34,7 @@ const Footer: FC = () => {
                         <div className="flex items-center gap-2">
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <button className="text-[#F7931A] flex flex-row h-6 gap-1 items-center 
-                                    hover:brightness-110 transition-all duration-125">
+                                    <button className="text-[#F7931A] flex flex-row h-6 gap-1 items-center hover:brightness-110 transition-all duration-125">
                                         <img
                                             src="/assets/currency/btc-fill.svg"
                                             alt="BTC"
@@ -59,8 +59,7 @@ const Footer: FC = () => {
                             </Tooltip>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <button className="text-[#6FBCF0] flex flex-row h-6 gap-1 items-center
-                                     hover:brightness-110 transition-all duration-125">
+                                    <button className="text-[#6FBCF0] flex flex-row h-6 gap-1 items-center hover:brightness-110 transition-all duration-125">
                                         <img
                                             src="/assets/currency/sui-fill.svg"
                                             alt="SUI"
@@ -68,10 +67,10 @@ const Footer: FC = () => {
                                             height={16}
                                             className="flex-shrink-0"
                                         />
-                                        {suiPrice.loading ? (
+                                        {suiPrice.isLoading ? (
                                             <Skeleton className="h-3 w-12" />
                                         ) : (
-                                            <span className="text-xs font-mono">{`$${suiPrice.usd.toFixed(
+                                            <span className="text-xs font-mono">{`$${suiPrice.price?.toFixed(
                                                 2
                                             )}`}</span>
                                         )}
@@ -92,8 +91,7 @@ const Footer: FC = () => {
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="size-8 rounded-lg text-muted-foreground hover:bg-destructive/10
-                                     hover:text-destructive transition-all"
+                                    className="size-8 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
                                     onClick={() => setTradeSettingsOpen(true)}
                                 >
                                     <Settings className="size-4" />
@@ -141,8 +139,7 @@ const Footer: FC = () => {
                                             href={link.href}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="inline-flex items-center justify-center h-8 w-8 rounded-lg
-                                             text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
+                                            className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
                                         >
                                             <link.icon className="size-3.5" />
                                         </Link>
