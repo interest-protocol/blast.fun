@@ -1,7 +1,5 @@
 "use client"
 
-import type React from "react"
-
 import { FC } from "react"
 import { Download, Copy, Check } from "lucide-react"
 

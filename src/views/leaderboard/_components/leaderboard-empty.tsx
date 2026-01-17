@@ -1,7 +1,5 @@
-"use client"
-
-import { FC } from "react"
-import { Trophy } from "lucide-react"
+import { FC } from "react";
+import { Trophy } from "lucide-react";
 
 import { LeaderboardEmptyProps } from "../leaderboard.types"
 

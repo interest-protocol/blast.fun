@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useMemo, useEffect, FC } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useState, useMemo, useEffect, FC } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import {
   copyToClipboard,

@@ -1,6 +1,5 @@
-"use client"
+import { FC } from "react";
 
-import { FC } from "react"
 import { Logo } from "@/components/ui/logo"
 import { LeaderboardEmptyProps as LeaderboardErrorProps } from "../leaderboard.types"
 
