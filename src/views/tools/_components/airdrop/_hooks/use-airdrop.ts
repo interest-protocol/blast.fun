@@ -6,9 +6,8 @@ import { SUI_DECIMALS, SUI_TYPE_ARG } from "@mysten/sui/utils"
 import { suiClient } from "@/lib/sui-client"
 import { useTransaction } from "@/hooks/sui/use-transaction"
 import toast from "react-hot-toast"
-import { AirdropRecipient } from "../_components/airdrop-tools/airdrop-tools.types"
 import { BATCH_SIZE, GAS_PER_RECIPIENT, SERVICE_FEE_PER_RECIPIENT, DELEGATOR_KEY_STORAGE } from "../airdrop.consts"
-
+import { AirdropRecipient } from "../airdrop-tools/airdrop-tools.types"
 interface UseAirdropParams {
 	address: string | null | undefined
 	selectedCoin: string
