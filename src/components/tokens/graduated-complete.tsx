@@ -6,11 +6,11 @@ import { TokenListLayout } from "./token-list.layout";
 import { TokenCardSkeleton } from "./token-card.skeleton";
 import { Logo } from "@/components/ui/logo";
 import { TokenListFilters } from "./token-list.filters";
-import { FlashBuyInput } from "./flash-buy-input";
 import { useBondedTokens } from "@/hooks/use-tokens";
 import { useTradeBump } from "@/hooks/use-trade-bump";
 import type { TokenListSettings, TokenFilters, NexaToken } from "@/types/token";
 import { sortTokens } from "@/utils/token-sorting";
+import FlashBuyInput from "./flash-buy-input";
 
 interface GraduatedCompleteProps {
     pollInterval?: number;
