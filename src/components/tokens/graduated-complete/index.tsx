@@ -64,7 +64,6 @@ export const GraduatedComplete = memo(function GraduatedComplete({
         const nonBumped: NexaToken[] = [];
         
         for (const token of data) {
-            // Aplicar filtros sociais
             if (settings.filters.hasWebsite && (!token.website || token.website === "")) {
                 continue;
             }
