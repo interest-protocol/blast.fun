@@ -12,9 +12,9 @@ import { TokenListFilters } from "../token-list.filters";
 
 import { GraduatedCompleteProps } from "./graduated-complete.types";
 import type { TokenListSettings, TokenFilters, NexaToken } from "@/types/token";
-import { ErrorState } from "./_components/error-state";
-import { LoadingState } from "./_components/loading-state";
-import EmptyState from "@/views/rewards/_components/creator-rewards-tab/_components/empty-state";
+import { ErrorState } from "../_components/error-state";
+import { LoadingState } from "../_components/loading-state";
+import { EmptyState } from "../_components/empty-state";
 
 export const GraduatedComplete = memo(function GraduatedComplete({
     pollInterval = 30000,
@@ -94,7 +94,7 @@ export const GraduatedComplete = memo(function GraduatedComplete({
 
     const renderContent = useCallback(() => {
         if (error) {
-            return <ErrorState />;
+            return <ErrorState message=" ERROR::LOADING::GRADUATED"/>;
         }
 
         if (isLoading) {
@@ -102,7 +102,7 @@ export const GraduatedComplete = memo(function GraduatedComplete({
         }
 
         if (filteredAndSortedTokens.length === 0) {
-            return <EmptyState />;
+            return <EmptyState message="NO::GRADUATED::TOKENS" />;
         }
 
         return filteredAndSortedTokens.map((pool) => (
