@@ -2,39 +2,40 @@
 
 import { memo, useCallback, useState, useMemo } from "react"
 
-import { useAboutToBondTokens } from "@/hooks/use-tokens"
+import { useLatestTokens } from "@/hooks/use-tokens"
 import { useTradeBump } from "@/hooks/use-trade-bump"
-import type { TokenListSettings, TokenFilters } from "@/types/token"
-import { sortTokens } from "@/utils/token-sorting"
+import { sortTokens, } from "@/utils/token-sorting"
 import { TokenCard } from "../token-card"
-import { TokenListLayout } from "../token-list.layout"
 import FlashBuyInput from "../flash-buy-input"
 import { TokenListFilters } from "../token-list.filters"
-import { ErrorState } from "../_components/error-state"
-import { LoadingState } from "../_components/loading-state"
+import type { TokenListSettings, TokenFilters } from "@/types/token"
+import { TokenListLayout } from "../token-list.layout"
 import { EmptyState } from "../_components/empty-state"
+import { LoadingState } from "../_components/loading-state"
+import { ErrorState } from "../_components/error-state"
 
-import { NearGraduationProps } from "./near-graduation.types"
-export const NearGraduation = memo(function NearGraduation({
+import { NewlyCreatedProps } from "./newly-created.types"
+
+export const NewlyCreated = memo(function NewlyCreated({
     pollInterval = 10000
-}: NearGraduationProps) {
+}: NewlyCreatedProps) {
     const [settings, setSettings] = useState<TokenListSettings>({
-        sortBy: "bondingProgress",
+        sortBy: "date",
         filters: {
-            tabType: 'about-to-bond'
+            tabType: 'newly-created'
         }
     })
     const { bumpOrder, isAnimating } = useTradeBump()
 
-    // @dev: Build filter params - about to bond should have high bonding progress
+    // @dev: Build filter params based on settings
     const filterParams = useMemo<TokenFilters>(() => {
         return {
             ...settings.filters,
-            tabType: 'about-to-bond'
+            tabType: 'newly-created'
         }
     }, [settings.filters])
 
-    const { data, isLoading, error } = useAboutToBondTokens(filterParams, {
+    const { data, isLoading, error } = useLatestTokens(filterParams, {
         refetchInterval: pollInterval
     })
 
@@ -79,35 +80,35 @@ export const NearGraduation = memo(function NearGraduation({
 
     const renderContent = useCallback(() => {
 
-        if (error) return <ErrorState message="ERROR::LOADING::GRADUATING" />;
+        if (error) return <ErrorState message="ERROR::LOADING::FEED" />;
 
         if (isLoading) return <LoadingState />;
 
         if (filteredAndSortedTokens.length === 0 && !isLoading)
-            return <EmptyState message="NO::TOKENS::GRADUATING" />;
+            return <EmptyState message="	NO::NEW::TOKENS" />;
 
         return filteredAndSortedTokens.map((pool) => (
             <TokenCard
                 key={pool.coinType}
                 pool={pool}
                 hasRecentTrade={isAnimating(pool.coinType)}
-                column="nearGraduation"
+                column="newlyCreated"
             />
         ))
     }, [filteredAndSortedTokens, isLoading, error, isAnimating])
 
     return (
         <TokenListLayout
-            title="NEAR GRADUATION"
-            glowColor="pink"
+            title="NEWLY CREATED"
+            glowColor="blue"
             headerAction={
                 <div className="flex items-center gap-2">
-                    <FlashBuyInput column="nearGraduation" />
+                    <FlashBuyInput column="newlyCreated" />
                     <TokenListFilters
-                        columnId="graduating"
+                        columnId="new"
                         onSettingsChange={setSettings}
-                        defaultSort="bondingProgress"
-                        defaultTab="about-to-bond"
+                        defaultSort="date"
+                        defaultTab="newly-created"
                     />
                 </div>
             }
