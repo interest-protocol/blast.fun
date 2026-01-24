@@ -76,17 +76,14 @@ const TabContent = memo(function TabContent({
     if (!isActive) return null
 
 
-    if (error) {
-        return <ErrorState message="ERROR::LOADING::TOKENS" />;
-    }
+    if (error) return <ErrorState message="ERROR::LOADING::TOKENS" />;
 
-    if (isLoading) {
-        return <LoadingState />;
-    }
 
-    if (sortedTokens.length === 0) {
-        return <EmptyState message="NO::TOKENS::FOUND" />;
-    }
+    if (isLoading) return <LoadingState />;
+
+
+    if (sortedTokens.length === 0) return <EmptyState message="NO::TOKENS::FOUND" />;
+
 
     return (
         <div className="space-y-2">
