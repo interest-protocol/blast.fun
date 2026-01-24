@@ -25,21 +25,21 @@ export const GraduatedComplete = memo(function GraduatedComplete({
             tabType: "bonded",
         },
     });
-    
+
     const { bumpOrder, isAnimating } = useTradeBump();
-    
+
     const handleSettingsChange = useCallback((newSettings: TokenListSettings) => {
         setSettings(newSettings);
     }, []);
-    
+
     const filterParams = useMemo<TokenFilters>(() => ({
         ...settings.filters,
         tabType: "bonded",
     }), [settings.filters]);
 
-    const optimizedPollInterval = useMemo(() => 
-        Math.max(pollInterval, 10000), 
-    [pollInterval]);
+    const optimizedPollInterval = useMemo(() =>
+        Math.max(pollInterval, 10000),
+        [pollInterval]);
 
     const { data, isLoading, error } = useBondedTokens(filterParams, {
         refetchInterval: optimizedPollInterval,
@@ -62,7 +62,7 @@ export const GraduatedComplete = memo(function GraduatedComplete({
 
         const bumped: NexaToken[] = [];
         const nonBumped: NexaToken[] = [];
-        
+
         for (const token of data) {
             if (settings.filters.hasWebsite && (!token.website || token.website === "")) {
                 continue;
@@ -73,37 +73,34 @@ export const GraduatedComplete = memo(function GraduatedComplete({
             if (settings.filters.hasTelegram && (!token.telegram || token.telegram === "")) {
                 continue;
             }
-            
+
             if (bumpSet.has(token.coinType)) {
                 bumped.push(token);
             } else {
                 nonBumped.push(token);
             }
         }
-        
+
         bumped.sort((a, b) => {
             const aIndex = bumpOrder.indexOf(a.coinType);
             const bIndex = bumpOrder.indexOf(b.coinType);
             return aIndex - bIndex;
         });
-        
+
         const sortedNonBumped = sortTokens(nonBumped, settings.sortBy);
-        
+
         return [...bumped, ...sortedNonBumped];
     }, [data, settings.filters, settings.sortBy, bumpOrder, bumpSet]);
 
     const renderContent = useCallback(() => {
-        if (error) {
-            return <ErrorState message=" ERROR::LOADING::GRADUATED"/>;
-        }
+        if (error) return <ErrorState message=" ERROR::LOADING::GRADUATED" />;
 
-        if (isLoading) {
-            return <LoadingState />;
-        }
 
-        if (filteredAndSortedTokens.length === 0) {
-            return <EmptyState message="NO::GRADUATED::TOKENS" />;
-        }
+        if (isLoading) return <LoadingState />;
+
+
+        if (filteredAndSortedTokens.length === 0) return <EmptyState message="NO::GRADUATED::TOKENS" />;
+
 
         return filteredAndSortedTokens.map((pool) => (
             <TokenCard
