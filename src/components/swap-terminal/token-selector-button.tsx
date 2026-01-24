@@ -1,7 +1,7 @@
 "use client";
 
 import { FC } from "react";
-import { TokenAvatar } from "../tokens/token-avatar";
+import TokenAvatar from "../tokens/token-avatar";
 import type { TokenSelectorButtonProps } from "./swap-terminal.types";
 
 export const TokenSelectorButton: FC<TokenSelectorButtonProps> = ({

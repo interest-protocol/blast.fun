@@ -12,8 +12,8 @@ import {
 } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
 import { nexaClient } from "@/lib/nexa";
-import { TokenAvatar } from "@/components/tokens/token-avatar";
 import { formatNumberWithSuffix } from "@/utils/format";
+import TokenAvatar from "../tokens/token-avatar";
 
 interface SearchResult {
     type: "coin";

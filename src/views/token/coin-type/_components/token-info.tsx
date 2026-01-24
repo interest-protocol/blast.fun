@@ -8,7 +8,7 @@ import {
 	Send,
 } from "lucide-react"
 import { BsTwitterX } from "react-icons/bs"
-import { TokenAvatar } from "@/components/tokens/token-avatar"
+import TokenAvatar from "@/components/tokens/token-avatar"
 import { cn } from "@/utils"
 import { formatNumberWithSuffix, formatSmallPrice } from "@/utils/format"
 import type { Token } from "@/types/token"

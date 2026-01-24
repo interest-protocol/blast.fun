@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Globe, Send } from "lucide-react"
 import { BsTwitterX } from "react-icons/bs"
-import { TokenAvatar } from "@/components/tokens/token-avatar"
+import TokenAvatar from "@/components/tokens/token-avatar"
 import { ProtectionBadges } from "@/components/shared/protection-badges"
 import { RelativeAge } from "@/components/shared/relative-age"
 import { CreatorDisplay } from "@/components/creator/creator-display"

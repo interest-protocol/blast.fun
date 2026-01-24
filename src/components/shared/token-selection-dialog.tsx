@@ -4,7 +4,7 @@ import { useState, useRef } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog"
 import { Button } from "../ui/button"
 import { Input } from "../ui/input"
-import { TokenAvatar } from "../tokens/token-avatar"
+import TokenAvatar from "../tokens/token-avatar"
 import { ChevronDown, Loader2 } from "lucide-react"
 import type { WalletCoin } from "@/types/blockvision"
 

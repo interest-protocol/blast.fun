@@ -4,13 +4,13 @@ import { X, XCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { useTokenTabs, type TokenTab } from "@/stores/token-tabs";
 import { cn } from "@/utils";
-import { TokenAvatar } from "../tokens/token-avatar";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useBreakpoint } from "@/hooks/use-breakpoint";
 import { useBondingProgress } from "@/hooks/use-bonding-progress";
 import { SearchToken } from "../shared/search-token";
 import { useRef, useState, useEffect, useCallback, memo } from "react";
+import TokenAvatar from "../tokens/token-avatar";
 
 const TokenTabItem = memo(function TokenTabItem({
     tab,
