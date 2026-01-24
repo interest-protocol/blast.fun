@@ -14,7 +14,7 @@ import {
     Flame,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { TokenAvatar } from "@/components/tokens/token-avatar";
+import TokenAvatar from "@/components/tokens/token-avatar";
 import { useApp } from "@/context/app.context";
 import { useTwitter } from "@/context/twitter.context";
 import { useTrading } from "@/hooks/pump/use-trading";

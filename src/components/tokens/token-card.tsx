@@ -12,7 +12,7 @@ import QuickBuy from "./quick-buy"
 import type { Token } from "@/types/token"
 import { formatNumberWithSuffix } from "@/utils/format"
 import CopyableToken from "../shared/copyable-token"
-import { TokenAvatar } from "./token-avatar"
+import TokenAvatar from "./token-avatar"
 import CreatorHoverCard from "../creator/creator-hover-card"
 
 interface TokenCardProps {

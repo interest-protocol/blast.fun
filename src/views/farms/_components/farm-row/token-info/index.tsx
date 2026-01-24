@@ -1,6 +1,6 @@
 import { FC } from "react";
 
-import { TokenAvatar } from "@/components/tokens/token-avatar";
+import TokenAvatar from "@/components/tokens/token-avatar";
 import { TokenInfoProps } from "./token-info.types";
 
 const TokenInfo: FC<TokenInfoProps> = ({

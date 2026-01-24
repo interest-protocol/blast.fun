@@ -3,7 +3,7 @@ import { Loader2 } from "lucide-react"
 
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { TokenAvatar } from "@/components/tokens/token-avatar"
+import TokenAvatar from "@/components/tokens/token-avatar"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { RewardCardProps } from "./reward-card.types"
 

@@ -1,6 +1,6 @@
 import { ChangeEvent, FC } from "react"
 
-import { TokenAvatar } from "@/components/tokens/token-avatar"
+import TokenAvatar from "@/components/tokens/token-avatar"
 import { AmountInputProps } from "./amount-input.types"
 
 const AmountInput: FC<AmountInputProps> = ({ amount, setAmount, tokenSymbol, tokenIcon, disabled }) => {

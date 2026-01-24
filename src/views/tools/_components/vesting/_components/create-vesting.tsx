@@ -15,7 +15,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Loader2, Lock, Calendar, AlertCircle, Clock, CalendarDays } from "lucide-react"
-import { TokenAvatar } from "@/components/tokens/token-avatar"
+import TokenAvatar from "@/components/tokens/token-avatar"
 import { useTransaction } from "@/hooks/sui/use-transaction"
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions"
 import { parseVestingDuration } from "../vesting.utils"
@@ -43,24 +43,24 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 	const [selectedCoin, setSelectedCoin] = useState<string>("")
 	const [amount, setAmount] = useState<string>("")
 	const [recipientAddress, setRecipientAddress] = useState<string>("")
-	
+
 	// @dev: Input mode - duration or date
 	const [inputMode, setInputMode] = useState<"duration" | "date">("duration")
-	
+
 	// @dev: Duration mode states
 	const [lockDurationValue, setLockDurationValue] = useState<string>("0")
 	const [lockDurationUnit, setLockDurationUnit] = useState<string>("days")
 	const [vestingDurationValue, setVestingDurationValue] = useState<string>("")
 	const [vestingDurationUnit, setVestingDurationUnit] = useState<string>("days")
-	
+
 	// @dev: Date mode states
 	const [vestingStartDate, setVestingStartDate] = useState<Date | undefined>()
 	const [vestingEndDate, setVestingEndDate] = useState<Date | undefined>()
-	
+
 	// @dev: Custom percentage dialog states
 	const [customPercentageOpen, setCustomPercentageOpen] = useState(false)
 	const [customPercentageValue, setCustomPercentageValue] = useState<string>("")
-	
+
 	// @dev: Sync between duration and date modes
 	useEffect(() => {
 		if (inputMode === "date") {
@@ -68,7 +68,7 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 			const now = new Date()
 			const lockMs = parseVestingDuration(lockDurationValue || "0", lockDurationUnit)
 			const vestingMs = parseVestingDuration(vestingDurationValue || "0", vestingDurationUnit)
-			
+
 			if (lockMs > 0 || vestingMs > 0) {
 				const startDate = new Date(now.getTime() + lockMs)
 				const endDate = new Date(startDate.getTime() + vestingMs)
@@ -81,7 +81,7 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 				const now = new Date()
 				const lockMs = vestingStartDate.getTime() - now.getTime()
 				const vestingMs = vestingEndDate.getTime() - vestingStartDate.getTime()
-				
+
 				// @dev: Convert to appropriate units
 				if (lockMs > 0) {
 					if (lockMs >= 24 * 60 * 60 * 1000) {
@@ -95,7 +95,7 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 						setLockDurationUnit("minutes")
 					}
 				}
-				
+
 				if (vestingMs > 0) {
 					if (vestingMs >= 24 * 60 * 60 * 1000) {
 						setVestingDurationValue(Math.floor(vestingMs / (24 * 60 * 60 * 1000)).toString())
@@ -110,9 +110,9 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 				}
 			}
 		}
-	// eslint-disable-next-line react-hooks/exhaustive-deps
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [inputMode])
-	
+
 	const [isLoadingCoins, setIsLoadingCoins] = useState(false)
 	const [isCreating, setIsCreating] = useState(false)
 	const { executeTransaction } = useTransaction()
@@ -166,15 +166,15 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 	// @dev: Calculate dates based on input mode
 	const calculateDates = () => {
 		const now = new Date()
-		
+
 		if (inputMode === "duration") {
 			const lockDuration = parseVestingDuration(lockDurationValue || "0", lockDurationUnit)
 			const vestingDuration = parseVestingDuration(vestingDurationValue, vestingDurationUnit)
-			
+
 			const lockStart = now
 			const vestingStart = new Date(now.getTime() + lockDuration)
 			const vestingEnd = new Date(vestingStart.getTime() + vestingDuration)
-			
+
 			return {
 				lockStartDate: lockStart,
 				vestingStartDate: vestingStart,
@@ -187,7 +187,7 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 			const lockStart = now
 			const vestingStart = vestingStartDate || now
 			const vestingEnd = vestingEndDate || now
-			
+
 			return {
 				lockStartDate: lockStart,
 				vestingStartDate: vestingStart,
@@ -246,11 +246,11 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 				duration: dates.vestingDuration,
 				coinType: selectedCoin,
 			})
-			
+
 			await executeTransaction(tx)
 
 			toast.success("Vesting position created successfully!")
-			
+
 			// Reset form
 			setAmount("")
 			setRecipientAddress("")
@@ -387,7 +387,7 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 								step="0.000000001"
 								min="0"
 							/>
-							
+
 							{/* Percentage Options */}
 							<div className="flex gap-2">
 								<Button
@@ -420,7 +420,7 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 								>
 									100%
 								</Button>
-								
+
 								<Dialog open={customPercentageOpen} onOpenChange={setCustomPercentageOpen}>
 									<DialogTrigger asChild>
 										<Button
@@ -512,7 +512,7 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 						{/* Vesting Schedule Input */}
 						<div className="space-y-4">
 							<Label>Vesting Schedule</Label>
-							
+
 							<Tabs value={inputMode} onValueChange={(v) => setInputMode(v as "duration" | "date")}>
 								<TabsList className="grid w-full grid-cols-2">
 									<TabsTrigger value="duration">
@@ -665,7 +665,7 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 													mode="single"
 													selected={vestingEndDate}
 													onSelect={setVestingEndDate}
-													disabled={(date: Date) => 
+													disabled={(date: Date) =>
 														date < (vestingStartDate || new Date())
 													}
 													initialFocus

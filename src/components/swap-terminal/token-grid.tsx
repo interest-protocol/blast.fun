@@ -3,7 +3,7 @@
 import { FC } from "react";
 import { Loader2 } from "lucide-react";
 import { normalizeStructTag } from "@mysten/sui/utils";
-import { TokenAvatar } from "../tokens/token-avatar";
+import TokenAvatar from "../tokens/token-avatar";
 import type { TokenGridProps } from "./swap-terminal.types";
 import { cn } from "@/utils";
 import { MIN_SEARCH_LENGTH } from "./swap-terminal.data";

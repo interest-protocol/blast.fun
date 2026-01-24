@@ -1,30 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { FC, useState } from "react";
 import { cn } from "@/utils";
 import {
     HoverCard,
     HoverCardContent,
     HoverCardTrigger,
 } from "@/components/ui/hover-card";
+import { TokenAvatarProps } from "./token-avatar.types";
 
-interface TokenAvatarProps {
-    iconUrl?: string;
-    symbol?: string;
-    name?: string;
-    className?: string;
-    fallbackClassName?: string;
-    enableHover?: boolean;
-}
-
-export function TokenAvatar({
+const TokenAvatar: FC<TokenAvatarProps> = ({
     iconUrl,
     symbol,
     name,
     className = "w-12 h-12 rounded",
     fallbackClassName = "",
     enableHover = true,
-}: TokenAvatarProps) {
+}) => {
     const [imageError, setImageError] = useState(false);
     const [preloadHover, setPreloadHover] = useState(false);
     const displayChar =
@@ -91,3 +83,5 @@ export function TokenAvatar({
         </HoverCard>
     );
 }
+
+export default TokenAvatar;
