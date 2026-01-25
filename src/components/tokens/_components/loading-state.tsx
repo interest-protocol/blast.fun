@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { TokenCardSkeleton } from "../token-card.skeleton";
+import TokenCardSkeleton from "../token-card.skeleton";
 
 export const LoadingState = memo(() => (
     <>
