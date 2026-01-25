@@ -1,8 +1,8 @@
-"use client"
+import { FC } from "react";
 
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from "@/components/ui/skeleton";
 
-export function TokenCardSkeleton() {
+const TokenCardSkeleton: FC = () => {
 	return (
 		<div className="relative border-b border-border/40 group">
 			<div className="relative p-3 sm:p-2">
@@ -37,5 +37,7 @@ export function TokenCardSkeleton() {
 				</div>
 			</div>
 		</div>
-	)
+	);
 }
+
+export default TokenCardSkeleton;
