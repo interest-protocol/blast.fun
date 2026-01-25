@@ -2,7 +2,6 @@
 
 import { memo, useCallback, useState, useMemo } from "react";
 
-import { TokenCard } from "../token-card";
 import FlashBuyInput from "../flash-buy-input";
 import { sortTokens } from "@/utils/token-sorting";
 import { useBondedTokens } from "@/hooks/use-tokens";
@@ -15,6 +14,7 @@ import type { TokenListSettings, TokenFilters, NexaToken } from "@/types/token";
 import { ErrorState } from "../_components/error-state";
 import { LoadingState } from "../_components/loading-state";
 import { EmptyState } from "../_components/empty-state";
+import TokenCard from "../token-card";
 
 export const GraduatedComplete = memo(function GraduatedComplete({
     pollInterval = 30000,

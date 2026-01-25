@@ -6,15 +6,16 @@ import { useAboutToBondTokens } from "@/hooks/use-tokens"
 import { useTradeBump } from "@/hooks/use-trade-bump"
 import type { TokenListSettings, TokenFilters } from "@/types/token"
 import { sortTokens } from "@/utils/token-sorting"
-import { TokenCard } from "../token-card"
 import { TokenListLayout } from "../token-list.layout"
 import FlashBuyInput from "../flash-buy-input"
 import { TokenListFilters } from "../token-list.filters"
 import { ErrorState } from "../_components/error-state"
 import { LoadingState } from "../_components/loading-state"
 import { EmptyState } from "../_components/empty-state"
+import TokenCard from "../token-card"
 
 import { NearGraduationProps } from "./near-graduation.types"
+
 export const NearGraduation = memo(function NearGraduation({
     pollInterval = 10000
 }: NearGraduationProps) {

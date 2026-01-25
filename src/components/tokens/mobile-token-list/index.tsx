@@ -12,11 +12,11 @@ import { cn } from "@/utils"
 import { sortTokens, applyDefaultSort } from "@/utils/token-sorting"
 import { TabData, TabType } from "./mobile-token-list.types"
 import { TABS } from "./mobile-token-list.data"
-import { TokenCard } from "../token-card"
 import { TokenListFilters } from "../token-list.filters"
 import { ErrorState } from "../_components/error-state"
 import { LoadingState } from "../_components/loading-state"
 import { EmptyState } from "../_components/empty-state"
+import TokenCard from "../token-card"
 
 const TabContent = memo(function TabContent({
     tab,
