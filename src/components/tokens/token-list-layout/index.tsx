@@ -1,20 +1,12 @@
-"use client"
+import { FC, memo } from "react";
 
-import { memo, ReactNode } from "react"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { cn } from "@/utils"
+import { cn } from "@/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
-interface TokenListLayoutProps {
-	title: string
-	children: ReactNode
-	className?: string
-	headerClassName?: string
-	scrollClassName?: string
-	glowColor?: "blue" | "pink" | "gold"
-	headerAction?: ReactNode
-}
+import { TokenListLayoutProps } from "./token-list-layout.types";
+import { textGlowStyles } from "./token-list-layout.data";
 
-export const TokenListLayout = memo(function TokenListLayout({
+const TokenListLayout:FC<TokenListLayoutProps> = memo(function TokenListLayout({
 	title,
 	children,
 	className,
@@ -22,12 +14,7 @@ export const TokenListLayout = memo(function TokenListLayout({
 	scrollClassName,
 	glowColor = "blue",
 	headerAction
-}: TokenListLayoutProps) {
-	const textGlowStyles = {
-		blue: "text-blue-400 drop-shadow-[0_0_15px_rgba(59,130,246,0.7)] animate-pulse",
-		pink: "text-pink-400 drop-shadow-[0_0_15px_rgba(236,72,153,0.7)] animate-pulse",
-		gold: "text-yellow-600 drop-shadow-[0_0_15px_rgba(202,138,4,0.7)] animate-pulse"
-	}
+}) {
 
 	return (
 		<div className={cn("bg-card/20 border border-border/50 rounded-xl flex flex-col min-h-0 overflow-hidden", className)}>
@@ -50,5 +37,7 @@ export const TokenListLayout = memo(function TokenListLayout({
 				</div>
 			</ScrollArea>
 		</div>
-	)
+	);
 })
+
+export default TokenListLayout;

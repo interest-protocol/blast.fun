@@ -6,9 +6,9 @@ import FlashBuyInput from "../flash-buy-input";
 import { sortTokens } from "@/utils/token-sorting";
 import { useBondedTokens } from "@/hooks/use-tokens";
 import { useTradeBump } from "@/hooks/use-trade-bump";
-import { TokenListLayout } from "../token-list.layout";
 import { TokenListFilters } from "../token-list.filters";
 
+import TokenListLayout from "../token-list-layout";
 import { GraduatedCompleteProps } from "./graduated-complete.types";
 import type { TokenListSettings, TokenFilters, NexaToken } from "@/types/token";
 import { ErrorState } from "../_components/error-state";
