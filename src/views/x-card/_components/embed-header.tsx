@@ -1,6 +1,6 @@
 "use client"
 
-import { UserDropdown } from "@/components/user/user-dropdown"
+import UserDropdown from "@/components/user/user-dropdown"
 import { Logo } from "@/components/ui/logo"
 
 export function EmbedHeader() {

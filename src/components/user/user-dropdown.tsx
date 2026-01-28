@@ -2,7 +2,7 @@
 
 import { formatAddress } from "@mysten/sui/utils"
 import { Unplug, Wallet } from "lucide-react"
-import { useState } from "react"
+import { FC, useState } from "react"
 import { useApp } from "@/context/app.context"
 import MultiWallet from "../shared/multi-wallet"
 import { useTwitter } from "@/context/twitter.context"
@@ -12,7 +12,7 @@ import TwitterUserAvatar from "./user-avatar"
 import { SocialAccounts } from "../shared/social-accounts"
 import { AuthenticationDialog } from "../dialogs/authentication.dialog"
 
-export function UserDropdown() {
+const UserDropdown: FC = () => {
 	const [open, setOpen] = useState(false)
 
 	const { user, isLoggedIn } = useTwitter()
@@ -70,5 +70,7 @@ export function UserDropdown() {
 				</Popover>
 			)}
 		</>
-	)
+	);
 }
+
+export default UserDropdown;
