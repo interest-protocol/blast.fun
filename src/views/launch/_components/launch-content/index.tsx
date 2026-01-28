@@ -3,7 +3,7 @@
 
 import { ShieldCheck } from "lucide-react"
 import { useState, useCallback, FC } from "react"
-import { TwitterUserAvatar } from "@/components/user/user-avatar"
+import TwitterUserAvatar from "@/components/user/user-avatar"
 import { useApp } from "@/context/app.context"
 import { useTwitter } from "@/context/twitter.context"
 import CreateTokenForm from "../create-token-form"

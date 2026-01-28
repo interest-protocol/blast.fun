@@ -1,17 +1,14 @@
 "use client"
 
-import { TwitterUser } from "@/context/twitter.context"
-import { getFxtwitterProfileImage } from "@/lib/twitter"
+import { FC, useEffect, useState } from "react";
+
 import { cn } from "@/utils"
-import { useEffect, useState } from "react"
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
+import { getFxtwitterProfileImage } from "@/lib/twitter"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
-interface UserAvatarProps {
-	user: TwitterUser
-	className?: string
-}
+import { UserAvatarProps } from "./user-avatar.types"
 
-export function TwitterUserAvatar({ user, className }: UserAvatarProps) {
+const TwitterUserAvatar:FC<UserAvatarProps> = ({ user, className }) => {
 	const [profileImageUrl, setProfileImageUrl] = useState<string | null>(user.profile_image_url)
 
 	useEffect(() => {
@@ -39,5 +36,7 @@ export function TwitterUserAvatar({ user, className }: UserAvatarProps) {
 				{fallback}
 			</AvatarFallback>
 		</Avatar>
-	)
+	);
 }
+
+export default TwitterUserAvatar;
