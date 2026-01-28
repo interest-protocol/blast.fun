@@ -8,7 +8,7 @@ import MultiWallet from "../shared/multi-wallet"
 import { useTwitter } from "@/context/twitter.context"
 import { Button } from "../ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
-import { TwitterUserAvatar } from "./user-avatar"
+import TwitterUserAvatar from "./user-avatar"
 import { SocialAccounts } from "../shared/social-accounts"
 import { AuthenticationDialog } from "../dialogs/authentication.dialog"
 

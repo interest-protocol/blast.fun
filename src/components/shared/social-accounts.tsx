@@ -4,7 +4,7 @@ import { LogOut } from "lucide-react"
 import { BsTwitterX } from "react-icons/bs"
 import { useTwitter } from "@/context/twitter.context"
 import { Button } from "../ui/button"
-import { TwitterUserAvatar } from "../user/user-avatar"
+import TwitterUserAvatar from "../user/user-avatar"
 
 export function SocialAccounts() {
 	const { user, isLoggedIn, login, logout } = useTwitter()
