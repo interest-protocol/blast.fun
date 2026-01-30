@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { FC, useEffect } from "react";
 import { scan } from "react-scan";
 
-export function ReactScan() {
+const ReactScan: FC = () => {
     useEffect(() => {
         scan({
             enabled: process.env.NODE_ENV === "development",
@@ -12,3 +12,5 @@ export function ReactScan() {
 
     return null;
 }
+
+export default ReactScan;
