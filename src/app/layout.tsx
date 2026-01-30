@@ -7,7 +7,7 @@ import { GoogleAnalytics } from '@next/third-parties/google'
 import { SessionProvider } from "next-auth/react"
 import { Toaster } from "react-hot-toast"
 import ReactScan from "@/components/utils/react-scan"
-import { TailwindIndicator } from "@/components/utils/tailwind-indicator"
+import TailwindIndicator from "@/components/utils/tailwind-indicator"
 import { TwitterAuthProvider } from "@/context/twitter.context"
 import { geistMono, geistSans, hegartySans } from "@/fonts"
 import { ApolloProvider } from "@/providers/apollo-provider"

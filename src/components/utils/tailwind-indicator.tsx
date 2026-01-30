@@ -1,4 +1,6 @@
-export function TailwindIndicator() {
+import { FC } from "react";
+
+const TailwindIndicator: FC = () => {
 	if (process.env.NODE_ENV === "production") return null
 
 	return (
@@ -10,5 +12,7 @@ export function TailwindIndicator() {
 			<div className="hidden xl:block 2xl:hidden">xl</div>
 			<div className="hidden 2xl:block">2xl</div>
 		</div>
-	)
+	);
 }
+
+export default TailwindIndicator;
