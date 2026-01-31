@@ -10,7 +10,7 @@ import { TradesTab } from "./tabs/trades-tab"
 import { VestingTab } from "./tabs/vesting-tab"
 import { HoldersTab } from "./tabs/holders-tab"
 import { useHoldersData } from "../_hooks/use-holders-data"
-import { HolderDetails } from "./holder-details"
+import HolderDetails from "./holder-details"
 import { TokenInfo } from "./token-info"
 import type { Token } from "@/types/token"
 
@@ -21,13 +21,13 @@ interface MobileTab {
 	action?: () => void
 }
 
-export default function MobileTokenView({ 
-	pool, 
-	referral, 
-	realtimePrice, 
-	realtimeMarketCap 
-}: { 
-	pool: Token; 
+export default function MobileTokenView({
+	pool,
+	referral,
+	realtimePrice,
+	realtimeMarketCap
+}: {
+	pool: Token;
 	referral?: string;
 	realtimePrice?: number | null;
 	realtimeMarketCap?: number | null;
@@ -55,9 +55,9 @@ export default function MobileTokenView({
 	return (
 		<div className="flex flex-col h-full lg:hidden">
 			{activeTab !== "trade" && (
-				<TokenInfo 
-					pool={pool} 
-					realtimePrice={realtimePrice || null} 
+				<TokenInfo
+					pool={pool}
+					realtimePrice={realtimePrice || null}
 					realtimeMarketCap={realtimeMarketCap || null}
 				/>
 			)}
@@ -69,9 +69,9 @@ export default function MobileTokenView({
 
 				{activeTab === "trade" && (
 					<div className="h-full overflow-y-auto">
-						<TokenInfo 
-							pool={pool} 
-							realtimePrice={realtimePrice || null} 
+						<TokenInfo
+							pool={pool}
+							realtimePrice={realtimePrice || null}
 							realtimeMarketCap={realtimeMarketCap || null}
 						/>
 						<TradeTerminal pool={pool} referral={referral} />
@@ -146,9 +146,9 @@ export default function MobileTokenView({
 								<VestingTab pool={pool} className="h-full" />
 							)}
 							{(activitySubTab === "holders" || activitySubTab === "projects") && (
-								<HoldersTab 
-									pool={pool} 
-									className="h-full" 
+								<HoldersTab
+									pool={pool}
+									className="h-full"
 									activeTab={activitySubTab === "projects" ? "projects" : "holders"}
 								/>
 							)}
