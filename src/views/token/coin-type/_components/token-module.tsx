@@ -8,7 +8,7 @@ import { TokenTabs } from "./token-tabs"
 import BondingProgress from "./bonding-progress"
 import { TradeTerminal } from "./trade-terminal"
 import { ReferralShare } from "./referral-share"
-import { HolderDetails } from "./holder-details"
+import HolderDetails from "./holder-details"
 import MobileTokenView from "./mobile-token-view"
 import { NexaChart } from "@/components/shared/nexa-chart"
 import {
