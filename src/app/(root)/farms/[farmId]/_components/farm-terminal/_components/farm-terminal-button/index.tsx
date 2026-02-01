@@ -15,9 +15,13 @@ const FarmTerminalButton: FC<FarmTerminalButtonProps> = ({
     stakedInDisplayUnit,
     tokenSymbol,
     handleDeposit,
-    handleWithdraw
+    handleWithdraw,
 }) => {
     const { isConnected, setIsConnectDialogOpen } = useApp()
+
+    const normalizedAmount = amount.replace(",", ".")
+    const numericAmount = parseFloat(normalizedAmount)
+
     if (!isConnected) {
         return (
             <Button
@@ -27,8 +31,17 @@ const FarmTerminalButton: FC<FarmTerminalButtonProps> = ({
             >
                 CONNECT WALLET
             </Button>
-        );
+        )
     }
+
+    const isDisabled =
+        !amount ||
+        isProcessing ||
+        isNaN(numericAmount) ||
+        (actionType === "deposit" && numericAmount > tokenBalanceInDisplayUnit) ||
+        (actionType === "withdraw" &&
+            (stakedInDisplayUnit === 0 || numericAmount > stakedInDisplayUnit))
+
     return (
         <Button
             className={cn(
@@ -36,15 +49,10 @@ const FarmTerminalButton: FC<FarmTerminalButtonProps> = ({
                 actionType === "deposit"
                     ? "bg-green-400/50 hover:bg-green-500/90 text-foreground"
                     : "bg-destructive/80 hover:bg-destructive text-foreground",
-                (!amount || isProcessing || (actionType === "withdraw" && stakedInDisplayUnit === 0)) && "opacity-50"
+                isDisabled && "opacity-50 cursor-not-allowed"
             )}
             onClick={actionType === "deposit" ? handleDeposit : handleWithdraw}
-            disabled={
-                !amount ||
-                isProcessing ||
-                (actionType === "deposit" && parseFloat(amount) > tokenBalanceInDisplayUnit) ||
-                (actionType === "withdraw" && (stakedInDisplayUnit === 0 || parseFloat(amount) > stakedInDisplayUnit))
-            }
+            disabled={isDisabled}
         >
             {isProcessing ? (
                 <>
@@ -54,12 +62,12 @@ const FarmTerminalButton: FC<FarmTerminalButtonProps> = ({
             ) : (
                 <>
                     {actionType === "deposit"
-                        ? `Deposit ${formatNumberWithSuffix(parseFloat(amount) || 0)} ${tokenSymbol}`
-                        : `Withdraw ${formatNumberWithSuffix(parseFloat(amount) || 0)} ${tokenSymbol}`}
+                        ? `Deposit ${formatNumberWithSuffix(numericAmount || 0)} ${tokenSymbol}`
+                        : `Withdraw ${formatNumberWithSuffix(numericAmount || 0)} ${tokenSymbol}`}
                 </>
             )}
         </Button>
     )
 }
 
-export default FarmTerminalButton;
+export default FarmTerminalButton

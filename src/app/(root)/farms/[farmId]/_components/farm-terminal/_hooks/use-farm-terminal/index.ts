@@ -6,6 +6,7 @@ import { useBalance } from "@/hooks/sui/use-balance"
 import { FarmTerminalProps } from "../../farm-terminal.types"
 import { useFarmOperations } from "../../../../_hooks/use-farm-operations"
 import { POW_9 } from "@/app/(root)/farms/farms.const"
+import toast from "react-hot-toast"
 
 const useFarmTerminal = ({
   farm,
@@ -56,16 +57,45 @@ const useFarmTerminal = ({
     },
   })
 
+  const getMaxAllowed = () =>
+    actionType === "deposit" ? tokenBalanceInDisplayUnit : stakedInDisplayUnit
+
+  const validateAmount = (value: string) => {
+    const normalized = value.replace(",", ".")
+    const num = Number(normalized)
+
+    if (!Number.isFinite(num) || num <= 0) return "invalid"
+    if (num > getMaxAllowed()) return "exceeds"
+    return null
+  }
+
   const handleDeposit = async () => {
-    if (!amount || parseFloat(amount) <= 0) return
-    await stake(amount)
+    const error = validateAmount(amount)
+    if (error) {
+      toast.error(
+        error === "exceeds"
+          ? "Insufficient balance"
+          : "Please enter a valid amount"
+      )
+      return
+    }
+
+    await stake(amount.replace(",", "."))
   }
 
   const handleWithdraw = async () => {
-    if (!amount || parseFloat(amount) <= 0) return
-    await unstake(amount)
-  }
+    const error = validateAmount(amount)
+    if (error) {
+      toast.error(
+        error === "exceeds"
+          ? "Amount exceeds staked balance"
+          : "Please enter a valid amount"
+      )
+      return
+    }
 
+    await unstake(amount.replace(",", "."))
+  }
   const handleMaxClick = () => {
     const balance =
       actionType === "deposit" ? tokenBalanceInDisplayUnit : stakedInDisplayUnit

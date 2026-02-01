@@ -6,7 +6,7 @@ import { AmountInputProps } from "./amount-input.types"
 const AmountInput: FC<AmountInputProps> = ({ amount, setAmount, tokenSymbol, tokenIcon, disabled }) => {
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value
-        if (value === "" || /^\d*\.?\d*$/.test(value)) {
+        if (value === "" || /^\d*[.,]?\d*$/.test(value)) {
             setAmount(value)
         }
     }
@@ -22,7 +22,7 @@ const AmountInput: FC<AmountInputProps> = ({ amount, setAmount, tokenSymbol, tok
                 inputMode="decimal"
                 onPaste={(e) => {
                     const pasted = e.clipboardData.getData("text")
-                    if (!/^\d*\.?\d*$/.test(pasted)) {
+                    if (!/^\d*[.,]?\d*$/.test(pasted)) {
                         e.preventDefault()
                     }
                 }}
