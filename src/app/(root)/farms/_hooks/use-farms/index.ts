@@ -23,9 +23,10 @@ export const useFarms = () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
     }
-    abortControllerRef.current = new AbortController()
 
+    abortControllerRef.current = new AbortController()
     setIsLoading(true)
+
     try {
       const farms = FARMS[env.NEXT_PUBLIC_DEFAULT_NETWORK as Network]
       const farmIds = Object.values(farms).map((farm) => farm.objectId)
@@ -43,12 +44,17 @@ export const useFarms = () => {
 
       if (address && isConnected) {
         const allAccounts = await farmsSdk.getAccounts(address)
-        
+
         if (!isMountedRef.current) return
 
         farmsWithAccountsData = farmsData.map((farm) => {
-          const account = allAccounts.find((acc) => acc.farm === farm.objectId)
-          return { farm, account }
+          const farmAccounts = allAccounts.filter((acc) => acc.farm === farm.objectId)
+
+          const primaryAccount = farmAccounts.sort((a, b) =>
+            Number(b.stakeBalance - a.stakeBalance)
+          )[0]
+
+          return { farm, account: primaryAccount }
         })
       }
 

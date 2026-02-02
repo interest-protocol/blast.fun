@@ -36,6 +36,17 @@ export const useFarmOperations = ({
 	const [isHarvesting, setIsHarvesting] = useState(false)
 	const [isUnstaking, setIsUnstaking] = useState(false)
 
+	const getAccountWithHighestStake = async (): Promise<InterestAccount | undefined> => {
+		if (!address) return undefined
+
+		const allAccounts = await farmsSdk.getAccounts(address)
+		const farmAccounts = allAccounts.filter((acc) => acc.farm === farmId)
+
+		return farmAccounts.sort((a, b) =>
+			Number(b.stakeBalance - a.stakeBalance)
+		)[0]
+	}
+
 	const stake = async (amount: string) => {
 		if (!address) {
 			toast.error("Please connect your wallet")
@@ -47,6 +58,7 @@ export const useFarmOperations = ({
 			const amountBigInt = parseInputAmount(amount)
 			if (amountBigInt <= 0n) {
 				toast.error("Invalid stake amount")
+				setIsStaking(false)
 				return
 			}
 
@@ -55,8 +67,7 @@ export const useFarmOperations = ({
 				type: stakeCoinType,
 			})
 
-			const freshAccounts = await farmsSdk.getAccounts(address)
-			const existingAccount = freshAccounts.find((acc) => acc.farm === farmId)
+			const existingAccount = await getAccountWithHighestStake()
 
 			if (existingAccount) {
 				const { tx } = await farmsSdk.stake({
@@ -98,35 +109,54 @@ export const useFarmOperations = ({
 			console.error("Staking error:", error)
 
 			if (error instanceof Error) {
-				if (error.message.includes("Rejected") || error.message.includes("User rejected")) {
+				const errorMsg = error.message.toLowerCase()
+				
+				if (errorMsg.includes("rejected") || errorMsg.includes("user rejected")) {
 					toast.error("Transaction rejected by user")
-				} else if (error.message.includes("Insufficient")) {
+				} else if (errorMsg.includes("insufficient") || errorMsg.includes("balance")) {
 					toast.error("Insufficient balance")
+				} else if (errorMsg.includes("gas")) {
+					toast.error("Insufficient gas to complete transaction")
+				} else if (errorMsg.includes("object") && errorMsg.includes("not found")) {
+					toast.error("Account not found. Please refresh and try again.")
 				} else {
-					toast.error(`Failed to stake: ${error.message}`)
+					const shortMsg = error.message.split('\n')[0].slice(0, 100)
+					toast.error(`Failed to stake: ${shortMsg}`)
 				}
 			} else {
 				toast.error(`Failed to stake ${tokenSymbol}`)
 			}
+			
+			setTimeout(() => {
+				onSuccess?.()
+			}, 2000)
 		} finally {
 			setIsStaking(false)
 		}
 	}
 
 	const harvest = async () => {
-		if (!address || !account) {
+		const accountToUse = await getAccountWithHighestStake()
+
+		if (!address || !accountToUse) {
 			toast.error("No farm account found")
 			return
 		}
 
 		setIsHarvesting(true)
 		try {
-			const rewards = await farmsSdk.pendingRewards(account.objectId)
+			const rewards = await farmsSdk.pendingRewards(accountToUse.objectId)
 			const rewardsAmount = Number(rewards[0].amount) / Math.pow(10, rewardDecimals)
+
+			if (rewardsAmount === 0) {
+				toast.error("No rewards to harvest")
+				setIsHarvesting(false)
+				return
+			}
 
 			const { tx, rewardCoin } = await farmsSdk.harvest({
 				farm: farmId,
-				account: account.objectId,
+				account: accountToUse.objectId,
 				rewardType: rewardCoinType,
 			})
 
@@ -144,7 +174,9 @@ export const useFarmOperations = ({
 	}
 
 	const unstake = async (amount: string) => {
-		if (!address || !account) {
+		const accountToUse = await getAccountWithHighestStake()
+
+		if (!address || !accountToUse) {
 			toast.error("No farm account found")
 			return
 		}
@@ -154,23 +186,29 @@ export const useFarmOperations = ({
 			const amountBigInt = parseInputAmount(amount)
 			if (amountBigInt <= 0n) {
 				toast.error("Invalid unstake amount")
+				setIsUnstaking(false)
 				return
 			}
 
-			const isMaxWithdrawal = amountBigInt === account.stakeBalance
+			if (amountBigInt > accountToUse.stakeBalance) {
+				toast.error("Amount exceeds staked balance")
+				setIsUnstaking(false)
+				return
+			}
 
-			const rewards = await farmsSdk.pendingRewards(account.objectId);
+			const isMaxWithdrawal = amountBigInt === accountToUse.stakeBalance
+
+			const rewards = await farmsSdk.pendingRewards(accountToUse.objectId)
 			const rewardsAmount = Number(rewards[0].amount) / Math.pow(10, rewardDecimals)
-			const hasRewards = rewardsAmount > 0n
+			const hasRewards = rewardsAmount > 0
 
-			const tx = new Transaction();
+			const tx = new Transaction()
 
-			// harvest rewards if available and withdrawing max amount
 			if (hasRewards && isMaxWithdrawal) {
 				const { rewardCoin } = await farmsSdk.harvest({
 					tx,
 					farm: farmId,
-					account: account.objectId,
+					account: accountToUse.objectId,
 					rewardType: rewardCoinType,
 				})
 
@@ -180,7 +218,7 @@ export const useFarmOperations = ({
 			const { unstakeCoin } = await farmsSdk.unstake({
 				tx,
 				farm: farmId,
-				account: account.objectId,
+				account: accountToUse.objectId,
 				amount: amountBigInt,
 			})
 
