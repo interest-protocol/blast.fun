@@ -55,59 +55,37 @@ export const useFarmOperations = ({
 				type: stakeCoinType,
 			})
 
-			const freshAccounts = await farmsSdk.getAccounts(address)
-			const existingAccount = freshAccounts.find((acc) => acc.farm === farmId)
+			if (!account) {
+				const { tx, account } = await farmsSdk.newAccount({
+					farm: farmId,
+				})
+				
+				const { tx: stakeTx } = await farmsSdk.stakeUnchecked({
+					tx,
+					farm: farmId,
+					account,
+					depositCoin,
+				})
 
-			if (existingAccount) {
+				tx.transferObjects([account], tx.pure.address(address))
+
+				await executeTransaction(stakeTx)
+			} else {
 				const { tx } = await farmsSdk.stake({
 					farm: farmId,
-					account: existingAccount.objectId,
+					account: account.objectId,
 					depositCoin,
 				})
 
 				await executeTransaction(tx)
-
-				const amountInTokens = Number(amountBigInt) / Number(POW_9)
-				toast.success(`Staked ${formatNumberWithSuffix(amountInTokens)} ${tokenSymbol}`)
-				onSuccess?.()
-				return
 			}
-
-			toast("Creating new farm account...", { icon: "🔨", duration: 3000 })
-
-			const { tx, account: newAccount } = await farmsSdk.newAccount({
-				farm: farmId,
-			})
-
-			const { tx: stakeTx } = await farmsSdk.stakeUnchecked({
-				tx,
-				farm: farmId,
-				account: newAccount,
-				depositCoin,
-			})
-
-			stakeTx.transferObjects([newAccount], stakeTx.pure.address(address))
-
-			await executeTransaction(stakeTx)
 
 			const amountInTokens = Number(amountBigInt) / Number(POW_9)
-			toast.success(`Created account and staked ${formatNumberWithSuffix(amountInTokens)} ${tokenSymbol}`)
+			toast.success(`Staked ${formatNumberWithSuffix(amountInTokens)} ${tokenSymbol}`)
 			onSuccess?.()
-
 		} catch (error) {
 			console.error("Staking error:", error)
-
-			if (error instanceof Error) {
-				if (error.message.includes("Rejected") || error.message.includes("User rejected")) {
-					toast.error("Transaction rejected by user")
-				} else if (error.message.includes("Insufficient")) {
-					toast.error("Insufficient balance")
-				} else {
-					toast.error(`Failed to stake: ${error.message}`)
-				}
-			} else {
-				toast.error(`Failed to stake ${tokenSymbol}`)
-			}
+			toast.error(`Failed to stake ${tokenSymbol}`)
 		} finally {
 			setIsStaking(false)
 		}
