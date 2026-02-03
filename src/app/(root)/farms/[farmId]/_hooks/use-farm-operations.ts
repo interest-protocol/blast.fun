@@ -8,6 +8,7 @@ import type { InterestAccount } from "@interest-protocol/farms"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { parseInputAmount } from "../../farms.utils"
 import { POW_9 } from "../../farms.const"
+import { suiClient } from "@/lib/sui-client"
 
 interface UseFarmOperationsProps {
 	farmId: string
@@ -24,13 +25,12 @@ export const useFarmOperations = ({
 	farmId,
 	stakeCoinType,
 	rewardCoinType,
-	account,
 	tokenSymbol = "tokens",
 	rewardSymbol = "SUI",
 	rewardDecimals = 9,
-	onSuccess,
+	onSuccess
 }: UseFarmOperationsProps) => {
-	const { address } = useApp()
+	const { address, wallet } = useApp()
 	const { executeTransaction } = useTransaction()
 	const [isStaking, setIsStaking] = useState(false)
 	const [isHarvesting, setIsHarvesting] = useState(false)
@@ -48,7 +48,7 @@ export const useFarmOperations = ({
 	}
 
 	const stake = async (amount: string) => {
-		if (!address) {
+		if (!address || !wallet) {
 			toast.error("Please connect your wallet")
 			return
 		}
@@ -58,6 +58,18 @@ export const useFarmOperations = ({
 			const amountBigInt = parseInputAmount(amount)
 			if (amountBigInt <= 0n) {
 				toast.error("Invalid stake amount")
+				setIsStaking(false)
+				return
+			}
+
+			const balance = await suiClient.getBalance({
+				owner: address,
+				coinType: stakeCoinType,
+			})
+
+			if (amountBigInt > BigInt(balance.totalBalance)) {
+				const available = Number(balance.totalBalance) / Number(POW_9)
+				toast.error(`Insufficient balance. Available: ${formatNumberWithSuffix(available)} ${tokenSymbol}`)
 				setIsStaking(false)
 				return
 			}
@@ -80,6 +92,7 @@ export const useFarmOperations = ({
 
 				const amountInTokens = Number(amountBigInt) / Number(POW_9)
 				toast.success(`Staked ${formatNumberWithSuffix(amountInTokens)} ${tokenSymbol}`)
+
 				onSuccess?.()
 				return
 			}
@@ -103,6 +116,7 @@ export const useFarmOperations = ({
 
 			const amountInTokens = Number(amountBigInt) / Number(POW_9)
 			toast.success(`Created account and staked ${formatNumberWithSuffix(amountInTokens)} ${tokenSymbol}`)
+
 			onSuccess?.()
 
 		} catch (error) {
@@ -110,15 +124,11 @@ export const useFarmOperations = ({
 
 			if (error instanceof Error) {
 				const errorMsg = error.message.toLowerCase()
-				
+
 				if (errorMsg.includes("rejected") || errorMsg.includes("user rejected")) {
 					toast.error("Transaction rejected by user")
 				} else if (errorMsg.includes("insufficient") || errorMsg.includes("balance")) {
 					toast.error("Insufficient balance")
-				} else if (errorMsg.includes("gas")) {
-					toast.error("Insufficient gas to complete transaction")
-				} else if (errorMsg.includes("object") && errorMsg.includes("not found")) {
-					toast.error("Account not found. Please refresh and try again.")
 				} else {
 					const shortMsg = error.message.split('\n')[0].slice(0, 100)
 					toast.error(`Failed to stake: ${shortMsg}`)
@@ -126,10 +136,7 @@ export const useFarmOperations = ({
 			} else {
 				toast.error(`Failed to stake ${tokenSymbol}`)
 			}
-			
-			setTimeout(() => {
-				onSuccess?.()
-			}, 2000)
+
 		} finally {
 			setIsStaking(false)
 		}
@@ -164,6 +171,7 @@ export const useFarmOperations = ({
 			await executeTransaction(tx)
 
 			toast.success(`Harvested ${formatNumberWithSuffix(rewardsAmount)} ${rewardSymbol} rewards`)
+
 			onSuccess?.()
 		} catch (error) {
 			console.error("Harvest error:", error)
@@ -191,7 +199,8 @@ export const useFarmOperations = ({
 			}
 
 			if (amountBigInt > accountToUse.stakeBalance) {
-				toast.error("Amount exceeds staked balance")
+				const available = Number(accountToUse.stakeBalance) / Number(POW_9)
+				toast.error(`Insufficient staked balance. Available: ${formatNumberWithSuffix(available)} ${tokenSymbol}`)
 				setIsUnstaking(false)
 				return
 			}
@@ -235,6 +244,7 @@ export const useFarmOperations = ({
 			}
 
 			onSuccess?.()
+
 		} catch (error) {
 			console.error("Unstake error:", error)
 			toast.error(`Failed to unstake ${tokenSymbol}`)
