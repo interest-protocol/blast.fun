@@ -57,6 +57,8 @@ export async function fetchTokenByCoinType(coinType: string): Promise<Token | nu
 			id: pool.poolId,
 			coinType: pool.coinType,
 			treasuryCap: pool.treasuryCap || "",
+			poolId: pool.poolId,
+			isProtected: !!pool.publicKey,
 			metadata: {
 				name: metadata.name || "",
 				symbol: metadata.symbol || "",
