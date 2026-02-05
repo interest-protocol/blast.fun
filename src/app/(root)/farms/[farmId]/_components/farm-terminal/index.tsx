@@ -1,10 +1,8 @@
 "use client"
 
 import { FC } from "react"
-import { useApp } from "@/context/app.context"
 
 import ActionTabs from "./_components/action-tabs"
-import ConnectWallet from "./_components/connect-wallet"
 import BalanceHeader from "./_components/balance-header"
 import AmountInput from "./_components/amount-input"
 import QuickAmounts from "./_components/quick-amounts"
