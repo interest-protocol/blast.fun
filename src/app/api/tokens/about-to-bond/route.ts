@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { enhanceTokens } from "@/lib/enhance-token"
 import { processTokenIconUrls } from "@/lib/process-token-icon-urls"
 
+// @dev: No Noodles equivalent for "about-to-bond" (bonding-curve graduation state).
+// Noodles API does not expose bonding curve or graduation; keeping Bluefin endpoint.
 export const revalidate = 5
 
 export async function GET(request: Request) {

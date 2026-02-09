@@ -7,21 +7,28 @@ export async function fetchPortfolio(address: string): Promise<PortfolioResponse
 	try {
 		const nexaPortfolio = await nexaClient.getPortfolio(address, 0)
 
-		// Map the balances with correct field names from API
-		const allBalances: PortfolioBalanceItem[] = nexaPortfolio.balances?.map((item: any) => ({
-			coinType: item.coinType,
-			balance: item.balance?.toString() || "0",
-			price: item.price || 0,
-			value: item.value || 0, // API returns 'value' not 'balanceUsd'
-			coinMetadata: item.coinMetadata, // API returns 'coinMetadata' not 'metadata'
-			marketStats: item.marketStats,
-			averageEntryPrice: item.averageEntryPrice || 0,
-			unrealizedPnl: item.unrealizedPnl || 0,
-		})) || []
+		if (!nexaPortfolio || !nexaPortfolio.balances) {
+			return { balances: [] }
+		}
 
-		// Filter to only show xpump platform tokens
-		const xpumpBalances = allBalances.filter(item => 
-			item.coinMetadata?.platform === "xpump"
+		// Map the balances with correct field names from API
+		const rawBalances = nexaPortfolio.balances as Array<Record<string, unknown>>
+		const allBalances: PortfolioBalanceItem[] = rawBalances.map((item) => ({
+			coinType: (item.coinType as string) ?? "",
+			balance: item.balance != null ? String(item.balance) : "0",
+			price: Number(item.price) || 0,
+			value: Number(item.value) || 0,
+			coinMetadata: item.coinMetadata as PortfolioBalanceItem["coinMetadata"],
+			marketStats: item.marketStats as PortfolioBalanceItem["marketStats"],
+			averageEntryPrice: Number(item.averageEntryPrice) || 0,
+			unrealizedPnl: Number(item.unrealizedPnl) || 0,
+		}))
+
+		// Filter to show xpump platform tokens or items without platform (e.g. from Noodles)
+		const xpumpBalances = allBalances.filter(
+			(item) =>
+				item.coinMetadata?.platform === "xpump" ||
+				item.coinMetadata?.platform === undefined
 		)
 
 		// Fetch poolIds for each xpump token using GraphQL

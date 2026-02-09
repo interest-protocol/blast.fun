@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { coinMetadataApi } from "@/lib/coin-metadata-api"
+import { fetchNoodlesCoinDetail } from "@/lib/noodles/client"
 
 export async function GET(
 	_request: Request,
@@ -11,23 +12,31 @@ export async function GET(
 		return NextResponse.json({ error: "Coin type is required" }, { status: 400 })
 	}
 
+	const decodedCoinType = decodeURIComponent(coin_type)
+
 	try {
-		// @dev: Fetch from Interest Protocol REST API directly (no Redis caching)
 		let iconUrl: string | undefined
 
 		try {
-			const metadata = await coinMetadataApi.getCoinMetadata(
-				decodeURIComponent(coin_type)
-			)
-
-			if (metadata?.iconUrl) {
-				iconUrl = metadata.iconUrl
+			const noodlesDetail = await fetchNoodlesCoinDetail(decodedCoinType)
+			if (noodlesDetail?.data?.coin?.logo) {
+				iconUrl = noodlesDetail.data.coin.logo
 			}
 		} catch (error) {
-			console.error("Failed to fetch coin metadata from Interest Protocol:", error)
+			console.error("Failed to fetch coin logo from Noodles:", error)
 		}
 
-		// @dev: Return 404 if no icon URL found
+		if (!iconUrl) {
+			try {
+				const metadata = await coinMetadataApi.getCoinMetadata(decodedCoinType)
+				if (metadata?.iconUrl) {
+					iconUrl = metadata.iconUrl
+				}
+			} catch (error) {
+				console.error("Failed to fetch coin metadata from fallback API:", error)
+			}
+		}
+
 		if (!iconUrl) {
 			const response = new Response(null, { status: 404 })
 			response.headers.set('Cache-Control', 'public, max-age=60, s-maxage=60')

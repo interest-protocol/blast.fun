@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { enhanceTokens } from "@/lib/enhance-token"
 import { processTokenIconUrls } from "@/lib/process-token-icon-urls"
 
+// @dev: No Noodles equivalent for "bonded" (graduated bonding-curve tokens).
 export const revalidate = 5
 
 export async function GET(request: Request) {

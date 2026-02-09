@@ -51,14 +51,23 @@ class NexaClient {
 		return response
 	}
 
+	/**
+	 * Fetches coin metadata via app API (Noodles coin-detail first, then fallbacks).
+	 */
 	async getCoinMetadata(coinType: string): Promise<TokenMetadata | null> {
 		try {
-			const response = await this.fetch(`/coins/${coinType}/coin-metadata`, {
-				revalidate: 21600, // 6 hours in seconds
-			})
+			const response = await fetch(
+				`/api/coin/${encodeURIComponent(coinType)}/metadata`,
+				{
+					headers: { Accept: "application/json" },
+					next: { revalidate: 3600 },
+				}
+			)
+
+			if (!response.ok) return null
 
 			const text = await response.text()
-			if (!text || text.trim() === '') return null
+			if (!text || text.trim() === "") return null
 
 			try {
 				return JSON.parse(text) as TokenMetadata
@@ -66,7 +75,7 @@ class NexaClient {
 				return null
 			}
 		} catch (error) {
-			console.error('Error fetching coin metadata:', error)
+			console.error("Error fetching coin metadata:", error)
 			return null
 		}
 	}
@@ -92,14 +101,24 @@ class NexaClient {
 		}
 	}
 
+	/**
+	 * Fetches market data via app API (Noodles coin-detail + coin-price-volume first, Bluefin fallback).
+	 * Replaces direct Bluefin minified-market-data which is no longer available in farms.
+	 */
 	async getMarketData(coinType: string): Promise<TokenMarketData | null> {
 		try {
-			const response = await this.fetch(`/coins/${coinType}/minified-market-data`, {
-				revalidate: 10,
-			})
+			const response = await fetch(
+				`/api/coin/${encodeURIComponent(coinType)}/market-data`,
+				{
+					headers: { Accept: "application/json" },
+					next: { revalidate: 10 },
+				}
+			)
+
+			if (!response.ok) return null
 
 			const text = await response.text()
-			if (!text || text.trim() === '') return null
+			if (!text || text.trim() === "") return null
 
 			try {
 				return JSON.parse(text) as TokenMarketData
@@ -107,7 +126,7 @@ class NexaClient {
 				return null
 			}
 		} catch (error) {
-			console.error('Error fetching market data:', error)
+			console.error("Error fetching market data:", error)
 			return null
 		}
 	}
@@ -173,44 +192,61 @@ class NexaClient {
 		}
 	}
 
-	async getPortfolio(address: string, minBalanceValue = 0) {
+	/**
+	 * Fetches portfolio via app API (Noodles portfolio/coins first, Bluefin fallback).
+	 */
+	async getPortfolio(address: string, _minBalanceValue = 0) {
 		try {
-			const response = await this.fetch(`/spot/portfolio/${address}?minBalanceValue=${minBalanceValue}`, {
-				revalidate: 30,
-			})
+			const response = await fetch(
+				`/api/portfolio/${encodeURIComponent(address)}`,
+				{
+					headers: { Accept: "application/json" },
+					next: { revalidate: 30 },
+				}
+			)
+
+			if (!response.ok) return null
 
 			const text = await response.text()
-			if (!text || text.trim() === '') return null
+			if (!text || text.trim() === "") return null
 
 			try {
-				return JSON.parse(text)
+				return JSON.parse(text) as { balances: unknown[] }
 			} catch {
 				return null
 			}
 		} catch (error) {
-			console.error('Error fetching portfolio:', error)
+			console.error("Error fetching portfolio:", error)
 			return null
 		}
 	}
 
+	/**
+	 * Search tokens via app API (Noodles global-search scope=coin first, Bluefin fallback).
+	 */
 	async searchTokens(query: string) {
 		try {
-			const url = `/search/query/${encodeURIComponent(query)}?platform=xpump`
+			const response = await fetch(
+				`/api/search/tokens?q=${encodeURIComponent(query)}`,
+				{
+					headers: { Accept: "application/json" },
+					next: { revalidate: 60 },
+				}
+			)
 
-			const response = await this.fetch(url, {
-				revalidate: false,
-			})
+			if (!response.ok) return []
 
 			const text = await response.text()
-			if (!text || text.trim() === '') return []
+			if (!text || text.trim() === "") return []
 
 			try {
-				return JSON.parse(text)
+				const parsed = JSON.parse(text)
+				return Array.isArray(parsed) ? parsed : []
 			} catch {
 				return []
 			}
 		} catch (error) {
-			console.error('Error searching tokens:', error)
+			console.error("Error searching tokens:", error)
 			return []
 		}
 	}

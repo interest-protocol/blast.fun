@@ -2,7 +2,15 @@ import { prisma } from "@/lib/prisma"
 import { fetchCreatorsBatch } from "@/lib/fetch-creators-batch"
 import { redisGet, redisSetEx, CACHE_TTL, CACHE_PREFIX } from "@/lib/redis/client"
 
-export async function enhanceTokens(tokens: any[]) {
+export interface TokenListItemInput {
+	coinType: string
+	dev?: string
+	poolId?: string
+	isProtected?: boolean
+	[key: string]: unknown
+}
+
+export async function enhanceTokens<T extends TokenListItemInput>(tokens: T[]): Promise<T[]> {
 	if (tokens.length === 0) {
 		return tokens
 	}
@@ -15,15 +23,15 @@ export async function enhanceTokens(tokens: any[]) {
 
 			(async () => {
 				const protectedPoolIds = tokens
-					.filter((token: any) => token.isProtected)
-					.map((token: any) => token.poolId)
+					.filter((t): t is T & { isProtected: true; poolId: string } => !!t.isProtected && !!t.poolId)
+					.map((t) => t.poolId)
 					.filter(Boolean)
 
 				if (protectedPoolIds.length === 0) {
 					return new Map()
 				}
 
-				const settingsMap = new Map()
+				const settingsMap = new Map<string, unknown>()
 
 				// get cached protection settings first
 				const cacheKeys = protectedPoolIds.map(id => `${CACHE_PREFIX.PROTECTION_SETTINGS}${id}`)
@@ -73,16 +81,18 @@ export async function enhanceTokens(tokens: any[]) {
 			})()
 		])
 
-		const enhancedTokens = tokens.map((token: any) => {
-			const creatorData = creatorDataMap.get(token.dev)
-			const protectionSettings = token.isProtected ? protectionSettingsMap.get(token.poolId) : undefined
+		const enhancedTokens = tokens.map((token) => {
+			const creatorData = creatorDataMap.get(token.dev ?? "")
+			const protectionSettings = token.isProtected && token.poolId
+				? protectionSettingsMap.get(token.poolId)
+				: undefined
 
 			return {
 				...token,
 				creatorData,
 				protectionSettings
 			}
-		})
+		}) as T[]
 
 		return enhancedTokens
 	} catch (error) {

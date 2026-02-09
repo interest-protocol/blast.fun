@@ -61,7 +61,7 @@ export function SearchToken({ mode = "tab" }: SearchTokenProps) {
         try {
             setLoading(true);
             const results = await nexaClient.searchTokens(searchQuery);
-            setSearchResults(results || []);
+            setSearchResults(Array.isArray(results) ? (results as SearchResult[]) : []);
         } catch (error) {
             console.error("Search error:", error);
             setSearchResults([]);

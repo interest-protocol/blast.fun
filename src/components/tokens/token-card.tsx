@@ -71,7 +71,7 @@ export const TokenCard = memo(function TokenCard({ pool: token, hasRecentTrade =
 
 										<div className="absolute inset-[3px] flex items-center justify-center overflow-hidden rounded bg-background">
 											<TokenAvatar
-												iconUrl={token.iconUrl}
+												iconUrl={token.logo}
 												symbol={token.symbol}
 												name={token.name}
 												className="h-full w-full object-cover"
@@ -161,7 +161,13 @@ export const TokenCard = memo(function TokenCard({ pool: token, hasRecentTrade =
 							<div className="flex flex-col gap-1 font-mono text-[10px] sm:flex-row sm:items-center sm:gap-1.5 sm:text-xs">
 								<div className="flex items-center gap-1.5">
 									<RelativeAge
-										timestamp={token.createdAt}
+										timestamp={
+											typeof token.createdAt === "number"
+												? token.createdAt
+												: token.createdAt
+													? new Date(token.createdAt).getTime()
+													: Date.now()
+										}
 										className="font-medium text-muted-foreground/60 uppercase tracking-wide"
 									/>
 									<span className="hidden text-muted-foreground/40 sm:inline">·</span>

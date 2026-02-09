@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import  { useState, useEffect, useMemo, useCallback } from "react";
 import {
     Loader2,
     Settings2,
@@ -409,7 +409,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
         } else if (tradeType === "sell") {
             return (calculateOutputAmount * suiPrice).toFixed(2);
         } else if (tradeType === "burn") {
-            return (parseFloat(amount) * marketData?.price).toFixed(2);
+            return (parseFloat(amount) * (marketData?.price ?? 0)).toFixed(2);
         }
 
         return "0.00";

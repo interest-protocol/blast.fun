@@ -9,7 +9,6 @@ import { pumpSdk } from "@/lib/memez/sdk"
 import { buyMigratedToken, sellMigratedToken, getBuyQuote, getSellQuote } from "@/lib/aftermath"
 import type { Token } from "@/types/token"
 import { formatMistToSui } from "@/utils/format"
-import { useTwitter } from "@/context/twitter.context"
 import { TOTAL_POOL_SUPPLY } from "@/constants"
 import { fetchCoinBalance } from "@/lib/fetch-portfolio"
 
@@ -26,6 +25,7 @@ interface UseTradingReturn {
 	isProcessing: boolean
 	error: string | null
 	success: string | null
+	canTrade: boolean
 	buy: (amountInSui: string, slippagePercent?: number) => Promise<void>
 	sell: (amountInTokens: string, slippagePercent?: number) => Promise<void>
 	clearError: () => void
@@ -91,6 +91,9 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 		}
 	};
 
+	const effectivePoolId =
+		(pool.poolId || pool.pool?.poolId || pool.id)?.trim?.() || ""
+
 	const buy = async (amountInSui: string, slippagePercent = 15) => {
 		if (!isConnected || !address) {
 			setError("WALLET::NOT_CONNECTED")
@@ -103,15 +106,13 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 			return
 		}
 
-		// const suiBalanceNum = parseFloat(suiBalance || "0")
-		// if (suiBalanceNum < amount) {
-		// 	const deficit = amount - suiBalanceNum
-		// 	setError(`INSUFFICIENT::SUI - You need ${deficit.toFixed(2)} more SUI`)
-		// 	return
-		// }
+		if (!effectivePoolId) {
+			setError("TOKEN::NO_POOL")
+			return
+		}
 
 		if (!isMigrated && (pool.pool?.canMigrate || (pool.pool?.bondingCurve || 0) >= 100)) {
-			setError('TOKEN::MIGRATING')
+			setError("TOKEN::MIGRATING")
 			return
 		}
 
@@ -159,10 +160,10 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 								const currentBalance = await fetchCoinBalance(address, pool.coinType)
 								const currentBalanceBigInt = BigInt(currentBalance)
 
-								const quote = await pumpSdk.quotePump({
-									pool: pool.poolId || pool.pool?.poolId || pool.id, 
-									amount: amountInMist,
-								})
+						const quote = await pumpSdk.quotePump({
+							pool: effectivePoolId,
+							amount: amountInMist,
+						})
 
 								const totalSupplyHuman = Number(TOTAL_POOL_SUPPLY) / Math.pow(10, decimals)
 								const currentBalanceHuman = Number(currentBalanceBigInt) / Math.pow(10, decimals)
@@ -173,8 +174,6 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 
 								if (percentageAfter > Number(settings.maxHoldingPercent)) {
 									// Don't block the transaction, let backend handle it
-									// Frontend check is just for user experience - backend will enforce
-									console.log(`Frontend warning: Purchase would exceed max holding limit (${percentageAfter.toFixed(2)}% > ${settings.maxHoldingPercent}%)`)
 								}
 							}
 						}
@@ -186,7 +185,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 
 
 				const quote = await pumpSdk.quotePump({
-					pool: pool.poolId || pool.pool?.poolId || pool.id, 
+					pool: effectivePoolId,
 					amount: amountInMist,
 				})
 
@@ -205,7 +204,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 
 				const { memeCoin, tx: pumpTx } = await pumpSdk.pump({
 					tx,
-					pool: pool.poolId,
+					pool: effectivePoolId,
 					quoteCoin,
 					minAmountOut,
 					referrer: referrerWallet ?? undefined,
@@ -246,6 +245,11 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 			return
 		}
 
+		if (!isMigrated && !effectivePoolId) {
+			setError("TOKEN::NO_POOL")
+			return
+		}
+
 		const amountBN = new BigNumber(amount)
 		const decimalMultiplier = new BigNumber(10).pow(decimals)
 		const amountInSmallestUnitBN = amountBN.multipliedBy(decimalMultiplier)
@@ -256,7 +260,6 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 			const actualBalanceInDisplayUnit = actualBalanceBN.dividedBy(decimalMultiplier)
 			const actualBalanceBigInt = BigInt(actualBalance)
 
-			// Check if trying to sell exact balance by comparing display strings
 			const inputString = amountBN.toFixed()
 			const balanceString = actualBalanceInDisplayUnit.toFixed()
 			const isExactBalance = inputString === balanceString
@@ -266,7 +269,6 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 			const isNearExact = ratio.isGreaterThanOrEqualTo(0.99999999) && ratio.isLessThanOrEqualTo(1.00000001)
 
 			if (isExactBalance || isNearExact) {
-				// If selling exact balance, use the actual balance directly
 				amountInSmallestUnit = actualBalanceBigInt
 			} else if (amountInSmallestUnit > actualBalanceBigInt) {
 				setError(`You don't have enough for this. You only have ${actualBalanceInDisplayUnit.toFixed()} ${pool.metadata?.symbol || "TOKEN"}`)
@@ -301,7 +303,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 				// in the balance check above (either exact balance or the calculated amount)
 				const amountToSell = amountInSmallestUnit
 				const quote = await pumpSdk.quoteDump({
-					pool: pool.pool?.poolId || pool.id,
+					pool: effectivePoolId,
 					amount: amountToSell,
 				})
 
@@ -320,7 +322,7 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 
 				const { quoteCoin, tx: dumpTx } = await pumpSdk.dump({
 					tx,
-					pool: pool.pool?.poolId || pool.id,
+					pool: effectivePoolId,
 					memeCoin,
 					minAmountOut,
 					referrer: referrerWallet ?? undefined
@@ -347,10 +349,13 @@ export function useTrading({ pool, decimals = 9, actualBalance, referrerWallet }
 		}
 	}
 
+	const canTrade = isMigrated ? !!pool.coinType : !!effectivePoolId
+
 	return {
 		isProcessing,
 		error,
 		success,
+		canTrade,
 		buy,
 		sell,
 		clearError,

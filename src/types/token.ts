@@ -69,28 +69,58 @@ export interface TokenPoolData {
 }
 
 export interface Token {
-    id: string;
-    _id?: string;
-    poolId: string;
-    coinType: string;
-    treasuryCap: string;
-    treasuryCapOwner?: any;
+	id: string
+	coinType: string
 
-    isProtected: boolean;
+	name: string
+	symbol: string
+	logo?: string
+	decimals: number
 
+	price: number
+	priceChange1d: number
+	priceChange6h: number
+	priceChange4h: number
+	priceChange1h: number
+	priceChange30m: number
 
+	marketCap: number
+	liquidity: number
+	circulatingSupply: number
+	totalSupply: number
 
-    metadata: TokenMetadata;
-    creator: TokenCreator;
-    market: TokenMarketData;
-    pool?: TokenPoolData;
+	tx24h: number
+	txBuy24h: number
+	txSell24h: number
 
-    // @dev: flags
-    createdAt: number;
-    lastTradeAt: string;
-    updatedAt?: string;
-    nsfw?: boolean;
+	volume24h: number
+	volume6h: number
+	volume4h: number
+	volume1h: number
+	volume30m: number
+
+	holders: number
+	top10HolderPercent: number
+	devHoldingPercent: number
+
+	createdAt: string
+	verified: boolean
+	rank: number
+
+	iconUrl?: string
+	chart1dUrl?: string
+
+	metadata?: TokenMetadata
+	creator?: TokenCreator
+	market?: TokenMarketData
+	pool?: TokenPoolData
+	treasuryCap?: string
+	poolId?: string
+	isProtected?: boolean
+	lastTradeAt?: string
+	nsfw?: boolean
 }
+
 
 export interface NexaToken {
     id: string;

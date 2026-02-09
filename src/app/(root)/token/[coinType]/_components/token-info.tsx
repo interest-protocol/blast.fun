@@ -208,7 +208,13 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 						<div className="flex h-full flex-col justify-center border-r border-border py-2">
 							<div className="text-xs font-medium">
 								<RelativeAge
-									timestamp={pool.createdAt || Date.now()}
+									timestamp={
+										typeof pool.createdAt === "number"
+											? pool.createdAt
+											: pool.createdAt
+												? new Date(pool.createdAt).getTime()
+												: Date.now()
+									}
 									className="text-xs"
 								/>
 							</div>

@@ -52,10 +52,53 @@ export async function fetchTokenByCoinType(coinType: string): Promise<Token | nu
 			}
 		}
 		
-		// @dev: construct token object with data from gql + nexa
+		const market = {
+			marketCap: (marketData as { marketCap?: number })?.marketCap || 0,
+			holdersCount: (marketData as { holdersCount?: number })?.holdersCount || 0,
+			volume24h: (marketData as { coin24hTradeVolumeUsd?: number })?.coin24hTradeVolumeUsd || 0,
+			liquidity: (marketData as { totalLiquidityUsd?: number })?.totalLiquidityUsd || 0,
+			price: (marketData as { coinPrice?: number })?.coinPrice || 0,
+			coinPrice: (marketData as { coinPrice?: number })?.coinPrice || 0,
+			bondingProgress: pool.bondingCurve || 0,
+			circulating: (marketData as { coinSupply?: number })?.coinSupply,
+			price5MinsAgo: (marketData as { price5MinsAgo?: number })?.price5MinsAgo,
+			price1HrAgo: (marketData as { price1HrAgo?: number })?.price1HrAgo,
+			price4HrAgo: (marketData as { price4HrAgo?: number })?.price4HrAgo,
+			price1DayAgo: (marketData as { price1DayAgo?: number })?.price1DayAgo
+		}
+
+		// @dev: construct token object with data from gql + nexa (flat Token fields + nested metadata/market/pool)
 		const processedPool: Token = {
 			id: pool.poolId,
 			coinType: pool.coinType,
+			name: metadata.name || "",
+			symbol: metadata.symbol || "",
+			logo: metadata.icon_url || metadata.iconUrl || "",
+			decimals: metadata.decimals ?? 9,
+			price: market.price,
+			priceChange1d: 0,
+			priceChange6h: 0,
+			priceChange4h: 0,
+			priceChange1h: 0,
+			priceChange30m: 0,
+			marketCap: market.marketCap,
+			liquidity: market.liquidity,
+			circulatingSupply: market.circulating ?? 0,
+			totalSupply: metadata.supply ?? 0,
+			tx24h: 0,
+			txBuy24h: 0,
+			txSell24h: 0,
+			volume24h: market.volume24h,
+			volume6h: 0,
+			volume4h: 0,
+			volume1h: 0,
+			volume30m: 0,
+			holders: market.holdersCount,
+			top10HolderPercent: 0,
+			devHoldingPercent: 0,
+			createdAt: typeof pool.createdAt === "number" ? String(pool.createdAt) : (pool.createdAt ?? String(Date.now())),
+			verified: false,
+			rank: 0,
 			treasuryCap: pool.treasuryCap || "",
 			poolId: pool.poolId,
 			isProtected: !!pool.publicKey,
@@ -64,8 +107,8 @@ export async function fetchTokenByCoinType(coinType: string): Promise<Token | nu
 				symbol: metadata.symbol || "",
 				description: metadata.description || "",
 				icon_url: metadata.icon_url || metadata.iconUrl || "",
-				decimals: metadata.decimals || 9,
-				supply: metadata.supply || 0,
+				decimals: metadata.decimals ?? 9,
+				supply: metadata.supply ?? 0,
 				Website: pool.metadata?.Website,
 				X: pool.metadata?.X,
 				Telegram: pool.metadata?.Telegram,
@@ -77,20 +120,7 @@ export async function fetchTokenByCoinType(coinType: string): Promise<Token | nu
 				trustedFollowers: "0",
 				followers: "0"
 			},
-			market: {
-				marketCap: (marketData as any)?.marketCap || 0,
-				holdersCount: (marketData as any)?.holdersCount || 0,
-				volume24h: (marketData as any)?.coin24hTradeVolumeUsd || 0,
-				liquidity: (marketData as any)?.totalLiquidityUsd || 0,
-				price: (marketData as any)?.coinPrice || 0,
-				coinPrice: (marketData as any)?.coinPrice || 0,
-				bondingProgress: pool.bondingCurve || 0,
-				circulating: (marketData as any)?.coinSupply,
-				price5MinsAgo: (marketData as any)?.price5MinsAgo,
-				price1HrAgo: (marketData as any)?.price1HrAgo,
-				price4HrAgo: (marketData as any)?.price4HrAgo,
-				price1DayAgo: (marketData as any)?.price1DayAgo
-			},
+			market,
 			pool: {
 				poolId: pool.poolId,
 				coinType: pool.coinType,
@@ -110,7 +140,6 @@ export async function fetchTokenByCoinType(coinType: string): Promise<Token | nu
 				burnTax: pool.burnTax,
 				mostLiquidPoolId: mostLiquidPoolId
 			},
-			createdAt: pool.createdAt || Date.now(),
 			lastTradeAt: pool.lastTradeAt || new Date().toISOString(),
 			nsfw: pool.nsfw
 		}

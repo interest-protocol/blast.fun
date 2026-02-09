@@ -16,12 +16,12 @@ export async function generateMetadata({ params }: { params: Promise<{ coinType:
 		return constructMetadata({ title: "Unknown Token | BLAST.FUN" })
 	}
 
-	const symbol = tokenData.metadata?.symbol || "UNKNOWN"
-	const name = tokenData.metadata?.name || symbol
-	const marketCap = tokenData.market?.marketCap || 0
+	const symbol = tokenData.symbol || "UNKNOWN"
+	const name = tokenData.name || symbol
+	const marketCap = tokenData.marketCap || 0
 	const formattedMcap = formatNumberWithSuffix(marketCap)
 
-	const processedImageUrl = `https://blast.fun/api/coin/${coinType}/image`
+	const processedImageUrl = `${BASE_DOMAIN}/api/coin/${encodeURIComponent(coinType)}/image`
 	const ogParams: Record<string, string> = {
 		name: name,
 		ticker: symbol,
