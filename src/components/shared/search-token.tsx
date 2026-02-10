@@ -45,12 +45,16 @@ export function SearchToken({ mode = "tab" }: SearchTokenProps) {
     const [query, setQuery] = useState("");
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [loading, setLoading] = useState(false);
+    const [mounted, setMounted] = useState(false);
+    const [shortcutKey, setShortcutKey] = useState("Ctrl");
     const router = useRouter();
 
-    const isMac =
-        typeof window !== "undefined" &&
-        navigator.platform.toUpperCase().indexOf("MAC") >= 0;
-    const shortcutKey = isMac ? "⌘" : "Ctrl";
+    // Detect OS only on client to avoid hydration mismatch
+    useEffect(() => {
+        const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+        setShortcutKey(isMac ? "⌘" : "Ctrl");
+        setMounted(true);
+    }, []);
 
     const handleSearch = useDebouncedCallback(async (searchQuery: string) => {
         if (!searchQuery || searchQuery.length < 2) {
@@ -108,9 +112,17 @@ export function SearchToken({ mode = "tab" }: SearchTokenProps) {
                     <span className="text-xs font-semibold text-muted-foreground group-hover:text-primary transition-colors duration-300">
                         Search Token
                     </span>
-                    <span className="flex py-1 px-2 bg-[#0004] rounded-md items-center text-[10px] font-mono text-muted-foreground/60 group-hover:text-muted-foreground transition-colors duration-300 tracking-widest">
-                        {shortcutKey}+F
-                    </span>
+                    
+                    {/* Only render shortcut after mounting to avoid hydration mismatch */}
+                    {mounted ? (
+                        <span className="flex py-1 px-2 bg-[#0004] rounded-md items-center text-[10px] font-mono text-muted-foreground/60 group-hover:text-muted-foreground transition-colors duration-300 tracking-widest">
+                            {shortcutKey}+F
+                        </span>
+                    ) : (
+                        <span className="flex py-1 px-2 bg-[#0004] rounded-md items-center text-[10px] font-mono text-muted-foreground/60 opacity-0 tracking-widest">
+                            Ctrl+F
+                        </span>
+                    )}
                 </Button>
             ) : (
                 <Button

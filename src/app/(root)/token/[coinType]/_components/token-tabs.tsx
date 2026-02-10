@@ -51,7 +51,14 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 	const [tradesActiveTab, setTradesActiveTab] = useState<"trades" | "vesting">("trades")
 	const { resolvedTheme } = useTheme()
 	const [isSplitView, setIsSplitView] = useState(false)
-	const { hasProjects } = useHoldersData(pool.coinType)
+	const { hasProjects } = (() => {
+		try {
+			return useHoldersData(pool.coinType)
+		} catch (error) {
+			console.error("useHoldersData error:", error)
+			return { hasProjects: false }
+		}
+	})()
 
 	// @dev: Check screen size for split view
 	useEffect(() => {

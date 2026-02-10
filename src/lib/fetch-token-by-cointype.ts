@@ -34,7 +34,7 @@ export async function fetchTokenByCoinType(coinType: string): Promise<Token | nu
 		
 		try {
 			marketData = await nexaServerClient.getMarketData(pool.coinType)
-			if ((marketData as any).coinMetadata) {
+			if ((marketData as any)?.coinMetadata) {
 				metadata = (marketData as any).coinMetadata
 			}
 		} catch (error) {

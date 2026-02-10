@@ -34,12 +34,18 @@ class NexaServerClient {
 		})
 
 		if (!response.ok) {
-			const errorText = await response.text().catch(() => "Unknown error")
-			console.error(`Nexa Server API error for ${url}: ${response.status} - ${errorText}`)
-			throw new Error(`Nexa Server API error: ${response.status}`)
-		}
+            const errorText = await response.text().catch(() => "Unknown error")
+            console.warn(`Nexa Server API error for ${url}: ${response.status} - ${errorText}`)
+            
+            // @dev: Return null instead of throwing for 503/502/504 errors
+            if ([502, 503, 504].includes(response.status)) {
+                return null
+            }
+            
+            throw new Error(`Nexa Server API error: ${response.status}`)
+        }
 
-		return response
+        return await response.json()
 	}
 
 	async getMarketData(coinType: string): Promise<TokenMarketData> {

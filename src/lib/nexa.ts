@@ -24,31 +24,71 @@ export interface MarketStats {
 
 class NexaClient {
 	private baseUrl: string
+	private maxRetries: number = 2
+	private retryDelay: number = 1000
 
 	constructor() {
 		this.baseUrl = NEXA_API_BASE
 	}
 
+	private async fetchWithRetry(
+		url: string,
+		options: RequestInit,
+		retries: number = 0
+	): Promise<Response> {
+		try {
+			const controller = new AbortController()
+			const timeoutId = setTimeout(() => controller.abort(), 10000) // 10s timeout
+
+			const response = await fetch(url, {
+				...options,
+				signal: controller.signal,
+			})
+
+			clearTimeout(timeoutId)
+			return response
+		} catch (error) {
+			if (retries < this.maxRetries) {
+				console.warn(`Fetch failed for ${url}, retrying (${retries + 1}/${this.maxRetries})...`)
+				await new Promise(resolve => setTimeout(resolve, this.retryDelay * (retries + 1)))
+				return this.fetchWithRetry(url, options, retries + 1)
+			}
+			throw error
+		}
+	}
+
 	private async fetch(endpoint: string, options?: NexaRequestOptions) {
 		const url = endpoint.startsWith('http') ? endpoint : `${this.baseUrl}${endpoint}`
 
-		const response = await fetch(url, {
-			...options,
-			headers: {
-				"Content-Type": "application/json",
-				...options?.headers,
-			},
-			next: {
-				revalidate: options?.revalidate ?? 10,
-			},
-		})
+		try {
+			const response = await this.fetchWithRetry(url, {
+				...options,
+				headers: {
+					"Content-Type": "application/json",
+					...options?.headers,
+				},
+				next: {
+					revalidate: options?.revalidate ?? 10,
+				},
+			})
 
-		if (!response.ok) {
-			const errorText = await response.text().catch(() => "Unknown error")
-			throw new Error(`NEXA API error: ${response.status} - ${errorText}`)
+			if (!response.ok) {
+				const errorText = await response.text().catch(() => "Unknown error")
+				console.warn(`NEXA API error for ${url}: ${response.status} - ${errorText}`)
+				
+				// Don't throw for service unavailable errors - return null response
+				if ([502, 503, 504].includes(response.status)) {
+					throw new Error(`Service temporarily unavailable`)
+				}
+				
+				throw new Error(`NEXA API error: ${response.status}`)
+			}
+
+			return response
+		} catch (error) {
+			console.warn(`NEXA API request failed for ${url}:`, error)
+			throw error // Re-throw to be handled by calling methods
 		}
-
-		return response
 	}
 
 	/**
