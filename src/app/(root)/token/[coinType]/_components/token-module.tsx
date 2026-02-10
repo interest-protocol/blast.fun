@@ -31,9 +31,9 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 	const [marketCap, setMarketCap] = useState<number | null>(pool.market?.marketCap || null)
 	const { addTab } = useTokenTabs()
 
-	// @dev: add this token tab to our registry for quick switching.
+	// @dev: add this token tab to our registry (use poolId or coinType for Noodles-only tokens).
 	useEffect(() => {
-		if (pool.pool?.poolId && pool.metadata) {
+		if ((pool.pool?.poolId || pool.coinType) && pool.metadata) {
 			addTab({
 				poolId: pool.pool?.poolId || "",
 				name: pool.metadata?.name || "Unknown",

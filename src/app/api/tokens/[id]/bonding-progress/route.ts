@@ -36,24 +36,36 @@ export async function GET(
       })
     }
 
-    // Fetch fresh data
-    const { data } = await apolloClient.query({
-      query: GET_COIN_POOL_BASIC,
-      variables: { type: coinType },
-      fetchPolicy: 'network-only',
-    })
+    let data: { coinPool?: { bondingCurve?: number | string; migrated?: boolean; canMigrate?: boolean } | null } | null = null
+    try {
+      const result = await apolloClient.query({
+        query: GET_COIN_POOL_BASIC,
+        variables: { type: coinType },
+        fetchPolicy: 'network-only',
+      })
+      data = result.data
+    } catch {
+      // Noodles-only tokens: no pool in GraphQL; return graduated so UI doesn't break
+      const fallback: BondingProgressData = { progress: 100, migrated: true, migrationPending: false }
+      return NextResponse.json(fallback, {
+        headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' },
+      })
+    }
 
-    if (!data.coinPool) {
-      return NextResponse.json(
-        { error: "Pool not found" },
-        { status: 404 }
-      )
+    if (!data?.coinPool) {
+      const fallback: BondingProgressData = { progress: 100, migrated: true, migrationPending: false }
+      return NextResponse.json(fallback, {
+        headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' },
+      })
     }
 
     const pool = data.coinPool
-    const progress = typeof pool.bondingCurve === "number" 
-      ? pool.bondingCurve 
-      : parseFloat(pool.bondingCurve) || 0
+    const raw = pool.bondingCurve
+    const progress = typeof raw === "number"
+      ? raw
+      : raw != null
+        ? parseFloat(String(raw)) || 0
+        : 0
     
     const migrated = pool.migrated || false
     const migrationPending = pool.canMigrate || false

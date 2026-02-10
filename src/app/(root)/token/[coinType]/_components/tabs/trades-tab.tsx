@@ -4,12 +4,11 @@ import { useState, useRef, useMemo, useCallback, useEffect } from "react"
 import { Token } from "@/types/token"
 import { Activity, ExternalLink, User } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
+import { useInfiniteQuery } from "@tanstack/react-query"
 import { formatAddress } from "@mysten/sui/utils"
 import { getTxExplorerUrl } from "@/utils/transaction"
 import { Logo } from "@/components/ui/logo"
 import tokenPriceSocket from "@/lib/websocket/token-price"
-import { nexaClient } from "@/lib/nexa"
 import { cn } from "@/utils"
 import { formatAmountWithSuffix, formatNumberWithSuffix } from "@/utils/format"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -89,11 +88,19 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 	} = useInfiniteQuery({
 		queryKey: ["trades", pool.coinType],
 		queryFn: async ({ pageParam = 0 }) => {
-			const data = await nexaClient.getTrades(pool.coinType, TRADES_PER_PAGE, pageParam)
-			return data as CoinTrade[]
+			const res = await fetch(
+				`/api/coin/${encodeURIComponent(pool.coinType)}/trades?limit=${TRADES_PER_PAGE}&skip=${pageParam}`,
+				{ headers: { Accept: "application/json" } }
+			)
+			if (!res.ok) return { trades: [], total: 0 }
+			const data = await res.json()
+			return {
+				trades: Array.isArray(data?.trades) ? data.trades : [],
+				total: typeof data?.total === "number" ? data.total : 0,
+			}
 		},
 		getNextPageParam: (lastPage, allPages) => {
-			if (lastPage.length < TRADES_PER_PAGE) return undefined
+			if (!lastPage?.trades?.length || lastPage.trades.length < TRADES_PER_PAGE) return undefined
 			return allPages.length * TRADES_PER_PAGE
 		},
 		enabled: !!pool.coinType,
@@ -108,8 +115,9 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 	const historicalTrades = useMemo(() => {
 		if (!data?.pages) return []
 
-		return data.pages.flatMap(page =>
-			page.map((trade: CoinTrade) => {
+		return data.pages.flatMap((page) => {
+			const trades = Array.isArray(page?.trades) ? page.trades : []
+			return trades.map((trade: CoinTrade) => {
 				const isBuy = trade.coinOut === pool.coinType
 				const coinInDecimals = Number(trade.coinInMetadata?.decimals) || DEFAULT_TOKEN_DECIMALS
 				const coinOutDecimals = Number(trade.coinOutMetadata?.decimals) || DEFAULT_TOKEN_DECIMALS
@@ -135,7 +143,7 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 					isRealtime: false
 				} as UnifiedTrade
 			})
-		)
+		})
 	}, [data?.pages, metadata?.symbol, pool.coinType])
 
 	const unifiedTrades = useMemo(() => {

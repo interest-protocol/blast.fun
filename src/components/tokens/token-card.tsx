@@ -32,7 +32,7 @@ export const TokenCard = memo(function TokenCard({ pool: token, hasRecentTrade =
 	].filter((link) => link.href)
 
 	return (
-		<Link href={`/token/${token.coinType}`} className="cursor-default">
+		<Link href={`/token/${token.coinType?.includes("::") ? encodeURIComponent(token.coinType) : token.coinType ?? ""}`} className="cursor-default">
 			<div
 				className={`group relative overflow-hidden border-border/40 border-b transition-all duration-300 hover:bg-accent/15 ${hasRecentTrade ? "animate-shake" : ""}`}
 			>

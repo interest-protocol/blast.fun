@@ -7,12 +7,26 @@ import { redirect } from "next/navigation"
 import { fetchTokenByPool } from "@/lib/fetch-token-by-pool"
 import { BASE_DOMAIN } from "@/constants"
 
-export async function generateMetadata({ params }: { params: Promise<{ coinType: string }> }): Promise<Metadata> {
-	const { coinType } = await params
+function decodeParam(raw: string): string {
+	try {
+		return decodeURIComponent(raw)
+	} catch {
+		return raw
+	}
+}
 
-	const tokenData = await fetchTokenByCoinType(coinType)
+export async function generateMetadata({ params }: { params: Promise<{ coinType: string }> }): Promise<Metadata> {
+	const { coinType: rawParam } = await params
+	const param = decodeParam(rawParam)
+
+	let tokenData: Awaited<ReturnType<typeof fetchTokenByCoinType>> = null
+	if (param.includes("::")) {
+		tokenData = await fetchTokenByCoinType(param)
+	} else {
+		const poolData = await fetchTokenByPool(param)
+		tokenData = poolData ? await fetchTokenByCoinType(poolData.coinType) : null
+	}
 	if (!tokenData) {
-		console.log("No token data found for:", coinType)
 		return constructMetadata({ title: "Unknown Token | BLAST.FUN" })
 	}
 
@@ -21,7 +35,7 @@ export async function generateMetadata({ params }: { params: Promise<{ coinType:
 	const marketCap = tokenData.marketCap || 0
 	const formattedMcap = formatNumberWithSuffix(marketCap)
 
-	const processedImageUrl = `${BASE_DOMAIN}/api/coin/${encodeURIComponent(coinType)}/image`
+	const processedImageUrl = `${BASE_DOMAIN}/api/coin/${encodeURIComponent(tokenData.coinType)}/image`
 	const ogParams: Record<string, string> = {
 		name: name,
 		ticker: symbol,
@@ -44,23 +58,33 @@ export default async function TokenPage({
 	params: Promise<{ coinType: string }>
 	searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-	const { coinType } = await params
-	if (!coinType.includes("::")) {
-		const tokenData = await fetchTokenByPool(coinType)
-		if (tokenData) {
-			return redirect(`/token/${tokenData.coinType}`)
+	const { coinType: rawParam } = await params
+	const param = decodeParam(rawParam)
+
+	if (!param.includes("::")) {
+		const poolData = await fetchTokenByPool(param)
+		if (poolData) {
+			return redirect(`/token/${encodeURIComponent(poolData.coinType)}`)
 		}
+		return (
+			<div className="container mx-auto px-4 py-8">
+				<div className="text-center">
+					<h1 className="font-mono font-semibold text-muted-foreground text-xl uppercase">TOKEN_NOT_FOUND</h1>
+					<p className="mt-2 font-mono text-muted-foreground/60 text-xs uppercase">{param || "[UNKNOWN]"}</p>
+				</div>
+			</div>
+		)
 	}
+
 	const search = await searchParams
 	const referral = search?.ref as string | undefined
-
-	const tokenData = await fetchTokenByCoinType(coinType)
+	const tokenData = await fetchTokenByCoinType(param)
 	if (!tokenData) {
 		return (
 			<div className="container mx-auto px-4 py-8">
 				<div className="text-center">
 					<h1 className="font-mono font-semibold text-muted-foreground text-xl uppercase">TOKEN_NOT_FOUND</h1>
-					<p className="mt-2 font-mono text-muted-foreground/60 text-xs uppercase">{coinType || "[UNKNOWN]"}</p>
+					<p className="mt-2 font-mono text-muted-foreground/60 text-xs uppercase">{param || "[UNKNOWN]"}</p>
 				</div>
 			</div>
 		)

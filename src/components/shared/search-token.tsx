@@ -11,7 +11,6 @@ import {
     CommandList,
 } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
-import { nexaClient } from "@/lib/nexa";
 import { TokenAvatar } from "@/components/tokens/token-avatar";
 import { formatNumberWithSuffix } from "@/utils/format";
 
@@ -60,7 +59,10 @@ export function SearchToken({ mode = "tab" }: SearchTokenProps) {
 
         try {
             setLoading(true);
-            const results = await nexaClient.searchTokens(searchQuery);
+            const res = await fetch(`/api/search/tokens?q=${encodeURIComponent(searchQuery)}`, {
+                headers: { Accept: "application/json" },
+            });
+            const results = res.ok ? await res.json() : [];
             setSearchResults(Array.isArray(results) ? (results as SearchResult[]) : []);
         } catch (error) {
             console.error("Search error:", error);
@@ -76,7 +78,7 @@ export function SearchToken({ mode = "tab" }: SearchTokenProps) {
 
     const handleSelect = useCallback(
         (coinType: string) => {
-            router.push(`/token/${coinType}`);
+            router.push(`/token/${coinType.includes("::") ? encodeURIComponent(coinType) : coinType}`);
             setOpen(false);
             setQuery("");
             setSearchResults([]);

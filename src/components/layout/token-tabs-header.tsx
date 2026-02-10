@@ -12,6 +12,10 @@ import { useBondingProgress } from "@/hooks/use-bonding-progress";
 import { SearchToken } from "../shared/search-token";
 import { useRef, useState, useEffect, useCallback, memo } from "react";
 
+function getTabRouteParam(tab: TokenTab): string {
+    return tab.poolId || tab.coinType || "";
+}
+
 const TokenTabItem = memo(function TokenTabItem({
     tab,
     isActive,
@@ -20,41 +24,39 @@ const TokenTabItem = memo(function TokenTabItem({
 }: {
     tab: TokenTab;
     isActive: boolean;
-    onTabClick: (poolId: string) => void;
-    onCloseTab: (e: React.MouseEvent, poolId: string) => void;
+    onTabClick: (routeParam: string) => void;
+    onCloseTab: (e: React.MouseEvent, routeParam: string) => void;
 }) {
     const { updateTab } = useTokenTabs();
+    const routeParam = getTabRouteParam(tab);
 
-    // @dev: pass undefined to the hook to prevent fetching if we bonded.
     const isAlreadyComplete = tab.bondingCurve >= 100;
     const { data: bondingData } = useBondingProgress(
         isAlreadyComplete ? undefined : tab.coinType
     );
 
-    // @dev: prio bonding progress from API or just fallback to stale tab data
     const progress = bondingData?.progress ?? tab.bondingCurve ?? 0;
     const isComplete = progress >= 100;
 
-    // @dev: update tab data when bonding occurs
     useEffect(() => {
         if (
             bondingData?.progress &&
             bondingData.progress !== tab.bondingCurve
         ) {
-            updateTab(tab.poolId, { bondingCurve: bondingData.progress });
+            updateTab(routeParam, { bondingCurve: bondingData.progress });
         }
-    }, [bondingData?.progress, tab.poolId, tab.bondingCurve, updateTab]);
+    }, [bondingData?.progress, routeParam, tab.bondingCurve, updateTab]);
 
     const handleClick = useCallback(() => {
-        onTabClick(tab.poolId);
-    }, [onTabClick, tab.poolId]);
+        onTabClick(routeParam);
+    }, [onTabClick, routeParam]);
 
     const handleClose = useCallback(
         (e: React.MouseEvent) => {
             e.stopPropagation();
-            onCloseTab(e, tab.poolId);
+            onCloseTab(e, routeParam);
         },
-        [onCloseTab, tab.poolId]
+        [onCloseTab, routeParam]
     );
 
     return (
@@ -148,28 +150,34 @@ export const TokenTabsHeader = memo(function TokenTabsHeader() {
     }, [tabs.length, checkScrollButtons]);
 
     const handleTabClick = useCallback(
-        (poolId: string) => {
-            router.push(`/token/${poolId}`);
+        (routeParam: string) => {
+            router.push(`/token/${routeParam.includes("::") ? encodeURIComponent(routeParam) : routeParam}`);
         },
         [router]
     );
 
     const handleCloseTab = useCallback(
-        (e: React.MouseEvent, poolId: string) => {
+        (e: React.MouseEvent, routeParam: string) => {
             e.stopPropagation();
-            removeTab(poolId);
+            removeTab(routeParam);
 
-            if (pathname === `/token/${poolId}`) {
-                const remainingTabs = tabs.filter((t) => t.poolId !== poolId);
+            const currentParam = pathname.startsWith("/token/")
+                ? decodeURIComponent(pathname.slice("/token/".length))
+                : "";
+            if (currentParam === routeParam) {
+                const remainingTabs = tabs.filter(
+                    (t) => getTabRouteParam(t) !== routeParam
+                );
                 if (remainingTabs.length > 0) {
                     const currentIndex = tabs.findIndex(
-                        (t) => t.poolId === poolId
+                        (t) => getTabRouteParam(t) === routeParam
                     );
                     const nextIndex = Math.min(
                         currentIndex,
                         remainingTabs.length - 1
                     );
-                    router.push(`/token/${remainingTabs[nextIndex].poolId}`);
+                    const nextParam = getTabRouteParam(remainingTabs[nextIndex]);
+                    router.push(`/token/${nextParam.includes("::") ? encodeURIComponent(nextParam) : nextParam}`);
                 } else {
                     router.push("/");
                 }
@@ -239,8 +247,10 @@ export const TokenTabsHeader = memo(function TokenTabsHeader() {
     }, []);
 
     const isTabActive = useCallback(
-        (poolId: string) => {
-            return pathname === `/token/${poolId}`;
+        (routeParam: string) => {
+            if (!pathname.startsWith("/token/")) return false;
+            const currentParam = decodeURIComponent(pathname.slice("/token/".length));
+            return currentParam === routeParam;
         },
         [pathname]
     );
@@ -280,9 +290,9 @@ export const TokenTabsHeader = memo(function TokenTabsHeader() {
                             >
                                 {tabs.map((tab) => (
                                     <TokenTabItem
-                                        key={tab.poolId}
+                                        key={getTabRouteParam(tab)}
                                         tab={tab}
-                                        isActive={isTabActive(tab.poolId)}
+                                        isActive={isTabActive(getTabRouteParam(tab))}
                                         onTabClick={handleTabClick}
                                         onCloseTab={handleCloseTab}
                                     />

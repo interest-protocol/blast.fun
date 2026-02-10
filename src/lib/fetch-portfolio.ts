@@ -1,11 +1,16 @@
 import type { PortfolioResponse, PortfolioBalanceItem } from "@/types/portfolio"
-import { nexaClient } from "@/lib/nexa"
+import { BASE_DOMAIN } from "@/constants"
 import { apolloClient } from "@/lib/apollo-client"
 import { GET_POOL_BY_COIN_TYPE } from "@/graphql/pools"
 
 export async function fetchPortfolio(address: string): Promise<PortfolioResponse> {
 	try {
-		const nexaPortfolio = await nexaClient.getPortfolio(address, 0)
+		const base = typeof window !== "undefined" ? "" : BASE_DOMAIN
+		const res = await fetch(`${base}/api/portfolio/${encodeURIComponent(address)}`, {
+			headers: { Accept: "application/json" },
+		})
+		if (!res.ok) return { balances: [] }
+		const nexaPortfolio = await res.json()
 
 		if (!nexaPortfolio || !nexaPortfolio.balances) {
 			return { balances: [] }
@@ -55,7 +60,7 @@ export async function fetchPortfolio(address: string): Promise<PortfolioResponse
 
 		return { balances: balancesWithPoolIds }
 	} catch (error) {
-		console.error("Failed to fetch portfolio from Nexa:", error)
+		console.error("Failed to fetch portfolio:", error)
 		throw new Error(`Failed to fetch portfolio: ${error instanceof Error ? error.message : 'Unknown error'}`)
 	}
 }

@@ -36,15 +36,17 @@ const httpLink = createHttpLink({
 
 const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) => {
 	if (graphQLErrors) {
-		graphQLErrors.forEach(({ message, locations, path, extensions }) => {
-			console.error(`GraphQL error:`, {
-				message,
-				locations,
-				path,
-				extensions,
-				operation: operation.operationName,
-				variables: operation.variables
-			})
+		graphQLErrors.forEach((err) => {
+			const msg = typeof err.message === "string" ? err.message : String(err)
+			const isNotFound = /not found/i.test(msg)
+			if (isNotFound) {
+				console.warn(`GraphQL:`, msg, { operation: operation.operationName })
+			} else {
+				console.error(`GraphQL error:`, msg || err, {
+					operation: operation.operationName,
+					variables: operation.variables,
+				})
+			}
 		})
 	}
 
@@ -57,6 +59,8 @@ const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) 
 			variables: operation.variables
 		})
 	}
+
+	return forward(operation)
 })
 
 export const apolloClient = new ApolloClient({

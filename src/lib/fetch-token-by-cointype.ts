@@ -4,14 +4,17 @@ import { apolloClient } from "@/lib/apollo-client"
 import { CONFIG_KEYS } from "@interest-protocol/memez-fun-sdk"
 import { redisGet, redisSetEx, CACHE_PREFIX, CACHE_TTL } from "@/lib/redis/client"
 import { fetchCreatorData } from "@/lib/fetch-creator-data"
-import { nexaServerClient } from "@/lib/nexa-server"
+import { BASE_DOMAIN } from "@/constants"
+import { fetchNoodlesCoinDetail, fetchNoodlesMarketData } from "@/lib/noodles/client"
 import { GET_POOL_BY_COIN_TYPE } from "@/graphql/pools"
 import type { Token } from "@/types/token"
 
 export async function fetchTokenByCoinType(coinType: string): Promise<Token | null> {
+	const decodedCoinType = decodeURIComponent(coinType)
+	let data: { coinPool?: unknown } | null = null
+
 	try {
-		const decodedCoinType = decodeURIComponent(coinType)
-		const { data } = await apolloClient.query({
+		const result = await apolloClient.query({
 			query: GET_POOL_BY_COIN_TYPE,
 			variables: { type: decodedCoinType },
 			context: {
@@ -21,24 +24,42 @@ export async function fetchTokenByCoinType(coinType: string): Promise<Token | nu
 			},
 			fetchPolicy: "network-only"
 		})
+		data = result.data
+	} catch {
+		// @dev: GraphQL throws when pool not found (e.g. Noodles-only tokens); try Noodles fallback.
+		const noodlesToken = await buildTokenFromNoodles(decodedCoinType)
+		return noodlesToken
+	}
 
-		if (!data?.coinPool) {
-			return null
+	if (!data?.coinPool) {
+		const noodlesToken = await buildTokenFromNoodles(decodedCoinType)
+		return noodlesToken
+	}
+
+	try {
+		type PoolMetadata = { Website?: string; X?: string; Telegram?: string; Discord?: string }
+		const pool = data.coinPool as Record<string, unknown> & {
+			poolId: string; coinType: string; bondingCurve?: number; metadata?: PoolMetadata; creatorAddress?: string; createdAt?: number | string; treasuryCap?: string; lastTradeAt?: string; nsfw?: boolean; publicKey?: string; innerState?: string; burnTax?: number;
+			coinBalance?: string; virtualLiquidity?: string; targetQuoteLiquidity?: string; quoteBalance?: string; migrated?: boolean; curve?: string; coinIpxTreasuryCap?: string; canMigrate?: boolean; canonical?: boolean; migrationWitness?: string | null
 		}
 
-		const pool = data.coinPool
-		
 		// @dev: fetch market data from Nexa to get metadata and market info
 		let marketData: any = null
 		let metadata: any = pool.metadata || {}
 		
 		try {
-			marketData = await nexaServerClient.getMarketData(pool.coinType)
-			if ((marketData as any).coinMetadata) {
-				metadata = (marketData as any).coinMetadata
+			const mdRes = await fetch(
+				`${BASE_DOMAIN}/api/coin/${encodeURIComponent(pool.coinType)}/market-data`,
+				{ headers: { Accept: "application/json" }, next: { revalidate: 10 } }
+			)
+			if (mdRes.ok) {
+				marketData = await mdRes.json()
+				if ((marketData as any).coinMetadata) {
+					metadata = (marketData as any).coinMetadata
+				}
 			}
 		} catch (error) {
-			console.error("Failed to fetch market data from Nexa:", error)
+			console.error("Failed to fetch market data:", error)
 		}
 		
 		// @dev: find most liquid pool for migrated tokens
@@ -124,17 +145,17 @@ export async function fetchTokenByCoinType(coinType: string): Promise<Token | nu
 			pool: {
 				poolId: pool.poolId,
 				coinType: pool.coinType,
-				bondingCurve: pool.bondingCurve,
-				coinBalance: pool.coinBalance,
-				virtualLiquidity: pool.virtualLiquidity,
-				targetQuoteLiquidity: pool.targetQuoteLiquidity,
-				quoteBalance: pool.quoteBalance,
-				migrated: pool.migrated,
-				curve: pool.curve,
-				coinIpxTreasuryCap: pool.coinIpxTreasuryCap,
-				canMigrate: pool.canMigrate,
-				canonical: pool.canonical,
-				migrationWitness: pool.migrationWitness,
+				bondingCurve: pool.bondingCurve ?? 0,
+				coinBalance: pool.coinBalance ?? "",
+				virtualLiquidity: pool.virtualLiquidity ?? "",
+				targetQuoteLiquidity: pool.targetQuoteLiquidity ?? "",
+				quoteBalance: pool.quoteBalance ?? "",
+				migrated: pool.migrated ?? false,
+				curve: pool.curve ?? "",
+				coinIpxTreasuryCap: pool.coinIpxTreasuryCap ?? "",
+				canMigrate: pool.canMigrate ?? false,
+				canonical: pool.canonical ?? false,
+				migrationWitness: pool.migrationWitness ?? null,
 				isProtected: !!pool.publicKey,
 				publicKey: pool.publicKey,
 				burnTax: pool.burnTax,
@@ -176,4 +197,115 @@ export async function fetchTokenByCoinType(coinType: string): Promise<Token | nu
 		console.error("Failed to fetch token data:", error)
 		return null
 	}
+}
+
+async function buildTokenFromNoodles(coinType: string): Promise<Token | null> {
+	const [detailRes, marketData] = await Promise.all([
+		fetchNoodlesCoinDetail(coinType),
+		fetchNoodlesMarketData(coinType),
+	])
+	if (!detailRes?.data?.coin) return null
+
+	const coin = detailRes.data.coin
+	const social = detailRes.data.social_media
+	const priceNum = detailRes.data.price_change?.price != null
+		? parseFloat(detailRes.data.price_change.price)
+		: (marketData?.price ?? 0)
+	const marketCap = coin.market_cap != null ? parseFloat(coin.market_cap) : (marketData?.marketCap ?? 0)
+	const liquidity = coin.liquidity != null ? parseFloat(coin.liquidity) : (marketData?.liquidity ?? 0)
+	const holdersCount = coin.holders ?? marketData?.holdersCount ?? 0
+	const volume24h = marketData?.volume24h ?? 0
+	const decimals = coin.decimals ?? 9
+	const supply = coin.total_supply != null ? parseFloat(coin.total_supply) : 0
+	const circulating = coin.circulating_supply != null ? parseFloat(coin.circulating_supply) : 0
+
+	const market = {
+		marketCap,
+		holdersCount,
+		volume24h,
+		liquidity,
+		price: priceNum,
+		coinPrice: priceNum,
+		bondingProgress: 0,
+		circulating,
+		price5MinsAgo: marketData?.price5MinsAgo,
+		price1HrAgo: marketData?.price1HrAgo,
+		price4HrAgo: marketData?.price4HrAgo,
+		price1DayAgo: marketData?.price1DayAgo,
+	}
+
+	const token: Token = {
+		id: "",
+		coinType,
+		name: coin.name || "",
+		symbol: coin.symbol || "",
+		logo: coin.logo || undefined,
+		decimals,
+		price: priceNum,
+		priceChange1d: 0,
+		priceChange6h: 0,
+		priceChange4h: 0,
+		priceChange1h: 0,
+		priceChange30m: 0,
+		marketCap,
+		liquidity,
+		circulatingSupply: circulating,
+		totalSupply: supply,
+		tx24h: 0,
+		txBuy24h: 0,
+		txSell24h: 0,
+		volume24h,
+		volume6h: 0,
+		volume4h: 0,
+		volume1h: 0,
+		volume30m: 0,
+		holders: holdersCount,
+		top10HolderPercent: 0,
+		devHoldingPercent: 0,
+		createdAt: coin.published_at || String(Date.now()),
+		verified: coin.verified ?? false,
+		rank: 0,
+		treasuryCap: "",
+		poolId: "",
+		isProtected: false,
+		metadata: {
+			name: coin.name || "",
+			symbol: coin.symbol || "",
+			description: coin.description || "",
+			icon_url: coin.logo || "",
+			decimals,
+			supply,
+			Website: social?.website,
+			X: social?.x,
+			Telegram: undefined,
+			Discord: social?.discord,
+		},
+		creator: {
+			address: coin.creator || "",
+			launchCount: 0,
+			trustedFollowers: "0",
+			followers: "0",
+		},
+		market,
+		pool: {
+			poolId: "",
+			coinType,
+			bondingCurve: 0,
+			coinBalance: "0",
+			virtualLiquidity: "0",
+			targetQuoteLiquidity: "0",
+			quoteBalance: "0",
+			migrated: true,
+			curve: "",
+			coinIpxTreasuryCap: "",
+			canMigrate: false,
+			canonical: false,
+			migrationWitness: null,
+			isProtected: false,
+		},
+		lastTradeAt: new Date().toISOString(),
+		nsfw: false,
+	}
+
+	return token
 }

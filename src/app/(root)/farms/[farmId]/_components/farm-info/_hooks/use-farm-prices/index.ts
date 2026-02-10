@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react"
-import { nexaClient } from "@/lib/nexa"
 
 export const useFarmPrices = (stakeCoinType: string, rewardCoinType: string | null) => {
   const [stakeTokenPrice, setStakeTokenPrice] = useState<number>(0)
@@ -10,13 +9,15 @@ export const useFarmPrices = (stakeCoinType: string, rewardCoinType: string | nu
       if (!rewardCoinType) return
 
       try {
-        const [stake, reward] = await Promise.all([
-          nexaClient.getMarketData(stakeCoinType),
-          nexaClient.getMarketData(rewardCoinType),
+        const [stakeRes, rewardRes] = await Promise.all([
+          fetch(`/api/coin/${encodeURIComponent(stakeCoinType)}/market-data`),
+          fetch(`/api/coin/${encodeURIComponent(rewardCoinType)}/market-data`),
         ])
+        const stake = stakeRes.ok ? await stakeRes.json() : null
+        const reward = rewardRes.ok ? await rewardRes.json() : null
 
-        if (stake?.coinPrice) setStakeTokenPrice(stake.coinPrice)
-        if (reward?.coinPrice) setRewardTokenPrice(reward.coinPrice)
+        if (stake?.coinPrice != null) setStakeTokenPrice(stake.coinPrice)
+        if (reward?.coinPrice != null) setRewardTokenPrice(reward.coinPrice)
       } catch (error) {
         console.error("Failed to fetch token prices:", error)
       }

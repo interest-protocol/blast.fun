@@ -6,7 +6,7 @@ import { TokenItemProps } from "./token-item.types"
 const TokenItem: FC<TokenItemProps> = ({ token }) => {
   return (
     <Link
-      href={`/token/${token.coinType}`}
+      href={`/token/${token.coinType?.includes("::") ? encodeURIComponent(token.coinType) : token.coinType ?? ""}`}
       className="block p-4 hover:bg-muted/5 transition-colors"
       target="_blank"
     >

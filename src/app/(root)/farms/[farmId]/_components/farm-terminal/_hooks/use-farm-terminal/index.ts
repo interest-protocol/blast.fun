@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react"
 
 import type { TokenMetadata } from "@/types/token"
-import { nexaClient } from "@/lib/nexa"
 import { useBalance } from "@/hooks/sui/use-balance"
 import { FarmTerminalProps } from "../../farm-terminal.types"
 import { useFarmOperations } from "../../../../_hooks/use-farm-operations"
@@ -33,7 +32,11 @@ const useFarmTerminal = ({
     const fetchRewardMetadata = async () => {
       if (!rewardCoinType) return
       try {
-        const md = await nexaClient.getCoinMetadata(rewardCoinType)
+        const res = await fetch(
+          `/api/coin/${encodeURIComponent(rewardCoinType)}/metadata`,
+          { headers: { Accept: "application/json" } }
+        )
+        const md = res.ok ? (await res.json()) as TokenMetadata : null
         if (md) setRewardMetadata(md)
       } catch (error) {
         console.error("Failed to fetch reward token metadata:", error)

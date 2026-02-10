@@ -25,8 +25,8 @@ export function ReferralShare({ pool }: ReferralShareProps) {
     const origin = typeof window !== 'undefined' ? window.location.origin : ''
 
     const tokenPageUrl = refCode
-        ? `${origin}/token/${pool.coinType}?ref=${refCode}`
-        : `${origin}/token/${pool.coinType}`
+        ? `${origin}/token/${pool.coinType?.includes("::") ? encodeURIComponent(pool.coinType) : pool.coinType ?? ""}?ref=${refCode}`
+        : `${origin}/token/${pool.coinType?.includes("::") ? encodeURIComponent(pool.coinType) : pool.coinType ?? ""}`
 
     const terminalUrl = refCode
         ? `${origin}/api/twitter/embed/${pool.coinType}?ref=${refCode}`

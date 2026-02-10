@@ -1,6 +1,5 @@
 import { useState, useCallback } from "react";
 import { useDebouncedCallback } from "use-debounce";
-import { nexaClient } from "@/lib/nexa";
 import type { TokenOption } from "./swap-terminal.types";
 import {
     SEARCH_DEBOUNCE_MS,
@@ -21,27 +20,34 @@ export const useTokenSearch = () => {
 
         try {
             setIsSearching(true);
-            const results = await nexaClient.searchTokens(query);
-            const tokenOptions: TokenOption[] = (results || []).map(
+            const res = await fetch(
+                `/api/search/tokens?q=${encodeURIComponent(query)}`,
+                { headers: { Accept: "application/json" } }
+            );
+            const raw = res.ok ? await res.json() : [];
+            const results = Array.isArray(raw) ? raw : [];
+            const tokenOptions: TokenOption[] = results.map(
                 (result: {
-                    coinType: string;
-                    symbol: string;
-                    name: string;
+                    coinType?: string;
+                    symbol?: string;
+                    name?: string;
                     icon?: string;
+                    iconUrl?: string;
                     decimals?: number;
                     coinMetadata?: {
                         iconUrl?: string;
                         icon_url?: string;
                     };
                 }) => ({
-                    coinType: result.coinType,
-                    symbol: result.symbol,
-                    name: result.name,
+                    coinType: result.coinType ?? "",
+                    symbol: result.symbol ?? "",
+                    name: result.name ?? "",
                     iconUrl:
-                        result.icon ||
-                        result.coinMetadata?.iconUrl ||
+                        result.icon ??
+                        result.iconUrl ??
+                        result.coinMetadata?.iconUrl ??
                         result.coinMetadata?.icon_url,
-                    decimals: result.decimals || DEFAULT_DECIMALS,
+                    decimals: result.decimals ?? DEFAULT_DECIMALS,
                 })
             );
             setSearchResults(tokenOptions);

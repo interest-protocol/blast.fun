@@ -17,8 +17,9 @@ export const PortfolioTableRow: FC<PortfolioTableRowProps> = ({ item }) => {
     <tr
       className="hover:bg-muted/20 transition-colors cursor-pointer"
       onClick={() => {
-        if (item.coinMetadata?.poolId) {
-          router.push(`/token/${item.coinMetadata.poolId}`)
+        const param = item.coinMetadata?.poolId || item.coinType
+        if (param) {
+          router.push(`/token/${param.includes("::") ? encodeURIComponent(param) : param}`)
         }
       }}
     >

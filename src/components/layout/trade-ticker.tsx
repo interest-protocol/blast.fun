@@ -85,7 +85,7 @@ export function TradeTicker() {
 					{[...trades, ...trades].map((trade, index) => (
 						<Link
 							key={`${trade.id}-${index}`}
-							href={`/token/${trade.coinType}`}
+							href={`/token/${trade.coinType?.includes("::") ? encodeURIComponent(trade.coinType) : trade.coinType ?? ""}`}
 							className="ticker-item inline-flex items-center gap-2 px-4 h-full hover:bg-accent/30 transition-colors whitespace-nowrap"
 						>
 							<span className="font-bold text-xs font-mono">{trade.symbol}</span>

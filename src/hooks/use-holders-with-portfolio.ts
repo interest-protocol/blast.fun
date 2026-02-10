@@ -1,7 +1,6 @@
 "use client"
 
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query"
-import { nexaClient } from "@/lib/nexa"
 import type { Holder } from "@/types/holder"
 import type { PortfolioBalanceItem } from "@/types/portfolio"
 
@@ -10,6 +9,21 @@ interface UseHoldersWithPortfolioOptions {
 	limit?: number
 	skip?: number
 	enabled?: boolean
+}
+
+async function fetchHoldersFromApi(coinType: string, limit: number, skip: number) {
+	const res = await fetch(
+		`/api/coin/holders/${encodeURIComponent(coinType)}?limit=${limit}`,
+		{ headers: { Accept: "application/json" } }
+	)
+	if (!res.ok) return []
+	const data = await res.json()
+	const holders = Array.isArray(data?.holders) ? data.holders : []
+	return holders.map((h: { account: string; balance: string; percentage: string }) => ({
+		user: h.account,
+		balance: h.balance,
+		percentage: h.percentage,
+	}))
 }
 
 export function useHoldersWithPortfolio({
@@ -21,15 +35,19 @@ export function useHoldersWithPortfolio({
 	return useQuery({
 		queryKey: ["holders-with-portfolio", coinType, limit, skip],
 		queryFn: async () => {
-			const holdersData = await nexaClient.getHolders(coinType, limit, skip)
+			const holdersData = await fetchHoldersFromApi(coinType, limit, skip)
 			if (!holdersData || holdersData.length === 0) {
 				return []
 			}
 
 			const holdersWithPortfolio = await Promise.all(
-				holdersData.map(async (holder: any, index: number) => {
+				holdersData.map(async (holder: { user: string; balance: string; percentage: string }, index: number) => {
 					try {
-						const portfolio = await nexaClient.getPortfolio(holder.user, 0)
+						const portfolioRes = await fetch(
+							`/api/portfolio/${encodeURIComponent(holder.user)}`,
+							{ headers: { Accept: "application/json" } }
+						)
+						const portfolio = portfolioRes.ok ? await portfolioRes.json() : null
 						const balances = (portfolio?.balances ?? []) as PortfolioBalanceItem[]
 						const coinBalance = balances.find((b) => b.coinType === coinType)
 
@@ -47,24 +65,24 @@ export function useHoldersWithPortfolio({
 						return {
 							rank: skip + index + 1,
 							user: holder.user,
-							balance: holder.balance || 0,
-							percentage: holder.percentage || 0,
-							balanceUsd: holder.balanceUsd || coinBalance?.value || 0,
-							balanceScaled: holder.balance || 0,
+							balance: Number(holder.balance) || 0,
+							percentage: Number(holder.percentage) || 0,
+							balanceUsd: coinBalance?.value ?? 0,
+							balanceScaled: Number(holder.balance) || 0,
 							marketStats,
-							averageEntryPrice: coinBalance?.averageEntryPrice || 0,
-							unrealizedPnl: coinBalance?.unrealizedPnl || 0,
-							realizedPnl: marketStats.pnl || 0
+							averageEntryPrice: coinBalance?.averageEntryPrice ?? 0,
+							unrealizedPnl: coinBalance?.unrealizedPnl ?? 0,
+							realizedPnl: marketStats.pnl ?? 0
 						} as Holder
 					} catch (error) {
 						console.warn(`Failed to fetch portfolio for ${holder.user}:`, error)
 						return {
 							rank: skip + index + 1,
 							user: holder.user,
-							balance: holder.balance || 0,
-							percentage: holder.percentage || 0,
-							balanceUsd: holder.balanceUsd || 0,
-							balanceScaled: holder.balance || 0,
+							balance: Number(holder.balance) || 0,
+							percentage: Number(holder.percentage) || 0,
+							balanceUsd: 0,
+							balanceScaled: Number(holder.balance) || 0,
 							marketStats: undefined,
 							averageEntryPrice: 0,
 							unrealizedPnl: 0,
@@ -91,15 +109,19 @@ export function useInfiniteHoldersWithPortfolio({
 	return useInfiniteQuery({
 		queryKey: ["infinite-holders-with-portfolio", coinType, limit],
 		queryFn: async ({ pageParam = 0 }) => {
-			const holdersData = await nexaClient.getHolders(coinType, limit, pageParam)
+			const holdersData = await fetchHoldersFromApi(coinType, limit, pageParam)
 			if (!holdersData || holdersData.length === 0) {
 				return []
 			}
 
 			const holdersWithPortfolio = await Promise.all(
-				holdersData.map(async (holder: any, index: number) => {
+				holdersData.map(async (holder: { user: string; balance: string; percentage: string }, index: number) => {
 					try {
-						const portfolio = await nexaClient.getPortfolio(holder.user, 0)
+						const portfolioRes = await fetch(
+							`/api/portfolio/${encodeURIComponent(holder.user)}`,
+							{ headers: { Accept: "application/json" } }
+						)
+						const portfolio = portfolioRes.ok ? await portfolioRes.json() : null
 						const balances = (portfolio?.balances ?? []) as PortfolioBalanceItem[]
 						const coinBalance = balances.find((b) => b.coinType === coinType)
 
@@ -117,24 +139,24 @@ export function useInfiniteHoldersWithPortfolio({
 						return {
 							rank: pageParam + index + 1,
 							user: holder.user,
-							balance: holder.balance || 0,
-							percentage: holder.percentage || 0,
-							balanceUsd: holder.balanceUsd || coinBalance?.value || 0,
-							balanceScaled: holder.balance || 0,
+							balance: Number(holder.balance) || 0,
+							percentage: Number(holder.percentage) || 0,
+							balanceUsd: coinBalance?.value ?? 0,
+							balanceScaled: Number(holder.balance) || 0,
 							marketStats,
-							averageEntryPrice: coinBalance?.averageEntryPrice || 0,
-							unrealizedPnl: coinBalance?.unrealizedPnl || 0,
-							realizedPnl: marketStats.pnl || 0
+							averageEntryPrice: coinBalance?.averageEntryPrice ?? 0,
+							unrealizedPnl: coinBalance?.unrealizedPnl ?? 0,
+							realizedPnl: marketStats.pnl ?? 0
 						} as Holder
 					} catch (error) {
 						console.warn(`Failed to fetch portfolio for ${holder.user}:`, error)
 						return {
 							rank: pageParam + index + 1,
 							user: holder.user,
-							balance: holder.balance || 0,
-							percentage: holder.percentage || 0,
-							balanceUsd: holder.balanceUsd || 0,
-							balanceScaled: holder.balance || 0,
+							balance: Number(holder.balance) || 0,
+							percentage: Number(holder.percentage) || 0,
+							balanceUsd: 0,
+							balanceScaled: Number(holder.balance) || 0,
 							marketStats: undefined,
 							averageEntryPrice: 0,
 							unrealizedPnl: 0,

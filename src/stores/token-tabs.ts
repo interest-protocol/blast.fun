@@ -10,13 +10,17 @@ export interface TokenTab {
 	coinType?: string
 }
 
+function tabRouteParam(tab: TokenTab): string {
+	return tab.poolId || tab.coinType || ""
+}
+
 interface TokenTabsStore {
 	tabs: TokenTab[]
 	addTab: (tab: TokenTab) => void
-	updateTab: (poolId: string, updates: Partial<TokenTab>) => void
-	removeTab: (poolId: string) => void
+	updateTab: (routeParam: string, updates: Partial<TokenTab>) => void
+	removeTab: (routeParam: string) => void
 	removeAllTabs: () => void
-	getTab: (poolId: string) => TokenTab | undefined
+	getTab: (routeParam: string) => TokenTab | undefined
 }
 
 export const useTokenTabs = create<TokenTabsStore>()(
@@ -26,25 +30,23 @@ export const useTokenTabs = create<TokenTabsStore>()(
 
 			addTab: (tab) =>
 				set((state) => {
-					const existingTab = state.tabs.find((t) => t.poolId === tab.poolId)
-					if (existingTab) {
-						return state
-					}
-					return {
-						tabs: [...state.tabs, tab],
-					}
+					const id = tabRouteParam(tab)
+					if (!id) return state
+					const existingTab = state.tabs.find((t) => tabRouteParam(t) === id)
+					if (existingTab) return state
+					return { tabs: [...state.tabs, tab] }
 				}),
 
-			updateTab: (poolId, updates) =>
+			updateTab: (routeParam, updates) =>
 				set((state) => ({
 					tabs: state.tabs.map((tab) =>
-						tab.poolId === poolId ? { ...tab, ...updates } : tab
+						tabRouteParam(tab) === routeParam ? { ...tab, ...updates } : tab
 					),
 				})),
 
-			removeTab: (poolId) =>
+			removeTab: (routeParam) =>
 				set((state) => ({
-					tabs: state.tabs.filter((t) => t.poolId !== poolId),
+					tabs: state.tabs.filter((t) => tabRouteParam(t) !== routeParam),
 				})),
 
 			removeAllTabs: () =>
@@ -52,7 +54,8 @@ export const useTokenTabs = create<TokenTabsStore>()(
 					tabs: [],
 				}),
 
-			getTab: (poolId) => get().tabs.find((t) => t.poolId === poolId),
+			getTab: (routeParam) =>
+				get().tabs.find((t) => tabRouteParam(t) === routeParam),
 		}),
 		{
 			name: "token-tabs",
