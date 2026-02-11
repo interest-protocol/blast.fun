@@ -1,10 +1,7 @@
 import type { PortfolioResponse, PortfolioBalanceItem } from "@/types/portfolio"
 import { BASE_DOMAIN } from "@/constants"
 
-/**
- * Fetch portfolio from Noodles via /api/portfolio. No GraphQL enrichment needed;
- * coinType is used for navigation in portfolio-table-row.
- */
+
 export async function fetchPortfolio(address: string): Promise<PortfolioResponse> {
 	try {
 		const base = typeof window !== "undefined" ? "" : BASE_DOMAIN
