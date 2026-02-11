@@ -52,7 +52,7 @@ interface NoodlesCoinPriceVolumeResponse {
 
 /**
  * Fetch market data for a single coin from Noodles (coin-detail + coin-price-volume).
- * Replaces Bluefin minified-market-data for farms and token detail.
+ * Noodles market data for farms and token detail.
  */
 export async function fetchNoodlesMarketData(
 	coinId: string

@@ -3,13 +3,10 @@ import { coinMetadataApi } from "@/lib/coin-metadata-api"
 import { fetchNoodlesCoinMetadata } from "@/lib/noodles/client"
 import type { TokenMetadata } from "@/types/token"
 
-const BLUEFIN_COIN_METADATA_BASE =
-	"https://spot.api.sui-prod.bluefin.io/internal-api/insidex"
-
 export const revalidate = 3600
 
 /**
- * Coin metadata (TokenMetadata). Noodles coin-detail first, then coinMetadataApi, then Bluefin.
+ * Coin metadata (TokenMetadata). Noodles coin-detail first, then coinMetadataApi fallback.
  */
 export async function GET(
 	_request: Request,
@@ -50,24 +47,10 @@ export async function GET(
 			})
 		}
 
-		const bluefinRes = await fetch(
-			`${BLUEFIN_COIN_METADATA_BASE}/coins/${encodeURIComponent(decodedCoinType)}/coin-metadata`,
-			{ headers: { Accept: "application/json" }, next: { revalidate: 21600 } }
+		return NextResponse.json(
+			{ error: "Metadata not found" },
+			{ status: 404 }
 		)
-
-		if (!bluefinRes.ok) {
-			return NextResponse.json(
-				{ error: "Metadata not found" },
-				{ status: bluefinRes.status }
-			)
-		}
-
-		const bluefinData = (await bluefinRes.json()) as TokenMetadata
-		return NextResponse.json(bluefinData, {
-			headers: {
-				"Cache-Control": "public, s-maxage=3600, stale-while-revalidate=7200",
-			},
-		})
 	} catch (error) {
 		console.error("Error fetching coin metadata:", error)
 		return NextResponse.json(

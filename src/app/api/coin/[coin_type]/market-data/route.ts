@@ -1,14 +1,10 @@
 import { NextResponse } from "next/server"
 import { fetchNoodlesMarketData } from "@/lib/noodles/client"
 
-const BLUEFIN_MINIFIED_MARKET_DATA_BASE =
-	"https://spot.api.sui-prod.bluefin.io/internal-api/insidex"
-
 export const revalidate = 10
 
 /**
- * Market data for a single coin. Noodles (coin-detail + coin-price-volume) first,
- * then Bluefin minified-market-data as fallback when Noodles key is missing or fails.
+ * Market data for a single coin. Noodles (coin-detail + coin-price-volume) only.
  */
 export async function GET(
 	_request: Request,
@@ -24,31 +20,13 @@ export async function GET(
 
 	try {
 		const noodlesData = await fetchNoodlesMarketData(decodedCoinType)
-		if (noodlesData) {
-			return NextResponse.json(noodlesData, {
-				headers: {
-					"Cache-Control": "public, s-maxage=10, stale-while-revalidate=30",
-				},
-			})
-		}
-
-		const bluefinRes = await fetch(
-			`${BLUEFIN_MINIFIED_MARKET_DATA_BASE}/coins/${encodeURIComponent(decodedCoinType)}/minified-market-data`,
-			{
-				headers: { "Content-Type": "application/json" },
-				next: { revalidate: 10 },
-			}
-		)
-
-		if (!bluefinRes.ok) {
+		if (!noodlesData) {
 			return NextResponse.json(
 				{ error: "Market data not available" },
-				{ status: bluefinRes.status }
+				{ status: 404 }
 			)
 		}
-
-		const bluefinData = await bluefinRes.json()
-		return NextResponse.json(bluefinData, {
+		return NextResponse.json(noodlesData, {
 			headers: {
 				"Cache-Control": "public, s-maxage=10, stale-while-revalidate=30",
 			},

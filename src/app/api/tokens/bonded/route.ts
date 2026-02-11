@@ -1,46 +1,43 @@
 import { NextResponse } from "next/server"
-import { enhanceTokens } from "@/lib/enhance-token"
-import { processTokenIconUrls } from "@/lib/process-token-icon-urls"
+import { fetchNoodlesTokensWithBlastFilter } from "@/lib/noodles/fetch-tokens-with-blast-filter"
 
-// @dev: No Noodles equivalent for "bonded" (graduated bonding-curve tokens).
 export const revalidate = 5
 
+/**
+ * Graduated tokens. Noodles coin-top + Blast filter: migrated === true.
+ */
 export async function GET(request: Request) {
 	try {
 		const { searchParams } = new URL(request.url)
-		const params = new URLSearchParams()
-		searchParams.forEach((value, key) => params.append(key, value))
+		const offset = Number(searchParams.get("offset") ?? 0)
+		const limit = Number(searchParams.get("limit") ?? 20)
 
-		const response = await fetch(
-			`https://spot.api.sui-prod.bluefin.io/internal-api/insidex/memezone/bonded?platforms=xpump&${params}`,
+		const tokens = await fetchNoodlesTokensWithBlastFilter(
+			"coin-top",
 			{
-				headers: {
-					"Accept": "application/json"
+				pagination: { offset, limit },
+				filters: {
+					min_liquidity: searchParams.get("minLiquidity") ? Number(searchParams.get("minLiquidity")) : undefined,
+					min_market_cap: searchParams.get("minMarketCap") ? Number(searchParams.get("minMarketCap")) : undefined,
+					has_social: searchParams.get("hasSocial") === "true" ? true : undefined,
+					verified: searchParams.get("verified") === "true" ? true : undefined,
 				},
-				next: { revalidate: 1 }
-			}
+			},
+			(p) => p.migrated
 		)
 
-		if (!response.ok) {
-			throw new Error(`Bluefin API error: ${response.status}`)
+		if (!tokens) {
+			return NextResponse.json(
+				{ error: "Noodles API key not configured" },
+				{ status: 503 }
+			)
 		}
 
-		const tokens = await response.json()
-
-		// get protection, create data and process token images
-		const enhancedTokens = await enhanceTokens(tokens)
-		const processedTokens = processTokenIconUrls(enhancedTokens)
-
-		return NextResponse.json(processedTokens, {
-			headers: {
-				"Cache-Control": "public, s-maxage=5, stale-while-revalidate=59"
-			}
+		return NextResponse.json(tokens, {
+			headers: { "Cache-Control": "public, s-maxage=5, stale-while-revalidate=59" },
 		})
 	} catch (error) {
 		console.error("API error:", error)
-		return NextResponse.json(
-			{ error: "Failed to fetch tokens" },
-			{ status: 500 }
-		)
+		return NextResponse.json({ error: "Failed to fetch tokens" }, { status: 500 })
 	}
 }

@@ -46,30 +46,20 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 	}, [pool.pool?.poolId, pool.metadata, pool.market?.bondingProgress, pool.coinType, addTab])
 
 	useEffect(() => {
-		const subscriptionId = pool.pool?.migrated && pool.pool?.mostLiquidPoolId
-			? pool.pool?.mostLiquidPoolId
-			: pool.pool?.innerState
+		const coinType = pool.coinType
+		if (!coinType) return
 
-		if (!subscriptionId) return
-
-		tokenPriceSocket.subscribeToTokenPrice(
-			subscriptionId,
-			'direct',
-			(data: { price: number; suiPrice: number }) => {
-				const newPrice = data.price * data.suiPrice
-				setPrice(newPrice)
-
-				const decimals = pool.metadata?.decimals || DEFAULT_TOKEN_DECIMALS
-				const totalSupply = Number(TOTAL_POOL_SUPPLY) / Math.pow(10, decimals)
-				const calculatedMarketCap = newPrice * totalSupply
-				setMarketCap(calculatedMarketCap)
-			}
-		)
+		tokenPriceSocket.subscribeToTokenPrice(coinType, (data: { price: number }) => {
+			setPrice(data.price)
+			const decimals = pool.metadata?.decimals || DEFAULT_TOKEN_DECIMALS
+			const totalSupply = Number(TOTAL_POOL_SUPPLY) / Math.pow(10, decimals)
+			setMarketCap(data.price * totalSupply)
+		})
 
 		return () => {
-			tokenPriceSocket.unsubscribeFromTokenPrice(subscriptionId, 'direct')
+			tokenPriceSocket.unsubscribeFromTokenPrice(coinType)
 		}
-	}, [pool.pool?.innerState, pool.pool?.mostLiquidPoolId, pool.pool?.migrated, pool.metadata?.decimals])
+	}, [pool.coinType, pool.metadata?.decimals])
 
 	// @dev: Update document title when market cap changes
 	useEffect(() => {

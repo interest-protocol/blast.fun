@@ -5,9 +5,6 @@ import {
 } from "@/lib/noodles/client"
 import type { PortfolioBalanceItem } from "@/types/portfolio"
 
-const BLUEFIN_PORTFOLIO_BASE =
-	"https://spot.api.sui-prod.bluefin.io/internal-api/insidex"
-
 export const revalidate = 30
 
 function mapNoodlesCoinToBalance(item: NoodlesPortfolioCoin): PortfolioBalanceItem {
@@ -31,7 +28,7 @@ function mapNoodlesCoinToBalance(item: NoodlesPortfolioCoin): PortfolioBalanceIt
 }
 
 /**
- * Portfolio balances for an address. Noodles portfolio/coins first, Bluefin fallback.
+ * Portfolio balances for an address. Noodles portfolio/coins only.
  */
 export async function GET(
 	_request: Request,
@@ -50,47 +47,15 @@ export async function GET(
 
 	try {
 		const noodlesRes = await fetchNoodlesPortfolio(decodedAddress)
-		if (noodlesRes?.data && Array.isArray(noodlesRes.data)) {
-			const balances = noodlesRes.data.map(mapNoodlesCoinToBalance)
-			return NextResponse.json(
-				{ balances },
-				{
-					headers: {
-						"Cache-Control":
-							"public, s-maxage=30, stale-while-revalidate=60",
-					},
-				}
-			)
-		}
-
-		const bluefinRes = await fetch(
-			`${BLUEFIN_PORTFOLIO_BASE}/spot/portfolio/${encodeURIComponent(decodedAddress)}?minBalanceValue=0`,
-			{
-				headers: { Accept: "application/json" },
-				next: { revalidate: 30 },
-			}
-		)
-
-		if (!bluefinRes.ok) {
-			return NextResponse.json(
-				{ balances: [] },
-				{
-					headers: {
-						"Cache-Control":
-							"public, s-maxage=30, stale-while-revalidate=60",
-					},
-				}
-			)
-		}
-
-		const bluefinData = await bluefinRes.json()
-		const balances = bluefinData?.balances ?? []
+		const balances =
+			noodlesRes?.data && Array.isArray(noodlesRes.data)
+				? noodlesRes.data.map(mapNoodlesCoinToBalance)
+				: []
 		return NextResponse.json(
 			{ balances },
 			{
 				headers: {
-					"Cache-Control":
-						"public, s-maxage=30, stale-while-revalidate=60",
+					"Cache-Control": "public, s-maxage=30, stale-while-revalidate=60",
 				},
 			}
 		)

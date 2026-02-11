@@ -1,94 +1,183 @@
-import type { Socket } from 'socket.io-client'
-import type { TradeData } from '@/types/trade'
-import { io } from 'socket.io-client'
+import type { TradeData } from "@/types/trade"
 
-const URL = 'https://spot.api.sui-prod.bluefin.io'
+const NOODLES_WS_URL = "wss://ws.noodles.fi/ws/coin-update"
+const PING_INTERVAL_MS = 30000
 
-type PriceCallback = (data: { price: number; suiPrice: number }) => void
+type PriceCallback = (data: { price: number }) => void
 type TradeCallback = (trade: TradeData) => void
-type SocketCallback = PriceCallback | TradeCallback
+
+function noodlesTradeToTradeData(raw: {
+	action: string
+	amount_in: number
+	amount_out: number
+	from_coin_ident: string
+	to_coin_ident: string
+	price: number
+	sender: string
+	timestamp: number
+	tx_digest: string
+	usd_value: number
+	protocol?: string
+}): TradeData {
+	const isBuy = raw.action === "buy"
+	return {
+		_id: raw.tx_digest + "-" + raw.timestamp,
+		user: raw.sender,
+		digest: raw.tx_digest,
+		timestampMs: raw.timestamp,
+		coinIn: raw.from_coin_ident,
+		coinOut: raw.to_coin_ident,
+		amountIn: raw.amount_in,
+		amountOut: raw.amount_out,
+		priceIn: raw.price,
+		priceOut: raw.price,
+		platform: raw.protocol ?? "",
+		volume: raw.usd_value,
+		operationType: raw.action,
+	}
+}
 
 class TokenPriceSocket {
-	private socket: Socket
-	private activeSubscriptions = new Map<string, SocketCallback>()
+	private ws: WebSocket | null = null
+	private pingTimer: ReturnType<typeof setInterval> | null = null
+	private priceCallbacks = new Map<string, PriceCallback>()
+	private tradeCallbacks = new Map<string, TradeCallback>()
+	private priceSubscriptions = new Set<string>()
+	private tradeSubscriptions = new Set<string>()
+	private reconnectAttempts = 0
+	private readonly maxReconnectAttempts = 5
 
-	constructor() {
-		this.socket = io(URL, {
-			path: '/price-feed-socket/insidex',
-			transports: ['websocket'],
-			reconnection: false,
-			timeout: 10000
-		})
+	private connect() {
+		if (this.ws?.readyState === WebSocket.OPEN) return
+		this.ws = new WebSocket(NOODLES_WS_URL)
 
-		this.socket.on('ping', () => {
-			this.socket.emit('pong')
-		})
-	}
-
-	public subscribeToTokenPrice(
-		pool: string,
-		direction: string,
-		callback: PriceCallback
-	) {
-		const event = `price-${pool}-${direction}`
-
-		const existing = this.activeSubscriptions.get(event)
-		if (existing) {
-			this.socket.off(event, existing as any)
+		this.ws.onopen = () => {
+			this.reconnectAttempts = 0
+			this.startPing()
+			this.resubscribeAll()
 		}
 
-		this.activeSubscriptions.set(event, callback)
-		this.socket.emit('subscribe-price', { pool, direction })
-		this.socket.on(event, callback)
-	}
-
-	public unsubscribeFromTokenPrice(pool: string, direction: string) {
-		const event = `price-${pool}-${direction}`
-		const callback = this.activeSubscriptions.get(event)
-
-		if (callback) {
-			this.socket.off(event, callback as any)
-			this.activeSubscriptions.delete(event)
+		this.ws.onmessage = (event) => {
+			try {
+				const msg = JSON.parse(event.data as string)
+				if (msg.type === "data" && msg.data) {
+					if (msg.room === "COIN_UPDATES" && msg.data.price != null) {
+						const coin = typeof msg.data.coin === "string" ? msg.data.coin : msg.data.coin?.coin_ident
+						if (coin) {
+							const cb = this.priceCallbacks.get(coin)
+							if (cb) cb({ price: Number(msg.data.price) })
+						}
+					} else if (msg.room === "TRADES" && Array.isArray(msg.data)) {
+						const channel = msg.channel as string | undefined
+						const coin = channel?.replace(/^TRADES-/, "")
+						if (coin) {
+							const cb = this.tradeCallbacks.get(coin)
+							if (cb) {
+								for (const t of msg.data) {
+									cb(noodlesTradeToTradeData(t))
+								}
+							}
+						}
+					}
+				}
+			} catch {
+				// ignore parse errors
+			}
 		}
 
-		this.socket.emit('unsubscribe-price', { pool, direction })
-	}
-
-	public subscribeToCoinTrades(
-		coin: string,
-		callback: TradeCallback
-	) {
-		const event = `trades-${coin}`
-
-		const existing = this.activeSubscriptions.get(event)
-		if (existing) {
-			this.socket.off(event, existing as any)
+		this.ws.onclose = () => {
+			this.stopPing()
+			if (this.priceSubscriptions.size > 0 || this.tradeSubscriptions.size > 0) {
+				if (this.reconnectAttempts < this.maxReconnectAttempts) {
+					this.reconnectAttempts++
+					setTimeout(() => this.connect(), 2000)
+				}
+			}
 		}
 
-		this.activeSubscriptions.set(event, callback)
-		this.socket.emit('subscribe-trades', { coin })
-		this.socket.on(event, callback)
+		this.ws.onerror = () => {
+			// Connection errors handled in onclose
+		}
 	}
 
-	public unsubscribeFromCoinTrades(coin: string) {
-		const event = `trades-${coin}`
-		const callback = this.activeSubscriptions.get(event)
+	private startPing() {
+		this.stopPing()
+		this.pingTimer = setInterval(() => {
+			if (this.ws?.readyState === WebSocket.OPEN) {
+				this.ws.send(JSON.stringify({ type: "ping" }))
+			}
+		}, PING_INTERVAL_MS)
+	}
 
-		if (callback) {
-			this.socket.off(event, callback as any)
-			this.activeSubscriptions.delete(event)
+	private stopPing() {
+		if (this.pingTimer) {
+			clearInterval(this.pingTimer)
+			this.pingTimer = null
 		}
+	}
 
-		this.socket.emit('unsubscribe-trades', { coin })
+	private send(msg: object) {
+		if (this.ws?.readyState === WebSocket.OPEN) {
+			this.ws.send(JSON.stringify(msg))
+		}
+	}
+
+	private resubscribeAll() {
+		const coins = [...this.priceSubscriptions]
+		if (coins.length > 0) {
+			this.send({ type: "subscribe", room: "COIN_UPDATES", data: { coins } })
+		}
+		for (const coin of this.tradeSubscriptions) {
+			this.send({ type: "subscribe", room: "TRADES", data: { coin } })
+		}
+	}
+
+	public subscribeToTokenPrice(coinType: string, callback: PriceCallback) {
+		const key = coinType
+		this.priceCallbacks.set(key, callback)
+		this.priceSubscriptions.add(key)
+		this.connect()
+		this.send({ type: "subscribe", room: "COIN_UPDATES", data: { coins: [key] } })
+	}
+
+	public unsubscribeFromTokenPrice(coinType: string) {
+		const key = coinType
+		this.priceCallbacks.delete(key)
+		this.priceSubscriptions.delete(key)
+		this.send({ type: "unsubscribe", room: "COIN_UPDATES", data: { coins: [key] } })
+		if (this.priceSubscriptions.size === 0 && this.tradeSubscriptions.size === 0) {
+			this.disconnectSocket()
+		}
+	}
+
+	public subscribeToCoinTrades(coinType: string, callback: TradeCallback) {
+		const key = coinType
+		this.tradeCallbacks.set(key, callback)
+		this.tradeSubscriptions.add(key)
+		this.connect()
+		this.send({ type: "subscribe", room: "TRADES", data: { coin: key } })
+	}
+
+	public unsubscribeFromCoinTrades(coinType: string) {
+		const key = coinType
+		this.tradeCallbacks.delete(key)
+		this.tradeSubscriptions.delete(key)
+		this.send({ type: "unsubscribe", room: "TRADES", data: { coin: key } })
+		if (this.priceSubscriptions.size === 0 && this.tradeSubscriptions.size === 0) {
+			this.disconnectSocket()
+		}
 	}
 
 	public disconnectSocket() {
-		this.activeSubscriptions.forEach((callback, event) => {
-			this.socket.off(event, callback as any)
-		})
-
-		this.activeSubscriptions.clear()
-		this.socket.disconnect()
+		this.stopPing()
+		this.priceCallbacks.clear()
+		this.tradeCallbacks.clear()
+		this.priceSubscriptions.clear()
+		this.tradeSubscriptions.clear()
+		if (this.ws) {
+			this.ws.close()
+			this.ws = null
+		}
 	}
 }
 
