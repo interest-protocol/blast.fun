@@ -4,7 +4,6 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Logo } from "../ui/logo"
 import { UserDropdown } from "../user/user-dropdown"
-import { TradeTicker } from "./trade-ticker"
 import { navigationItems } from "@/constants/navigation"
 import { cn } from "@/utils"
 import { useMounted } from "@/hooks/use-mounted"
@@ -15,9 +14,6 @@ export default function Header() {
 
 	return (
 		<header className="sticky top-0 z-50 border-b border-border/30">
-			<div className="h-8 bg-card/50 border-b border-border/30">
-				<TradeTicker />
-			</div>
 
 			<div className="h-12 px-4 flex items-center gap-6">
 				<Link href="/" className="group flex items-center gap-2">
