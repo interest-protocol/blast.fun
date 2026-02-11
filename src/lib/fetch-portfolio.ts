@@ -1,8 +1,10 @@
 import type { PortfolioResponse, PortfolioBalanceItem } from "@/types/portfolio"
 import { BASE_DOMAIN } from "@/constants"
-import { apolloClient } from "@/lib/apollo-client"
-import { GET_POOL_BY_COIN_TYPE } from "@/graphql/pools"
 
+/**
+ * Fetch portfolio from Noodles via /api/portfolio. No GraphQL enrichment needed;
+ * coinType is used for navigation in portfolio-table-row.
+ */
 export async function fetchPortfolio(address: string): Promise<PortfolioResponse> {
 	try {
 		const base = typeof window !== "undefined" ? "" : BASE_DOMAIN
@@ -10,15 +12,12 @@ export async function fetchPortfolio(address: string): Promise<PortfolioResponse
 			headers: { Accept: "application/json" },
 		})
 		if (!res.ok) return { balances: [] }
-		const nexaPortfolio = await res.json()
+		const data = await res.json()
 
-		if (!nexaPortfolio || !nexaPortfolio.balances) {
-			return { balances: [] }
-		}
+		if (!data || !data.balances) return { balances: [] }
 
-		// Map the balances with correct field names from API
-		const rawBalances = nexaPortfolio.balances as Array<Record<string, unknown>>
-		const allBalances: PortfolioBalanceItem[] = rawBalances.map((item) => ({
+		const rawBalances = data.balances as Array<Record<string, unknown>>
+		const balances: PortfolioBalanceItem[] = rawBalances.map((item) => ({
 			coinType: (item.coinType as string) ?? "",
 			balance: item.balance != null ? String(item.balance) : "0",
 			price: Number(item.price) || 0,
@@ -29,36 +28,7 @@ export async function fetchPortfolio(address: string): Promise<PortfolioResponse
 			unrealizedPnl: Number(item.unrealizedPnl) || 0,
 		}))
 
-		// Filter to show xpump platform tokens or items without platform (e.g. from Noodles)
-		const xpumpBalances = allBalances.filter(
-			(item) =>
-				item.coinMetadata?.platform === "xpump" ||
-				item.coinMetadata?.platform === undefined
-		)
-
-		// Fetch poolIds for each xpump token using GraphQL
-		const balancesWithPoolIds = await Promise.all(
-			xpumpBalances.map(async (balance) => {
-				try {
-					const { data } = await apolloClient.query({
-						query: GET_POOL_BY_COIN_TYPE,
-						variables: { type: balance.coinType },
-						fetchPolicy: 'network-only' // Always fetch fresh data
-					})
-					
-					// Add poolId to coinMetadata
-					if (data?.coinPool?.poolId && balance.coinMetadata) {
-						balance.coinMetadata.poolId = data.coinPool.poolId
-					}
-				} catch (error) {
-					console.error(`Failed to fetch poolId for ${balance.coinType}:`, error)
-					// Continue without poolId if fetch fails
-				}
-				return balance
-			})
-		)
-
-		return { balances: balancesWithPoolIds }
+		return { balances }
 	} catch (error) {
 		console.error("Failed to fetch portfolio:", error)
 		throw new Error(`Failed to fetch portfolio: ${error instanceof Error ? error.message : 'Unknown error'}`)
