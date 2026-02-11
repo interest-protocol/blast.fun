@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server"
-import { coinMetadataApi } from "@/lib/coin-metadata-api"
 import { fetchNoodlesCoinDetail } from "@/lib/noodles/client"
 
 export async function GET(
@@ -15,27 +14,8 @@ export async function GET(
 	const decodedCoinType = decodeURIComponent(coin_type)
 
 	try {
-		let iconUrl: string | undefined
-
-		try {
-			const noodlesDetail = await fetchNoodlesCoinDetail(decodedCoinType)
-			if (noodlesDetail?.data?.coin?.logo) {
-				iconUrl = noodlesDetail.data.coin.logo
-			}
-		} catch (error) {
-			console.error("Failed to fetch coin logo from Noodles:", error)
-		}
-
-		if (!iconUrl) {
-			try {
-				const metadata = await coinMetadataApi.getCoinMetadata(decodedCoinType)
-				if (metadata?.iconUrl) {
-					iconUrl = metadata.iconUrl
-				}
-			} catch (error) {
-				console.error("Failed to fetch coin metadata from fallback API:", error)
-			}
-		}
+		const noodlesDetail = await fetchNoodlesCoinDetail(decodedCoinType)
+		const iconUrl = noodlesDetail?.data?.coin?.logo
 
 		if (!iconUrl) {
 			const response = new Response(null, { status: 404 })

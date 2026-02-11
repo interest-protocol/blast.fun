@@ -1,4 +1,4 @@
-import { CoinMetadata } from "@/lib/coin-metadata-api"
+import type { CoinMetadata } from "@/lib/coin-metadata"
 import { InterestAccount, InterestFarm } from "@interest-protocol/farms"
 
 export interface FarmInfoProps {

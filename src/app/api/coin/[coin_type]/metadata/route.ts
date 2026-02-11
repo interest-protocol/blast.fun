@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server"
-import { coinMetadataApi } from "@/lib/coin-metadata-api"
 import { fetchNoodlesCoinMetadata } from "@/lib/noodles/client"
-import type { TokenMetadata } from "@/types/token"
 
 export const revalidate = 3600
 
 /**
- * Coin metadata (TokenMetadata). Noodles coin-detail first, then coinMetadataApi fallback.
+ * Coin metadata. Noodles coin-detail only.
  */
 export async function GET(
 	_request: Request,
@@ -21,26 +19,9 @@ export async function GET(
 	const decodedCoinType = decodeURIComponent(coin_type)
 
 	try {
-		const noodlesMeta = await fetchNoodlesCoinMetadata(decodedCoinType)
-		if (noodlesMeta) {
-			return NextResponse.json(noodlesMeta, {
-				headers: {
-					"Cache-Control": "public, s-maxage=3600, stale-while-revalidate=7200",
-				},
-			})
-		}
-
-		const fallbackMeta = await coinMetadataApi.getCoinMetadata(decodedCoinType)
-		if (fallbackMeta) {
-			const mapped: TokenMetadata = {
-				name: fallbackMeta.name,
-				symbol: fallbackMeta.symbol,
-				description: fallbackMeta.description ?? "",
-				icon_url: fallbackMeta.iconUrl,
-				decimals: fallbackMeta.decimals,
-				supply: 0,
-			}
-			return NextResponse.json(mapped, {
+		const meta = await fetchNoodlesCoinMetadata(decodedCoinType)
+		if (meta) {
+			return NextResponse.json(meta, {
 				headers: {
 					"Cache-Control": "public, s-maxage=3600, stale-while-revalidate=7200",
 				},

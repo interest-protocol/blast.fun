@@ -4,7 +4,7 @@ import { useState, useCallback } from "react"
 import toast from "react-hot-toast"
 import { migratorSdk } from "@/lib/memez/sdk"
 import { CreatorRewardProps } from "./use-creator-rewards.types"
-import { coinMetadataApi } from "@/lib/coin-metadata-api"
+import { fetchCoinMetadata } from "@/lib/coin-metadata"
 
 
 export const useFetchRewards = (address?: string | null) => {
@@ -42,7 +42,7 @@ export const useFetchRewards = (address?: string | null) => {
                             ? (Number(pendingFee) / 10 ** 9).toString()
                             : "0"
 
-                        meta = await coinMetadataApi.getCoinMetadata(p.memeCoinType)
+                        meta = await fetchCoinMetadata(p.memeCoinType)
                     } catch (error) {
                         console.error(`Error fetching metadata for ${p.objectId}`, error)
                     }

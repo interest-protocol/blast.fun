@@ -56,13 +56,12 @@ export function useVestingApi() {
 
 			// Run claimablePromises and metadata fetch in parallel
 			const uniqueCoinTypes = [...new Set(formattedPositions.map(p => p.coinType))]
-			const [claimableResults, metadataResults]: [any[], CoinMetadata[]] = await Promise.all([
+			const [claimableResults, metadataResults] = await Promise.all([
 				Promise.all(claimablePromises),
 				VestingApi.getCoinMetadata(uniqueCoinTypes)
 			])
-			// @dev: Create a map of coinType to decimals for quick lookup
 			const decimalsMap: Record<string, number> = {}
-			metadataResults.forEach(metadata => {
+			metadataResults.filter((m): m is CoinMetadata => m != null).forEach((metadata) => {
 				decimalsMap[metadata.type] = metadata.decimals
 			})
 			

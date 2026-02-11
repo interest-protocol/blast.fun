@@ -76,11 +76,12 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 				VestingApi.getCoinMetadata(uniqueCoinTypes)
 			])
 
-			// @dev: Create decimals map for quick lookup
 			const decimalsMap: Record<string, number> = {}
-			metadataResults.forEach(metadata => {
-				decimalsMap[metadata.type] = metadata.decimals
-			})
+			metadataResults
+				.filter((m): m is NonNullable<typeof m> => m != null)
+				.forEach((metadata) => {
+					decimalsMap[metadata.type] = metadata.decimals
+				})
 			
 			// @dev: Create map for quick lookup with decimal-adjusted claimable amounts
 			const claimableMap = new Map(
