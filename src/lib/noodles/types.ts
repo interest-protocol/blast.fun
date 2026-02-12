@@ -43,6 +43,11 @@ export interface NoodlesCoinNewResponse {
 	pagination?: NoodlesPagination
 }
 
+/** Coin Trends (POST /api/v1/partner/coin-trending) – same shape as list + rank */
+export type NoodlesCoinTrendingItem = NoodlesCoinListItem & { rank?: number }
+
+export type NoodlesCoinTrendingPeriod = "30m" | "1h" | "4h" | "6h" | "24h"
+
 export interface NoodlesCoinDetailCoin {
 	coin_type: string
 	symbol: string

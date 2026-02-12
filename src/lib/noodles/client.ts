@@ -4,6 +4,8 @@ import {
 	NOODLES_API_BASE,
 	type NoodlesCoinDetailResponse,
 	type NoodlesCoinDetailResponseData,
+	type NoodlesCoinTrendingItem,
+	type NoodlesCoinTrendingPeriod,
 } from "./types"
 
 const NOODLES_CHAIN = "sui" as const
@@ -245,4 +247,32 @@ export async function fetchNoodlesSearchTokens(
 		icon: c.logo,
 		decimals: 9,
 	}))
+}
+
+/**
+ * Fetch trending coins from Noodles POST /api/v1/partner/coin-trending.
+ * score_period: 30m | 1h | 4h | 6h | 24h
+ */
+export async function fetchNoodlesCoinTrending(
+	scorePeriod: NoodlesCoinTrendingPeriod = "24h",
+	options: { limit?: number; offset?: number } = {}
+): Promise<NoodlesCoinTrendingItem[]> {
+	const apiKey = env.NOODLES_API_KEY
+	if (!apiKey) return []
+
+	const { limit = 20, offset = 0 } = options
+	const res = await fetch(`${NOODLES_API_BASE}/api/v1/partner/coin-trending`, {
+		method: "POST",
+		headers: noodlesHeaders(),
+		body: JSON.stringify({
+			pagination: { limit, offset },
+			score_period: scorePeriod,
+		}),
+		next: { revalidate: 60 },
+	})
+
+	if (!res.ok) return []
+
+	const json = (await res.json()) as { data?: NoodlesCoinTrendingItem[] }
+	return Array.isArray(json?.data) ? json.data : []
 }

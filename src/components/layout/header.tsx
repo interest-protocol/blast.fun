@@ -7,6 +7,7 @@ import { UserDropdown } from "../user/user-dropdown"
 import { navigationItems } from "@/constants/navigation"
 import { cn } from "@/utils"
 import { useMounted } from "@/hooks/use-mounted"
+import { TradeTicker } from "./trade-ticker"
 
 export default function Header() {
 	const pathname = usePathname()
@@ -14,6 +15,9 @@ export default function Header() {
 
 	return (
 		<header className="sticky top-0 z-50 border-b border-border/30">
+			<div className="h-8 bg-card/50 border-b border-border/30">
+				<TradeTicker />
+			</div>
 
 			<div className="h-12 px-4 flex items-center gap-6">
 				<Link href="/" className="group flex items-center gap-2">
