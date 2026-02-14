@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query"
-import { nexaClient } from "@/lib/nexa"
 import type { Token } from "@/types/token"
 
 export interface UserHoldings {
@@ -35,7 +34,10 @@ export function useUserHoldings(pool: Token, address?: string | null) {
 			}
 
 			try {
-				const stats = await nexaClient.getMarketStats(address, coinType)
+				const res = await fetch(
+					`/api/market-stats/${encodeURIComponent(address)}/${encodeURIComponent(coinType)}`
+				)
+				const stats = res.ok ? await res.json() : null
 
 				if (!stats || (stats.buyTrades === 0 && stats.sellTrades === 0)) {
 					return {

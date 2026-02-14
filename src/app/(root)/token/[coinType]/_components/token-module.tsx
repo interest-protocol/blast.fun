@@ -55,11 +55,11 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 		tokenPriceSocket.subscribeToTokenPrice(
 			subscriptionId,
 			'direct',
-			(data: { price: number; suiPrice: number }) => {
-				const newPrice = data.price * data.suiPrice
+			(data: { price?: number; suiPrice?: number }) => {
+				const newPrice = (data?.price ?? 0) * (data?.suiPrice ?? 0)
 				setPrice(newPrice)
 
-				const decimals = pool.metadata?.decimals || DEFAULT_TOKEN_DECIMALS
+				const decimals = pool.metadata?.decimals ?? DEFAULT_TOKEN_DECIMALS
 				const totalSupply = Number(TOTAL_POOL_SUPPLY) / Math.pow(10, decimals)
 				const calculatedMarketCap = newPrice * totalSupply
 				setMarketCap(calculatedMarketCap)

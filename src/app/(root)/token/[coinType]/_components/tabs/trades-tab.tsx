@@ -9,7 +9,7 @@ import { formatAddress } from "@mysten/sui/utils"
 import { getTxExplorerUrl } from "@/utils/transaction"
 import { Logo } from "@/components/ui/logo"
 import tokenPriceSocket from "@/lib/websocket/token-price"
-import { nexaClient } from "@/lib/nexa"
+import type { MarketTrade } from "@/lib/memez/fetch-market-trades"
 import { cn } from "@/utils"
 import { formatAmountWithSuffix, formatNumberWithSuffix } from "@/utils/format"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -88,19 +88,28 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 		error
 	} = useInfiniteQuery({
 		queryKey: ["trades", pool.coinType],
-		queryFn: async ({ pageParam = 0 }) => {
-			const data = await nexaClient.getTrades(pool.coinType, TRADES_PER_PAGE, pageParam)
-			return data as CoinTrade[]
+		queryFn: async ({ pageParam }) => {
+			try {
+				const params = new URLSearchParams({ limit: String(TRADES_PER_PAGE) })
+				if (pageParam != null && pageParam !== "") params.set("cursor", String(pageParam))
+				const res = await fetch(
+					`/api/coin/${encodeURIComponent(pool.coinType)}/trades?${params}`
+				)
+				const data = res.ok ? await res.json() : null
+				return { trades: data?.trades ?? [], nextCursor: data?.nextCursor ?? null }
+			} catch {
+				return { trades: [], nextCursor: null }
+			}
 		},
-		getNextPageParam: (lastPage, allPages) => {
-			if (lastPage.length < TRADES_PER_PAGE) return undefined
-			return allPages.length * TRADES_PER_PAGE
+		getNextPageParam: (lastPage) => {
+			const next = (lastPage as { nextCursor?: string | number | null })?.nextCursor
+			return next != null ? next : undefined
 		},
 		enabled: !!pool.coinType,
 		refetchOnWindowFocus: false,
 		refetchOnMount: false,
 		staleTime: Infinity,
-		initialPageParam: 0
+		initialPageParam: undefined as string | number | undefined
 	})
 
 	const { realtimeTrades } = useRealtimeTrades(pool, metadata?.symbol)
@@ -108,35 +117,38 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 	const historicalTrades = useMemo(() => {
 		if (!data?.pages) return []
 
-		return data.pages.flatMap(page =>
-			page.map((trade: CoinTrade) => {
-				const isBuy = trade.coinOut === pool.coinType
-				const coinInDecimals = Number(trade.coinInMetadata?.decimals) || DEFAULT_TOKEN_DECIMALS
-				const coinOutDecimals = Number(trade.coinOutMetadata?.decimals) || DEFAULT_TOKEN_DECIMALS
-				const amountIn = Number(trade.amountIn) / Math.pow(10, coinInDecimals)
-				const amountOut = Number(trade.amountOut) / Math.pow(10, coinOutDecimals)
+		return data.pages.flatMap((page) => {
+			const items = (page as { trades?: MarketTrade[] })?.trades ?? (Array.isArray(page) ? (page as MarketTrade[]) : [])
+			return items.map((trade) => {
+				const isBuy = trade.type === "BUY"
+				const quoteAmount = parseFloat(trade.quoteAmount || "0")
+				const coinAmount = parseFloat(trade.coinAmount || "0")
+				const price = parseFloat(trade.price || "0")
+				const volumeUsd = parseFloat(trade.volume || "0") || quoteAmount
 
 				return {
-					id: trade._id || trade.digest,
-					timestamp: trade.timestampMs,
-					type: isBuy ? "BUY" : "SELL",
-					amountIn,
-					amountOut,
-					coinIn: trade.coinIn,
-					coinOut: trade.coinOut,
-					coinInSymbol: trade.coinInMetadata?.symbol || (isBuy ? "SUI" : metadata?.symbol),
-					coinOutSymbol: trade.coinOutMetadata?.symbol || (isBuy ? metadata?.symbol : "SUI"),
-					coinInIconUrl: trade.coinInMetadata?.iconUrl || trade.coinInMetadata?.icon_url,
-					coinOutIconUrl: trade.coinOutMetadata?.iconUrl || trade.coinOutMetadata?.icon_url,
-					price: isBuy ? trade.priceOut : trade.priceIn,
-					value: isBuy ? amountOut * trade.priceOut : amountIn * trade.priceIn,
-					trader: trade.user,
+					id: trade.digest,
+					timestamp: typeof trade.time === "string"
+						? new Date(trade.time).getTime()
+						: (trade.time as number) ?? 0,
+					type: trade.type,
+					amountIn: isBuy ? quoteAmount : coinAmount,
+					amountOut: isBuy ? coinAmount : quoteAmount,
+					coinIn: isBuy ? "0x2::sui::SUI" : pool.coinType,
+					coinOut: isBuy ? pool.coinType : "0x2::sui::SUI",
+					coinInSymbol: isBuy ? "SUI" : (metadata?.symbol ?? "???"),
+					coinOutSymbol: isBuy ? (metadata?.symbol ?? "???") : "SUI",
+					coinInIconUrl: isBuy ? undefined : metadata?.icon_url,
+					coinOutIconUrl: isBuy ? metadata?.icon_url : undefined,
+					price,
+					value: volumeUsd,
+					trader: trade.trader,
 					digest: trade.digest,
 					isRealtime: false
 				} as UnifiedTrade
 			})
-		)
-	}, [data?.pages, metadata?.symbol, pool.coinType])
+		})
+	}, [data?.pages, metadata?.icon_url, metadata?.symbol, pool.coinType])
 
 	const unifiedTrades = useMemo(() => {
 		const combined = [...realtimeTrades, ...historicalTrades]
@@ -185,36 +197,42 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 	}, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
 	const formatPrice = (price: number) => {
-		// @dev: Format price to show significant digits with subscript for zeros count
-		if (!price || price === 0) {
-			return '$0.00'
-		}
+		if (price == null || !Number.isFinite(price) || price < 0) return "$0.00"
+		if (price === 0) return "$0.00"
 
-		if (price >= 1) {
-			return `$${price.toFixed(2)}`
-		}
+		if (price >= 1) return `$${price.toFixed(2)}`
+		if (price >= 0.01) return `$${price.toFixed(4)}`
 
-		const priceStr = price.toString()
-		const match = priceStr.match(/^0\.0*(\d{1,4})/)
-		
-		if (match) {
-			const zeros = priceStr.match(/^0\.(0*)/)?.[1] || ''
-			const significantDigits = match[1]
-			const subZeroCount = zeros.length
-			
-			if (subZeroCount > 0) {
-				// @dev: Return JSX with subscript for zero count
+		const str = price < 1e-6 ? price.toExponential(4) : price.toString()
+		const decimalMatch = str.match(/^0\.(0*)(\d{1,6})/)
+		const expMatch = str.match(/^([\d.]+)e-?(\d+)$/)
+
+		if (decimalMatch) {
+			const [, zeros = "", digits = ""] = decimalMatch
+			if (zeros.length > 2) {
 				return (
 					<span>
-						$0.0<sub className="text-[8px] sm:text-[10px]">{subZeroCount}</sub>{significantDigits}
+						$0.0<sub className="text-[8px] sm:text-[10px]">{zeros.length}</sub>{digits.slice(0, 4)}
 					</span>
 				)
-			} else {
-				return `$0.${significantDigits}`
 			}
+			return `$${price.toFixed(Math.min(6, zeros.length + digits.length + 2))}`
 		}
-		
-		return `$${price.toFixed(4)}`
+		if (expMatch) {
+			const exp = parseInt(expMatch[2], 10)
+			const mantissa = parseFloat(expMatch[1])
+			const zeros = Math.max(1, exp - 1)
+			const sig = mantissa >= 1
+				? String(Math.round(mantissa)).slice(0, 4)
+				: (mantissa * 10000).toFixed(0).replace(/^0+/, "").slice(0, 4) || "1"
+			return (
+				<span>
+					$0.0<sub className="text-[8px] sm:text-[10px]">{zeros}</sub>{sig}
+				</span>
+			)
+		}
+		const fixed = price < 1e-8 ? price.toExponential(2) : price.toFixed(8).replace(/\.?0+$/, "")
+		return `$${fixed || "0"}`
 	}
 
 	const formatValue = (value: number) => {

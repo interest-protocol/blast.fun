@@ -1,4 +1,3 @@
-import { env } from "@/env"
 import type { TokenMarketData } from "@/types/token"
 import type { TokenMetadata } from "@/types/token"
 import type { LeaderboardEntry } from "@/types/leaderboard"
@@ -11,11 +10,9 @@ interface NexaServerRequestOptions extends RequestInit {
 
 class NexaServerClient {
 	private baseUrl: string
-	private apiKey: string
 
 	constructor() {
 		this.baseUrl = NEXA_SERVER_API_BASE
-		this.apiKey = env.NEXA_API_KEY
 	}
 
 	private async fetch(endpoint: string, options?: NexaServerRequestOptions) {
@@ -25,7 +22,6 @@ class NexaServerClient {
 			...options,
 			headers: {
 				"Content-Type": "application/json",
-				"x-api-key": this.apiKey,
 				...options?.headers,
 			},
 			next: {
