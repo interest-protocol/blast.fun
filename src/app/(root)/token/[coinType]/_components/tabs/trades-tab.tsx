@@ -89,11 +89,15 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 	} = useInfiniteQuery({
 		queryKey: ["trades", pool.coinType],
 		queryFn: async ({ pageParam = 0 }) => {
-			const data = await nexaClient.getTrades(pool.coinType, TRADES_PER_PAGE, pageParam)
-			return data as CoinTrade[]
+			try {
+				const data = await nexaClient.getTrades(pool.coinType, TRADES_PER_PAGE, pageParam)
+				return Array.isArray(data) ? data : []
+			} catch {
+				return []
+			}
 		},
 		getNextPageParam: (lastPage, allPages) => {
-			if (lastPage.length < TRADES_PER_PAGE) return undefined
+			if (!Array.isArray(lastPage) || lastPage.length < TRADES_PER_PAGE) return undefined
 			return allPages.length * TRADES_PER_PAGE
 		},
 		enabled: !!pool.coinType,
@@ -108,8 +112,9 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 	const historicalTrades = useMemo(() => {
 		if (!data?.pages) return []
 
-		return data.pages.flatMap(page =>
-			page.map((trade: CoinTrade) => {
+		return data.pages.flatMap(page => {
+			const items = Array.isArray(page) ? page : []
+			return items.map((trade: CoinTrade) => {
 				const isBuy = trade.coinOut === pool.coinType
 				const coinInDecimals = Number(trade.coinInMetadata?.decimals) || DEFAULT_TOKEN_DECIMALS
 				const coinOutDecimals = Number(trade.coinOutMetadata?.decimals) || DEFAULT_TOKEN_DECIMALS
@@ -135,7 +140,7 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 					isRealtime: false
 				} as UnifiedTrade
 			})
-		)
+		})
 	}, [data?.pages, metadata?.symbol, pool.coinType])
 
 	const unifiedTrades = useMemo(() => {

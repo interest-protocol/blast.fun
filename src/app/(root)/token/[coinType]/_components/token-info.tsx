@@ -41,21 +41,13 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 
 	const { data: resolvedDomain } = useResolveSuiNSName(!showTwitterCreator && creatorWallet ? creatorWallet : null)
 
-	const priceChange5m = marketData?.price5MinsAgo && marketData?.price
-		? ((marketData.price - marketData.price5MinsAgo) / marketData.price5MinsAgo) * 100
-		: null
+	const safeNum = (val: number | undefined) => (val != null && Number.isFinite(val) ? val : 0)
+	const pct = (curr: number, prev: number) => (prev === 0 ? null : ((curr - prev) / prev) * 100)
 
-	const priceChange1h = marketData?.price1HrAgo && marketData?.price
-		? ((marketData.price - marketData.price1HrAgo) / marketData.price1HrAgo) * 100
-		: null
-
-	const priceChange4h = marketData?.price4HrAgo && marketData?.price
-		? ((marketData.price - marketData.price4HrAgo) / marketData.price4HrAgo) * 100
-		: null
-
-	const priceChange24h = marketData?.price1DayAgo && marketData?.price
-		? ((marketData.price - marketData.price1DayAgo) / marketData.price1DayAgo) * 100
-		: null
+	const priceChange5m = pct(safeNum(marketData?.price), safeNum(marketData?.price5MinsAgo))
+	const priceChange1h = pct(safeNum(marketData?.price), safeNum(marketData?.price1HrAgo))
+	const priceChange4h = pct(safeNum(marketData?.price), safeNum(marketData?.price4HrAgo))
+	const priceChange24h = pct(safeNum(marketData?.price), safeNum(marketData?.price1DayAgo))
 
 	const volume24h = marketData?.volume24h || 0
 	const basePrice = marketData?.price || 0
@@ -176,13 +168,13 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 							{creatorData && (
 								<div className="flex items-center gap-3 text-xs select-none">
 									<span className="text-muted-foreground">
-										<span className="text-foreground font-medium">{creatorData.launchCount}</span> launches
+										<span className="text-foreground font-medium">{creatorData.launchCount ?? 0}</span> launches
 									</span>
 									<span className="text-muted-foreground">
-										<span className="text-foreground font-medium">{creatorData.trustedFollowers}</span> trusted
+										<span className="text-foreground font-medium">{creatorData.trustedFollowers ?? "0"}</span> trusted
 									</span>
 									<span className="text-muted-foreground">
-										<span className="text-foreground font-medium">{creatorData.followers}</span> followers
+										<span className="text-foreground font-medium">{creatorData.followers ?? "0"}</span> followers
 									</span>
 								</div>
 							)}
@@ -208,7 +200,7 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 						<div className="flex h-full flex-col justify-center border-r border-border py-2">
 							<div className="text-xs font-medium">
 								<RelativeAge
-									timestamp={pool.createdAt || Date.now()}
+									timestamp={Number.isFinite(pool.createdAt) ? pool.createdAt : Date.now()}
 									className="text-xs"
 								/>
 							</div>
@@ -217,18 +209,18 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 
 						<div className="flex h-full flex-col justify-center border-r border-border py-2">
 							<div className="text-xs font-medium">
-								${formatSmallPrice(currentPrice || 0)}
+								${formatSmallPrice(Number.isFinite(currentPrice) ? currentPrice : 0)}
 							</div>
 							<div className="text-xs text-muted-foreground">price</div>
 						</div>
 
 						<div className="flex h-full flex-col justify-center border-r border-border py-2">
-							<div className="text-xs font-medium">${formatNumberWithSuffix(currentMarketCap)}</div>
+							<div className="text-xs font-medium">${formatNumberWithSuffix(Number.isFinite(currentMarketCap) ? currentMarketCap : 0)}</div>
 							<div className="text-xs text-muted-foreground">mcap</div>
 						</div>
 
 						<div className="flex h-full flex-col justify-center py-2">
-							<div className="text-xs font-medium">${formatNumberWithSuffix(volume24h)}</div>
+							<div className="text-xs font-medium">${formatNumberWithSuffix(Number.isFinite(volume24h) ? volume24h : 0)}</div>
 							<div className="text-xs text-muted-foreground">volume</div>
 						</div>
 					</div>
