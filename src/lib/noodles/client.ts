@@ -115,6 +115,141 @@ export async function fetchNoodlesMarketData(
 	return out
 }
 
+export interface NoodlesCoinLiquidityPool {
+	pool_id: string
+	protocol: string
+	coin_a: string
+	coin_b: string
+	amount_a: number
+	amount_b: number
+	amount_a_usd: number
+	amount_b_usd: number
+	price_a: number
+	price_b: number
+	tvl_usd: number
+	fee_rate?: number
+}
+
+export interface NoodlesCoinLiquidityResponse {
+	code?: number
+	message?: string
+	data?: {
+		dex_liquidity?: NoodlesCoinLiquidityPool[]
+		lending_liquidity?: unknown[]
+		coin_info_map?: Record<string, { coin_type: string; symbol: string; decimals?: number; icon_url?: string; verified?: boolean }>
+		pagination?: { offset: number; limit: number }
+	}
+}
+
+export async function fetchNoodlesCoinLiquidity(coinType: string): Promise<string | null> {
+	const apiKey = env.NOODLES_API_KEY
+	if (!apiKey) return null
+	try {
+		const url = new URL(`${NOODLES_API_BASE}/api/v1/partner/coin/liquidity`)
+		url.searchParams.set("coin_type", coinType)
+		url.searchParams.set("pool_type", "dex")
+		url.searchParams.set("limit", "10")
+
+		const res = await fetch(url.toString(), {
+			headers: noodlesHeaders(),
+			next: { revalidate: 60 },
+		})
+		if (!res.ok) return null
+		const json = (await res.json()) as NoodlesCoinLiquidityResponse
+		const pools = json?.data?.dex_liquidity ?? []
+		const top = [...pools].sort((a, b) => (b.tvl_usd ?? 0) - (a.tvl_usd ?? 0))[0]
+		return top?.pool_id ?? null
+	} catch {
+		return null
+	}
+}
+
+export interface NoodlesPoolTradeEvent {
+	id: number
+	timestamp: number
+	action: string
+	pool_address: string
+	coin_a_type: string
+	coin_b_type: string
+	coin_a_symbol: string
+	coin_b_symbol: string
+	price: number
+	amount_a: number
+	amount_b: number
+	amount_a_usd: number
+	amount_b_usd: number
+	a_to_b: boolean
+	tx_digest: string
+	sender: string
+	source?: string | null
+}
+
+export interface NoodlesPoolTradeEventResponse {
+	code?: number
+	message?: string
+	data?: NoodlesPoolTradeEvent[]
+	pagination?: { last_cursor: number | null; last_timestamp?: number | null; limit?: number }
+}
+
+export async function fetchNoodlesPoolTradeEvents(
+	poolAddress: string,
+	limit: number,
+	cursor?: number
+): Promise<{ trades: NoodlesPoolTradeEvent[]; nextCursor: number | null }> {
+	const apiKey = env.NOODLES_API_KEY
+	if (!apiKey) return { trades: [], nextCursor: null }
+	try {
+		const url = new URL(`${NOODLES_API_BASE}/api/v1/partner/pool/event/trade`)
+		url.searchParams.set("pool_address", poolAddress)
+		url.searchParams.set("limit", String(limit))
+		if (cursor != null) url.searchParams.set("cursor", String(cursor))
+
+		const res = await fetch(url.toString(), {
+			headers: noodlesHeaders(),
+			next: { revalidate: 5 },
+		})
+		if (!res.ok) return { trades: [], nextCursor: null }
+		const json = (await res.json()) as NoodlesPoolTradeEventResponse
+		const trades = json?.data ?? []
+		const nextCursor = json?.pagination?.last_cursor ?? null
+		return { trades, nextCursor }
+	} catch {
+		return { trades: [], nextCursor: null }
+	}
+}
+
+const NOODLES_DEX_PROTOCOLS = "cetus-clmm,aftermath-cpmm,flowx-clmm,flowx-cpmm,bluefin-clmm"
+
+export async function fetchNoodlesPoolTradeEventsByProtocols(
+	limit: number,
+	cursor?: number,
+	coinType?: string
+): Promise<{ trades: NoodlesPoolTradeEvent[]; nextCursor: number | null }> {
+	const apiKey = env.NOODLES_API_KEY
+	if (!apiKey) return { trades: [], nextCursor: null }
+	try {
+		const url = new URL(`${NOODLES_API_BASE}/api/v1/partner/pool/event/trade`)
+		url.searchParams.set("protocols", NOODLES_DEX_PROTOCOLS)
+		url.searchParams.set("limit", String(Math.min(limit * 3, 100)))
+		if (cursor != null) url.searchParams.set("cursor", String(cursor))
+
+		const res = await fetch(url.toString(), {
+			headers: noodlesHeaders(),
+			next: { revalidate: 5 },
+		})
+		if (!res.ok) return { trades: [], nextCursor: null }
+		const json = (await res.json()) as NoodlesPoolTradeEventResponse
+		const allTrades = json?.data ?? []
+		const filtered = coinType
+			? allTrades.filter((t) => t.coin_a_type === coinType || t.coin_b_type === coinType)
+			: allTrades
+		const nextCursor = json?.pagination?.last_cursor ?? null
+		return { trades: filtered.slice(0, limit), nextCursor }
+	} catch {
+		return { trades: [], nextCursor: null }
+	}
+}
+
 export interface NoodlesPortfolioCoin {
 	coin_type: string
 	symbol: string
