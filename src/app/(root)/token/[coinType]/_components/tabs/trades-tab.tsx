@@ -197,36 +197,42 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 	}, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
 	const formatPrice = (price: number) => {
-		// @dev: Format price to show significant digits with subscript for zeros count
-		if (!price || price === 0) {
-			return '$0.00'
-		}
+		if (price == null || !Number.isFinite(price) || price < 0) return "$0.00"
+		if (price === 0) return "$0.00"
 
-		if (price >= 1) {
-			return `$${price.toFixed(2)}`
-		}
+		if (price >= 1) return `$${price.toFixed(2)}`
+		if (price >= 0.01) return `$${price.toFixed(4)}`
 
-		const priceStr = price.toString()
-		const match = priceStr.match(/^0\.0*(\d{1,4})/)
-		
-		if (match) {
-			const zeros = priceStr.match(/^0\.(0*)/)?.[1] || ''
-			const significantDigits = match[1]
-			const subZeroCount = zeros.length
-			
-			if (subZeroCount > 0) {
-				// @dev: Return JSX with subscript for zero count
+		const str = price < 1e-6 ? price.toExponential(4) : price.toString()
+		const decimalMatch = str.match(/^0\.(0*)(\d{1,6})/)
+		const expMatch = str.match(/^([\d.]+)e-?(\d+)$/)
+
+		if (decimalMatch) {
+			const [, zeros = "", digits = ""] = decimalMatch
+			if (zeros.length > 2) {
 				return (
 					<span>
-						$0.0<sub className="text-[8px] sm:text-[10px]">{subZeroCount}</sub>{significantDigits}
+						$0.0<sub className="text-[8px] sm:text-[10px]">{zeros.length}</sub>{digits.slice(0, 4)}
 					</span>
 				)
-			} else {
-				return `$0.${significantDigits}`
 			}
+			return `$${price.toFixed(Math.min(6, zeros.length + digits.length + 2))}`
 		}
-		
-		return `$${price.toFixed(4)}`
+		if (expMatch) {
+			const exp = parseInt(expMatch[2], 10)
+			const mantissa = parseFloat(expMatch[1])
+			const zeros = Math.max(1, exp - 1)
+			const sig = mantissa >= 1
+				? String(Math.round(mantissa)).slice(0, 4)
+				: (mantissa * 10000).toFixed(0).replace(/^0+/, "").slice(0, 4) || "1"
+			return (
+				<span>
+					$0.0<sub className="text-[8px] sm:text-[10px]">{zeros}</sub>{sig}
+				</span>
+			)
+		}
+		const fixed = price < 1e-8 ? price.toExponential(2) : price.toFixed(8).replace(/\.?0+$/, "")
+		return `$${fixed || "0"}`
 	}
 
 	const formatValue = (value: number) => {
