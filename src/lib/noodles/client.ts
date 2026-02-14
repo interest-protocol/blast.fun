@@ -21,11 +21,32 @@ function noodlesHeaders(): HeadersInit {
 	return headers
 }
 
+export async function fetchNoodlesCoinDetail(
+	coinId: string
+): Promise<NoodlesCoinDetailResponse | null> {
+	const apiKey = env.NOODLES_API_KEY
+	if (!apiKey) return null
+
+	const url = new URL(`${NOODLES_API_BASE}/api/v1/partner/coin-detail`)
+	url.searchParams.set("coin_id", coinId)
+
+	const response = await fetch(url.toString(), {
+		headers: noodlesHeaders(),
+		next: { revalidate: 60 },
+	})
+
+	if (!response.ok) return null
+	const data = (await response.json()) as NoodlesCoinDetailResponse
+	return data
+}
+
 interface NoodlesCoinPriceVolumeResponse {
-	price?: number
-	volume_24h?: number
-	price_change_24h?: number
-	volume_change_24h?: number
+	data?: {
+		price?: number
+		volume_24h?: number
+		price_change_24h?: number
+		volume_change_24h?: number
+	}
 }
 
 export async function fetchNoodlesMarketData(
@@ -68,7 +89,7 @@ export async function fetchNoodlesMarketData(
 	if (priceVolumeRes.ok) {
 		try {
 			const pv = (await priceVolumeRes.json()) as NoodlesCoinPriceVolumeResponse
-			volume24h = pv?.volume_24h ?? 0
+			volume24h = pv?.data?.volume_24h ?? 0
 		} catch {
 			// keep volume24h 0
 		}
@@ -92,4 +113,43 @@ export async function fetchNoodlesMarketData(
 		out.price1DayAgo = priceChange.price_change_1d
 
 	return out
+}
+
+export interface NoodlesPortfolioCoin {
+	coin_type: string
+	symbol: string
+	decimals: number
+	icon_url?: string | null
+	amount: number
+	usd_value: number
+	verified: boolean
+	price: number
+	pnl_today?: number | null
+	pnl_percent_today?: number | null
+	price_change_1d?: number | null
+}
+
+export interface NoodlesPortfolioResponse {
+	code?: number
+	message?: string
+	data?: NoodlesPortfolioCoin[]
+}
+
+export async function fetchNoodlesPortfolio(
+	address: string
+): Promise<NoodlesPortfolioResponse | null> {
+	const apiKey = env.NOODLES_API_KEY
+	if (!apiKey) return null
+
+	const url = new URL(`${NOODLES_API_BASE}/api/v1/partner/portfolio/coins`)
+	url.searchParams.set("address", address)
+
+	const response = await fetch(url.toString(), {
+		headers: noodlesHeaders(),
+		next: { revalidate: 30 }
+	})
+
+	if (!response.ok) return null
+	const json = (await response.json()) as NoodlesPortfolioResponse
+	return json
 }

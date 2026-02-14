@@ -2,6 +2,7 @@
 
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query"
 import { nexaClient } from "@/lib/nexa"
+import { fetchPortfolio } from "@/lib/fetch-portfolio"
 import type { Holder } from "@/types/holder"
 
 interface UseHoldersWithPortfolioOptions {
@@ -28,7 +29,7 @@ export function useHoldersWithPortfolio({
 			const holdersWithPortfolio = await Promise.all(
 				holdersData.map(async (holder: any, index: number) => {
 					try {
-						const portfolio = await nexaClient.getPortfolio(holder.user, 0)
+						const portfolio = await fetchPortfolio(holder.user)
 						const coinBalance = portfolio?.balances?.find(
 							(b: any) => b.coinType === coinType
 						)
@@ -99,7 +100,7 @@ export function useInfiniteHoldersWithPortfolio({
 			const holdersWithPortfolio = await Promise.all(
 				holdersData.map(async (holder: any, index: number) => {
 					try {
-						const portfolio = await nexaClient.getPortfolio(holder.user, 0)
+						const portfolio = await fetchPortfolio(holder.user)
 						const coinBalance = portfolio?.balances?.find(
 							(b: any) => b.coinType === coinType
 						)
