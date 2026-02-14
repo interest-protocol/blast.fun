@@ -11,7 +11,6 @@ export const env = createEnv({
 		AUTH_SECRET: z.string().min(1),
 
 		SUI_PRIVATE_KEY: z.string().min(1),
-		NEXA_API_KEY: z.string().min(1),
 		NOODLES_API_KEY: z.string().optional(),
 
 		TWITTER_CLIENT_SECRET: z.string().min(1),
@@ -35,7 +34,6 @@ export const env = createEnv({
 		AUTH_SECRET: process.env.AUTH_SECRET,
 
 		SUI_PRIVATE_KEY: process.env.SUI_PRIVATE_KEY,
-		NEXA_API_KEY: process.env.NEXA_API_KEY,
 		NOODLES_API_KEY: process.env.NOODLES_API_KEY,
 
 		TWITTER_CLIENT_SECRET: process.env.TWITTER_CLIENT_SECRET,
