@@ -51,6 +51,13 @@ const FarmInfo: FC<FarmInfoProps> = ({ farm, account, metadata, onOperationSucce
         }
 
         const rewardData = farm.rewardData[rewardCoinType]
+        const endTs = rewardData.end != null ? Number(rewardData.end) : null
+        if (endTs != null && endTs > 0) {
+            const now = Date.now()
+            const ended = endTs > 1e12 ? now >= endTs : Math.floor(now / 1000) >= endTs
+            if (ended) return 0
+        }
+
         const rewardsPerSecond = rewardData.rewardsPerSecond
         const totalStakedAmount = farm.totalStakedAmount
 
