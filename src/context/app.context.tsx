@@ -53,8 +53,7 @@ export function AppContextProvider({ children }: { children: ReactNode }) {
     const accounts = useAccounts();
 
     // derive states
-    const address =
-        "0x48cd5cc87a128a65162c84f5c8b33f12cd5ceddc72d9918ea4713eb5446ddab2";
+    const address = currentAccount?.address || null;
     const { data: walletDomain } = useResolveSuiNSName(
         currentAccount?.label ? null : address,
     );

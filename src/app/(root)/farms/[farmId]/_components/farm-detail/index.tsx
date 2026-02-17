@@ -31,11 +31,10 @@ const FarmDetail: FC<FarmDetailProps> = ({ farmId }) => {
 
             if (address && isConnected) {
                 const allAccounts = await farmsSdk.getAccounts(address);
+                
                 const farmAccounts = allAccounts.filter(
                     (acc) => acc.farm === farmId,
                 );
-
-                console.log({ farmAccounts });
 
                 const primaryAccount = farmAccounts.sort((a, b) =>
                     Number(b.stakeBalance - a.stakeBalance),

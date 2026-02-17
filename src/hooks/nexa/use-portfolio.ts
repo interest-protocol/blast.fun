@@ -11,9 +11,7 @@ export function usePortfolio(coinType?: string) {
         queryKey: ["portfolio-balance", account?.address, coinType],
         queryFn: async () => {
             if (!account?.address) return null;
-            return fetchPortfolio(
-                "0x48cd5cc87a128a65162c84f5c8b33f12cd5ceddc72d9918ea4713eb5446ddab2",
-            );
+            return fetchPortfolio(account.address);
         },
         enabled: !!account?.address,
         refetchInterval: 8000,
