@@ -25,6 +25,7 @@ export const useFarmOperations = ({
 	farmId,
 	stakeCoinType,
 	rewardCoinType,
+	account: selectedAccount,
 	tokenSymbol = "tokens",
 	rewardSymbol = "SUI",
 	rewardDecimals = 9,
@@ -42,10 +43,14 @@ export const useFarmOperations = ({
 		const allAccounts = await farmsSdk.getAccounts(address)
 		const farmAccounts = allAccounts.filter((acc) => acc.farm === farmId)
 
-		return farmAccounts.sort((a, b) =>
-			Number(b.stakeBalance - a.stakeBalance)
-		)[0]
+		return farmAccounts.sort((a, b) => {
+			if (a.stakeBalance === b.stakeBalance) return 0
+			return a.stakeBalance > b.stakeBalance ? -1 : 1
+		})[0]
 	}
+
+	const getAccountToUse = (): Promise<InterestAccount | undefined> =>
+		selectedAccount ? Promise.resolve(selectedAccount) : getAccountWithHighestStake()
 
 	const stake = async (amount: string) => {
 		if (!address || !wallet) {
@@ -79,7 +84,7 @@ export const useFarmOperations = ({
 				type: stakeCoinType,
 			})
 
-			const existingAccount = await getAccountWithHighestStake()
+			const existingAccount = await getAccountToUse()
 
 			if (existingAccount) {
 				const { tx } = await farmsSdk.stake({
@@ -143,7 +148,7 @@ export const useFarmOperations = ({
 	}
 
 	const harvest = async () => {
-		const accountToUse = await getAccountWithHighestStake()
+		const accountToUse = await getAccountToUse()
 
 		if (!address || !accountToUse) {
 			toast.error("No farm account found")
@@ -182,7 +187,7 @@ export const useFarmOperations = ({
 	}
 
 	const unstake = async (amount: string) => {
-		const accountToUse = await getAccountWithHighestStake()
+		const accountToUse = await getAccountToUse()
 
 		if (!address || !accountToUse) {
 			toast.error("No farm account found")
