@@ -1,7 +1,6 @@
 "use client"
 
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query"
-import { nexaClient } from "@/lib/nexa"
 import { fetchPortfolio } from "@/lib/fetch-portfolio"
 import type { Holder } from "@/types/holder"
 
@@ -10,6 +9,13 @@ interface UseHoldersWithPortfolioOptions {
 	limit?: number
 	skip?: number
 	enabled?: boolean
+}
+
+async function fetchHolders(coinType: string): Promise<{ account: string; balance: string; percentage: string }[]> {
+	const res = await fetch(`/api/coin/${encodeURIComponent(coinType)}/holders`)
+	if (!res.ok) return []
+	const json = await res.json()
+	return json.holders ?? []
 }
 
 export function useHoldersWithPortfolio({
@@ -21,15 +27,14 @@ export function useHoldersWithPortfolio({
 	return useQuery({
 		queryKey: ["holders-with-portfolio", coinType, limit, skip],
 		queryFn: async () => {
-			const holdersData = await nexaClient.getHolders(coinType, limit, skip)
-			if (!holdersData || holdersData.length === 0) {
-				return []
-			}
+			const holdersData = await fetchHolders(coinType)
+			const sliced = holdersData.slice(skip, skip + limit)
+			if (sliced.length === 0) return []
 
 			const holdersWithPortfolio = await Promise.all(
-				holdersData.map(async (holder: any, index: number) => {
+				sliced.map(async (holder: { account: string; balance: string; percentage: string }, index: number) => {
 					try {
-						const portfolio = await fetchPortfolio(holder.user)
+						const portfolio = await fetchPortfolio(holder.account)
 						const coinBalance = portfolio?.balances?.find(
 							(b: any) => b.coinType === coinType
 						)
@@ -47,10 +52,10 @@ export function useHoldersWithPortfolio({
 
 						return {
 							rank: skip + index + 1,
-							user: holder.user,
+							user: holder.account,
 							balance: holder.balance || 0,
-							percentage: holder.percentage || 0,
-							balanceUsd: holder.balanceUsd || coinBalance?.value || 0,
+							percentage: parseFloat(holder.percentage || "0") * 100,
+							balanceUsd: coinBalance?.value || 0,
 							balanceScaled: holder.balance || 0,
 							marketStats,
 							averageEntryPrice: coinBalance?.averageEntryPrice || 0,
@@ -58,19 +63,19 @@ export function useHoldersWithPortfolio({
 							realizedPnl: marketStats.pnl || 0
 						} as Holder
 					} catch (error) {
-						console.warn(`Failed to fetch portfolio for ${holder.user}:`, error)
+						console.warn(`Failed to fetch portfolio for ${holder.account}:`, error)
 						return {
 							rank: skip + index + 1,
-							user: holder.user,
+							user: holder.account,
 							balance: holder.balance || 0,
-							percentage: holder.percentage || 0,
-							balanceUsd: holder.balanceUsd || 0,
+							percentage: parseFloat(holder.percentage || "0") * 100,
+							balanceUsd: 0,
 							balanceScaled: holder.balance || 0,
 							marketStats: undefined,
 							averageEntryPrice: 0,
 							unrealizedPnl: 0,
 							realizedPnl: 0
-						}
+						} as Holder
 					}
 				})
 			)
@@ -92,15 +97,14 @@ export function useInfiniteHoldersWithPortfolio({
 	return useInfiniteQuery({
 		queryKey: ["infinite-holders-with-portfolio", coinType, limit],
 		queryFn: async ({ pageParam = 0 }) => {
-			const holdersData = await nexaClient.getHolders(coinType, limit, pageParam)
-			if (!holdersData || holdersData.length === 0) {
-				return []
-			}
+			const holdersData = await fetchHolders(coinType)
+			const sliced = holdersData.slice(Number(pageParam), Number(pageParam) + limit)
+			if (sliced.length === 0) return []
 
 			const holdersWithPortfolio = await Promise.all(
-				holdersData.map(async (holder: any, index: number) => {
+				sliced.map(async (holder: { account: string; balance: string; percentage: string }, index: number) => {
 					try {
-						const portfolio = await fetchPortfolio(holder.user)
+						const portfolio = await fetchPortfolio(holder.account)
 						const coinBalance = portfolio?.balances?.find(
 							(b: any) => b.coinType === coinType
 						)
@@ -117,11 +121,11 @@ export function useInfiniteHoldersWithPortfolio({
 						}
 
 						return {
-							rank: pageParam + index + 1,
-							user: holder.user,
+							rank: Number(pageParam) + index + 1,
+							user: holder.account,
 							balance: holder.balance || 0,
-							percentage: holder.percentage || 0,
-							balanceUsd: holder.balanceUsd || coinBalance?.value || 0,
+							percentage: parseFloat(holder.percentage || "0") * 100,
+							balanceUsd: coinBalance?.value || 0,
 							balanceScaled: holder.balance || 0,
 							marketStats,
 							averageEntryPrice: coinBalance?.averageEntryPrice || 0,
@@ -129,19 +133,19 @@ export function useInfiniteHoldersWithPortfolio({
 							realizedPnl: marketStats.pnl || 0
 						} as Holder
 					} catch (error) {
-						console.warn(`Failed to fetch portfolio for ${holder.user}:`, error)
+						console.warn(`Failed to fetch portfolio for ${holder.account}:`, error)
 						return {
-							rank: pageParam + index + 1,
-							user: holder.user,
+							rank: Number(pageParam) + index + 1,
+							user: holder.account,
 							balance: holder.balance || 0,
-							percentage: holder.percentage || 0,
-							balanceUsd: holder.balanceUsd || 0,
+							percentage: parseFloat(holder.percentage || "0") * 100,
+							balanceUsd: 0,
 							balanceScaled: holder.balance || 0,
 							marketStats: undefined,
 							averageEntryPrice: 0,
 							unrealizedPnl: 0,
 							realizedPnl: 0
-						}
+						} as Holder
 					}
 				})
 			)

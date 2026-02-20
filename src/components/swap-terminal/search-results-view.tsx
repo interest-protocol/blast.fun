@@ -17,6 +17,7 @@ import {
 } from "@/hooks/use-tokens";
 import type { NexaToken } from "@/types/token";
 import { useApp } from "@/context/app.context";
+import { MaintenanceSection } from "@/components/shared/maintenance-section";
 import { cn } from "@/utils";
 import type { TokenOption, SearchResultsViewProps, SectionKey } from "./swap-terminal.types";
 import { MIN_SEARCH_LENGTH } from "./swap-terminal.data";
@@ -161,8 +162,11 @@ export const SearchResultsView: FC<SearchResultsViewProps> = ({
 
     if (visibleSections.length === 0) {
         return (
-            <div className="flex w-full justify-center items-center text-center text-muted-foreground text-sm p-8">
-                No tokens found.
+            <div className="p-4">
+                <MaintenanceSection
+                    title="SEARCH_UNDER_MAINTENANCE"
+                    message="Token search is temporarily unavailable."
+                />
             </div>
         );
     }
