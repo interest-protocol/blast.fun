@@ -6,12 +6,12 @@ import { Search, Loader2 } from "lucide-react";
 import { useDebouncedCallback } from "use-debounce";
 import {
     CommandDialog,
-    CommandEmpty,
     CommandItem,
     CommandList,
 } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
 import { TokenAvatar } from "@/components/tokens/token-avatar";
+import { MaintenanceSection } from "@/components/shared/maintenance-section";
 import { formatNumberWithSuffix } from "@/utils/format";
 
 interface SearchResult {
@@ -151,7 +151,13 @@ export function SearchToken({ mode = "tab" }: SearchTokenProps) {
                     {query.length >= 2 &&
                         !loading &&
                         searchResults.length === 0 && (
-                            <CommandEmpty>No tokens found.</CommandEmpty>
+                            <div className="p-4">
+                                <MaintenanceSection
+                                    title="SEARCH_UNDER_MAINTENANCE"
+                                    message="Token search is temporarily unavailable."
+                                    compact
+                                />
+                            </div>
                         )}
 
                     {searchResults.map((result) => (
