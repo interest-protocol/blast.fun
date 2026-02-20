@@ -12,8 +12,8 @@ import {
 } from "./_components/leaderboard-utils"
 import { useSuiNSNames } from "@/hooks/use-suins"
 import LeaderboardError from "./_components/leaderboard-error"
-import LeaderboardEmpty from "./_components/leaderboard-empty"
 import LeaderboardTable from "./_components/leaderboard-table"
+import { MaintenanceSection } from "@/components/shared/maintenance-section"
 import LeaderboardControls from "./_components/leaderboard-controls"
 import LeaderboardSkeleton from "./_components/leaderboard-skeleton"
 import { useLeaderboard, type TimeRange, type SortBy } from "@/hooks/use-leaderboard"
@@ -143,7 +143,10 @@ const LeaderboardContent: FC = () => {
         ) : error ? (
           <LeaderboardError />
         ) : data.length === 0 ? (
-          <LeaderboardEmpty />
+          <MaintenanceSection
+            title="LEADERBOARD_UNDER_MAINTENANCE"
+            message="Trading leaderboard data is temporarily unavailable."
+          />
         ) : (
           <LeaderboardTable
             data={data}

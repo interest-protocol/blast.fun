@@ -6,6 +6,7 @@ import { TokenCardSkeleton } from "./token-card.skeleton"
 import { Logo } from "@/components/ui/logo"
 import { Button } from "@/components/ui/button"
 import { TokenListFilters } from "./token-list.filters"
+import { MaintenanceSection } from "@/components/shared/maintenance-section"
 import { 
 	useLatestTokens, 
 	useAboutToBondTokens, 
@@ -120,14 +121,7 @@ const TabContent = memo(function TabContent({
 	}
 
 	if (sortedTokens.length === 0) {
-		return (
-			<div className="p-8 text-center">
-				<Logo className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-				<p className="font-mono text-xs uppercase text-muted-foreground">
-					NO::TOKENS::FOUND
-				</p>
-			</div>
-		)
+		return <MaintenanceSection message="Token list is temporarily unavailable." />
 	}
 
 	return (
