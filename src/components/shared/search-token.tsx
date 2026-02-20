@@ -11,7 +11,6 @@ import {
     CommandList,
 } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
-import { nexaClient } from "@/lib/nexa";
 import { TokenAvatar } from "@/components/tokens/token-avatar";
 import { formatNumberWithSuffix } from "@/utils/format";
 
@@ -60,8 +59,7 @@ export function SearchToken({ mode = "tab" }: SearchTokenProps) {
 
         try {
             setLoading(true);
-            const results = await nexaClient.searchTokens(searchQuery);
-            setSearchResults(results || []);
+            setSearchResults([]);
         } catch (error) {
             console.error("Search error:", error);
             setSearchResults([]);
