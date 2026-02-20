@@ -7,6 +7,7 @@ import { TokenCardSkeleton } from "./token-card.skeleton"
 import { Logo } from "@/components/ui/logo"
 import { TokenListFilters } from "./token-list.filters"
 import { FlashBuyInput } from "./flash-buy-input"
+import { MaintenanceSection } from "@/components/shared/maintenance-section"
 import { useLatestTokens } from "@/hooks/use-tokens"
 import { useTradeBump } from "@/hooks/use-trade-bump"
 import type { TokenListSettings, TokenFilters } from "@/types/token"
@@ -97,14 +98,7 @@ export const NewlyCreated = memo(function NewlyCreated({
 		}
 
 		if (filteredAndSortedTokens.length === 0 && !isLoading) {
-			return (
-				<div className="p-8 text-center">
-					<Logo className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-					<p className="font-mono text-xs uppercase text-muted-foreground">
-						NO::NEW::TOKENS
-					</p>
-				</div>
-			)
+			return <MaintenanceSection message="Token list data source is being updated." />
 		}
 
 		return filteredAndSortedTokens.map((pool) => (

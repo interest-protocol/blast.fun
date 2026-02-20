@@ -7,6 +7,7 @@ import { TokenCardSkeleton } from "./token-card.skeleton";
 import { Logo } from "@/components/ui/logo";
 import { TokenListFilters } from "./token-list.filters";
 import { FlashBuyInput } from "./flash-buy-input";
+import { MaintenanceSection } from "@/components/shared/maintenance-section";
 import { useBondedTokens } from "@/hooks/use-tokens";
 import { useTradeBump } from "@/hooks/use-trade-bump";
 import type { TokenListSettings, TokenFilters, NexaToken } from "@/types/token";
@@ -114,14 +115,7 @@ export const GraduatedComplete = memo(function GraduatedComplete({
         }
 
         if (filteredAndSortedTokens.length === 0 && !isLoading) {
-            return (
-                <div className="p-8 text-center">
-                    <Logo className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-                    <p className="font-mono text-xs uppercase text-muted-foreground">
-                        NO::GRADUATED::TOKENS
-                    </p>
-                </div>
-            );
+            return <MaintenanceSection message="Graduated token list is temporarily unavailable." />;
         }
 
         return filteredAndSortedTokens.map((pool) => (
