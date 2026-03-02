@@ -1,5 +1,25 @@
 import { NextRequest, NextResponse } from "next/server"
-import { blockVisionService } from "@/services/blockvision.service"
+import { fetchNoodlesPortfolio, type NoodlesPortfolioCoin } from "@/lib/noodles/client"
+import type { WalletCoin } from "@/types/blockvision"
+
+const mapNoodlesToWalletCoins = (coins: NoodlesPortfolioCoin[] | undefined | null): WalletCoin[] => {
+	if (!coins || !Array.isArray(coins)) return []
+
+	return coins
+		.filter((c) => c.amount > 0)
+		.map((c) => ({
+			coinType: c.coin_type,
+			balance: String(c.amount),
+			decimals: c.decimals ?? 9,
+			symbol: c.symbol,
+			name: c.symbol,
+			iconUrl: c.icon_url ?? undefined,
+			price: c.price,
+			value: c.usd_value,
+			verified: c.verified,
+			scam: false,
+		}))
+}
 
 export async function POST(req: NextRequest) {
 	try {
@@ -11,25 +31,27 @@ export async function POST(req: NextRequest) {
 			)
 		}
 
-		const result = await blockVisionService.getAccountCoins(address)
-		if (!result.success || !result.data) {
-			console.error("Failed to fetch wallet coins:", result.error)
-			return NextResponse.json(
-				{ error: result.error || "Failed to fetch wallet coins" },
-				{ status: 500 }
-			)
+		const noodlesRes = await fetchNoodlesPortfolio(address)
+		if (!noodlesRes || !noodlesRes.data) {
+			console.error("Failed to fetch wallet coins from Noodles:", noodlesRes?.message)
+			return NextResponse.json({
+				coins: [],
+				success: true,
+			})
 		}
 
-		return NextResponse.json({ 
-			coins: result.data,
-			success: true 
+		const coins = mapNoodlesToWalletCoins(noodlesRes.data)
+
+		return NextResponse.json({
+			coins,
+			success: true,
 		})
 	} catch (error) {
-		console.error("Error in wallet coins API:", error)
-		return NextResponse.json(
-			{ error: "Failed to fetch wallet coins" },
-			{ status: 500 }
-		)
+		console.error("Error in wallet coins API (Noodles):", error)
+		return NextResponse.json({
+			coins: [],
+			success: true,
+		})
 	}
 }
 
@@ -43,17 +65,27 @@ export async function GET(req: NextRequest) {
 		)
 	}
 
-	const result = await blockVisionService.getAccountCoins(address)
-	if (!result.success || !result.data) {
-		console.error("Failed to fetch wallet coins:", result.error)
-		return NextResponse.json(
-			{ error: result.error || "Failed to fetch wallet coins" },
-			{ status: 500 }
-		)
-	}
+	try {
+		const noodlesRes = await fetchNoodlesPortfolio(address)
+		if (!noodlesRes || !noodlesRes.data) {
+			console.error("Failed to fetch wallet coins from Noodles:", noodlesRes?.message)
+			return NextResponse.json({
+				coins: [],
+				success: true,
+			})
+		}
 
-	return NextResponse.json({ 
-		coins: result.data,
-		success: true 
-	})
+		const coins = mapNoodlesToWalletCoins(noodlesRes.data)
+
+		return NextResponse.json({
+			coins,
+			success: true,
+		})
+	} catch (error) {
+		console.error("Error in wallet coins API (Noodles):", error)
+		return NextResponse.json({
+			coins: [],
+			success: true,
+		})
+	}
 }
