@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useCallback, useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { TokenCard } from "./token-card";
 import { TokenListLayout } from "./token-list.layout";
 import { TokenCardSkeleton } from "./token-card.skeleton";
@@ -8,13 +9,30 @@ import { Logo } from "@/components/ui/logo";
 import { TokenListFilters } from "./token-list.filters";
 import { FlashBuyInput } from "./flash-buy-input";
 import { MaintenanceSection } from "@/components/shared/maintenance-section";
-import { useBondedTokens } from "@/hooks/use-tokens";
 import { useTradeBump } from "@/hooks/use-trade-bump";
-import type { TokenListSettings, TokenFilters, NexaToken } from "@/types/token";
+import type { TokenListSettings } from "@/types/token";
 import { sortTokens } from "@/utils/token-sorting";
+import { NoodlesCoinList } from "@/lib/noodles/client";
 
 interface GraduatedCompleteProps {
     pollInterval?: number;
+}
+
+async function fetchGraduatedCoins(filters?: TokenListSettings["filters"]): Promise<NoodlesCoinList[]> {
+    const params = new URLSearchParams({
+        protocol:"blast-fun-bonding-curve",
+        isGraduated: "true",
+    });
+
+    if (filters?.hasWebsite) params.set("hasWebsite", "true");
+    if (filters?.hasTwitter) params.set("hasX", "true");
+    if (filters?.hasTelegram) params.set("hasTelegram", "true");
+
+    const res = await fetch(`/api/coin/list?${params.toString()}`);
+    if (!res.ok) throw new Error("Failed to fetch graduated coins");
+
+    const json = await res.json();
+    return json.coins ?? [];
 }
 
 export const GraduatedComplete = memo(function GraduatedComplete({
@@ -28,75 +46,34 @@ export const GraduatedComplete = memo(function GraduatedComplete({
     });
     const { bumpOrder, isAnimating } = useTradeBump();
 
-    // @dev: Build filter params for bonded tokens
-    const filterParams = useMemo<TokenFilters>(() => {
-        return {
-            ...settings.filters,
-            tabType: "bonded",
-        };
-    }, [settings.filters]);
-
-    const { data, isLoading, error } = useBondedTokens(filterParams, {
+    const { data, isLoading, error } = useQuery({
+        queryKey: ["coins", "graduated", settings.filters],
+        queryFn: () => fetchGraduatedCoins(settings.filters),
         refetchInterval: pollInterval,
+        staleTime: 1000,
+        gcTime: 5000,
     });
 
     const filteredAndSortedTokens = useMemo(() => {
         if (!data || data.length === 0) return [];
 
-        let tokens = [...data];
-
-        // @dev: Apply additional client-side social filters if needed (backend doesn't support these)
-        if (
-            settings.filters.hasWebsite ||
-            settings.filters.hasTwitter ||
-            settings.filters.hasTelegram
-        ) {
-            tokens = tokens.filter((token) => {
-                const metadata = token;
-                if (!metadata) return false;
-
-                if (
-                    settings.filters.hasWebsite &&
-                    (!metadata.website || metadata.website === "")
-                )
-                    return false;
-                if (
-                    settings.filters.hasTwitter &&
-                    (!metadata.twitter || metadata.twitter === "")
-                )
-                    return false;
-                if (
-                    settings.filters.hasTelegram &&
-                    (!metadata.telegram || metadata.telegram === "")
-                )
-                    return false;
-
-                return true;
-            });
-        }
-
         // sort based on bump order, then apply normal sorting
-        const sorted: ReadonlyArray<NexaToken> = [...tokens].sort((a, b) => {
+        const sorted = [...data].sort((a, b) => {
             const aIndex = bumpOrder.indexOf(a.coinType);
             const bIndex = bumpOrder.indexOf(b.coinType);
 
-            if (aIndex !== -1 && bIndex !== -1) {
-                return aIndex - bIndex;
-            }
-
+            if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
             if (aIndex !== -1) return -1;
             if (bIndex !== -1) return 1;
-
             return 0;
         });
 
-        // apply normal sorting to non-bumped tokens
         const bumped = sorted.filter((t) => bumpOrder.includes(t.coinType));
         const nonBumped = sorted.filter((t) => !bumpOrder.includes(t.coinType));
         const sortedNonBumped = sortTokens(nonBumped, settings.sortBy);
 
         return [...bumped, ...sortedNonBumped];
-    }, [data, settings, bumpOrder]);
+    }, [data, settings.sortBy, bumpOrder]);
 
     const renderContent = useCallback(() => {
         if (error) {
@@ -114,7 +91,7 @@ export const GraduatedComplete = memo(function GraduatedComplete({
             return [...Array(8)].map((_, i) => <TokenCardSkeleton key={i} />);
         }
 
-        if (filteredAndSortedTokens.length === 0 && !isLoading) {
+        if (filteredAndSortedTokens.length === 0) {
             return <MaintenanceSection message="Graduated token list is temporarily unavailable." />;
         }
 

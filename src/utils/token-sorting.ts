@@ -40,86 +40,53 @@ function getTimestampValue(
     return 0;
 }
 
-/**
- * Unified token sorting function used by both desktop and mobile components
- */
+import type { NoodlesCoinList } from "@/lib/noodles/client";
+
 export function sortTokens(
-    tokens: ReadonlyArray<NexaToken>,
+    tokens: ReadonlyArray<NoodlesCoinList>,
     sortBy: TokenSortOption
-): ReadonlyArray<NexaToken> {
+): ReadonlyArray<NoodlesCoinList> {
     if (!tokens || tokens.length === 0) return [];
 
-    const sortedTokens = [...tokens];
+    const sorted = [...tokens];
 
     switch (sortBy) {
         case "bondingProgress":
-            return sortedTokens.sort((a, b) => {
-                const aBonding = getFieldValue(a, "bondingProgress");
-                const bBonding = getFieldValue(b, "bondingProgress");
-                return bBonding - aBonding;
-            });
+            return sorted.sort((a, b) => b.bondingCurveProgress - a.bondingCurveProgress);
 
         case "marketCap":
-            return sortedTokens.sort((a, b) => {
-                const aMarketCap = getFieldValue(a, "marketCap");
-                const bMarketCap = getFieldValue(b, "marketCap");
-                return bMarketCap - aMarketCap;
-            });
+            return sorted.sort((a, b) => b.marketCap - a.marketCap);
 
         case "date":
-            return sortedTokens.sort((a, b) => {
-                const aDate = getTimestampValue(a, "createdAt");
-                const bDate = getTimestampValue(b, "createdAt");
-                return bDate - aDate;
-            });
+            return sorted.sort((a, b) =>
+                new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+            );
 
         case "volume":
-            return sortedTokens.sort((a, b) => {
-                const aVolume = getFieldValue(a, "volume24h");
-                const bVolume = getFieldValue(b, "volume24h");
-                return bVolume - aVolume;
-            });
+            return sorted.sort((a, b) => b.volume24h - a.volume24h);
 
         case "holders":
-            return sortedTokens.sort((a, b) => {
-                const aHolders = getFieldValue(a, "holdersCount");
-                const bHolders = getFieldValue(b, "holdersCount");
-                return bHolders - aHolders;
-            });
-
-        case "lastTrade":
-            return sortedTokens.sort((a, b) => {
-                const aTimestamp = getTimestampValue(a, "lastTradeAt");
-                const bTimestamp = getTimestampValue(b, "lastTradeAt");
-                return bTimestamp - aTimestamp;
-            });
+            return sorted.sort((a, b) => b.holders - a.holders);
 
         case "liquidity":
-            return sortedTokens.sort((a, b) => {
-                const aLiquidity = getFieldValue(a, "liquidity");
-                const bLiquidity = getFieldValue(b, "liquidity");
-                return bLiquidity - aLiquidity;
-            });
+            return sorted.sort((a, b) => b.liquidity - a.liquidity);
 
         case "devHoldings":
-            return sortedTokens.sort((a, b) => {
-                const aDevHoldings = getFieldValue(a, "devHoldings");
-                const bDevHoldings = getFieldValue(b, "devHoldings");
-                return aDevHoldings - bDevHoldings; // Lower is better for dev holdings
-            });
+            return sorted.sort((a, b) => a.devHoldings - b.devHoldings);
 
         case "top10Holdings":
-            return sortedTokens.sort((a, b) => {
-                const aTop10Holdings = getFieldValue(a, "top10Holdings");
-                const bTop10Holdings = getFieldValue(b, "top10Holdings");
-                return aTop10Holdings - bTop10Holdings; // Lower is better for top10 holdings
-            });
+            return sorted.sort((a, b) => a.top10Holdings - b.top10Holdings);
+
+        // NoodlesCoinList doesn't have lastTrade — fallback to publishedAt
+        case "lastTrade":
+            return sorted.sort((a, b) =>
+                new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+            );
 
         default:
-            return sortedTokens;
+            return sorted;
     }
 }
-
 /**
  * Get default sort option based on tab type
  */
@@ -141,9 +108,9 @@ export function getDefaultSort(
  * Apply default sorting based on tab type when no specific sort is selected
  */
 export function applyDefaultSort(
-    tokens: ReadonlyArray<NexaToken>,
+    tokens: ReadonlyArray<NoodlesCoinList>,
     tabType: "new" | "graduating" | "graduated"
-): ReadonlyArray<NexaToken> {
+): ReadonlyArray<NoodlesCoinList> {
     const defaultSort = getDefaultSort(tabType);
     return sortTokens(tokens, defaultSort);
 }
