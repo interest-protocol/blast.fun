@@ -13,6 +13,7 @@ import {
 	useBondedTokens
 } from "@/hooks/use-tokens"
 import type { TokenFilters, TokenListSettings, TokenSortOption } from "@/types/token"
+import type { NoodlesCoinList } from "@/lib/noodles/client"
 import { cn } from "@/utils"
 import { sortTokens, applyDefaultSort } from "@/utils/token-sorting"
 
@@ -88,12 +89,15 @@ const TabContent = memo(function TabContent({
 	const sortedTokens = useMemo(() => {
 		if (!data || data.length === 0) return []
 
+		// @dev: Cast to NoodlesCoinList for shared sorting utility
+		const noodlesTokens = data as unknown as ReadonlyArray<NoodlesCoinList>
+
 		// @dev: Use unified sorting utility
 		if (settings.sortBy) {
-			return sortTokens(data, settings.sortBy)
+			return sortTokens(noodlesTokens, settings.sortBy)
 		} else {
 			// @dev: Apply default sorting based on tab type
-			return applyDefaultSort(data, tab.key)
+			return applyDefaultSort(noodlesTokens, tab.key)
 		}
 	}, [data, settings.sortBy, tab.key])
 
