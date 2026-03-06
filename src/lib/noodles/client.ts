@@ -1,4 +1,4 @@
-import type { TokenMarketData } from "@/types/token"
+import type { NexaToken, TokenMarketData } from "@/types/token"
 import { env } from "@/env"
 import {
 	NOODLES_API_BASE,
@@ -8,7 +8,7 @@ import {
 
 const NOODLES_CHAIN = "sui" as const
 
-function noodlesHeaders(): HeadersInit {
+export function noodlesHeaders(): HeadersInit {
 	const headers: HeadersInit = {
 		Accept: "application/json",
 		"Content-Type": "application/json",
@@ -288,3 +288,174 @@ export async function fetchNoodlesPortfolio(
 	const json = (await response.json()) as NoodlesPortfolioResponse
 	return json
 }
+
+export interface NoodlesCoinList {
+	coinType: string
+	name: string
+	symbol: string
+	iconUrl: string
+	txs24h: number
+	txsSell24h: number
+	txsBuy24h: number
+	holders: number
+	devHoldings: number
+	sniperHoldings: number
+	top10Holdings: number
+	volume24h: number
+	marketCap: number
+	liquidity: number
+	publishedAt: string
+	protocol: string
+	protocolUrl: string
+	bondingCurveProgress: number
+	bondingCurvePoolId?: string | null
+	isAntiSniper?: boolean | null
+	graduatedTime?: string | null
+	decimals: number
+	socialMedia: {
+		x?: string
+		website?: string
+		discord?: string
+	}
+}
+
+export interface NoodlesCoinListResponse {
+	code?: number
+	message?: string
+	data?: NoodlesCoinList[]
+}
+
+export interface NoodlesCoinListFilters {
+	protocol?: string[]
+	coinIds?: string[]
+	devAddress?: string
+	isGraduated?: boolean
+	atLeast1SocialLink?: boolean
+	hasX?: boolean
+	hasTelegram?: boolean
+	hasWebsite?: boolean
+	devSellAll?: boolean
+	devStillHolding?: boolean
+	top10HoldingPercentMin?: number
+	top10HoldingPercentMax?: number
+	devHoldingPercentMin?: number
+	devHoldingPercentMax?: number
+	sniperHoldingPercentMin?: number
+	sniperHoldingPercentMax?: number
+	holdersMin?: number
+	holdersMax?: number
+	marketCapMin?: number
+	marketCapMax?: number
+	bondingCurveProgressMin?: number
+	bondingCurveProgressMax?: number
+	volume24hMin?: number
+	volume24hMax?: number
+	txs24hMin?: number
+	txs24hMax?: number
+	txsBuy24hMin?: number
+	txsBuy24hMax?: number
+	txsSell24hMin?: number
+	txsSell24hMax?: number
+  }
+  
+export interface NoodlesCoinListParams {
+pagination?: { offset?: number; limit?: number }
+orderBy?: "published_at" | "bonding_curve_progress" | "graduated_time"
+orderDirection?: "asc" | "desc"
+filters?: NoodlesCoinListFilters
+}
+  
+export function mapToNoodlesCoinList(raw: Record<string, any>): NoodlesCoinList {
+    return {
+        coinType: raw.coin_type,
+        name: raw.name,
+        symbol: raw.symbol,
+        iconUrl: raw.icon_url,
+        txs24h: raw.txs_24h,
+        txsSell24h: raw.txs_sell_24h,
+        txsBuy24h: raw.txs_buy_24h,
+        holders: raw.holders,
+        devHoldings: raw.dev_holding_percent,
+        sniperHoldings: raw.sniper_holding_percent,
+        top10Holdings: raw.top_10_holding_percent,
+        volume24h: raw.volume_24h,
+        marketCap: raw.market_cap,
+        liquidity: raw.liquidity,
+        publishedAt: raw.published_at,
+        protocol: raw.protocol,
+        protocolUrl: raw.protocol_url,
+        bondingCurveProgress: raw.bonding_curve_progress,
+        bondingCurvePoolId: raw.bonding_curve_pool_id ?? null,
+        isAntiSniper: raw.is_anti_sniper ?? null,
+        graduatedTime: raw.graduated_time ?? null,
+        decimals: raw.decimals,
+        socialMedia: {
+            x: raw.social_media?.x,
+            website: raw.social_media?.website,
+            discord: raw.social_media?.discord,
+        },
+    }
+}
+
+  export async function fetchNoodlesCoinList(
+	params: NoodlesCoinListParams = {}
+  ): Promise<NoodlesCoinListResponse | null> {
+	const apiKey = env.NOODLES_API_KEY
+	if (!apiKey) return null
+  
+	const { pagination, orderBy, orderDirection, filters } = params
+  
+	// Map camelCase filters back to snake_case for the API
+	const mappedFilters = filters
+	  ? {
+		  ...(filters.protocol && { protocol: filters.protocol }),
+		  ...(filters.coinIds && { coin_ids: filters.coinIds }),
+		  ...(filters.devAddress !== undefined && { dev_address: filters.devAddress }),
+		  ...(filters.isGraduated !== undefined && { is_graduated: filters.isGraduated }),
+		  ...(filters.atLeast1SocialLink !== undefined && { at_least_1_social_link: filters.atLeast1SocialLink }),
+		  ...(filters.hasX !== undefined && { has_x: filters.hasX }),
+		  ...(filters.hasTelegram !== undefined && { has_telegram: filters.hasTelegram }),
+		  ...(filters.hasWebsite !== undefined && { has_website: filters.hasWebsite }),
+		  ...(filters.devSellAll !== undefined && { dev_sell_all: filters.devSellAll }),
+		  ...(filters.devStillHolding !== undefined && { dev_still_holding: filters.devStillHolding }),
+		  ...(filters.top10HoldingPercentMin !== undefined && { top_10_holding_percent_min: filters.top10HoldingPercentMin }),
+		  ...(filters.top10HoldingPercentMax !== undefined && { top_10_holding_percent_max: filters.top10HoldingPercentMax }),
+		  ...(filters.devHoldingPercentMin !== undefined && { dev_holding_percent_min: filters.devHoldingPercentMin }),
+		  ...(filters.devHoldingPercentMax !== undefined && { dev_holding_percent_max: filters.devHoldingPercentMax }),
+		  ...(filters.sniperHoldingPercentMin !== undefined && { sniper_holding_percent_min: filters.sniperHoldingPercentMin }),
+		  ...(filters.sniperHoldingPercentMax !== undefined && { sniper_holding_percent_max: filters.sniperHoldingPercentMax }),
+		  ...(filters.holdersMin !== undefined && { holders_min: filters.holdersMin }),
+		  ...(filters.holdersMax !== undefined && { holders_max: filters.holdersMax }),
+		  ...(filters.marketCapMin !== undefined && { market_cap_min: filters.marketCapMin }),
+		  ...(filters.marketCapMax !== undefined && { market_cap_max: filters.marketCapMax }),
+		  ...(filters.bondingCurveProgressMin !== undefined && { bonding_curve_progress_min: filters.bondingCurveProgressMin }),
+		  ...(filters.bondingCurveProgressMax !== undefined && { bonding_curve_progress_max: filters.bondingCurveProgressMax }),
+		  ...(filters.volume24hMin !== undefined && { volume_24h_min: filters.volume24hMin }),
+		  ...(filters.volume24hMax !== undefined && { volume_24h_max: filters.volume24hMax }),
+		  ...(filters.txs24hMin !== undefined && { txs_24h_min: filters.txs24hMin }),
+		  ...(filters.txs24hMax !== undefined && { txs_24h_max: filters.txs24hMax }),
+		  ...(filters.txsBuy24hMin !== undefined && { txs_buy_24h_min: filters.txsBuy24hMin }),
+		  ...(filters.txsBuy24hMax !== undefined && { txs_buy_24h_max: filters.txsBuy24hMax }),
+		  ...(filters.txsSell24hMin !== undefined && { txs_sell_24h_min: filters.txsSell24hMin }),
+		  ...(filters.txsSell24hMax !== undefined && { txs_sell_24h_max: filters.txsSell24hMax }),
+		}
+	  : undefined
+  
+	const body = {
+	  pagination: { offset: pagination?.offset ?? 0, limit: pagination?.limit ?? 20 },
+	  order_by: orderBy ?? "published_at",
+	  order_direction: orderDirection ?? "desc",
+	  ...(mappedFilters && Object.keys(mappedFilters).length > 0 && { filters: mappedFilters }),
+	}
+  
+	const response = await fetch(`${NOODLES_API_BASE}/api/v1/partner/curve/coins`, {
+	  method: "POST",
+	  headers: noodlesHeaders(),
+	  body: JSON.stringify(body),
+	  next: { revalidate: 30 },
+	})
+  
+	if (!response.ok) return null
+	const json = (await response.json()) as NoodlesCoinListResponse
+	return json
+  }
