@@ -89,7 +89,7 @@ export const formatNumberWithSuffix = (
 	const formatted =
 		decimals !== undefined
 			? scaled.toFixed(decimals)
-			: parseFloat(scaled.toFixed(decimalPlaces)).toString()
+			: parseFloat(scaled.toFixed(decimalPlaces)).toFixed(4)
 
 	return `${formatted}${suffix}`
 }
