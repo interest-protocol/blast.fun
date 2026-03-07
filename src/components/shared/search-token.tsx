@@ -6,12 +6,12 @@ import { Search, Loader2 } from "lucide-react";
 import { useDebouncedCallback } from "use-debounce";
 import {
     CommandDialog,
+    CommandEmpty,
     CommandItem,
     CommandList,
 } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
 import { TokenAvatar } from "@/components/tokens/token-avatar";
-import { MaintenanceSection } from "@/components/shared/maintenance-section";
 import { formatNumberWithSuffix } from "@/utils/format";
 
 interface SearchResult {
@@ -60,6 +60,84 @@ export function SearchToken({ mode = "tab" }: SearchTokenProps) {
         try {
             setLoading(true);
             setSearchResults([]);
+
+            const newlyCreatedParams = new URLSearchParams({
+                protocol: "blast-fun-bonding-curve",
+                isGraduated: "false",
+                orderBy: "published_at",
+                orderDirection: "desc",
+                limit: "50",
+            });
+            const nearGraduationParams = new URLSearchParams({
+                protocol: "blast-fun-bonding-curve",
+                isGraduated: "false",
+                orderBy: "bonding_curve_progress",
+                orderDirection: "desc",
+                bondingCurveProgressMin: "30",
+                limit: "50",
+            });
+            const graduatedParams = new URLSearchParams({
+                protocol: "blast-fun-bonding-curve",
+                isGraduated: "true",
+                limit: "50",
+            });
+
+            const [resNew, resNear, resGraduated] = await Promise.all([
+                fetch(`/api/coin/list?${newlyCreatedParams.toString()}`),
+                fetch(`/api/coin/list?${nearGraduationParams.toString()}`),
+                fetch(`/api/coin/list?${graduatedParams.toString()}`),
+            ]);
+
+            const list = (res: Response): Promise<unknown[]> => {
+                if (!res.ok) return Promise.resolve([]);
+                return res.json().then((j: { coins?: unknown[] }) => j.coins ?? []);
+            };
+
+            const [newly, near, graduated] = await Promise.all([
+                list(resNew),
+                list(resNear),
+                list(resGraduated),
+            ]);
+
+            const seen = new Set<string>();
+            const merged: typeof newly = [];
+            for (const c of [...newly, ...near, ...graduated]) {
+                const coin = c as { coinType: string };
+                if (coin.coinType && !seen.has(coin.coinType)) {
+                    seen.add(coin.coinType);
+                    merged.push(c);
+                }
+            }
+
+            const lower = searchQuery.toLowerCase();
+            const filtered = merged.filter(
+                (c: { name?: string; symbol?: string; coinType?: string }) =>
+                    (c.name?.toLowerCase().includes(lower) ||
+                        c.symbol?.toLowerCase().includes(lower) ||
+                        c.coinType?.toLowerCase().includes(lower))
+            );
+
+            const results: SearchResult[] = filtered.map(
+                (c: {
+                    coinType: string;
+                    name: string;
+                    symbol: string;
+                    iconUrl?: string;
+                    marketCap?: number;
+                    volume24h?: number;
+                }) => ({
+                    type: "coin",
+                    coinType: c.coinType,
+                    name: c.name,
+                    symbol: c.symbol,
+                    icon: c.iconUrl,
+                    mc: c.marketCap,
+                    coinMetadata: { iconUrl: c.iconUrl, icon_url: c.iconUrl },
+                    sellVolumeStats1d:
+                        c.volume24h != null ? { volumeUsd: c.volume24h } : undefined,
+                })
+            );
+            setSearchResults(results);
         } catch (error) {
             console.error("Search error:", error);
             setSearchResults([]);
@@ -151,13 +229,7 @@ export function SearchToken({ mode = "tab" }: SearchTokenProps) {
                     {query.length >= 2 &&
                         !loading &&
                         searchResults.length === 0 && (
-                            <div className="p-4">
-                                <MaintenanceSection
-                                    title="SEARCH_UNDER_MAINTENANCE"
-                                    message="Token search is temporarily unavailable."
-                                    compact
-                                />
-                            </div>
+                            <CommandEmpty>No tokens found.</CommandEmpty>
                         )}
 
                     {searchResults.map((result) => (
