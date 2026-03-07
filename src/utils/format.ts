@@ -86,7 +86,10 @@ export const formatNumberWithSuffix = (
 						? 1
 						: 2
 
-	const formatted = parseFloat(scaled.toFixed(decimalPlaces)).toString()
+	const formatted =
+		decimals !== undefined
+			? scaled.toFixed(decimals)
+			: parseFloat(scaled.toFixed(decimalPlaces)).toString()
 
 	return `${formatted}${suffix}`
 }
