@@ -34,7 +34,16 @@ export const TokenCard = memo(function TokenCard({ pool: token, hasRecentTrade =
 
     const holders = token.holders ?? token.holdersCount ?? 0
 
-    const createdAt = token.publishedAt ?? token.createdAt
+    const rawCreatedAt = token.publishedAt ?? token.createdAt
+    const createdAtMs =
+        typeof rawCreatedAt === "number"
+            ? rawCreatedAt < 1e12
+                ? rawCreatedAt * 1000
+                : rawCreatedAt
+            : rawCreatedAt
+                ? new Date(rawCreatedAt).getTime()
+                : 0
+    const hasValidDate = Number.isFinite(createdAtMs)
 
     const socialLinks = [
         { href: twitter, icon: BsTwitterX, tooltip: "X" },
@@ -143,10 +152,16 @@ export const TokenCard = memo(function TokenCard({ pool: token, hasRecentTrade =
 
                             <div className="flex flex-col gap-1 font-mono text-[10px] sm:flex-row sm:items-center sm:gap-1.5 sm:text-xs">
                                 <div className="flex items-center gap-1.5">
-                                    <RelativeAge
-                                        timestamp={createdAt}
-                                        className="font-medium text-muted-foreground/60 uppercase tracking-wide"
-                                    />
+                                    {hasValidDate ? (
+                                        <RelativeAge
+                                            timestamp={createdAtMs}
+                                            className="font-medium text-muted-foreground/60 uppercase tracking-wide"
+                                        />
+                                    ) : (
+                                        <span className="font-medium text-muted-foreground/60 uppercase tracking-wide">
+                                            —
+                                        </span>
+                                    )}
                                     <span className="hidden text-muted-foreground/40 sm:inline">·</span>
                                     <div className="flex items-center gap-1">
                                         <span className="hidden text-muted-foreground/60 uppercase tracking-wide sm:inline">by</span>

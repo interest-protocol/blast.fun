@@ -54,6 +54,12 @@ export const formatAmountWithSuffix = (amount: string | number | bigint | undefi
 	return `${formatted}${suffix}`
 }
 
+/** Formats a number to exactly N decimal places (e.g. balance/value in tables). */
+export const formatToDecimals = (value: number | undefined, decimals = 4): string => {
+	if (value == null || !isFinite(value)) return (0).toFixed(decimals)
+	return Number(value).toFixed(decimals)
+}
+
 export const formatNumberWithSuffix = (value: number | undefined): string => {
 	if (value == null || !isFinite(value)) return "0"
 
