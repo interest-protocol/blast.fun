@@ -12,16 +12,18 @@ export async function GET(request: Request) {
     const pNum = (key: string) => searchParams.has(key) ? Number(p(key)) : undefined
     const pBool = (key: string) => searchParams.has(key) ? p(key) === "true" : undefined
     const pArr = (key: string) => searchParams.has(key) ? p(key)!.split(",") : undefined
+    const searchQuery = p("q")?.trim()
+    const isSearch = Boolean(searchQuery && searchQuery.length >= 2)
 
     const params: NoodlesCoinListParams = {
       pagination: {
         offset: pNum("offset") ?? 0,
-        limit: pNum("limit") ?? 20,
+        limit: pNum("limit") ?? (isSearch ? 100 : 50),
       },
-      orderBy: (p("orderBy") as NoodlesCoinListParams["orderBy"]) ?? undefined,
-      orderDirection: (p("orderDirection") as "asc" | "desc") ?? undefined,
+      orderBy: (p("orderBy") as NoodlesCoinListParams["orderBy"]) ?? (isSearch ? "published_at" : undefined),
+      orderDirection: (p("orderDirection") as "asc" | "desc") ?? (isSearch ? "desc" : undefined),
       filters: {
-        protocol: pArr("protocol"),
+        protocol: pArr("protocol") ?? (isSearch ? ["blast-fun-bonding-curve"] : undefined),
         coinIds: pArr("coinIds"),
         devAddress: p("devAddress") ?? undefined,
         isGraduated: pBool("isGraduated"),
@@ -56,15 +58,36 @@ export async function GET(request: Request) {
 
     const noodlesRes = await fetchNoodlesCoinList(params)
 
-    if (!noodlesRes || !noodlesRes.data) {
-      console.error("Failed to fetch Noodles coin list:", noodlesRes?.message)
+    if (!noodlesRes) {
+      if (isSearch) {
+        console.error("Noodles coin list: no response (check NOODLES_API_KEY or API availability)")
+      }
       return NextResponse.json({ coins: [], success: true })
     }
 
+    const rawData = noodlesRes.data
+    const rawList = Array.isArray(rawData)
+      ? rawData
+      : (rawData as unknown as { list?: unknown[]; coins?: unknown[] })?.list ??
+        (rawData as unknown as { coins?: unknown[] })?.coins ??
+        []
+
+    let coins = rawList.map((raw) => mapToNoodlesCoinList(raw as Record<string, unknown>))
+
+    if (isSearch && searchQuery) {
+      const lower = searchQuery.toLowerCase()
+      coins = coins.filter(
+        (c) =>
+          c.name.toLowerCase().includes(lower) ||
+          c.symbol.toLowerCase().includes(lower) ||
+          c.coinType.toLowerCase().includes(lower)
+      )
+    }
+
     return NextResponse.json({
-		coins: noodlesRes.data.map(mapToNoodlesCoinList),
-		success: true,
-	})
+      coins,
+      success: true,
+    })
   } catch (error) {
     console.error("Error in Noodles coin list API:", error)
     return NextResponse.json({ coins: [], success: true })
