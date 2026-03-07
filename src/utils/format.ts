@@ -54,7 +54,10 @@ export const formatAmountWithSuffix = (amount: string | number | bigint | undefi
 	return `${formatted}${suffix}`
 }
 
-export const formatNumberWithSuffix = (value: number | undefined): string => {
+export const formatNumberWithSuffix = (
+	value: number | undefined,
+	decimals?: number
+): string => {
 	if (value == null || !isFinite(value)) return "0"
 
 	const thresholds = [
@@ -72,11 +75,18 @@ export const formatNumberWithSuffix = (value: number | undefined): string => {
 	} = thresholds.find((t) => value >= t.min) || thresholds[thresholds.length - 1]
 	const scaled = value / divisor
 
-	// get decimal places based on scaled value
-	const decimals = minDecimals !== undefined ? minDecimals : scaled >= 100 ? 0 : scaled >= 10 ? 1 : 2
+	const decimalPlaces =
+		decimals !== undefined
+			? decimals
+			: minDecimals !== undefined
+				? minDecimals
+				: scaled >= 100
+					? 0
+					: scaled >= 10
+						? 1
+						: 2
 
-	// remove trailing zeros
-	const formatted = parseFloat(scaled.toFixed(decimals)).toString()
+	const formatted = parseFloat(scaled.toFixed(decimalPlaces)).toString()
 
 	return `${formatted}${suffix}`
 }
