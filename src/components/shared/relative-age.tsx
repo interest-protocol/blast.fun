@@ -8,9 +8,15 @@ interface RelativeAgeProps {
 }
 
 export function RelativeAge({ timestamp, className }: RelativeAgeProps) {
-	const [age, setAge] = useState("")
+	const [age, setAge] = useState(() =>
+		Number.isFinite(timestamp) ? "" : "—"
+	)
 
 	useEffect(() => {
+		if (!Number.isFinite(timestamp)) {
+			setAge("—")
+			return
+		}
 		const formatAge = () => {
 			const seconds = Math.floor((Date.now() - timestamp) / 1000)
 
