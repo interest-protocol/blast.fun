@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Loader2 } from "lucide-react"
 import toast from "react-hot-toast"
-import { formatToDecimals } from "@/utils/format"
+import { formatNumberWithSuffix } from "@/utils/format"
 import { useApp } from "@/context/app.context"
 import { SuiClient } from "@mysten/sui/client"
 import { Transaction } from "@mysten/sui/transactions"
@@ -472,12 +472,17 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 												</td>
 												<td className="p-4 text-right">
 													<span className="font-mono text-sm">
-														{formatToDecimals(parseFloat(coin.balance) / Math.pow(10, coin.decimals))}
+														{formatNumberWithSuffix(
+															parseFloat(coin.balance) / Math.pow(10, coin.decimals),
+															4
+														)}
 													</span>
 												</td>
 												<td className="p-4 text-right">
 													<span className="font-mono text-sm">
-														{coin.value != null && coin.value > 0 ? `$${formatToDecimals(coin.value)}` : "-"}
+														{coin.value != null && coin.value > 0
+															? `$${formatNumberWithSuffix(coin.value, 4)}`
+															: "-"}
 													</span>
 												</td>
 												<td className="p-4 text-center">
