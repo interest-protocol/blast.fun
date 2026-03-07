@@ -10,6 +10,7 @@ import { TokenListFilters } from "./token-list.filters";
 import { FlashBuyInput } from "./flash-buy-input";
 import { MaintenanceSection } from "@/components/shared/maintenance-section";
 import { useTradeBump } from "@/hooks/use-trade-bump";
+import { useCreatorsForList } from "@/hooks/use-creators-for-list";
 import type { TokenListSettings } from "@/types/token";
 import { sortTokens } from "@/utils/token-sorting";
 import { NoodlesCoinList } from "@/lib/noodles/client";
@@ -75,6 +76,8 @@ export const GraduatedComplete = memo(function GraduatedComplete({
         return [...bumped, ...sortedNonBumped];
     }, [data, settings.sortBy, bumpOrder]);
 
+    const creatorsMap = useCreatorsForList(filteredAndSortedTokens);
+
     const renderContent = useCallback(() => {
         if (error) {
             return (
@@ -95,15 +98,23 @@ export const GraduatedComplete = memo(function GraduatedComplete({
             return <MaintenanceSection message="Graduated token list is temporarily unavailable." />;
         }
 
-        return filteredAndSortedTokens.map((pool) => (
-            <TokenCard
-                key={pool.coinType}
-                pool={pool}
-                hasRecentTrade={isAnimating(pool.coinType)}
-                column="graduated"
-            />
-        ));
-    }, [filteredAndSortedTokens, isLoading, error, isAnimating]);
+        return filteredAndSortedTokens.map((coin) => {
+            const creator = creatorsMap[coin.coinType];
+            const pool = {
+                ...coin,
+                dev: creator?.address ?? (coin as { dev?: string }).dev,
+                creatorData: creator,
+            };
+            return (
+                <TokenCard
+                    key={coin.coinType}
+                    pool={pool}
+                    hasRecentTrade={isAnimating(coin.coinType)}
+                    column="graduated"
+                />
+            );
+        });
+    }, [filteredAndSortedTokens, creatorsMap, isLoading, error, isAnimating]);
 
     return (
         <TokenListLayout
