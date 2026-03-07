@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { TokenListFilters } from "./token-list.filters"
 import { MaintenanceSection } from "@/components/shared/maintenance-section"
 import { useTradeBump } from "@/hooks/use-trade-bump"
+import { useCreatorsForList } from "@/hooks/use-creators-for-list"
 import type { TokenListSettings, TokenSortOption } from "@/types/token"
 import type { NoodlesCoinList } from "@/lib/noodles/client"
 import { cn } from "@/utils"
@@ -110,6 +111,8 @@ const TabContent = memo(function TabContent({
 		return [...bumped, ...sortedNonBumped]
 	}, [data, settings.sortBy, bumpOrder])
 
+	const creatorsMap = useCreatorsForList(sortedTokens)
+
 	if (!isActive) return null
 
 	if (error) {
@@ -142,14 +145,22 @@ const TabContent = memo(function TabContent({
 
 	return (
 		<div className="space-y-2">
-			{sortedTokens.map((pool) => (
-				<TokenCard 
-					key={pool.coinType} 
-					pool={pool}
-					hasRecentTrade={isAnimating(pool.coinType)}
-					column={column}
-				/>
-			))}
+			{sortedTokens.map((coin) => {
+				const creator = creatorsMap[coin.coinType]
+				const pool = {
+					...coin,
+					dev: creator?.address ?? (coin as { dev?: string }).dev,
+					creatorData: creator,
+				}
+				return (
+					<TokenCard
+						key={coin.coinType}
+						pool={pool}
+						hasRecentTrade={isAnimating(coin.coinType)}
+						column={column}
+					/>
+				)
+			})}
 		</div>
 	)
 })

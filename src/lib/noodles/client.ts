@@ -294,6 +294,7 @@ export interface NoodlesCoinList {
 	name: string
 	symbol: string
 	iconUrl: string
+	dev?: string
 	txs24h: number
 	txsSell24h: number
 	txsBuy24h: number
@@ -371,6 +372,7 @@ export function mapToNoodlesCoinList(raw: Record<string, any>): NoodlesCoinList 
         name: raw.name,
         symbol: raw.symbol,
         iconUrl: raw.icon_url,
+        dev: raw.creator ?? raw.dev_address ?? undefined,
         txs24h: raw.txs_24h,
         txsSell24h: raw.txs_sell_24h,
         txsBuy24h: raw.txs_buy_24h,
