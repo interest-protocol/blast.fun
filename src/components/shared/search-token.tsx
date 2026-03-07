@@ -110,33 +110,36 @@ export function SearchToken({ mode = "tab" }: SearchTokenProps) {
             }
 
             const lower = searchQuery.toLowerCase();
-            const filtered = merged.filter(
-                (c: { name?: string; symbol?: string; coinType?: string }) =>
-                    (c.name?.toLowerCase().includes(lower) ||
-                        c.symbol?.toLowerCase().includes(lower) ||
-                        c.coinType?.toLowerCase().includes(lower))
-            );
+            const filtered = merged.filter((c: unknown) => {
+                const coin = c as { name?: string; symbol?: string; coinType?: string };
+                return (
+                    coin.name?.toLowerCase().includes(lower) ||
+                    coin.symbol?.toLowerCase().includes(lower) ||
+                    coin.coinType?.toLowerCase().includes(lower)
+                );
+            });
 
-            const results: SearchResult[] = filtered.map(
-                (c: {
+            const results: SearchResult[] = filtered.map((c: unknown) => {
+                const coin = c as {
                     coinType: string;
                     name: string;
                     symbol: string;
                     iconUrl?: string;
                     marketCap?: number;
                     volume24h?: number;
-                }) => ({
-                    type: "coin",
-                    coinType: c.coinType,
-                    name: c.name,
-                    symbol: c.symbol,
-                    icon: c.iconUrl,
-                    mc: c.marketCap,
-                    coinMetadata: { iconUrl: c.iconUrl, icon_url: c.iconUrl },
+                };
+                return {
+                    type: "coin" as const,
+                    coinType: coin.coinType,
+                    name: coin.name,
+                    symbol: coin.symbol,
+                    icon: coin.iconUrl,
+                    mc: coin.marketCap,
+                    coinMetadata: { iconUrl: coin.iconUrl, icon_url: coin.iconUrl },
                     sellVolumeStats1d:
-                        c.volume24h != null ? { volumeUsd: c.volume24h } : undefined,
-                })
-            );
+                        coin.volume24h != null ? { volumeUsd: coin.volume24h } : undefined,
+                };
+            });
             setSearchResults(results);
         } catch (error) {
             console.error("Search error:", error);
