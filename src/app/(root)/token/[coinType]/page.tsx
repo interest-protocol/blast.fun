@@ -122,7 +122,7 @@ export default async function TokenPage({
 	}
 	const search = await searchParams
 	const referral = search?.ref as string | undefined
-
+	
 	const tokenData = await fetchTokenByCoinType(coinType)
 	const pool = normalizeToken(tokenData)
 	if (!pool) {

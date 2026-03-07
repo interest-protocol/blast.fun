@@ -1,20 +1,19 @@
 "use client"
 
 import { memo, useState, useCallback, useMemo } from "react"
+import { useQuery } from "@tanstack/react-query"
+
 import { TokenCard } from "./token-card"
 import { TokenCardSkeleton } from "./token-card.skeleton"
 import { Logo } from "@/components/ui/logo"
 import { Button } from "@/components/ui/button"
 import { TokenListFilters } from "./token-list.filters"
 import { MaintenanceSection } from "@/components/shared/maintenance-section"
-import { 
-	useLatestTokens, 
-	useAboutToBondTokens, 
-	useBondedTokens
-} from "@/hooks/use-tokens"
-import type { TokenFilters, TokenListSettings, TokenSortOption } from "@/types/token"
+import { useTradeBump } from "@/hooks/use-trade-bump"
+import type { TokenListSettings, TokenSortOption } from "@/types/token"
+import type { NoodlesCoinList } from "@/lib/noodles/client"
 import { cn } from "@/utils"
-import { sortTokens, applyDefaultSort } from "@/utils/token-sorting"
+import { sortTokens } from "@/utils/token-sorting"
 
 type TabType = "new" | "graduating" | "graduated"
 
@@ -42,6 +41,35 @@ const TABS: TabData[] = [
 	}
 ]
 
+async function fetchCoinsForTab(tab: TabType, filters?: TokenListSettings["filters"]): Promise<NoodlesCoinList[]> {
+	const params = new URLSearchParams()
+
+	params.set("protocol", "blast-fun-bonding-curve")
+
+	if (tab === "new") {
+		params.set("isGraduated", "false")
+		params.set("orderBy", "published_at")
+		params.set("orderDirection", "desc")
+	} else if (tab === "graduating") {
+		params.set("isGraduated", "false")
+		params.set("orderBy", "bonding_curve_progress")
+		params.set("orderDirection", "desc")
+		params.set("bondingCurveProgressMin", "30")
+	} else if (tab === "graduated") {
+		params.set("isGraduated", "true")
+	}
+
+	if (filters?.hasWebsite) params.set("hasWebsite", "true")
+	if (filters?.hasTwitter) params.set("hasX", "true")
+	if (filters?.hasTelegram) params.set("hasTelegram", "true")
+
+	const res = await fetch(`/api/coin/list?${params.toString()}`)
+	if (!res.ok) throw new Error("Failed to fetch coins")
+
+	const json = await res.json()
+	return json.coins ?? []
+}
+
 const TabContent = memo(function TabContent({
 	tab,
 	isActive,
@@ -51,51 +79,36 @@ const TabContent = memo(function TabContent({
 	isActive: boolean
 	settings: TokenListSettings
 }) {
-	// @dev: Build filter params based on settings
-	const filterParams = useMemo<TokenFilters | undefined>(() => {
-		if (!settings.filters) return undefined
-		
-		const params: TokenFilters = {
-			...settings.filters
-		}
-		
-		return Object.keys(params).length > 0 ? params : undefined
-	}, [settings.filters])
+	const { bumpOrder, isAnimating } = useTradeBump()
 
-	// @dev: aall all hooks unconditionally to satisfy React rules
-	const latestTokensQuery = useLatestTokens(filterParams, {
-		enabled: isActive && tab.key === "new",
-		refetchInterval: isActive && tab.key === "new" ? tab.pollInterval : undefined
+	const { data, isLoading, error } = useQuery<NoodlesCoinList[]>({
+		queryKey: ["coins", "mobile", tab.key, settings.filters],
+		queryFn: () => fetchCoinsForTab(tab.key, settings.filters),
+		enabled: isActive,
+		refetchInterval: isActive ? tab.pollInterval : undefined,
+		staleTime: 1000,
+		gcTime: 5000,
 	})
-
-	const aboutToBondQuery = useAboutToBondTokens(filterParams, {
-		enabled: isActive && tab.key === "graduating",
-		refetchInterval: isActive && tab.key === "graduating" ? tab.pollInterval : undefined
-	})
-
-	const bondedTokensQuery = useBondedTokens(filterParams, {
-		enabled: isActive && tab.key === "graduated",
-		refetchInterval: isActive && tab.key === "graduated" ? tab.pollInterval : undefined
-	})
-
-	// @dev: select the active query result based on current tab
-	const { data, isLoading, error } = tab.key === "new" 
-		? latestTokensQuery
-		: tab.key === "graduating"
-		? aboutToBondQuery
-		: bondedTokensQuery
 
 	const sortedTokens = useMemo(() => {
 		if (!data || data.length === 0) return []
 
-		// @dev: Use unified sorting utility
-		if (settings.sortBy) {
-			return sortTokens(data, settings.sortBy)
-		} else {
-			// @dev: Apply default sorting based on tab type
-			return applyDefaultSort(data, tab.key)
-		}
-	}, [data, settings.sortBy, tab.key])
+		const sorted = [...data].sort((a, b) => {
+			const aIndex = bumpOrder.indexOf(a.coinType)
+			const bIndex = bumpOrder.indexOf(b.coinType)
+
+			if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex
+			if (aIndex !== -1) return -1
+			if (bIndex !== -1) return 1
+			return 0
+		})
+
+		const bumped = sorted.filter((t) => bumpOrder.includes(t.coinType))
+		const nonBumped = sorted.filter((t) => !bumpOrder.includes(t.coinType))
+		const sortedNonBumped = sortTokens(nonBumped, settings.sortBy)
+
+		return [...bumped, ...sortedNonBumped]
+	}, [data, settings.sortBy, bumpOrder])
 
 	if (!isActive) return null
 
@@ -124,12 +137,17 @@ const TabContent = memo(function TabContent({
 		return <MaintenanceSection message="Token list is temporarily unavailable." />
 	}
 
+	const column: 'newlyCreated' | 'nearGraduation' | 'graduated' =
+		tab.key === "new" ? "newlyCreated" : tab.key === "graduating" ? "nearGraduation" : "graduated"
+
 	return (
 		<div className="space-y-2">
 			{sortedTokens.map((pool) => (
 				<TokenCard 
 					key={pool.coinType} 
-					pool={pool} 
+					pool={pool}
+					hasRecentTrade={isAnimating(pool.coinType)}
+					column={column}
 				/>
 			))}
 		</div>
