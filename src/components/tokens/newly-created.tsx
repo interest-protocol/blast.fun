@@ -10,6 +10,7 @@ import { TokenListFilters } from "./token-list.filters"
 import { FlashBuyInput } from "./flash-buy-input"
 import { MaintenanceSection } from "@/components/shared/maintenance-section"
 import { useTradeBump } from "@/hooks/use-trade-bump"
+import { useCreatorsForList } from "@/hooks/use-creators-for-list"
 import type { TokenListSettings } from "@/types/token"
 import type { NoodlesCoinList } from "@/lib/noodles/client"
 import { sortTokens } from "@/utils/token-sorting"
@@ -76,6 +77,8 @@ export const NewlyCreated = memo(function NewlyCreated({
         return [...bumped, ...sortedNonBumped]
     }, [data, settings.sortBy, bumpOrder])
 
+    const creatorsMap = useCreatorsForList(filteredAndSortedTokens)
+
     const renderContent = useCallback(() => {
         if (error) {
             return (
@@ -96,15 +99,23 @@ export const NewlyCreated = memo(function NewlyCreated({
             return <MaintenanceSection message="Token list data source is being updated." />
         }
 
-        return filteredAndSortedTokens.map((coin) => (
-            <TokenCard
-                key={coin.coinType}
-                pool={coin}
-                hasRecentTrade={isAnimating(coin.coinType)}
-                column="newlyCreated"
-            />
-        ))
-    }, [filteredAndSortedTokens, isLoading, error, isAnimating])
+        return filteredAndSortedTokens.map((coin) => {
+            const creator = creatorsMap[coin.coinType]
+            const pool = {
+                ...coin,
+                dev: creator?.address ?? (coin as { dev?: string }).dev,
+                creatorData: creator,
+            }
+            return (
+                <TokenCard
+                    key={coin.coinType}
+                    pool={pool}
+                    hasRecentTrade={isAnimating(coin.coinType)}
+                    column="newlyCreated"
+                />
+            )
+        })
+    }, [filteredAndSortedTokens, creatorsMap, isLoading, error, isAnimating])
 
     return (
         <TokenListLayout

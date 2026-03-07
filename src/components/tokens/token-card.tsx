@@ -165,21 +165,25 @@ export const TokenCard = memo(function TokenCard({ pool: token, hasRecentTrade =
                                     <span className="hidden text-muted-foreground/40 sm:inline">·</span>
                                     <div className="flex items-center gap-1">
                                         <span className="hidden text-muted-foreground/60 uppercase tracking-wide sm:inline">by</span>
-                                        <CreatorHoverCard
-                                            walletAddress={token.dev}
-                                            twitterHandle={token.creatorData?.twitterHandle}
-                                            twitterId={token.creatorData?.twitterId}
-                                            data={token.creatorData}
-                                        >
-                                            <span>
-                                                <CreatorDisplay
-                                                    walletAddress={token.dev}
-                                                    twitterHandle={token.creatorData?.twitterHandle}
-                                                    twitterId={token.creatorData?.twitterId}
-                                                    className="cursor-pointer text-foreground/80 transition-colors hover:text-foreground"
-                                                />
-                                            </span>
-                                        </CreatorHoverCard>
+                                        {(token.dev || token.creatorData?.twitterHandle || token.creatorData?.address) ? (
+                                            <CreatorHoverCard
+                                                walletAddress={token.dev ?? token.creatorData?.address}
+                                                twitterHandle={token.creatorData?.twitterHandle}
+                                                twitterId={token.creatorData?.twitterId}
+                                                data={token.creatorData}
+                                            >
+                                                <span>
+                                                    <CreatorDisplay
+                                                        walletAddress={token.dev ?? token.creatorData?.address}
+                                                        twitterHandle={token.creatorData?.twitterHandle}
+                                                        twitterId={token.creatorData?.twitterId}
+                                                        className="cursor-pointer text-foreground/80 transition-colors hover:text-foreground"
+                                                    />
+                                                </span>
+                                            </CreatorHoverCard>
+                                        ) : (
+                                            <span className="font-medium text-muted-foreground/60 uppercase tracking-wide">—</span>
+                                        )}
                                     </div>
                                 </div>
 
