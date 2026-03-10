@@ -461,3 +461,52 @@ export function mapToNoodlesCoinList(raw: Record<string, any>): NoodlesCoinList 
 	const json = (await response.json()) as NoodlesCoinListResponse
 	return json
   }
+
+export interface NoodlesCoinByProtocolItem {
+	coin_type: string
+	name: string
+	symbol: string
+	logo: string | null
+	volume_24h: string | null
+	liquidity_usd: string | null
+	price: number | null
+	price_change_1h: number | null
+	price_change_6h: number | null
+	price_change_1d: number | null
+}
+
+export interface NoodlesCoinByProtocolResponse {
+	code?: number
+	message?: string
+	data?: NoodlesCoinByProtocolItem[]
+}
+
+export interface FetchNoodlesCoinByProtocolParams {
+	protocols: string
+	limit?: number
+	offset?: number
+	sortField?: "volume_24h" | "liquidity_usd" | "price_change_1h" | "price_change_6h" | "price_change_1d"
+	sortDirection?: "ASC" | "DESC"
+}
+
+export async function fetchNoodlesCoinByProtocol(
+	params: FetchNoodlesCoinByProtocolParams
+): Promise<NoodlesCoinByProtocolResponse | null> {
+	const apiKey = env.NOODLES_API_KEY
+	if (!apiKey) return null
+
+	const url = new URL(`${NOODLES_API_BASE}/api/v1/partner/coin/by-protocol`)
+	url.searchParams.set("protocols", params.protocols)
+	if (params.limit != null) url.searchParams.set("limit", String(params.limit))
+	if (params.offset != null) url.searchParams.set("offset", String(params.offset))
+	if (params.sortField) url.searchParams.set("sort_field", params.sortField)
+	if (params.sortDirection) url.searchParams.set("sort_direction", params.sortDirection)
+
+	const response = await fetch(url.toString(), {
+		headers: noodlesHeaders(),
+		next: { revalidate: 30 },
+	})
+
+	if (!response.ok) return null
+	return (await response.json()) as NoodlesCoinByProtocolResponse
+}

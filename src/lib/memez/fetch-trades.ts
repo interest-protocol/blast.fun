@@ -1,5 +1,6 @@
-import { GET_RECENT_TRADES } from "@/graphql/trades"
-import { apolloClient } from "@/lib/apollo-client"
+import {
+	fetchNoodlesPoolTradeEventsByProtocols,
+} from "@/lib/noodles/client"
 
 export interface Trade {
 	coinAmount: string
@@ -10,22 +11,15 @@ export interface Trade {
 	time: string
 }
 
-interface RecentTradesData {
-	marketTrades: {
-		trades: Trade[]
-	}
-}
-
-/**
- * Fetch recent market trades from GraphQL
- */
 export async function fetchRecentTrades(page = 1, pageSize = 10): Promise<Trade[]> {
-	const { data } = await apolloClient.query<RecentTradesData>({
-		query: GET_RECENT_TRADES,
-		variables: { page, pageSize },
-		errorPolicy: "all",
-		fetchPolicy: "network-only",
-	})
+	const { trades: rawTrades } = await fetchNoodlesPoolTradeEventsByProtocols(pageSize)
 
-	return data?.marketTrades?.trades ?? []
+	return rawTrades.map((t) => ({
+		coinAmount: String(t.amount_a),
+		quoteAmount: String(t.amount_b),
+		trader: t.sender ?? "",
+		type: t.coin_a_type,
+		kind: t.a_to_b ? "sell" : "buy",
+		time: new Date(t.timestamp).toISOString(),
+	}))
 }

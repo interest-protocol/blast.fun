@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { apolloClient } from "@/lib/apollo-client"
 import { redisGet, redisSetEx, CACHE_PREFIX, CACHE_TTL } from "@/lib/redis/client"
-import { GET_COIN_POOL_BASIC } from "@/graphql/pools"
+import { fetchNoodlesCoinList } from "@/lib/noodles/client"
 
 interface BondingProgressData {
   progress: number
@@ -15,7 +14,7 @@ export async function GET(
 ) {
   try {
     const { id: coinType } = await context.params
-    
+
     if (!coinType) {
       return NextResponse.json(
         { error: "Token ID is required" },
@@ -23,10 +22,9 @@ export async function GET(
       )
     }
 
-    // Check Redis cache first
     const cacheKey = `${CACHE_PREFIX.BONDING_PROGRESS}${coinType}`
     const cached = await redisGet(cacheKey)
-    
+
     if (cached) {
       return NextResponse.json(JSON.parse(cached), {
         headers: {
@@ -36,36 +34,29 @@ export async function GET(
       })
     }
 
-    // Fetch fresh data
-    const { data } = await apolloClient.query({
-      query: GET_COIN_POOL_BASIC,
-      variables: { type: coinType },
-      fetchPolicy: 'network-only',
+    const coinListRes = await fetchNoodlesCoinList({
+      filters: { coinIds: [coinType] },
+      pagination: { limit: 1 },
     })
 
-    if (!data.coinPool) {
+    const coinData = coinListRes?.data?.[0]
+    if (!coinData) {
       return NextResponse.json(
         { error: "Pool not found" },
         { status: 404 }
       )
     }
 
-    const pool = data.coinPool
-    const progress = typeof pool.bondingCurve === "number" 
-      ? pool.bondingCurve 
-      : parseFloat(pool.bondingCurve) || 0
-    
-    const migrated = pool.migrated || false
-    const migrationPending = pool.canMigrate || false
+    const progress = coinData.bondingCurveProgress ?? 0
+    const migrated = coinData.graduatedTime != null
+    const migrationPending = false
 
-    // Simplified response - only bonding progress data
     const responseData: BondingProgressData = {
       progress,
       migrated,
       migrationPending
     }
 
-    // Cache in Redis
     await redisSetEx(cacheKey, CACHE_TTL.BONDING_PROGRESS, JSON.stringify(responseData))
 
     return NextResponse.json(responseData, {

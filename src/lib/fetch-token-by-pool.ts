@@ -1,9 +1,7 @@
 "use server"
 
-import { apolloClient } from "@/lib/apollo-client"
-import { GET_POOL } from "@/graphql/pools"
-import { CONFIG_KEYS } from "@interest-protocol/memez-fun-sdk"
 import { isValidSuiObjectId } from "@mysten/sui/utils"
+import { pumpSdk } from "@/lib/memez/sdk"
 
 export async function fetchTokenByPool(poolId: string): Promise<{
   id: string
@@ -42,23 +40,15 @@ export async function fetchTokenByPool(poolId: string): Promise<{
 			return null
 		}
 
-		const { data } = await apolloClient.query({
-			query: GET_POOL,
-			variables: { poolId },
-			context: {
-				headers: {
-					"config-key": CONFIG_KEYS.mainnet.XPUMP
-				}
-			},
-			fetchPolicy: "network-only"
-		})
-
-		if (!data?.pool) {
+		const poolData = await pumpSdk.getPumpPool(poolId)
+		if (!poolData) {
 			return null
 		}
 
-		const pool = data.pool
-		return pool
+		return {
+			id: poolId,
+			coinType: poolData.memeCoinType,
+		}
 	} catch (error) {
 		console.error("Error fetching token:", error)
 		return null
