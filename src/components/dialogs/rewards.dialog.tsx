@@ -473,15 +473,14 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 												<td className="p-4 text-right">
 													<span className="font-mono text-sm">
 														{formatNumberWithSuffix(
-															parseFloat(coin.balance) / Math.pow(10, coin.decimals),
-															4
+															parseFloat(coin.balance), coin.decimals
 														)}
 													</span>
 												</td>
 												<td className="p-4 text-right">
 													<span className="font-mono text-sm">
 														{coin.value != null && coin.value > 0
-															? `$${formatNumberWithSuffix(coin.value, 4)}`
+															? `$${formatNumberWithSuffix(coin.value)}`
 															: "-"}
 													</span>
 												</td>
