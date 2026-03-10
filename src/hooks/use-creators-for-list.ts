@@ -16,24 +16,14 @@ export function useCreatorsForList(
 	const { data } = useQuery({
 		queryKey: ["creators-for-list", coinTypes.join(",")],
 		queryFn: async () => {
-			const entries = await Promise.all(
-				coinTypes.map(async (coinType) => {
-					try {
-						const res = await fetch(
-							`/api/coin/${encodeURIComponent(coinType)}/creator`
-						)
-						if (!res.ok) return [coinType, null] as const
-						const json = await res.json()
-						const creator = json.creator as TokenCreator | null
-						return [coinType, creator] as const
-					} catch {
-						return [coinType, null] as const
-					}
-				})
-			)
-			return Object.fromEntries(
-				entries.filter(([, c]) => c != null)
-			) as Record<string, TokenCreator>
+			const res = await fetch("/api/coin/creators-batch", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ coinTypes }),
+			})
+			if (!res.ok) return {}
+			const json = (await res.json()) as { creators: Record<string, TokenCreator> }
+			return json.creators ?? {}
 		},
 		enabled: coinTypes.length > 0,
 		staleTime: 2 * 60 * 1000,
