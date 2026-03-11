@@ -118,6 +118,9 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.2.7
         version: 1.2.7(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.1.0(react@19.2.1))(react@19.2.1)
+      '@shinami/clients':
+        specifier: ^0.10.0
+        version: 0.10.0(@mysten/sui@2.6.0(patch_hash=dlczcmqysnxrjy3trpvyrknziu)(typescript@5.8.3))(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@stylin.js/elements':
         specifier: ^1.1.0
         version: 1.1.0(@types/react@19.1.8)(react@19.2.1)
@@ -1315,6 +1318,9 @@ packages:
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
 
+  '@open-rpc/client-js@2.0.0':
+    resolution: {integrity: sha512-knfuwdPPVJlmNIgvjvrgbwaU+eF0pVCb6V7/c9OH/UYW1jAPE2wrKL3FOa3qpXlVpAF516syYrO9h0s402zXyA==}
+
   '@panva/hkdf@1.2.1':
     resolution: {integrity: sha512-6oclG6Y3PiDFcoyk8srjLfVKyMfVCKJ27JwNPViuXziFpmdz+MZnZN/aKY0JGXgYuO/VghU0jcOAZgWXZ1Dmrw==}
 
@@ -2259,6 +2265,18 @@ packages:
 
   '@scure/bip39@2.0.1':
     resolution: {integrity: sha512-PsxdFj/d2AcJcZDX1FXN3dDgitDDTmwf78rKZq1a6c1P1Nan1X/Sxc7667zU3U+AN60g7SxxP0YCVw2H/hBycg==}
+
+  '@shinami/clients@0.10.0':
+    resolution: {integrity: sha512-urmTiGsGC0qBKkZMDz5vlPbt/xtUsfkW8zAOHSER6gZNc4oYDQTJbeP6j1poXpXSncxvPTv7QYdgBcM9jfNhgw==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      '@aptos-labs/ts-sdk': '>=1.13.3'
+      '@mysten/sui': 2.6.0
+    peerDependenciesMeta:
+      '@aptos-labs/ts-sdk':
+        optional: true
+      '@mysten/sui':
+        optional: true
 
   '@simplewebauthn/browser@9.0.1':
     resolution: {integrity: sha512-wD2WpbkaEP4170s13/HUxPcAV5y4ZXaKo1TfNklS5zDefPinIgXOpgz1kpEvobAsaLPa2KeH7AKKX/od1mrBJw==}
@@ -4077,6 +4095,11 @@ packages:
     peerDependencies:
       ws: '*'
 
+  isomorphic-ws@5.0.0:
+    resolution: {integrity: sha512-muId7Zzn9ywDsyXgTIafTry2sV3nySZeUDe6YedVd1Hvuuep5AsIlqK+XefWpYTyJG5e503F2xIuT2lcU6rCSw==}
+    peerDependencies:
+      ws: '*'
+
   isows@1.0.6:
     resolution: {integrity: sha512-lPHCayd40oW98/I0uvgaHKWCSvkzY27LjWLbtzOm64yQ+G3Q5npjjbdppU65iZXkK1Zt+kH9pfegli0AYfwYYw==}
     peerDependencies:
@@ -5088,6 +5111,9 @@ packages:
 
   stream-shift@1.0.3:
     resolution: {integrity: sha512-76ORR0DO1o1hlKwTbi/DM3EXWGf3ZJYO8cXX5RJwnul2DEg2oyoZyjLNoQM8WsvZiFKCRfC1O0J7iCvie3RZmQ==}
+
+  strict-event-emitter-types@2.0.0:
+    resolution: {integrity: sha512-Nk/brWYpD85WlOgzw5h173aci0Teyv8YdIAEtV+N88nDB0dLlazZyJMIsN6eo1/AR61l+p6CJTG1JIyFaoNEEA==}
 
   strict-uri-encode@2.0.0:
     resolution: {integrity: sha512-QwiXZgpRcKkhTj2Scnn++4PKtWsH0kpzZ62L2R6c/LUVYv7hVnZqcg2+sMuT6R7Jusu1vviK/MFsu6kNJfWlEQ==}
@@ -6923,6 +6949,15 @@ snapshots:
 
   '@nolyfill/is-core-module@1.0.39': {}
 
+  '@open-rpc/client-js@2.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      isomorphic-ws: 5.0.0(ws@8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+      strict-event-emitter-types: 2.0.0
+      ws: 8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   '@panva/hkdf@1.2.1': {}
 
   '@phosphor-icons/webcomponents@2.1.5':
@@ -8493,6 +8528,16 @@ snapshots:
     dependencies:
       '@noble/hashes': 2.0.1
       '@scure/base': 2.0.0
+
+  '@shinami/clients@0.10.0(@mysten/sui@2.6.0(patch_hash=dlczcmqysnxrjy3trpvyrknziu)(typescript@5.8.3))(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@open-rpc/client-js': 2.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      superstruct: 2.0.2
+    optionalDependencies:
+      '@mysten/sui': 2.6.0(patch_hash=dlczcmqysnxrjy3trpvyrknziu)(typescript@5.8.3)
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   '@simplewebauthn/browser@9.0.1':
     dependencies:
@@ -10899,6 +10944,10 @@ snapshots:
     dependencies:
       ws: 7.5.10(bufferutil@4.0.9)(utf-8-validate@5.0.10)
 
+  isomorphic-ws@5.0.0(ws@8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)):
+    dependencies:
+      ws: 8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+
   isows@1.0.6(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)):
     dependencies:
       ws: 8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -11791,7 +11840,7 @@ snapshots:
       buffer: 6.0.3
       eventemitter3: 5.0.1
       uuid: 8.3.2
-      ws: 8.17.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      ws: 8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     optionalDependencies:
       bufferutil: 4.0.9
       utf-8-validate: 5.0.10
@@ -11981,6 +12030,8 @@ snapshots:
       stream-chain: 2.2.5
 
   stream-shift@1.0.3: {}
+
+  strict-event-emitter-types@2.0.0: {}
 
   strict-uri-encode@2.0.0: {}
 

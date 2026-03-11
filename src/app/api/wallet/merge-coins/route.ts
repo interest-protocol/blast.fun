@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server"
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519"
 import { toHex, fromHex } from "@mysten/sui/utils"
 import { suiSponsorship, GasStationError } from "@3mate/gas-station-sdk"
+import { GasStationClient } from "@shinami/clients/sui"
 import { walletSdk } from "@/lib/memez/sdk"
 import { suiClient } from "@/lib/sui-client"
-
-const GAS_STATION_API_KEY = process.env.GAS_STATION_API_KEY || ""
+import { env } from "@/env"
 
 export async function POST(req: NextRequest) {
 	try {
@@ -25,9 +25,14 @@ export async function POST(req: NextRequest) {
 			)
 		}
 
-		if (!GAS_STATION_API_KEY) {
+		const shinamiGasKey = env.SHINAMI_GAS_ACCESS_KEY ?? ""
+		const gasStationApiKey = env.GAS_STATION_API_KEY ?? ""
+		const useShinami = shinamiGasKey.length > 0
+		const use3mate = gasStationApiKey.length > 0
+
+		if (!useShinami && !use3mate) {
 			return NextResponse.json(
-				{ error: "Gas station not configured" },
+				{ error: "Gas station not configured (set SHINAMI_GAS_ACCESS_KEY or GAS_STATION_API_KEY)" },
 				{ status: 500 }
 			)
 		}
@@ -40,47 +45,60 @@ export async function POST(req: NextRequest) {
 			coins: coins,
 			wallet: walletAddress,
 		})
-		
+
 		tx.setSender(tempAddress)
-		
+
 		const txBytes = await tx.build({ client: suiClient, onlyTransactionKind: true })
-		const txBytesHex = toHex(txBytes)
-		
-		let sponsorData
-		try {
-			sponsorData = await suiSponsorship({
-				apiKey: GAS_STATION_API_KEY,
-				rawTxBytesHex: txBytesHex,
-				sender: tempAddress,
-				network: 'mainnet'
-			})
-		} catch (error) {
-			if (error instanceof GasStationError) {
-				return NextResponse.json(
-					{ error: `Gas station sponsorship failed: ${error.message}` },
-					{ status: 500 }
-				)
+
+		let sponsoredTxBytes: Uint8Array
+		let sponsorSignature: string
+
+		if (useShinami) {
+			const gasClient = new GasStationClient(shinamiGasKey)
+			const txKindBase64 = Buffer.from(txBytes).toString("base64")
+			const gaslessTx = { txKind: txKindBase64, sender: tempAddress }
+			const sponsored = await gasClient.sponsorTransaction(gaslessTx)
+			sponsoredTxBytes = new Uint8Array(Buffer.from(sponsored.txBytes, "base64"))
+			sponsorSignature = sponsored.signature
+		} else {
+			const txBytesHex = toHex(txBytes)
+			let sponsorData
+			try {
+				sponsorData = await suiSponsorship({
+					apiKey: gasStationApiKey,
+					rawTxBytesHex: txBytesHex,
+					sender: tempAddress,
+					network: "mainnet",
+				})
+			} catch (error) {
+				if (error instanceof GasStationError) {
+					return NextResponse.json(
+						{ error: `Gas station sponsorship failed: ${error.message}` },
+						{ status: 500 }
+					)
+				}
+				throw error
 			}
-			throw error
+			sponsoredTxBytes = fromHex(sponsorData.txBytesHex)
+			sponsorSignature = sponsorData.sponsorSignature
 		}
 
-		const sponsoredTxBytes = fromHex(sponsorData.txBytesHex)
 		const signature = await tempKeypair.signTransaction(sponsoredTxBytes)
 		const result = await suiClient.executeTransactionBlock({
 			transactionBlock: sponsoredTxBytes,
-			signature: [signature.signature, sponsorData.sponsorSignature],
+			signature: [signature.signature, sponsorSignature],
 			options: {
 				showEffects: true,
 				showObjectChanges: true,
 			},
 		})
-		
+
 		if (result.effects?.status?.status !== "success") {
 			return NextResponse.json(
-				{ 
+				{
 					error: "Transaction execution failed",
 					status: result.effects?.status?.status,
-					errorMessage: result.effects?.status?.error
+					errorMessage: result.effects?.status?.error,
 				},
 				{ status: 500 }
 			)
@@ -94,7 +112,7 @@ export async function POST(req: NextRequest) {
 				computationCost: result.effects?.gasUsed?.computationCost || "0",
 				storageCost: result.effects?.gasUsed?.storageCost || "0",
 				storageRebate: result.effects?.gasUsed?.storageRebate || "0",
-			}
+			},
 		})
 	} catch (error) {
 		console.error("Error in merge-coins API:", error)

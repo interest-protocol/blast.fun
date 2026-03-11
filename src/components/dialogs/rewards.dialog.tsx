@@ -95,7 +95,6 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 					}
 					
 					const mergePromises = batches.map(async (batch, index) => {
-				
 						const mergeResponse = await fetch("/api/wallet/merge-coins", {
 							method: "POST",
 							headers: {
@@ -236,36 +235,34 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 		}
 	}, [memezWalletAddress])
 
-	// Handle claim button click - simplified using shared function
-	const handleClaim = useCallback(async (coin: WalletCoin) => {		
+	// Handle claim button click
+	const handleClaim = useCallback(async (coin: WalletCoin) => {
 		setClaimingCoinType(coin.coinType)
 		const loadingToastId = toast.loading("Preparing your reward...")
-		
+
 		try {
 			const tx = new Transaction()
-			
-			// Merge and prepare receive for this coin
+			tx.setSender(address!) 
+
 			const result = await mergeAndPrepareReceive(coin, tx, suiClient)
-			
+
 			if (!result.success) {
 				throw new Error(result.error || "Failed to prepare coin")
 			}
-			
-			// Dismiss loading toast
+
 			toast.dismiss(loadingToastId)
-			
-			// Set gas budget
+
 			tx.setGasBudget(10000000)
-			
+
 			await executeTransaction(tx)
-			
+
 			toast.success(`${coin.symbol} claimed successfully!`)
-			
+
 			// Refresh wallet coins after claim
 			setTimeout(() => {
 				fetchWalletCoins()
 			}, 2000)
-			
+
 		} catch (error) {
 			console.error("\n❌ CLAIM FAILED:", error)
 			toast.dismiss(loadingToastId)
@@ -279,69 +276,62 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 	const handleClaimAll = useCallback(async () => {
 		if (walletCoins.length === 0) return
 
-		// Limit to 200 coins maximum
 		const MAX_COINS = 10
 		const coinsToProcess = walletCoins.slice(0, MAX_COINS)
-		
+
 		setClaimingCoinType("all")
 		let progressToastId: string | undefined
-		
+
 		try {
 			const tx = new Transaction()
-			
-			// Process each coin sequentially with progress updates
+			tx.setSender(address!) 
+
 			let successCount = 0
 			const failedCoins: string[] = []
-			
+
 			for (let i = 0; i < coinsToProcess.length; i++) {
 				const coin = coinsToProcess[i]
-				
-				// Update progress toast
+
 				if (progressToastId) {
 					toast.dismiss(progressToastId)
 				}
 				progressToastId = toast.loading(`Preparing ${coin.symbol} (${i + 1}/${coinsToProcess.length})...`)
-				
+
 				const result = await mergeAndPrepareReceive(coin, tx, suiClient)
-				
+
 				if (result.success) {
 					successCount++
 				} else {
 					failedCoins.push(coin.symbol)
 				}
 			}
-			
-			// Dismiss progress toast
+
 			if (progressToastId) {
 				toast.dismiss(progressToastId)
 			}
-			
+
 			if (successCount === 0) {
 				throw new Error("No coins could be prepared for claiming")
 			}
-			
-			// Show warning if some coins failed
+
 			if (failedCoins.length > 0) {
 				toast.error(`Could not claim: ${failedCoins.join(", ")}`)
 			}
-			
-			// Show warning if we hit the limit
+
 			if (walletCoins.length > MAX_COINS) {
 				toast(`Processing first ${MAX_COINS} coins. Run claim all again for remaining coins.`)
 			}
-			
-			// Set gas budget
+
 			tx.setGasBudget(10000000)
-			
+
 			await executeTransaction(tx)
-			
+
 			toast.success(`Successfully claimed ${successCount} reward(s)!`)
-			
-			// Refresh wallet coins after claim
+
 			setTimeout(() => {
 				fetchWalletCoins()
 			}, 2000)
-			
+
 		} catch (error) {
 			console.error("\n❌ CLAIM ALL FAILED:", error)
 			if (progressToastId) {
@@ -356,7 +346,6 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 	// Get Memez wallet address when user connects
 	useEffect(() => {
 		if (isConnected && address && open) {
-			// Get the Memez wallet address using the SDK
 			const getMemezWallet = async () => {
 				try {
 					const memezAddr = await walletSdk.getWalletAddress(address)
@@ -369,7 +358,7 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 			}
 			getMemezWallet()
 		}
-	}, [isConnected, address, walletSdk, open])
+	}, [isConnected, address, open])
 
 	// Fetch coins when memez wallet address is available
 	useEffect(() => {
