@@ -6,9 +6,11 @@ import { MAINNET_RPC_URL } from "@/lib/sui-network"
 const useNetworkConfig = () => {
 	return createNetworkConfig({
 		[Network.MAINNET]: {
+			network: Network.MAINNET,
 			url: MAINNET_RPC_URL,
 		},
 		[Network.TESTNET]: {
+			network: Network.TESTNET,
 			url: getJsonRpcFullnodeUrl(Network.TESTNET),
 		}
 	})
