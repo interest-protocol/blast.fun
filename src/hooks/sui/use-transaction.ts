@@ -36,7 +36,7 @@ export const useTransaction = () => {
                         showEffects: true,
                         ...options,
                     },
-                    requestType: "WaitForLocalExecution",
+                    requestType: "WaitForEffectsCert",
                 })
 
                 const endTime = Date.now()
@@ -49,6 +49,8 @@ export const useTransaction = () => {
                         time: Number(txResult.timestampMs) - startTime,
                     }
                 } else {
+                    await new Promise(res => setTimeout(res, 1000))
+
                     const fullTxResponse = await suiClient.getTransactionBlock({
                         digest: txResult.digest,
                         options: {
