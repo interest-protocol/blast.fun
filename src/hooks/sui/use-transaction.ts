@@ -1,5 +1,5 @@
 import { useSignTransaction } from "@mysten/dapp-kit"
-import { SuiTransactionBlockResponse } from "@mysten/sui/client"
+import { SuiTransactionBlockResponse } from "@mysten/sui/jsonRpc"
 import type { Transaction } from "@mysten/sui/transactions"
 import { useCallback } from "react"
 import { useApp } from "@/context/app.context"

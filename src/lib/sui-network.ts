@@ -1,4 +1,4 @@
-import { getFullnodeUrl } from "@mysten/sui/client";
+import { getJsonRpcFullnodeUrl } from "@mysten/sui/jsonRpc";
 import { env } from "@/env";
 import { Network } from "@/types/network";
 
@@ -9,5 +9,5 @@ export function getSuiFullnodeUrl(): string {
     if (env.NEXT_PUBLIC_DEFAULT_NETWORK === Network.MAINNET)
         return MAINNET_RPC_URL;
 
-    return getFullnodeUrl(Network.TESTNET);
+    return getJsonRpcFullnodeUrl(Network.TESTNET);
 }

@@ -1,4 +1,4 @@
-import type { SuiTransactionBlockResponse } from "@mysten/sui/client"
+import type { SuiTransactionBlockResponse } from "@mysten/sui/jsonRpc"
 
 export interface TimedSuiTransactionBlockResponse extends SuiTransactionBlockResponse {
     time: number

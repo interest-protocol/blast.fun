@@ -1,6 +1,6 @@
-import { SuiClient } from "@mysten/sui/client"
+import { SuiJsonRpcClient } from "@mysten/sui/jsonRpc"
 import { getSuiFullnodeUrl } from "@/lib/sui-network"
 
-export const suiClient = new SuiClient({
+export const suiClient = new SuiJsonRpcClient({
 	url: getSuiFullnodeUrl(),
 })

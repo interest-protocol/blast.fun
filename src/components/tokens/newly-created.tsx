@@ -8,7 +8,7 @@ import { TokenCardSkeleton } from "./token-card.skeleton";
 import { Logo } from "@/components/ui/logo";
 import { TokenListFilters } from "./token-list.filters";
 import { FlashBuyInput } from "./flash-buy-input";
-import { MaintenanceSection } from "@/components/shared/maintenance-section";
+
 import { useTradeBump } from "@/hooks/use-trade-bump";
 import { useCreatorsForList } from "@/hooks/use-creators-for-list";
 import type { TokenListSettings } from "@/types/token";

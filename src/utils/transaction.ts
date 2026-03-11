@@ -1,4 +1,4 @@
-import { SuiTransactionBlockResponse } from "@mysten/sui/client"
+import { SuiTransactionBlockResponse } from "@mysten/sui/jsonRpc"
 
 export const throwTransactionIfFailed = (tx: SuiTransactionBlockResponse, customMessage?: string): void => {
     if (!tx.effects || tx.effects.status.status !== "success") {

@@ -1,4 +1,4 @@
-import { CoinMetadata } from "@mysten/sui/client"
+import { CoinMetadata } from "@mysten/sui/jsonRpc"
 
 export interface VestingPosition {
 	id: string

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519"
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions"
-import { CoinMetadata } from "@mysten/sui/client"
+import { CoinMetadata } from "@mysten/sui/jsonRpc"
 import { SUI_DECIMALS, SUI_TYPE_ARG } from "@mysten/sui/utils"
 import { suiClient } from "@/lib/sui-client"
 import { useTransaction } from "@/hooks/sui/use-transaction"
