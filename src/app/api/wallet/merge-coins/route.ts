@@ -2,10 +2,36 @@ import { NextRequest, NextResponse } from "next/server"
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519"
 import { toHex, fromHex } from "@mysten/sui/utils"
 import { suiSponsorship, GasStationError } from "@3mate/gas-station-sdk"
-import { GasStationClient } from "@shinami/clients/sui"
 import { walletSdk } from "@/lib/memez/sdk"
 import { suiClient } from "@/lib/sui-client"
 import { env } from "@/env"
+
+const SHINAMI_GAS_API_URL = "https://api.us1.shinami.com/sui/gas/v1"
+
+async function shinamiSponsorTransaction(accessKey: string, txKindBase64: string, sender: string) {
+	const res = await fetch(SHINAMI_GAS_API_URL, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			"X-Api-Key": accessKey,
+		},
+		body: JSON.stringify({
+			jsonrpc: "2.0",
+			method: "gas_sponsorTransactionBlock",
+			params: [txKindBase64, sender],
+			id: 1,
+		}),
+	})
+	const data = await res.json()
+	if (data.error) {
+		throw new Error(data.error.message ?? "Shinami gas sponsorship failed")
+	}
+	const { txBytes, signature } = data.result
+	if (!txBytes || !signature) {
+		throw new Error("Invalid Shinami sponsorship response")
+	}
+	return { txBytes, signature }
+}
 
 export async function POST(req: NextRequest) {
 	try {
@@ -54,10 +80,8 @@ export async function POST(req: NextRequest) {
 		let sponsorSignature: string
 
 		if (useShinami) {
-			const gasClient = new GasStationClient(shinamiGasKey)
 			const txKindBase64 = Buffer.from(txBytes).toString("base64")
-			const gaslessTx = { txKind: txKindBase64, sender: tempAddress }
-			const sponsored = await gasClient.sponsorTransaction(gaslessTx)
+			const sponsored = await shinamiSponsorTransaction(shinamiGasKey, txKindBase64, tempAddress)
 			sponsoredTxBytes = new Uint8Array(Buffer.from(sponsored.txBytes, "base64"))
 			sponsorSignature = sponsored.signature
 		} else {
