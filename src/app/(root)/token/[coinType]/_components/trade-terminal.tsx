@@ -61,6 +61,10 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
         number[]
     >([]);
 
+    useEffect(() => {
+        setAmount("");
+    }, [tradeType]);
+
     const {
         slippage,
         quickBuyAmounts,
