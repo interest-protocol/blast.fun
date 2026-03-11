@@ -94,10 +94,17 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 
 			return {
 				...vestingData,
-				data: vestingData.data.map(position => ({
-					...position,
-					claimableAmount: claimableMap.get(position.objectId) || "0"
-				}))
+				data: vestingData.data.map(position => {
+					const decimals = decimalsMap[position.coinType] || 9
+					return {
+						...position,
+						// @dev: attach normalized amounts and decimals so UI does not have to guess units
+						normalizedBalance: (parseFloat(position.balance) / 10 ** decimals).toString(),
+						normalizedReleased: (parseFloat(position.released) / 10 ** decimals).toString(),
+						decimals,
+						claimableAmount: claimableMap.get(position.objectId) || "0"
+					}
+				})
 			}
 		},
 		enabled: !!vestingData?.data?.length && !!vestingSdk,
@@ -123,9 +130,19 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 			const duration = parseInt(position.duration)
 			const endTime = startTime + duration
 			
-			// @dev: Balance and released are already in human-readable format from API
-			const balanceBN = new BigNumber(position.balance)
-			const releasedBN = new BigNumber(position.released)
+			// @dev: Normalize balance / released using decimals (API returns smallest unit)
+			const decimals =
+				(position as VestingPosition & { decimals?: number }).decimals ?? 9
+
+			const balanceSource =
+				(position as VestingPosition & { normalizedBalance?: string })
+					.normalizedBalance ?? position.balance
+			const releasedSource =
+				(position as VestingPosition & { normalizedReleased?: string })
+					.normalizedReleased ?? position.released
+
+			const balanceBN = new BigNumber(balanceSource)
+			const releasedBN = new BigNumber(releasedSource)
 			const totalAmount = balanceBN.plus(releasedBN)
 			
 			// @dev: Use SDK-calculated claimable amount, fallback to 0 if not available

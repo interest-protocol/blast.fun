@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
     Loader2,
     Settings2,
@@ -82,9 +82,23 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
     const metadata = pool.metadata;
     const marketData = pool.market;
     const decimals = metadata?.decimals || 9;
-    const effectiveBalance =
-        actualBalance !== "0" ? actualBalance : tokenBalance;
-    const balanceInDisplayUnit = Number(effectiveBalance);
+
+    const tokenBalanceRaw = tokenBalance;
+    const tokenBalanceDisplay = tokenBalanceRaw
+        ? Number(tokenBalanceRaw) / Math.pow(10, decimals)
+        : 0;
+
+    // portfolio balance (already in display units)
+    const portfolioBalanceDisplay =
+        actualBalance !== "0" ? Number(actualBalance) : 0;
+
+    // for UI we prefer the on-chain balance; fall back to portfolio if needed
+    const balanceInDisplayUnit =
+        tokenBalanceDisplay || portfolioBalanceDisplay || 0;
+
+    // raw balance used for max-holding / curve math should always come from chain
+    const effectiveBalanceRaw = tokenBalanceRaw || "0";
+
     const hasBalance = balanceInDisplayUnit > 0;
     const suiBalanceInDisplayUnit = suiBalance
         ? Number(suiBalance) / Number(MIST_PER_SUI)
@@ -127,7 +141,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                     10000n;
 
                 // subtract current holdings to get how much more they can buy
-                const currentHoldingsBigInt = BigInt(effectiveBalance || "0");
+                const currentHoldingsBigInt = BigInt(effectiveBalanceRaw || "0");
                 const remainingTokensToBuy =
                     maxTokenAmount > currentHoldingsBigInt
                         ? maxTokenAmount - currentHoldingsBigInt
@@ -198,7 +212,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
         protectionSettings?.maxHoldingPercent,
         pool.pool,
         decimals,
-        effectiveBalance,
+        effectiveBalanceRaw,
         suiBalanceInDisplayUnit,
     ]);
 
@@ -406,7 +420,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
     const { isProcessing, error, buy, sell } = useTrading({
         pool,
         decimals,
-        actualBalance: effectiveBalance,
+        actualBalance: balanceInDisplayUnit.toString(),
         referrerWallet,
     });
 
@@ -417,7 +431,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
     } = useBurn({
         pool,
         decimals,
-        actualBalance: effectiveBalance,
+        actualBalance: balanceInDisplayUnit.toString(),
         onSuccess: async () => {
             await refetchPortfolio();
             setAmount("");
@@ -429,12 +443,12 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
             setAmount(value.toString());
         } else if (tradeType === "sell" || tradeType === "burn") {
             const percentage = value;
-            if (!balanceInDisplayUnit || effectiveBalance === "0") {
+            if (!balanceInDisplayUnit) {
                 setAmount("0");
                 return;
             }
 
-            if (percentage === 100) setAmount(effectiveBalance);
+            if (percentage === 100) setAmount(balanceInDisplayUnit.toString());
             else {
                 try {
                     const balanceBN = new BigNumber(balanceInDisplayUnit);
@@ -637,13 +651,12 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                                             setAmount(maxSui.toString());
                                         }
                                     } else {
-                                        if (
-                                            !balanceInDisplayUnit ||
-                                            effectiveBalance === "0"
-                                        ) {
+                                        if (!balanceInDisplayUnit) {
                                             setAmount("0");
                                         } else {
-                                            setAmount(effectiveBalance);
+                                            setAmount(
+                                                balanceInDisplayUnit.toString(),
+                                            );
                                         }
                                     }
                                 }}
