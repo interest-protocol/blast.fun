@@ -47,7 +47,7 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
 	const balanceInDisplayUnit = effectiveBalance ? Number(effectiveBalance) / Math.pow(10, decimals) : 0
 
 	// Calculate precise balance for MAX button
-	const balanceInDisplayUnitPrecise = (() => {
+	const balanceInDisplayUnit = (() => {
 		if (!effectiveBalance || effectiveBalance === undefined || effectiveBalance === null) {
 			return "0"
 		}
@@ -65,16 +65,16 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
 	})()
 
 	const handleQuickAmount = (percentage: number) => {
-		if (!balanceInDisplayUnitPrecise || balanceInDisplayUnitPrecise === "0") {
+		if (!balanceInDisplayUnit || balanceInDisplayUnit === "0") {
 			setAmount("0")
 			return
 		}
 
 		if (percentage === 100) {
-			setAmount(balanceInDisplayUnitPrecise)
+			setAmount(balanceInDisplayUnit)
 		} else {
 			try {
-				const balanceBN = new BigNumber(balanceInDisplayUnitPrecise)
+				const balanceBN = new BigNumber(balanceInDisplayUnit)
 				const percentageBN = new BigNumber(percentage).dividedBy(100)
 				const tokenAmountToBurn = balanceBN.multipliedBy(percentageBN).toFixed(9, BigNumber.ROUND_DOWN)
 				setAmount(tokenAmountToBurn)
@@ -183,7 +183,7 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
 						<div className="flex items-center justify-between">
 							<label className="text-sm font-medium">Amount to Burn</label>
 							<button
-								onClick={() => setAmount(balanceInDisplayUnitPrecise)}
+								onClick={() => setAmount(balanceInDisplayUnit)}
 								className="text-xs text-blue-400 hover:text-blue-300 font-medium transition-colors"
 								disabled={isProcessing}
 							>

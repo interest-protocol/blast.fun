@@ -10,7 +10,7 @@ import { BondingProgress } from "./bonding-progress"
 import { ReferralShare } from "./referral-share"
 import { HolderDetails } from "./holder-details"
 import MobileTokenView from "./mobile-token-view"
-import { NexaChart } from "@/components/shared/nexa-chart"
+import { Chart } from "@/components/shared/chart"
 import {
 	ResizablePanelGroup,
 	ResizablePanel,
@@ -91,7 +91,7 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 			/>
 
 			{/* Desktop View - shown only on desktop screens */}
-			<div className="w-full h-full hidden lg:flex">
+			<div className="w-full h-full hidden lg:flex overflow-hidden">
 				<div className="flex-1 flex flex-col">
 					{/* Chart and Tabs */}
 					<ResizablePanelGroup
@@ -99,7 +99,7 @@ export function TokenModule({ pool, referral }: TokenModuleProps) {
 						className="flex-1"
 					>
 						<ResizablePanel defaultSize={60} minSize={30}>
-							<NexaChart coinType={pool.coinType} />
+							<Chart coinType={pool.coinType} />
 						</ResizablePanel>
 
 						<ResizableHandle withHandle />

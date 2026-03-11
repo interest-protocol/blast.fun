@@ -4,12 +4,12 @@ import { useState, useMemo } from "react"
 import { useTheme } from "next-themes"
 import { cn } from "@/utils"
 
-interface NexaChartProps {
+interface ChartProps {
 	coinType: string
 	className?: string
 }
 
-export function NexaChart({ coinType, className }: NexaChartProps) {
+export function Chart({ coinType, className }: ChartProps) {
 	const [isLoading, setIsLoading] = useState(true)
 	const [loadFailed, setLoadFailed] = useState(false)
 	const { resolvedTheme } = useTheme()

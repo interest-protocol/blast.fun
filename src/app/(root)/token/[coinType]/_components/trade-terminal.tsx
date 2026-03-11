@@ -46,7 +46,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
     const { isLoggedIn: isTwitterLoggedIn, login: twitterLogin } = useTwitter();
     const { settings: protectionSettings } = useTokenProtection(
         pool.pool?.poolId || "",
-        pool.pool?.isProtected
+        pool.pool?.isProtected,
     );
     const [tradeType, setTradeType] = useState<"buy" | "sell" | "burn">("buy");
     const [amount, setAmount] = useState("");
@@ -55,7 +55,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
     const [editingQuickBuy, setEditingQuickBuy] = useState(false);
     const [editingQuickSell, setEditingQuickSell] = useState(false);
     const [tempQuickBuyAmounts, setTempQuickBuyAmounts] = useState<number[]>(
-        []
+        [],
     );
     const [tempQuickSellPercentages, setTempQuickSellPercentages] = useState<
         number[]
@@ -72,7 +72,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
     const { balance: tokenBalance, refetch: refetchTokenBalance } =
         useTokenBalance(pool.coinType);
     const { balance: actualBalance, refetch: refetchPortfolio } = usePortfolio(
-        pool.coinType
+        pool.coinType,
     );
     const { balance: suiBalance, refetch: refetchSuiBalance } =
         useTokenBalance("0x2::sui::SUI");
@@ -84,37 +84,11 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
     const decimals = metadata?.decimals || 9;
     const effectiveBalance =
         actualBalance !== "0" ? actualBalance : tokenBalance;
-    const balanceInDisplayUnit = effectiveBalance
-        ? Number(effectiveBalance) / Math.pow(10, decimals)
-        : 0;
+    const balanceInDisplayUnit = Number(effectiveBalance);
     const hasBalance = balanceInDisplayUnit > 0;
     const suiBalanceInDisplayUnit = suiBalance
         ? Number(suiBalance) / Number(MIST_PER_SUI)
         : 0;
-
-    // balance calculation for max
-    const balanceInDisplayUnitPrecise = useMemo(() => {
-        if (
-            !effectiveBalance ||
-            effectiveBalance === undefined ||
-            effectiveBalance === null
-        ) {
-            return "0";
-        }
-
-        try {
-            const balanceBN = new BigNumber(effectiveBalance);
-            if (balanceBN.isNaN()) {
-                return "0";
-            }
-
-            const divisor = new BigNumber(10).pow(decimals);
-            return balanceBN.dividedBy(divisor).toFixed();
-        } catch (error) {
-            console.error("Error calculating precise balance:", error);
-            return "0";
-        }
-    }, [effectiveBalance, decimals]);
 
     // calculate max buyable amount based on max holding percentage
     const [maxBuyableAmountSui, setMaxBuyableAmountSui] = useState<
@@ -138,7 +112,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                 setIsCalculatingMax(true);
 
                 const maxHoldingPercent = parseFloat(
-                    protectionSettings.maxHoldingPercent
+                    protectionSettings.maxHoldingPercent,
                 );
                 if (isNaN(maxHoldingPercent) || maxHoldingPercent <= 0) {
                     setMaxBuyableAmountSui(null);
@@ -167,7 +141,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                 // binary search to find the SUI amount that gives us the desired tokens
                 let low = 0n;
                 let high = BigInt(
-                    suiBalanceInDisplayUnit * Number(MIST_PER_SUI)
+                    suiBalanceInDisplayUnit * Number(MIST_PER_SUI),
                 );
                 let bestSuiAmount = 0n;
                 while (low <= high) {
@@ -180,7 +154,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                         });
 
                         const tokensReceived = BigInt(
-                            quoteResult.memeAmountOut || 0
+                            quoteResult.memeAmountOut || 0,
                         );
 
                         if (tokensReceived === remainingTokensToBuy) {
@@ -206,7 +180,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                     Number(bestSuiAmount) / Number(MIST_PER_SUI);
                 const maxAffordable = Math.min(
                     suiAmountInSui,
-                    Math.max(0, suiBalanceInDisplayUnit - 0.02)
+                    Math.max(0, suiBalanceInDisplayUnit - 0.02),
                 );
 
                 setMaxBuyableAmountSui(maxAffordable.toString());
@@ -274,14 +248,14 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                         amountBN
                             .multipliedBy(mistPerSuiBN)
                             .integerValue(BigNumber.ROUND_DOWN)
-                            .toString()
+                            .toString(),
                     );
 
                     if (isMigrated) {
                         const quoteResult = await getBuyQuote(
                             pool.coinType,
                             amountInMist,
-                            slippage
+                            slippage,
                         );
                         setQuote({
                             memeAmountOut: quoteResult.amountOut,
@@ -302,14 +276,14 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                         amountBN
                             .multipliedBy(Math.pow(10, decimals))
                             .integerValue(BigNumber.ROUND_DOWN)
-                            .toString()
+                            .toString(),
                     );
 
                     if (isMigrated) {
                         const quoteResult = await getSellQuote(
                             pool.coinType,
                             tokenInSmallestUnit,
-                            slippage
+                            slippage,
                         );
                         setQuote({
                             memeAmountIn: tokenInSmallestUnit,
@@ -346,7 +320,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
             pool.pool?.migrated,
             decimals,
             slippage,
-        ]
+        ],
     );
 
     // initial quote fetch when amount changes
@@ -455,23 +429,17 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
             setAmount(value.toString());
         } else if (tradeType === "sell" || tradeType === "burn") {
             const percentage = value;
-            if (
-                !balanceInDisplayUnitPrecise ||
-                balanceInDisplayUnitPrecise === "0"
-            ) {
+            if (!balanceInDisplayUnit || effectiveBalance === "0") {
                 setAmount("0");
                 return;
             }
 
-            if (percentage === 100) {
-                setAmount(balanceInDisplayUnitPrecise);
-            } else {
+            if (percentage === 100) setAmount(effectiveBalance);
+            else {
                 try {
-                    const balanceBN = new BigNumber(
-                        balanceInDisplayUnitPrecise
-                    );
+                    const balanceBN = new BigNumber(balanceInDisplayUnit);
                     const percentageBN = new BigNumber(percentage).dividedBy(
-                        100
+                        100,
                     );
                     const tokenAmount = balanceBN
                         .multipliedBy(percentageBN)
@@ -589,7 +557,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                 <div
                     className={cn(
                         "grid gap-1 p-1 bg-muted/30 rounded-lg",
-                        hasBalance ? "grid-cols-3" : "grid-cols-2"
+                        hasBalance ? "grid-cols-3" : "grid-cols-2",
                     )}
                 >
                     <button
@@ -598,7 +566,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                             "py-2 rounded-md font-mono text-xs uppercase transition-all",
                             tradeType === "buy"
                                 ? "bg-green-500/20 text-green-500 border border-green-500/50"
-                                : "hover:bg-muted/50 text-muted-foreground"
+                                : "hover:bg-muted/50 text-muted-foreground",
                         )}
                     >
                         Buy
@@ -611,7 +579,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                             tradeType === "sell"
                                 ? "bg-red-500/20 text-red-500 border border-red-500/50"
                                 : "hover:bg-muted/50 text-muted-foreground",
-                            !hasBalance && "opacity-50 cursor-not-allowed"
+                            !hasBalance && "opacity-50 cursor-not-allowed",
                         )}
                     >
                         Sell
@@ -623,7 +591,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                                 "py-2 rounded-md font-mono text-xs uppercase transition-all",
                                 tradeType === "burn"
                                     ? "bg-orange-500/20 text-orange-500 border border-orange-500/50"
-                                    : "hover:bg-muted/50 text-muted-foreground"
+                                    : "hover:bg-muted/50 text-muted-foreground",
                             )}
                         >
                             Burn
@@ -643,10 +611,10 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                             <span className="text-foreground font-mono">
                                 {tradeType === "buy"
                                     ? formatNumberWithSuffix(
-                                          suiBalanceInDisplayUnit
+                                          suiBalanceInDisplayUnit,
                                       )
                                     : formatNumberWithSuffix(
-                                          balanceInDisplayUnit
+                                          balanceInDisplayUnit,
                                       )}
                             </span>
                             <span className="text-muted-foreground">
@@ -664,20 +632,18 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                                         } else {
                                             const maxSui = Math.max(
                                                 0,
-                                                suiBalanceInDisplayUnit - 0.02
+                                                suiBalanceInDisplayUnit - 0.02,
                                             );
                                             setAmount(maxSui.toString());
                                         }
                                     } else {
                                         if (
-                                            !balanceInDisplayUnitPrecise ||
-                                            balanceInDisplayUnitPrecise === "0"
+                                            !balanceInDisplayUnit ||
+                                            effectiveBalance === "0"
                                         ) {
                                             setAmount("0");
                                         } else {
-                                            setAmount(
-                                                balanceInDisplayUnitPrecise
-                                            );
+                                            setAmount(effectiveBalance);
                                         }
                                     }
                                 }}
@@ -757,10 +723,10 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                                                       ];
                                                       newAmounts[index] =
                                                           parseFloat(
-                                                              e.target.value
+                                                              e.target.value,
                                                           ) || 0;
                                                       setTempQuickBuyAmounts(
-                                                          newAmounts
+                                                          newAmounts,
                                                       );
                                                   }}
                                                   onKeyDown={(e) => {
@@ -769,10 +735,10 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                                                       }
                                                       if (e.key === "Escape") {
                                                           setTempQuickBuyAmounts(
-                                                              quickBuyAmounts
+                                                              quickBuyAmounts,
                                                           );
                                                           setEditingQuickBuy(
-                                                              false
+                                                              false,
                                                           );
                                                       }
                                                   }}
@@ -781,12 +747,12 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                                                   min="0"
                                                   style={{ minWidth: 0 }}
                                               />
-                                          )
+                                          ),
                                       )
                                     : quickBuyAmounts.map(
                                           (
                                               suiAmount: number,
-                                              index: number
+                                              index: number,
                                           ) => (
                                               <button
                                                   key={index}
@@ -797,11 +763,11 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                                                       "group",
                                                       (isProcessing ||
                                                           isMigrating) &&
-                                                          "opacity-50 cursor-not-allowed"
+                                                          "opacity-50 cursor-not-allowed",
                                                   )}
                                                   onClick={() =>
                                                       handleQuickAmount(
-                                                          suiAmount
+                                                          suiAmount,
                                                       )
                                                   }
                                                   disabled={
@@ -814,7 +780,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                                                       {suiAmount} SUI
                                                   </span>
                                               </button>
-                                          )
+                                          ),
                                       )}
 
                                 {editingQuickBuy ? (
@@ -831,7 +797,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                                             title="Cancel"
                                             onClick={() => {
                                                 setTempQuickBuyAmounts(
-                                                    quickBuyAmounts
+                                                    quickBuyAmounts,
                                                 );
                                                 setEditingQuickBuy(false);
                                             }}
@@ -859,7 +825,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                                     ? tempQuickSellPercentages.map(
                                           (
                                               percentage: number,
-                                              index: number
+                                              index: number,
                                           ) => (
                                               <div
                                                   key={index}
@@ -878,10 +844,11 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                                                               index
                                                           ] =
                                                               parseFloat(
-                                                                  e.target.value
+                                                                  e.target
+                                                                      .value,
                                                               ) || 0;
                                                           setTempQuickSellPercentages(
-                                                              newPercentages
+                                                              newPercentages,
                                                           );
                                                       }}
                                                       onKeyDown={(e) => {
@@ -894,10 +861,10 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                                                               e.key === "Escape"
                                                           ) {
                                                               setTempQuickSellPercentages(
-                                                                  quickSellPercentages
+                                                                  quickSellPercentages,
                                                               );
                                                               setEditingQuickSell(
-                                                                  false
+                                                                  false,
                                                               );
                                                           }
                                                       }}
@@ -910,12 +877,12 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                                                       %
                                                   </span>
                                               </div>
-                                          )
+                                          ),
                                       )
                                     : quickSellPercentages.map(
                                           (
                                               percentage: number,
-                                              index: number
+                                              index: number,
                                           ) => (
                                               <button
                                                   key={index}
@@ -927,11 +894,11 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                                                       (!hasBalance ||
                                                           isProcessing ||
                                                           isMigrating) &&
-                                                          "opacity-50 cursor-not-allowed"
+                                                          "opacity-50 cursor-not-allowed",
                                                   )}
                                                   onClick={() =>
                                                       handleQuickAmount(
-                                                          percentage
+                                                          percentage,
                                                       )
                                                   }
                                                   disabled={
@@ -945,7 +912,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                                                       {percentage}%
                                                   </span>
                                               </button>
-                                          )
+                                          ),
                                       )}
 
                                 {editingQuickSell ? (
@@ -964,7 +931,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                                             title="Cancel"
                                             onClick={() => {
                                                 setTempQuickSellPercentages(
-                                                    quickSellPercentages
+                                                    quickSellPercentages,
                                                 );
                                                 setEditingQuickSell(false);
                                             }}
@@ -1052,13 +1019,13 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                             tradeType === "buy"
                                 ? "bg-green-400/50 hover:bg-green-500/90 text-foreground"
                                 : tradeType === "sell"
-                                ? "bg-destructive/80 hover:bg-destructive text-foreground"
-                                : "bg-orange-500/80 hover:bg-orange-600 text-foreground",
+                                  ? "bg-destructive/80 hover:bg-destructive text-foreground"
+                                  : "bg-orange-500/80 hover:bg-orange-600 text-foreground",
                             (isMigrating ||
                                 !amount ||
                                 isProcessing ||
                                 isBurning) &&
-                                "opacity-50"
+                                "opacity-50",
                         )}
                         onClick={handleTrade}
                         disabled={
@@ -1093,7 +1060,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                                         `Calculating...`
                                     ) : (
                                         `Buy ${formatNumberWithSuffix(
-                                            calculateOutputAmount
+                                            calculateOutputAmount,
                                         )} ${metadata?.symbol}`
                                     )
                                 ) : tradeType === "sell" ? (
@@ -1103,11 +1070,11 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                                         <>
                                             Sell{" "}
                                             {formatNumberWithSuffix(
-                                                parseFloat(amount) || 0
+                                                parseFloat(amount) || 0,
                                             )}{" "}
                                             {metadata?.symbol} for{" "}
                                             {formatNumberWithSuffix(
-                                                calculateOutputAmount
+                                                calculateOutputAmount,
                                             )}{" "}
                                             SUI
                                             {burnPercentage > 0 &&
@@ -1115,7 +1082,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                                                     <span className="ml-1 text-xs opacity-80">
                                                         (
                                                         {burnPercentage.toFixed(
-                                                            1
+                                                            1,
                                                         )}
                                                         % burn)
                                                     </span>
@@ -1127,7 +1094,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                                         <Flame className="h-3.5 w-3.5 mr-1 inline" />
                                         Burn{" "}
                                         {formatNumberWithSuffix(
-                                            parseFloat(amount) || 0
+                                            parseFloat(amount) || 0,
                                         )}{" "}
                                         {metadata?.symbol}
                                     </>

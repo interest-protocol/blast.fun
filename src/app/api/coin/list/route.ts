@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { fetchNoodlesCoinList, mapToNoodlesCoinList } from "@/lib/noodles/client"
+import { fetchNoodlesCoinList } from "@/lib/noodles/client"
 import type { NoodlesCoinListParams } from "@/lib/noodles/client"
 
 export const revalidate = 30
@@ -65,14 +65,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ coins: [], success: true })
     }
 
-    const rawData = noodlesRes.data
-    const rawList = Array.isArray(rawData)
-      ? rawData
-      : (rawData as unknown as { list?: unknown[]; coins?: unknown[] })?.list ??
-        (rawData as unknown as { coins?: unknown[] })?.coins ??
-        []
-
-    let coins = rawList.map((raw) => mapToNoodlesCoinList(raw as Record<string, unknown>))
+    let coins = noodlesRes.data ?? []
 
     if (isSearch && searchQuery) {
       const lower = searchQuery.toLowerCase()

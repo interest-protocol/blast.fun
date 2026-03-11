@@ -458,8 +458,13 @@ export function mapToNoodlesCoinList(raw: Record<string, any>): NoodlesCoinList 
 	})
   
 	if (!response.ok) return null
-	const json = (await response.json()) as NoodlesCoinListResponse
-	return json
+	const json = (await response.json()) as { code?: number; message?: string; data?: unknown }
+	const rawData = json.data
+	const rawList = Array.isArray(rawData)
+		? rawData
+		: (rawData as Record<string, unknown>)?.list ?? (rawData as Record<string, unknown>)?.coins ?? []
+	const coins = (rawList as Record<string, unknown>[]).map(mapToNoodlesCoinList)
+	return { code: json.code, message: json.message, data: coins }
   }
 
 export interface NoodlesCoinByProtocolItem {
@@ -509,4 +514,64 @@ export async function fetchNoodlesCoinByProtocol(
 
 	if (!response.ok) return null
 	return (await response.json()) as NoodlesCoinByProtocolResponse
+}
+
+export interface NoodlesCoinTrader {
+	address: string
+	txBuy: number
+	txSell: number
+	amountBuy: number
+	amountSell: number
+	volBuy: number
+	volSell: number
+	pnl: number
+}
+
+export interface NoodlesCoinTradersResponse {
+	code?: number
+	message?: string
+	data?: NoodlesCoinTrader[]
+}
+
+export interface FetchNoodlesCoinTradersParams {
+	coinType: string
+	period: "30d" | "7d" | "3d" | "1d"
+	limit?: number
+	offset?: number
+	sortField?: "tx_buy" | "tx_sell" | "total_tx" | "amount_buy" | "amount_sell" | "vol_buy" | "vol_sell" | "pnl"
+	sortDirection?: "asc" | "desc"
+}
+
+export async function fetchNoodlesCoinTraders(
+	params: FetchNoodlesCoinTradersParams
+): Promise<NoodlesCoinTradersResponse | null> {
+	const apiKey = env.NOODLES_API_KEY
+	if (!apiKey) return null
+
+	const url = new URL(`${NOODLES_API_BASE}/api/v1/partner/coin-traders`)
+	url.searchParams.set("coin_type", params.coinType)
+	url.searchParams.set("period", params.period)
+	if (params.limit != null) url.searchParams.set("limit", String(params.limit))
+	if (params.offset != null) url.searchParams.set("offset", String(params.offset))
+	if (params.sortField) url.searchParams.set("sort_field", params.sortField)
+	if (params.sortDirection) url.searchParams.set("sort_direction", params.sortDirection)
+
+	const response = await fetch(url.toString(), {
+		headers: noodlesHeaders(),
+		next: { revalidate: 30 },
+	})
+
+	if (!response.ok) return null
+	const json = (await response.json()) as { code?: number; message?: string; data?: Record<string, unknown>[] }
+	const traders = (json.data ?? []).map((raw): NoodlesCoinTrader => ({
+		address: String(raw.address ?? ""),
+		txBuy: Number(raw.tx_buy ?? 0),
+		txSell: Number(raw.tx_sell ?? 0),
+		amountBuy: Number(raw.amount_buy ?? 0),
+		amountSell: Number(raw.amount_sell ?? 0),
+		volBuy: Number(raw.vol_buy ?? 0),
+		volSell: Number(raw.vol_sell ?? 0),
+		pnl: Number(raw.pnl ?? 0),
+	}))
+	return { code: json.code, message: json.message, data: traders }
 }
