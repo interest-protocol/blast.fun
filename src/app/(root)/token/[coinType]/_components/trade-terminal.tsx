@@ -1051,7 +1051,8 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                             (tradeType === "buy" &&
                                 parseFloat(amount) > suiBalanceInDisplayUnit) ||
                             ((tradeType === "sell" || tradeType === "burn") &&
-                                parseFloat(amount) > balanceInDisplayUnit)
+                                (parseFloat(amount) > balanceInDisplayUnit ||
+                                    calculateOutputAmount === 0))
                         }
                     >
                         {isProcessing || isBurning ? (
@@ -1069,15 +1070,13 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                         ) : (
                             <>
                                 {tradeType === "buy" ? (
-                                    isLoadingQuote ? (
-                                        `Calculating...`
-                                    ) : (
-                                        `Buy ${formatNumberWithSuffix(
-                                            calculateOutputAmount,
-                                        )} ${metadata?.symbol}`
-                                    )
+                                    isLoadingQuote || calculateOutputAmount === 0
+                                        ? `Calculating...`
+                                        : `Buy ${formatNumberWithSuffix(
+                                              calculateOutputAmount,
+                                          )} ${metadata?.symbol}`
                                 ) : tradeType === "sell" ? (
-                                    isLoadingQuote ? (
+                                    isLoadingQuote || calculateOutputAmount === 0 ? (
                                         `Calculating...`
                                     ) : (
                                         <>
