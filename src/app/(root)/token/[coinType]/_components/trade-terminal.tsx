@@ -1091,7 +1091,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                                             )}{" "}
                                             {metadata?.symbol} for{" "}
                                             {formatNumberWithSuffix(
-                                                calculateOutputAmount,
+                                                calculateOutputAmount, parseFloat(amount) ? decimals : 0
                                             )}{" "}
                                             SUI
                                             {burnPercentage > 0 &&
