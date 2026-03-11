@@ -9,11 +9,63 @@ import { pumpSdk } from "@/lib/memez/sdk"
 import { fetchCoinBalance } from "@/lib/fetch-portfolio"
 import { TOTAL_POOL_SUPPLY } from "@/constants"
 
+// simple in-memory cache to avoid hitting Prisma on every request
+const settingsCache = new Map<
+	string,
+	{ settings: any; updatedAt: number }
+>()
+const SETTINGS_TTL_MS = 60_000
+
+async function getTokenProtectionSettingsCached(poolId: string) {
+	const cached = settingsCache.get(poolId)
+	const now = Date.now()
+	if (cached && now - cached.updatedAt < SETTINGS_TTL_MS) {
+		return cached.settings as {
+			sniperProtection?: boolean
+			requireTwitter?: boolean
+			revealTraderIdentity?: boolean
+			minFollowerCount?: string | null
+			maxHoldingPercent?: string | null
+		}
+	}
+
+	try {
+		const poolSettings = await prisma.tokenProtectionSettings.findUnique({
+			where: { poolId }
+		})
+		const settings = (poolSettings?.settings || null) as {
+			sniperProtection?: boolean
+			requireTwitter?: boolean
+			revealTraderIdentity?: boolean
+			minFollowerCount?: string | null
+			maxHoldingPercent?: string | null
+		} | null
+
+		if (settings) {
+			settingsCache.set(poolId, { settings, updatedAt: now })
+		}
+
+		return settings
+	} catch (error) {
+		// If the database is out of connections, fail fast with a clear message
+		if (
+			error instanceof Error &&
+			error.message.includes("Too many database connections opened")
+		) {
+			console.error("Token protection settings DB overloaded:", error.message)
+			throw new Error("DB_CONNECTIONS_EXHAUSTED")
+		}
+
+		console.error("Error loading token protection settings:", error)
+		return null
+	}
+}
+
 export async function POST(request: NextRequest) {
 	try {
 		const body = await request.json()
 		const { poolId, amount, walletAddress, coinType, decimals } = body
-		
+
 		// Get authenticated user from session
 		const session = await auth()
 		const twitterId = session?.user?.twitterId || null
@@ -25,17 +77,9 @@ export async function POST(request: NextRequest) {
 			return NextResponse.json({ message: "Missing required fields" }, { status: 400 })
 		}
 
-		const poolSettings = await prisma.tokenProtectionSettings.findUnique({ where: { poolId } })
-		if (!poolSettings || !poolSettings.settings) {
+		const settings = await getTokenProtectionSettingsCached(poolId)
+		if (!settings) {
 			return NextResponse.json({ message: "Token not protected" }, { status: 404 })
-		}
-
-		const settings = poolSettings.settings as {
-			sniperProtection?: boolean
-			requireTwitter?: boolean
-			revealTraderIdentity?: boolean
-			minFollowerCount?: string | null
-			maxHoldingPercent?: string | null
 		}
 
 		// check if sniper protection is enabled
@@ -50,7 +94,7 @@ export async function POST(request: NextRequest) {
 				requiresTwitter: true
 			}, { status: 401 })
 		}
-		
+
 		// check if Twitter is required but session doesn't have Twitter ID
 		if (settings.requireTwitter && !twitterId) {
 			return NextResponse.json({
@@ -63,12 +107,12 @@ export async function POST(request: NextRequest) {
 		if (settings.minFollowerCount && Number(settings.minFollowerCount) > 0 && twitterUsername) {
 			try {
 				const fxTwitterResponse = await fetch(`https://api.fxtwitter.com/${twitterUsername}`)
-				
+
 				if (fxTwitterResponse.ok) {
 					const fxTwitterData = await fxTwitterResponse.json()
 					const followerCount = fxTwitterData?.user?.followers || 0
 					const requiredFollowers = Number(settings.minFollowerCount)
-					
+
 					if (followerCount < requiredFollowers) {
 						return NextResponse.json({
 							message: `Your X account needs at least ${requiredFollowers} followers to buy this token. You currently have ${followerCount} followers.`,
@@ -127,7 +171,7 @@ export async function POST(request: NextRequest) {
 					timestamp: new Date().toISOString(),
 					amount: amountInMist.toString()
 				})
-				
+
 				await prisma.twitterAccountUserBuyRelation.update({
 					where: { id: existingRelation.id },
 					data: { purchases }
@@ -213,9 +257,25 @@ export async function POST(request: NextRequest) {
 			)
 		}
 	} catch (error) {
+		if (
+			error instanceof Error &&
+			error.message === "DB_CONNECTIONS_EXHAUSTED"
+		) {
+			return NextResponse.json(
+				{
+					message:
+						"Our protection service is temporarily overloaded. Please try again in a few seconds.",
+				},
+				{ status: 503 },
+			)
+		}
+
 		console.error("Protected token signature error:", error)
 		return NextResponse.json(
-			{ message: "Internal server error" },
+			{
+				message: "Internal server error",
+				detail: error instanceof Error ? error.message : String(error) 
+			},
 			{ status: 500 }
 		)
 	}

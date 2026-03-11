@@ -49,11 +49,13 @@ export function TwitterRelationsProvider({ children, pool }: TwitterRelationsPro
 			const data = await response.json()
 			return data.relations as TwitterRelation[]
 		},
-		enabled: !!pool.pool?.poolId && 
-				 pool.pool?.isProtected && 
-				 protectionSettings?.revealTraderIdentity === true,
-		staleTime: 10000,
-		refetchInterval: 10000,
+		enabled:
+			!!pool.pool?.poolId &&
+			pool.pool?.isProtected &&
+			protectionSettings?.revealTraderIdentity === true,
+		// Twitter relations mudam pouco; evitar pressão excessiva no Postgres
+		staleTime: 60_000,
+		refetchInterval: 60_000,
 		refetchOnWindowFocus: false
 	})
 
