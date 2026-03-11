@@ -2,78 +2,47 @@
 
 import { useEffect, useState, useRef } from "react"
 import Link from "next/link"
-import tradeBumpSocket, { type TradeEvent } from "@/lib/websocket/trade-bump-socket"
-import { formatNumberWithSuffix, formatAddressShort } from "@/utils/format"
+import { formatNumberWithSuffix } from "@/utils/format"
 import { cn } from "@/utils"
-import { useRecentTrades } from "@/hooks/pump/use-recent-trades"
+import { fetchTrendingCoins, type TrendingCoin } from "@/lib/fetch-trending-coins"
 
-type TickerItem = {
-	id: string
-	coinType: string
-	name: string
-	symbol: string
-	kind: "buy" | "sell"
-	amount: number
-	trader: string
-	timestamp: number
-}
+type TickerItem = TrendingCoin & { id: string }
 
 export function TradeTicker() {
-	const [trades, setTrades] = useState<TickerItem[]>([])
+	const [items, setItems] = useState<TickerItem[]>([])
 	const scrollRef = useRef<HTMLDivElement>(null)
 
-	// seed initial trades from gql
-	const { data: initialTrades } = useRecentTrades({ pageSize: 15 })
 	useEffect(() => {
-		if (initialTrades && initialTrades.length > 0) {
-			const seedTrades = initialTrades.map((trade, index) => {
-				const parts = trade.type.split("::")
-				const quoteAmount = trade.quoteAmount ? parseFloat(trade.quoteAmount) / 1e9 : 0
-				return {
-					id: `initial-${trade.type}-${index}`,
-					coinType: trade.type,
-					name: parts[1] || "Unknown",
-					symbol: parts[2]?.toUpperCase() || "???",
-					kind: trade.kind as "buy" | "sell",
-					amount: quoteAmount,
-					trader: trade.trader,
-					timestamp: new Date(trade.time).getTime()
-				}
-			})
-			setTrades(seedTrades)
-		}
-	}, [initialTrades])
+		let cancelled = false
 
-	useEffect(() => {
-		const handleTrade = (trade: TradeEvent) => {
-			const parts = trade.type.split("::")
-			const newTrade: TickerItem = {
-				id: `${trade.type}-${Date.now()}-${Math.random()}`,
-				coinType: trade.type,
-				name: parts[1] || "Unknown",
-				symbol: parts[2]?.toUpperCase() || "???",
-				kind: trade.kind,
-				amount: trade.quote_amount
-					? (typeof trade.quote_amount === 'string'
-						? parseFloat(trade.quote_amount) / 1e9
-						: trade.quote_amount / 1e9)
-					: 0,
-				trader: trade.sender,
-				timestamp: Date.now()
+		const loadTrending = async () => {
+			try {
+				const coins = await fetchTrendingCoins("24h", 20)
+				if (!coins.length || cancelled) return
+
+				const mapped: TickerItem[] = coins.map((coin, index) => ({
+					id: `${coin.coinType}-${index}`,
+					...coin,
+				}))
+
+				setItems(mapped)
+			} catch {
+				// fail silently
 			}
-
-			setTrades(prev => {
-				const updated = [newTrade, ...prev].slice(0, 100)
-				return updated
-			})
 		}
 
-		tradeBumpSocket.subscribeToTradeEvents(handleTrade)
+		loadTrending()
+		const interval = setInterval(loadTrending, 60_000)
 
 		return () => {
-			tradeBumpSocket.unsubscribeFromTradeEvents()
+			cancelled = true
+			clearInterval(interval)
 		}
 	}, [])
+
+	if (!items.length) {
+		return null
+	}
 
 	return (
 		<div className="relative h-full w-full overflow-hidden flex items-center">
@@ -82,24 +51,32 @@ export function TradeTicker() {
 					ref={scrollRef}
 					className="ticker-content h-full flex items-center"
 				>
-					{[...trades, ...trades].map((trade, index) => (
-						<Link
-							key={`${trade.id}-${index}`}
-							href={`/token/${trade.coinType}`}
-							className="ticker-item inline-flex items-center gap-2 px-4 h-full hover:bg-accent/30 transition-colors whitespace-nowrap"
-						>
-							<span className="font-bold text-xs font-mono">{trade.symbol}</span>
-							<span className={cn(
-								"text-xs font-medium font-mono",
-								trade.kind === "buy" ? "text-green-500" : "text-red-500"
-							)}>
-								{trade.kind === "buy" ? "↑" : "↓"} {formatNumberWithSuffix(trade.amount)} SUI
-							</span>
-							<span className="text-xs font-bold text-muted-foreground font-mono">
-								by {formatAddressShort(trade.trader)}
-							</span>
-						</Link>
-					))}
+					{[...items, ...items].map((item, index) => {
+						const change = item.priceChange1d
+						const isUp = change >= 0
+						return (
+							<Link
+								key={`${item.id}-${index}`}
+								href={`/token/${item.coinType}`}
+								className="ticker-item inline-flex items-center gap-2 px-4 h-full hover:bg-accent/30 transition-colors whitespace-nowrap"
+							>
+								<span className="font-bold text-xs font-mono">
+									{item.symbol}
+								</span>
+								<span
+									className={cn(
+										"text-xs font-medium font-mono",
+										isUp ? "text-green-500" : "text-red-500"
+									)}
+								>
+									{isUp ? "▲" : "▼"} {change.toFixed(2)}%
+								</span>
+								<span className="text-xs font-bold text-muted-foreground font-mono">
+									Vol {formatNumberWithSuffix(item.volume24h)} SUI 24h
+								</span>
+							</Link>
+						)
+					})}
 				</div>
 			</div>
 
