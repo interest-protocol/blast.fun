@@ -2,6 +2,7 @@ import { coinWithBalance, Transaction } from "@mysten/sui/transactions";
 import { MIST_PER_SUI, fromHex } from "@mysten/sui/utils";
 import { useState, useEffect } from "react";
 import BigNumber from "bignumber.js";
+import toast from "react-hot-toast";
 import { useApp } from "@/context/app.context";
 import { useTransaction } from "@/hooks/sui/use-transaction";
 import { playSound } from "@/lib/audio";
@@ -157,9 +158,12 @@ export function useTrading({
 
                 const tokenAmount =
                     Number(quote.amountOut) / Math.pow(10, decimals);
-                setSuccess(
-                    `ORDER::FILLED - Bought ${tokenAmount.toFixed(2)} ${pool.metadata?.symbol || "TOKEN"} for ${amount} SUI via Aftermath`,
-                );
+                const symbol = pool.metadata?.symbol || "TOKEN";
+                const successMsg = `Bought ${tokenAmount.toFixed(
+                    2,
+                )} ${symbol} for ${amount} SUI`;
+                setSuccess(`ORDER::FILLED - ${successMsg} via Aftermath`);
+                toast.success(successMsg, { duration: 3000 });
             } else {
                 if (pool.pool?.isProtected) {
                     try {
@@ -273,9 +277,12 @@ export function useTrading({
 
                 const tokenAmount =
                     Number(quote.memeAmountOut) / Math.pow(10, decimals);
-                setSuccess(
-                    `ORDER::FILLED - Bought ${tokenAmount.toFixed(2)} ${pool.metadata?.symbol || "TOKEN"} for ${amount} SUI`,
-                );
+                const symbol = pool.metadata?.symbol || "TOKEN";
+                const successMsg = `Bought ${tokenAmount.toFixed(
+                    2,
+                )} ${symbol} for ${amount} SUI`;
+                setSuccess(`ORDER::FILLED - ${successMsg}`);
+                toast.success(successMsg, { duration: 3000 });
             }
         } catch (err) {
             let errorMessage =
@@ -287,6 +294,7 @@ export function useTrading({
                 errorMessage = SLIPPAGE_TOLERANCE_ERROR;
             }
             setError(errorMessage);
+            toast.error(errorMessage, { duration: 4000 });
             throw err;
         } finally {
             setIsProcessing(false);
@@ -365,9 +373,11 @@ export function useTrading({
                 await executeTransaction(tx);
                 playSound("sell");
 
-                setSuccess(
-                    `ORDER::FILLED - Sold ${amount} ${pool.metadata?.symbol || "TOKEN"} for ${formatMistToSui(String(quote.amountOut))} SUI via Aftermath`,
-                );
+                const symbol = pool.metadata?.symbol || "TOKEN";
+                const suiOut = formatMistToSui(String(quote.amountOut));
+                const successMsg = `Sold ${amount} ${symbol} for ${suiOut} SUI`;
+                setSuccess(`ORDER::FILLED - ${successMsg} via Aftermath`);
+                toast.success(successMsg, { duration: 3000 });
             } else {
                 // For non-migrated tokens, amountInSmallestUnit has already been set correctly
                 // in the balance check above (either exact balance or the calculated amount)
@@ -409,9 +419,11 @@ export function useTrading({
                 await executeTransaction(dumpTx);
                 playSound("sell");
 
-                setSuccess(
-                    `ORDER::FILLED - Sold ${amount} ${pool.metadata?.symbol || "TOKEN"} for ${formatMistToSui(String(quote.quoteAmountOut))} SUI`,
-                );
+                const symbol = pool.metadata?.symbol || "TOKEN";
+                const suiOut = formatMistToSui(String(quote.quoteAmountOut));
+                const successMsg = `Sold ${amount} ${symbol} for ${suiOut} SUI`;
+                setSuccess(`ORDER::FILLED - ${successMsg}`);
+                toast.success(successMsg, { duration: 3000 });
             }
         } catch (err) {
             let errorMessage =
@@ -423,6 +435,7 @@ export function useTrading({
                 errorMessage = SLIPPAGE_TOLERANCE_ERROR;
             }
             setError(errorMessage);
+            toast.error(errorMessage, { duration: 4000 });
             throw err;
         } finally {
             setIsProcessing(false);
