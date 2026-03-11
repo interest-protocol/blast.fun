@@ -2,10 +2,12 @@ import { coinWithBalance, Transaction } from "@mysten/sui/transactions";
 import { MIST_PER_SUI, fromHex } from "@mysten/sui/utils";
 import { useState, useEffect } from "react";
 import BigNumber from "bignumber.js";
+import toast from "react-hot-toast";
 import { useApp } from "@/context/app.context";
 import { useTransaction } from "@/hooks/sui/use-transaction";
 import { playSound } from "@/lib/audio";
 import { pumpSdk } from "@/lib/memez/sdk";
+import { suiClient } from "@/lib/sui-client";
 import {
     buyMigratedToken,
     sellMigratedToken,
@@ -157,9 +159,12 @@ export function useTrading({
 
                 const tokenAmount =
                     Number(quote.amountOut) / Math.pow(10, decimals);
-                setSuccess(
-                    `ORDER::FILLED - Bought ${tokenAmount.toFixed(2)} ${pool.metadata?.symbol || "TOKEN"} for ${amount} SUI via Aftermath`,
-                );
+                const symbol = pool.metadata?.symbol || "TOKEN";
+                const successMsg = `Bought ${tokenAmount.toFixed(
+                    2,
+                )} ${symbol} for ${amount} SUI`;
+                setSuccess(`ORDER::FILLED - ${successMsg} via Aftermath`);
+                toast.success(successMsg, { duration: 3000 });
             } else {
                 if (pool.pool?.isProtected) {
                     try {
@@ -273,9 +278,12 @@ export function useTrading({
 
                 const tokenAmount =
                     Number(quote.memeAmountOut) / Math.pow(10, decimals);
-                setSuccess(
-                    `ORDER::FILLED - Bought ${tokenAmount.toFixed(2)} ${pool.metadata?.symbol || "TOKEN"} for ${amount} SUI`,
-                );
+                const symbol = pool.metadata?.symbol || "TOKEN";
+                const successMsg = `Bought ${tokenAmount.toFixed(
+                    2,
+                )} ${symbol} for ${amount} SUI`;
+                setSuccess(`ORDER::FILLED - ${successMsg}`);
+                toast.success(successMsg, { duration: 3000 });
             }
         } catch (err) {
             let errorMessage =
@@ -287,6 +295,7 @@ export function useTrading({
                 errorMessage = SLIPPAGE_TOLERANCE_ERROR;
             }
             setError(errorMessage);
+            toast.error(errorMessage, { duration: 4000 });
             throw err;
         } finally {
             setIsProcessing(false);
@@ -317,7 +326,10 @@ export function useTrading({
         if (actualBalance) {
             const actualBalanceNumber = +actualBalance;
             const actualBalanceBigInt = BigInt(
-                (actualBalanceNumber * Math.pow(10, decimals)).toFixed(0),
+                new BigNumber(actualBalanceNumber)
+                    .multipliedBy(new BigNumber(10).pow(decimals))
+                    .integerValue(BigNumber.ROUND_DOWN)
+                    .toString(),
             );
 
             // Check if trying to sell exact balance by comparing display strings
@@ -332,7 +344,6 @@ export function useTrading({
                 ratio.isLessThanOrEqualTo(1.00000001);
 
             if (isExactBalance || isNearExact) {
-                // If selling exact balance, use the actual balance directly
                 amountInSmallestUnit = actualBalanceBigInt;
             } else if (amountInSmallestUnit > actualBalanceBigInt) {
                 setError(
@@ -365,13 +376,30 @@ export function useTrading({
                 await executeTransaction(tx);
                 playSound("sell");
 
-                setSuccess(
-                    `ORDER::FILLED - Sold ${amount} ${pool.metadata?.symbol || "TOKEN"} for ${formatMistToSui(String(quote.amountOut))} SUI via Aftermath`,
-                );
+                const symbol = pool.metadata?.symbol || "TOKEN";
+                const suiOut = formatMistToSui(String(quote.amountOut));
+                const successMsg = `Sold ${amount} ${symbol} for ${suiOut} SUI`;
+                setSuccess(`ORDER::FILLED - ${successMsg} via Aftermath`);
+                toast.success(successMsg, { duration: 3000 });
             } else {
-                // For non-migrated tokens, amountInSmallestUnit has already been set correctly
-                // in the balance check above (either exact balance or the calculated amount)
-                const amountToSell = amountInSmallestUnit;
+                // Fetch fresh on-chain balance to avoid ARITHMETIC_ERROR on the Move contract
+                const freshBalanceResponse = await suiClient.getBalance({
+                    owner: address,
+                    coinType: pool.coinType,
+                });
+                const freshBalance = BigInt(freshBalanceResponse.totalBalance);
+
+                if (freshBalance === 0n) {
+                    setError(`Insufficient token balance.`);
+                    return;
+                }
+
+                // Cap the sell amount to the real on-chain balance
+                const amountToSell =
+                    amountInSmallestUnit > freshBalance
+                        ? freshBalance
+                        : amountInSmallestUnit;
+
                 const quote = await pumpSdk.quoteDump({
                     pool: pool.pool?.poolId || pool.id,
                     amount: amountToSell,
@@ -409,9 +437,11 @@ export function useTrading({
                 await executeTransaction(dumpTx);
                 playSound("sell");
 
-                setSuccess(
-                    `ORDER::FILLED - Sold ${amount} ${pool.metadata?.symbol || "TOKEN"} for ${formatMistToSui(String(quote.quoteAmountOut))} SUI`,
-                );
+                const symbol = pool.metadata?.symbol || "TOKEN";
+                const suiOut = formatMistToSui(String(quote.quoteAmountOut));
+                const successMsg = `Sold ${amount} ${symbol} for ${suiOut} SUI`;
+                setSuccess(`ORDER::FILLED - ${successMsg}`);
+                toast.success(successMsg, { duration: 3000 });
             }
         } catch (err) {
             let errorMessage =
@@ -423,6 +453,7 @@ export function useTrading({
                 errorMessage = SLIPPAGE_TOLERANCE_ERROR;
             }
             setError(errorMessage);
+            toast.error(errorMessage, { duration: 4000 });
             throw err;
         } finally {
             setIsProcessing(false);

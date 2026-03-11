@@ -1,4 +1,4 @@
-import type { NexaToken, TokenMarketData } from "@/types/token"
+import type { TokenMarketData } from "@/types/token"
 import { env } from "@/env"
 import {
 	NOODLES_API_BASE,
@@ -287,6 +287,61 @@ export async function fetchNoodlesPortfolio(
 	if (!response.ok) return null
 	const json = (await response.json()) as NoodlesPortfolioResponse
 	return json
+}
+
+// Trending coins
+
+export interface NoodlesTrendingCoin {
+	coin_type: string
+	name: string
+	symbol: string
+	logo: string | null
+	price: number
+	price_change_1d?: number | null
+	volume_24h?: number | null
+	rank?: number | null
+	decimals: number
+}
+
+interface NoodlesTrendingResponse {
+	code?: number
+	message?: string
+	data?: NoodlesTrendingCoin[]
+}
+
+export interface NoodlesTrendingParams {
+	scorePeriod: "30m" | "1h" | "4h" | "6h" | "24h"
+	limit?: number
+	offset?: number
+}
+
+export async function fetchNoodlesCoinTrending(
+	params: NoodlesTrendingParams
+): Promise<NoodlesTrendingCoin[] | null> {
+	const apiKey = env.NOODLES_API_KEY
+	if (!apiKey) return null
+
+	const { scorePeriod, limit = 10, offset = 0 } = params
+
+	const body = {
+		pagination: {
+			limit: Math.min(limit, 50),
+			offset
+		},
+		score_period: scorePeriod
+	}
+
+	const response = await fetch(`${NOODLES_API_BASE}/api/v1/partner/coin-trending`, {
+		method: "POST",
+		headers: noodlesHeaders(),
+		body: JSON.stringify(body),
+		next: { revalidate: 30 }
+	})
+
+	if (!response.ok) return null
+
+	const json = (await response.json()) as NoodlesTrendingResponse
+	return json.data ?? null
 }
 
 export interface NoodlesCoinList {
