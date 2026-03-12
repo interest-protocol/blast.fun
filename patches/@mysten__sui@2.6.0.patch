@@ -1,0 +1,27 @@
+diff --git a/dist/client/index.d.mts b/dist/client/index.d.mts
+index 1fa272711fd9a6d5883b5fd22a82a8343ce09b13..8ecfd449f7ff145ef3dc3c4eb775a8d2d9a877af 100644
+--- a/dist/client/index.d.mts
++++ b/dist/client/index.d.mts
+@@ -6,3 +6,5 @@ import { extractStatusFromEffectsBcs, formatMoveAbortMessage, parseTransactionBc
+ import { SimulationError } from "./errors.mjs";
+ import { NamedPackagesOverrides } from "./mvr.mjs";
+ export { BaseClient, ClientCache, type ClientCacheOptions, type ClientWithCoreApi, type ClientWithExtensions, CoreClient, type CoreClientOptions, type NamedPackagesOverrides, SimulationError, type SuiClientRegistration, type SuiClientTypes, extractStatusFromEffectsBcs, formatMoveAbortMessage, parseTransactionBcs, parseTransactionEffectsBcs };
++export { SuiJsonRpcClient as SuiClient, getJsonRpcFullnodeUrl as getFullnodeUrl } from "../jsonRpc/index.mjs";
++export type { SuiTransactionBlockResponse, CoinMetadata, CoinStruct } from "../jsonRpc/index.mjs";
+\ No newline at end of file
+diff --git a/dist/client/index.mjs b/dist/client/index.mjs
+index 52b8f1ae1cce85f217d04e2df8e0db0cf14eb803..d9a9a69c52b5d91b092c03fb8646173b5fb92a45 100644
+--- a/dist/client/index.mjs
++++ b/dist/client/index.mjs
+@@ -3,5 +3,9 @@ import { BaseClient } from "./client.mjs";
+ import { CoreClient } from "./core.mjs";
+ import { extractStatusFromEffectsBcs, formatMoveAbortMessage, parseTransactionBcs, parseTransactionEffectsBcs } from "./utils.mjs";
+ import { SimulationError } from "./errors.mjs";
++import { SuiJsonRpcClient, getJsonRpcFullnodeUrl } from "../jsonRpc/index.mjs";
+ 
+-export { BaseClient, ClientCache, CoreClient, SimulationError, extractStatusFromEffectsBcs, formatMoveAbortMessage, parseTransactionBcs, parseTransactionEffectsBcs };
+\ No newline at end of file
++const SuiClient = SuiJsonRpcClient;
++const getFullnodeUrl = getJsonRpcFullnodeUrl;
++
++export { BaseClient, ClientCache, CoreClient, SimulationError, extractStatusFromEffectsBcs, formatMoveAbortMessage, parseTransactionBcs, parseTransactionEffectsBcs, SuiClient, getFullnodeUrl };

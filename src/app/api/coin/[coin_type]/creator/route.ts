@@ -17,7 +17,7 @@ export async function GET(
 		const creatorAddress = detail?.data?.coin?.creator ?? null
 
 		if (!creatorAddress) {
-			return NextResponse.json({ creator: null }, { status: 404 })
+			return NextResponse.json({ creator: null })
 		}
 
 		let creatorData: TokenCreator

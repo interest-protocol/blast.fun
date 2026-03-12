@@ -8,7 +8,6 @@ import { TokenCardSkeleton } from "./token-card.skeleton"
 import { Logo } from "@/components/ui/logo"
 import { TokenListFilters } from "./token-list.filters"
 import { FlashBuyInput } from "./flash-buy-input"
-import { MaintenanceSection } from "@/components/shared/maintenance-section"
 import { useTradeBump } from "@/hooks/use-trade-bump"
 import { useCreatorsForList } from "@/hooks/use-creators-for-list"
 import type { TokenListSettings } from "@/types/token"
@@ -99,7 +98,14 @@ export const NearGraduation = memo(function NearGraduation({
         }
 
         if (filteredAndSortedTokens.length === 0) {
-            return <MaintenanceSection message="Near-graduation token list is temporarily unavailable." />
+            return (
+                <div className="p-8 text-center">
+                    <Logo className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
+                    <p className="font-mono text-xs uppercase text-muted-foreground">
+                        NO::TOKENS::FOUND
+                    </p>
+                </div>
+            )
         }
 
         return filteredAndSortedTokens.map((coin) => {

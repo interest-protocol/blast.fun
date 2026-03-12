@@ -1,8 +1,15 @@
 import { NextResponse } from "next/server"
-import { fetchNoodlesCoinList, mapToNoodlesCoinList } from "@/lib/noodles/client"
-import type { NoodlesCoinListParams } from "@/lib/noodles/client"
+import { fetchNoodlesCoinList } from "@/lib/noodles/client"
+import type { NoodlesCoinListParams, NoodlesCoinList } from "@/lib/noodles/client"
 
 export const revalidate = 30
+
+function isTestCoin(coin: NoodlesCoinList): boolean {
+	const t = "test"
+	const name = coin.name.toLowerCase()
+	const symbol = coin.symbol.toLowerCase()
+	return name.includes(t) || symbol === t || symbol.includes(`${t}_`) || symbol.includes(`_${t}`)
+}
 
 export async function GET(request: Request) {
   try {
@@ -65,14 +72,11 @@ export async function GET(request: Request) {
       return NextResponse.json({ coins: [], success: true })
     }
 
-    const rawData = noodlesRes.data
-    const rawList = Array.isArray(rawData)
-      ? rawData
-      : (rawData as unknown as { list?: unknown[]; coins?: unknown[] })?.list ??
-        (rawData as unknown as { coins?: unknown[] })?.coins ??
-        []
+    let coins = noodlesRes.data ?? []
 
-    let coins = rawList.map((raw) => mapToNoodlesCoinList(raw as Record<string, unknown>))
+    if (params.filters?.isGraduated === true) {
+      coins = coins.filter((c) => !isTestCoin(c))
+    }
 
     if (isSearch && searchQuery) {
       const lower = searchQuery.toLowerCase()

@@ -6,7 +6,7 @@ import type { Token } from "@/types/token"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { TradingPanel } from "./trading-panel"
-import { NexaChart } from "@/components/shared/nexa-chart"
+import { Chart } from "@/components/shared/chart"
 import { useMarketData } from "@/hooks/use-market-data"
 import { formatNumberWithSuffix, formatAmountWithSuffix } from "@/utils/format"
 import { cn } from "@/utils"
@@ -74,7 +74,7 @@ export function XCardTrading({ pool, referrerWallet, refCode }: XCardTradingProp
 					<TradingPanel pool={pool} referrerWallet={referrerWallet} refCode={refCode} />
 				) : (
 					<div className="h-full">
-						<NexaChart coinType={pool.coinType} className="w-full h-full" />
+						<Chart coinType={pool.coinType} className="w-full h-full" />
 					</div>
 				)}
 			</div>

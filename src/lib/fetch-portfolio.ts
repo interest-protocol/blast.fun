@@ -1,7 +1,6 @@
 import type { PortfolioResponse, PortfolioBalanceItem } from "@/types/portfolio"
 import { BASE_DOMAIN } from "@/constants"
-import { apolloClient } from "@/lib/apollo-client"
-import { GET_POOL_BY_COIN_TYPE } from "@/graphql/pools"
+import { fetchNoodlesCoinLiquidity } from "@/lib/noodles/client"
 
 export async function fetchPortfolio(address: string): Promise<PortfolioResponse> {
 	try {
@@ -29,19 +28,15 @@ export async function fetchPortfolio(address: string): Promise<PortfolioResponse
 		const balancesWithPoolIds = await Promise.all(
 			balances.map(async (balance) => {
 				try {
-					const { data: poolData } = await apolloClient.query({
-						query: GET_POOL_BY_COIN_TYPE,
-						variables: { type: balance.coinType },
-						fetchPolicy: "network-only"
-					})
-					if (poolData?.coinPool?.poolId && balance.coinMetadata) {
+					const poolId = await fetchNoodlesCoinLiquidity(balance.coinType)
+					if (poolId && balance.coinMetadata) {
 						balance.coinMetadata = {
 							...balance.coinMetadata,
-							poolId: (poolData.coinPool as { poolId?: string }).poolId
+							poolId,
 						}
 					}
 				} catch {
-					// continue without poolId
+					// @dev: continue without poolId
 				}
 				return balance
 			})

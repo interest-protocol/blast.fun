@@ -17,9 +17,13 @@ import {
 } from "@/hooks/use-tokens";
 import type { NexaToken } from "@/types/token";
 import { useApp } from "@/context/app.context";
-import { MaintenanceSection } from "@/components/shared/maintenance-section";
+
 import { cn } from "@/utils";
-import type { TokenOption, SearchResultsViewProps, SectionKey } from "./swap-terminal.types";
+import type {
+    TokenOption,
+    SearchResultsViewProps,
+    SectionKey,
+} from "./swap-terminal.types";
 import { MIN_SEARCH_LENGTH } from "./swap-terminal.data";
 
 const convertTokenToOption = (token: NexaToken): TokenOption => ({
@@ -37,7 +41,7 @@ const filterTokens = (tokens: TokenOption[], query: string): TokenOption[] => {
         (token) =>
             token.symbol.toLowerCase().includes(lowerQuery) ||
             token.name.toLowerCase().includes(lowerQuery) ||
-            token.coinType.toLowerCase().includes(lowerQuery)
+            token.coinType.toLowerCase().includes(lowerQuery),
     );
 };
 
@@ -50,7 +54,7 @@ export const SearchResultsView: FC<SearchResultsViewProps> = ({
 }) => {
     const { isConnected } = useApp();
     const [expandedSections, setExpandedSections] = useState<Set<SectionKey>>(
-        new Set(["global", "verified"])
+        new Set(["global", "verified"]),
     );
 
     const { tokens: verifiedTokens, isLoading: isLoadingVerified } =
@@ -66,17 +70,17 @@ export const SearchResultsView: FC<SearchResultsViewProps> = ({
 
     const filteredGlobalResults = useMemo(
         () => globalSearchResults,
-        [globalSearchResults]
+        [globalSearchResults],
     );
 
     const filteredVerifiedTokens = useMemo(
         () => filterTokens(verifiedTokens, searchQuery),
-        [verifiedTokens, searchQuery]
+        [verifiedTokens, searchQuery],
     );
 
     const filteredWalletTokens = useMemo(
         () => filterTokens(walletTokens, searchQuery),
-        [walletTokens, searchQuery]
+        [walletTokens, searchQuery],
     );
 
     const filteredNewlyCreated = useMemo(() => {
@@ -160,17 +164,6 @@ export const SearchResultsView: FC<SearchResultsViewProps> = ({
         return section.tokens.length > 0 || section.isLoading;
     });
 
-    if (visibleSections.length === 0) {
-        return (
-            <div className="p-4">
-                <MaintenanceSection
-                    title="SEARCH_UNDER_MAINTENANCE"
-                    message="Token search is temporarily unavailable."
-                />
-            </div>
-        );
-    }
-
     return (
         <div className="flex flex-col flex-1 overflow-y-auto">
             {visibleSections.map((section) => {
@@ -184,13 +177,13 @@ export const SearchResultsView: FC<SearchResultsViewProps> = ({
                         onOpenChange={() => toggleSection(section.key)}
                         className={cn(
                             "flex flex-col overflow-hidden",
-                            isExpanded && "flex-1"
+                            isExpanded && "flex-1",
                         )}
                     >
                         <CollapsibleTrigger
                             className={cn(
                                 "w-full flex items-center justify-between px-4 py-3 border-b border-border/50 hover:bg-muted/10 transition-colors",
-                                isExpanded && "bg-muted/20"
+                                isExpanded && "bg-muted/20",
                             )}
                         >
                             <span className="text-xs font-mono uppercase tracking-wider text-foreground">

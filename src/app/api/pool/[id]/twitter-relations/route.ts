@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { isValidSuiObjectId } from "@mysten/sui/utils"
 
+export const revalidate = 10
+
 export async function GET(
 	request: NextRequest,
 	{ params }: { params: Promise<{ id: string }> }
@@ -17,10 +19,24 @@ export async function GET(
 		}
 
 		// First check if the pool has revealTraderIdentity enabled
-		const poolSettings = await prisma.tokenProtectionSettings.findUnique({
-			where: { poolId },
-			select: { settings: true }
-		})
+		let poolSettings: { settings: unknown } | null = null
+		try {
+			poolSettings = await prisma.tokenProtectionSettings.findUnique({
+				where: { poolId },
+				select: { settings: true }
+			})
+		} catch (err) {
+			console.error("Twitter relations: error loading protection settings", err)
+			return NextResponse.json(
+				{
+					poolId,
+					relations: [],
+					total: 0,
+					message: "Temporarily unable to load trader relations"
+				},
+				{ status: 200 }
+			)
+		}
 
 		// Check if pool has protection settings and revealTraderIdentity is enabled
 		const settings = poolSettings?.settings as {
@@ -42,21 +58,35 @@ export async function GET(
 		}
 
 		// Only fetch relations if revealTraderIdentity is true
-		const relations = await prisma.twitterAccountUserBuyRelation.findMany({
-			where: { poolId },
-			select: {
-				id: true,
-				twitterUserId: true,
-				twitterUsername: true,
-				address: true,
-				purchases: true,
-				createdAt: true,
-				updatedAt: true
-			},
-			orderBy: {
-				createdAt: 'desc'
-			}
-		})
+		let relations: any[] = []
+		try {
+			relations = await prisma.twitterAccountUserBuyRelation.findMany({
+				where: { poolId },
+				select: {
+					id: true,
+					twitterUserId: true,
+					twitterUsername: true,
+					address: true,
+					purchases: true,
+					createdAt: true,
+					updatedAt: true
+				},
+				orderBy: {
+					createdAt: 'desc'
+				}
+			})
+		} catch (err) {
+			console.error("Twitter relations: error loading relations", err)
+			return NextResponse.json(
+				{
+					poolId,
+					relations: [],
+					total: 0,
+					message: "Temporarily unable to load trader relations"
+				},
+				{ status: 200 }
+			)
+		}
 
 		// Transform the data to include parsed purchases
 		const processedRelations = relations.map(relation => ({

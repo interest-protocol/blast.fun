@@ -7,10 +7,10 @@ import { Loader2 } from "lucide-react"
 import toast from "react-hot-toast"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { useApp } from "@/context/app.context"
-import { SuiClient } from "@mysten/sui/client"
+import { SuiJsonRpcClient } from "@mysten/sui/jsonRpc"
 import { Transaction } from "@mysten/sui/transactions"
 import { useSignAndExecuteTransaction } from "@mysten/dapp-kit"
-import type { CoinStruct } from "@mysten/sui/client"
+import type { CoinStruct } from "@mysten/sui/jsonRpc"
 import type { WalletCoin } from "@/types/blockvision"
 import { useTransaction } from "@/hooks/sui/use-transaction"
 import { walletSdk } from "@/lib/memez/sdk"
@@ -33,7 +33,7 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 	const mergeAndPrepareReceive = async (
 		coin: WalletCoin,
 		tx: Transaction,
-		suiClient: SuiClient
+		suiClient: SuiJsonRpcClient
 	): Promise<{ success: boolean; error?: string }> => {
 		try {
 			const allCoins: CoinStruct[] = []
@@ -473,15 +473,14 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 												<td className="p-4 text-right">
 													<span className="font-mono text-sm">
 														{formatNumberWithSuffix(
-															parseFloat(coin.balance) / Math.pow(10, coin.decimals),
-															4
+															parseFloat(coin.balance), coin.decimals
 														)}
 													</span>
 												</td>
 												<td className="p-4 text-right">
 													<span className="font-mono text-sm">
 														{coin.value != null && coin.value > 0
-															? `$${formatNumberWithSuffix(coin.value, 4)}`
+															? `$${formatNumberWithSuffix(coin.value)}`
 															: "-"}
 													</span>
 												</td>
