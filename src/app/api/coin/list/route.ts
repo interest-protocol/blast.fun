@@ -1,8 +1,15 @@
 import { NextResponse } from "next/server"
 import { fetchNoodlesCoinList } from "@/lib/noodles/client"
-import type { NoodlesCoinListParams } from "@/lib/noodles/client"
+import type { NoodlesCoinListParams, NoodlesCoinList } from "@/lib/noodles/client"
 
 export const revalidate = 30
+
+function isTestCoin(coin: NoodlesCoinList): boolean {
+	const t = "test"
+	const name = coin.name.toLowerCase()
+	const symbol = coin.symbol.toLowerCase()
+	return name.includes(t) || symbol === t || symbol.includes(`${t}_`) || symbol.includes(`_${t}`)
+}
 
 export async function GET(request: Request) {
   try {
@@ -66,6 +73,10 @@ export async function GET(request: Request) {
     }
 
     let coins = noodlesRes.data ?? []
+
+    if (params.filters?.isGraduated === true) {
+      coins = coins.filter((c) => !isTestCoin(c))
+    }
 
     if (isSearch && searchQuery) {
       const lower = searchQuery.toLowerCase()
