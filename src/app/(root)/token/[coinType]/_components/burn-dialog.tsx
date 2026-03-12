@@ -18,10 +18,7 @@ import { useTokenBalance } from "@/hooks/sui/use-token-balance";
 import { usePortfolio } from "@/hooks/nexa/use-portfolio";
 import { useApp } from "@/context/app.context";
 import { useTransaction } from "@/hooks/sui/use-transaction";
-import {
-    coinWithBalance,
-    TransactionObjectInput,
-} from "@mysten/sui/transactions";
+import { coinWithBalance } from "@mysten/sui/transactions";
 import { pumpSdk } from "@/lib/memez/sdk";
 import BigNumber from "bignumber.js";
 
@@ -59,14 +56,19 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
         }
 
         if (percentage === 100) {
-            setAmount(effectiveBalance);
+            setAmount(
+                new BigNumber(balanceInDisplayUnit).toFixed(
+                    decimals,
+                    BigNumber.ROUND_DOWN
+                )
+            );
         } else {
             try {
                 const balanceBN = new BigNumber(balanceInDisplayUnit);
                 const percentageBN = new BigNumber(percentage).dividedBy(100);
                 const tokenAmountToBurn = balanceBN
                     .multipliedBy(percentageBN)
-                    .toFixed(9, BigNumber.ROUND_DOWN);
+                    .toFixed(decimals, BigNumber.ROUND_DOWN);
                 setAmount(tokenAmountToBurn);
             } catch (error) {
                 console.error("Error calculating quick burn amount:", error);
@@ -186,7 +188,13 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
                                 Amount to Burn
                             </label>
                             <button
-                                onClick={() => setAmount(effectiveBalance)}
+                                onClick={() =>
+                                    setAmount(
+                                        new BigNumber(
+                                            balanceInDisplayUnit
+                                        ).toFixed(decimals, BigNumber.ROUND_DOWN)
+                                    )
+                                }
                                 className="text-xs text-blue-400 hover:text-blue-300 font-medium transition-colors"
                                 disabled={isProcessing}
                             >
@@ -197,7 +205,21 @@ export function BurnDialog({ open, onOpenChange, pool }: BurnDialogProps) {
                             type="text"
                             placeholder="0.00"
                             value={amount}
-                            onChange={(e) => setAmount(e.target.value)}
+                            onChange={(e) => {
+                                const raw = e.target.value;
+                                if (
+                                    raw === "" ||
+                                    /^\d*\.?\d*$/.test(raw)
+                                ) {
+                                    const [, frac] = raw.split(".");
+                                    if (
+                                        frac === undefined ||
+                                        frac.length <= decimals
+                                    ) {
+                                        setAmount(raw);
+                                    }
+                                }
+                            }}
                             disabled={isProcessing}
                             className="font-mono"
                         />

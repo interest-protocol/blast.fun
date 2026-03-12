@@ -452,8 +452,14 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                 return;
             }
 
-            if (percentage === 100) setAmount(balanceInDisplayUnit.toString());
-            else {
+            if (percentage === 100) {
+                setAmount(
+                    new BigNumber(balanceInDisplayUnit).toFixed(
+                        decimals,
+                        BigNumber.ROUND_DOWN
+                    )
+                );
+            } else {
                 try {
                     const balanceBN = new BigNumber(balanceInDisplayUnit);
                     const percentageBN = new BigNumber(percentage).dividedBy(
@@ -461,7 +467,7 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                     );
                     const tokenAmount = balanceBN
                         .multipliedBy(percentageBN)
-                        .toFixed(9, BigNumber.ROUND_DOWN);
+                        .toFixed(decimals, BigNumber.ROUND_DOWN);
                     setAmount(tokenAmount);
                 } catch (error) {
                     console.error("Error calculating quick amount:", error);
@@ -683,7 +689,20 @@ export function TradeTerminal({ pool, referral }: TradeTerminalProps) {
                                 type="text"
                                 placeholder="0.00"
                                 value={amount}
-                                onChange={(e) => setAmount(e.target.value)}
+                                onChange={(e) => {
+                                    const raw = e.target.value;
+                                    if (raw === "" || /^\d*\.?\d*$/.test(raw)) {
+                                        const maxDecimals =
+                                            tradeType === "buy" ? 9 : decimals;
+                                        const [, frac] = raw.split(".");
+                                        if (
+                                            frac === undefined ||
+                                            frac.length <= maxDecimals
+                                        ) {
+                                            setAmount(raw);
+                                        }
+                                    }
+                                }}
                                 className="flex-1 bg-transparent text-2xl font-medium outline-none placeholder:text-muted-foreground/50 text-foreground min-w-0"
                                 disabled={isProcessing}
                                 inputMode="decimal"
