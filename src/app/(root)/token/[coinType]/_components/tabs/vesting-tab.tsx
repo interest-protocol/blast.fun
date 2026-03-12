@@ -238,6 +238,13 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 		}
 	}
 
+	const tokenDecimals = pool.metadata?.decimals ?? 9
+	const rawStats = processedData?.stats || vestingData?.stats
+	const totalLockedDisplay =
+		rawStats?.totalAmountLocked != null
+			? (Number(rawStats.totalAmountLocked) / 10 ** tokenDecimals).toString()
+			: "0"
+
 	const formatVestingAmount = (amount: string, showPercentage?: boolean) => {
 		// @dev: Amount is already in human-readable format from API, no need to apply decimals
 		const numAmount = parseFloat(amount)
@@ -392,12 +399,12 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 							<div>
 								<p className="text-xs text-muted-foreground">Total Locked</p>
 								<p className="font-semibold text-sm">
-									{formatVestingAmount((processedData?.stats || vestingData?.stats)?.totalAmountLocked || "0", true)} {pool.metadata?.symbol}
+									{formatVestingAmount(totalLockedDisplay, true)} {pool.metadata?.symbol}
 								</p>
 							</div>
 							<div className="text-right">
 								<p className="text-xs text-muted-foreground">Users</p>
-								<p className="font-semibold text-sm">{(processedData?.stats || vestingData?.stats)?.numberOfUsers || 0}</p>
+								<p className="font-semibold text-sm">{rawStats?.numberOfUsers ?? 0}</p>
 							</div>
 						</div>
 					</div>
@@ -506,10 +513,10 @@ export function VestingTab({ pool, className }: VestingTabProps) {
 						<div className="text-sm">
 							<span className="text-muted-foreground">Total Locked: </span>
 							<span className="font-semibold">
-								{formatVestingAmount((processedData?.stats || vestingData?.stats)?.totalAmountLocked || "0", true)} {pool.metadata?.symbol}
+								{formatVestingAmount(totalLockedDisplay, true)} {pool.metadata?.symbol}
 							</span>
 							<span className="text-muted-foreground ml-6">Total Users: </span>
-							<span className="font-semibold">{(processedData?.stats || vestingData?.stats)?.numberOfUsers || 0}</span>
+							<span className="font-semibold">{rawStats?.numberOfUsers ?? 0}</span>
 						</div>
 						<div className="flex items-center gap-2">
 							<span className="text-xs text-muted-foreground">Sort by:</span>
