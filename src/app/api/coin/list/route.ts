@@ -5,7 +5,7 @@ import type { NoodlesCoinListParams, NoodlesCoinList } from "@/lib/noodles/clien
 export const revalidate = 30
 
 function isTestCoin(coin: NoodlesCoinList): boolean {
-  const blocked = ["test", "meme coin", "taaaaa"]
+  const blocked = ["test", "meme coin", "taaaaa", "last test" ]
 
   const name = coin.name.toLowerCase()
   const symbol = coin.symbol.toLowerCase()
