@@ -68,7 +68,6 @@ export async function GET(request: Request) {
 
     let coins = noodlesRes.data ?? []
 
-
     coins = coins.filter((c) => !BLOCKED_COIN_TYPES.has(c.coinType))
 
     if (isSearch && searchQuery) {
