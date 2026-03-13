@@ -5,10 +5,14 @@ import type { NoodlesCoinListParams, NoodlesCoinList } from "@/lib/noodles/clien
 export const revalidate = 30
 
 function isTestCoin(coin: NoodlesCoinList): boolean {
-	const t = "test"
-	const name = coin.name.toLowerCase()
-	const symbol = coin.symbol.toLowerCase()
-	return name.includes(t) || symbol === t || symbol.includes(`${t}_`) || symbol.includes(`_${t}`)
+  const blocked = ["test", "meme coin", "taaaaa"]
+
+  const name = coin.name.toLowerCase()
+  const symbol = coin.symbol.toLowerCase()
+
+  return blocked.some((word) =>
+    name.includes(word) || symbol.includes(word)
+  )
 }
 
 export async function GET(request: Request) {
