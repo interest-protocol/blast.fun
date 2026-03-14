@@ -3,7 +3,8 @@
 import { useState } from "react"
 import { useApp } from "@/context/app.context"
 import { useTransaction } from "@/hooks/sui/use-transaction"
-import { coinWithBalance } from "@mysten/sui/transactions"
+import { Transaction, coinWithBalance } from "@mysten/sui/transactions"
+import { isValidSuiObjectId } from "@mysten/sui/utils"
 import { pumpSdk } from "@/lib/memez/sdk"
 import BigNumber from "bignumber.js"
 import type { Token } from "@/types/token"
@@ -36,25 +37,40 @@ export function useBurn({ pool, decimals, actualBalance, onSuccess }: UseBurnPar
 		setError(null)
 
 		try {
+			const poolId = pool.pool?.poolId || pool.poolId || pool.id
+			if (!poolId || !isValidSuiObjectId(poolId)) {
+				setError("Pool not found for this token")
+				return false
+			}
+
+			const poolOnChain = await pumpSdk.getPumpPool(poolId)
+			const ipxTreasury = poolOnChain?.ipxMemeCoinTreasury
+			if (!ipxTreasury || !isValidSuiObjectId(ipxTreasury)) {
+				setError("Burn is not available for this token (missing treasury).")
+				return false
+			}
+
 			// @dev: Calculate amount in smallest unit for burn transaction
 			const amountBN = new BigNumber(amount)
 			const amountInSmallestUnit = amountBN.multipliedBy(Math.pow(10, decimals)).toFixed(0)
 			const burnAmount = BigInt(amountInSmallestUnit)
 
-			// @dev: Create coin object with amount to burn
+			const tx = new Transaction()
+			tx.setSender(address)
 			const memeCoin = coinWithBalance({
 				type: pool.coinType,
 				balance: burnAmount,
-			})
+			})(tx)
 
 			// @dev: Create and execute burn transaction
-			const { tx } = await pumpSdk.burnMeme({
-				ipxTreasury: pool.pool?.coinIpxTreasuryCap || "",
+			const { tx: burnTx } = pumpSdk.burnMeme({
+				tx,
+				ipxTreasury,
 				memeCoin,
 				coinType: pool.coinType,
 			})
 
-			const result = await executeTransaction(tx)
+			const result = await executeTransaction(burnTx)
 			
 			if (onSuccess) {
 				onSuccess()
