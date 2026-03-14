@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import type { NexaToken, TokenFilters } from "@/types/token";
+import type { TokenListItem, TokenFilters } from "@/types/token";
 
 const API_ENDPOINTS = {
     latest: `/api/tokens/latest`,
@@ -14,7 +14,7 @@ type EndpointType = keyof typeof API_ENDPOINTS;
 async function fetchTokens(
     endpoint: EndpointType,
     filters?: TokenFilters
-): Promise<NexaToken[]> {
+): Promise<TokenListItem[]> {
     const url = new URL(API_ENDPOINTS[endpoint], window.location.origin);
 
     if (filters) {

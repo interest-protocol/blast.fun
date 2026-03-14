@@ -15,7 +15,7 @@ import {
     useAboutToBondTokens,
     useBondedTokens,
 } from "@/hooks/use-tokens";
-import type { NexaToken } from "@/types/token";
+import type { TokenListItem } from "@/types/token";
 import { useApp } from "@/context/app.context";
 
 import { cn } from "@/utils";
@@ -26,7 +26,7 @@ import type {
 } from "./swap-terminal.types";
 import { MIN_SEARCH_LENGTH } from "./swap-terminal.data";
 
-const convertTokenToOption = (token: NexaToken): TokenOption => ({
+const convertTokenToOption = (token: TokenListItem): TokenOption => ({
     coinType: token.coinType,
     symbol: token.symbol,
     name: token.name,

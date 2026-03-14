@@ -13,8 +13,23 @@ import { SearchResultsView } from "./search-results-view";
 import {
     SEARCH_DEBOUNCE_MS,
     MIN_SEARCH_LENGTH,
-    DEFAULT_DECIMALS,
 } from "./swap-terminal.data";
+
+function coinToOption(c: {
+    coinType: string;
+    symbol: string;
+    name: string;
+    iconUrl?: string;
+    decimals?: number;
+}): TokenOption {
+    return {
+        coinType: c.coinType,
+        symbol: c.symbol,
+        name: c.name,
+        iconUrl: c.iconUrl,
+        decimals: c.decimals,
+    };
+}
 
 export const TokenSearchDialog: FC<TokenSearchDialogProps> = ({
     open,
@@ -47,6 +62,64 @@ export const TokenSearchDialog: FC<TokenSearchDialogProps> = ({
         try {
             setIsSearching(true);
             setGlobalSearchResults([]);
+
+            const newlyParams = new URLSearchParams({
+                protocol: "blast-fun-bonding-curve",
+                isGraduated: "false",
+                orderBy: "published_at",
+                orderDirection: "desc",
+                limit: "50",
+            });
+            const nearParams = new URLSearchParams({
+                protocol: "blast-fun-bonding-curve",
+                isGraduated: "false",
+                orderBy: "bonding_curve_progress",
+                orderDirection: "desc",
+                bondingCurveProgressMin: "30",
+                limit: "50",
+            });
+            const graduatedParams = new URLSearchParams({
+                protocol: "blast-fun-bonding-curve",
+                isGraduated: "true",
+                limit: "50",
+            });
+
+            const [resNewly, resNear, resGraduated] = await Promise.all([
+                fetch(`/api/coin/list?${newlyParams.toString()}`),
+                fetch(`/api/coin/list?${nearParams.toString()}`),
+                fetch(`/api/coin/list?${graduatedParams.toString()}`),
+            ]);
+
+            const list = (res: Response): Promise<{ coins?: Array<{ coinType: string; symbol: string; name: string; iconUrl?: string; decimals?: number }> }> =>
+                res.ok ? res.json() : Promise.resolve({ coins: [] });
+
+            const [dataNewly, dataNear, dataGraduated] = await Promise.all([
+                list(resNewly),
+                list(resNear),
+                list(resGraduated),
+            ]);
+
+            const coinsNewly = dataNewly.coins ?? [];
+            const coinsNear = dataNear.coins ?? [];
+            const coinsGraduated = dataGraduated.coins ?? [];
+
+            const seen = new Set<string>();
+            const merged: TokenOption[] = [];
+            for (const c of [...coinsNewly, ...coinsNear, ...coinsGraduated]) {
+                if (c?.coinType && !seen.has(c.coinType)) {
+                    seen.add(c.coinType);
+                    merged.push(coinToOption(c));
+                }
+            }
+
+            const lower = query.toLowerCase();
+            const filtered = merged.filter(
+                (t) =>
+                    t.symbol.toLowerCase().includes(lower) ||
+                    t.name.toLowerCase().includes(lower) ||
+                    t.coinType.toLowerCase().includes(lower),
+            );
+            setGlobalSearchResults(filtered);
         } catch (error) {
             console.error("Search error:", error);
             setGlobalSearchResults([]);

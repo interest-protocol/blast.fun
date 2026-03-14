@@ -136,6 +136,18 @@ export interface NexaToken {
     };
 }
 
+/** Minimal token shape for listing (swap, search). Replaces NexaToken in list flows. */
+export interface TokenListItem {
+	coinType: string
+	symbol: string
+	name: string
+	iconUrl?: string
+	decimals?: number
+	id?: string
+	marketCap?: number
+	volume24h?: number
+}
+
 export interface TokenFilters {
     platforms?: string[];
 

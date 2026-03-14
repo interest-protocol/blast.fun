@@ -6,7 +6,7 @@ import {
     useAboutToBondTokens,
     useBondedTokens,
 } from "@/hooks/use-tokens";
-import type { NexaToken } from "@/types/token";
+import type { TokenListItem } from "@/types/token";
 import type { TokenOption, TokenCategory } from "./swap-terminal.types";
 import {
     NEWLY_CREATED_REFETCH_INTERVAL,
@@ -14,7 +14,7 @@ import {
     GRADUATED_REFETCH_INTERVAL,
 } from "./swap-terminal.data";
 
-const convertTokenToOption = (token: NexaToken): TokenOption => ({
+const convertTokenToOption = (token: TokenListItem): TokenOption => ({
     coinType: token.coinType,
     symbol: token.symbol,
     name: token.name,
@@ -24,7 +24,7 @@ const convertTokenToOption = (token: NexaToken): TokenOption => ({
 
 export const useTokenCategories = (
     activeCategory: TokenCategory,
-    enabled: boolean = true
+    enabled = true
 ) => {
     const latestTokensQuery = useLatestTokens(undefined, {
         enabled: enabled && activeCategory === "newly-created",
