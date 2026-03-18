@@ -12,6 +12,7 @@ import AirdropConfig from "./_components/airdrop-config"
 import AirdropPreview from "./_components/airdrop-preview"
 import RecipientsPreview from "./_components/recipients-preview"
 import { useAirdrop } from "../../_hooks/use-airdrop"
+import { useDelegatorBalance } from "../../_hooks/use-delegator-balance"
 
 const AirdropTools: FC = () => {
   const { address, setIsConnectDialogOpen } = useApp()
@@ -29,13 +30,17 @@ const AirdropTools: FC = () => {
 
   const {
     handleAirdrop,
+    refundDelegator,
     isRecoveringGas,
+    isRefunding,
     isAirdropComplete,
     lastCsvInput,
     delegatorAddress,
     airdropProgress,
     isProcessing,
   } = useAirdrop({ address, selectedCoin, recipients, csvInput })
+
+  const { delegatorHasAssets, refetchBalances } = useDelegatorBalance()
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedCsvInput(csvInput), 500)
@@ -122,6 +127,12 @@ const AirdropTools: FC = () => {
           airdropProgress={airdropProgress}
           isProcessing={isProcessing}
           handleAirdrop={handleAirdrop}
+          delegatorHasAssets={delegatorHasAssets}
+          isRefunding={isRefunding}
+          refundDelegator={async () => {
+            await refundDelegator();
+            refetchBalances();
+          }}
         />
 
         {recipients.length > 0 && (

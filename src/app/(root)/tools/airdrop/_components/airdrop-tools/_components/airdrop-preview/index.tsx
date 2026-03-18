@@ -1,7 +1,7 @@
 "use client"
 
 import { FC } from "react"
-import { Loader2, Send } from "lucide-react"
+import { Loader2, RotateCcw, Send } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { AirdropPreviewProps } from "./airdrop-preview.types"
@@ -18,6 +18,9 @@ const AirdropPreview: FC<AirdropPreviewProps> = ({
     airdropProgress,
     isProcessing,
     handleAirdrop,
+    delegatorHasAssets,
+    isRefunding,
+    refundDelegator,
 }) => {
     return (
         <div className="border-2 shadow-lg rounded-xl lg:flex-shrink-0">
@@ -106,6 +109,28 @@ const AirdropPreview: FC<AirdropPreviewProps> = ({
                             )}
                         </Button>
 
+                        {delegatorHasAssets && (
+                            <Button
+                                onClick={refundDelegator}
+                                disabled={isRefunding || isProcessing}
+                                className="w-full font-mono uppercase tracking-wider py-6 text-sm"
+                                size="lg"
+                                variant="outline"
+                            >
+                                {isRefunding ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                        REFUNDING...
+                                    </>
+                                ) : (
+                                    <>
+                                        <RotateCcw className="h-4 w-4 mr-2" />
+                                        REFUND DELEGATOR
+                                    </>
+                                )}
+                            </Button>
+                        )}
+
                         {recipients.some((r) => r.resolutionError) && (
                             <p className="font-mono text-xs uppercase text-destructive text-center">
                                 FIX ADDRESS ERRORS BEFORE PROCEEDING
@@ -113,10 +138,34 @@ const AirdropPreview: FC<AirdropPreviewProps> = ({
                         )}
                     </div>
                 ) : (
-                    <div className="text-center py-8">
-                        <div className="w-12 h-12 mx-auto mb-4 animate-bounce bg-muted rounded-full" />
-                        <p className="font-mono text-sm uppercase text-muted-foreground">AWAITING::INPUT</p>
-                        <p className="font-mono text-xs uppercase text-muted-foreground/60 mt-2">SELECT_COIN_AND_ADD_RECIPIENTS</p>
+                    <div className="text-center py-8 space-y-4">
+                        <div>
+                            <div className="w-12 h-12 mx-auto mb-4 animate-bounce bg-muted rounded-full" />
+                            <p className="font-mono text-sm uppercase text-muted-foreground">AWAITING::INPUT</p>
+                            <p className="font-mono text-xs uppercase text-muted-foreground/60 mt-2">SELECT_COIN_AND_ADD_RECIPIENTS</p>
+                        </div>
+
+                        {delegatorHasAssets && (
+                            <Button
+                                onClick={refundDelegator}
+                                disabled={isRefunding}
+                                className="w-full font-mono uppercase tracking-wider py-6 text-sm"
+                                size="lg"
+                                variant="outline"
+                            >
+                                {isRefunding ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                        REFUNDING...
+                                    </>
+                                ) : (
+                                    <>
+                                        <RotateCcw className="h-4 w-4 mr-2" />
+                                        REFUND DELEGATOR
+                                    </>
+                                )}
+                            </Button>
+                        )}
                     </div>
                 )}
             </div>
