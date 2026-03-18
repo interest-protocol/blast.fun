@@ -34,6 +34,7 @@ export function useAirdrop({
     const [delegatorAddress, setDelegatorAddress] = useState<string>("");
     const [airdropProgress, setAirdropProgress] = useState<string>("");
     const [isProcessing, setIsProcessing] = useState(false);
+    const [isRefunding, setIsRefunding] = useState(false);
 
     useEffect(() => {
         if (csvInput !== lastCsvInput) {
@@ -241,6 +242,61 @@ export function useAirdrop({
         }
     };
 
+    const refundDelegator = async () => {
+        if (!address) return;
+
+        setIsRefunding(true);
+
+        try {
+            const delegatorKeypair = getDelegatorKeypair();
+            const delegatorAddr = delegatorKeypair
+                .getPublicKey()
+                .toSuiAddress();
+
+            const allCoins = await suiClient.getAllCoins({
+                owner: delegatorAddr,
+            });
+
+            const nonSuiCoins = allCoins.data.filter(
+                (coin) =>
+                    coin.coinType !== SUI_TYPE_ARG &&
+                    BigInt(coin.balance) > 0n,
+            );
+
+            if (nonSuiCoins.length > 0) {
+                const tx = new Transaction();
+                tx.setSender(delegatorAddr);
+
+                tx.transferObjects(
+                    nonSuiCoins.map((coin) => tx.object(coin.coinObjectId)),
+                    tx.pure.address(address),
+                );
+
+                const txBytes = await tx.build({ client: suiClient });
+                const { signature } = await delegatorKeypair.signTransaction(txBytes);
+
+                const txResult = await suiClient.executeTransactionBlock({
+                    transactionBlock: txBytes,
+                    signature: [signature],
+                    options: { showEffects: true },
+                });
+
+                await suiClient.waitForTransaction({
+                    digest: txResult.digest,
+                });
+            }
+
+            await recoverGas(delegatorKeypair, delegatorAddr, address);
+
+            toast.success("Delegator refunded successfully");
+        } catch (error) {
+            console.error("Error refunding delegator:", error);
+            toast.error("Failed to refund delegator");
+        } finally {
+            setIsRefunding(false);
+        }
+    };
+
     const recoverGas = async (
         delegatorKeypair: Ed25519Keypair,
         delegatorAddr: string,
@@ -271,7 +327,9 @@ export function useAirdrop({
 
     return {
         handleAirdrop,
+        refundDelegator,
         isRecoveringGas,
+        isRefunding,
         isAirdropComplete,
         lastCsvInput,
         delegatorAddress,
