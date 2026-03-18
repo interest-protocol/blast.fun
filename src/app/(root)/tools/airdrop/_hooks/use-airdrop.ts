@@ -101,9 +101,10 @@ export function useAirdrop({
                 await fundDelegator(
                     address,
                     delegatorAddr,
-                    selectedCoin,
+                    recipients.length * GAS_PER_RECIPIENT,
+                    recipients.length * SERVICE_FEE_PER_RECIPIENT,
                     totalAmountToSend,
-                    recipients.length,
+                    selectedCoin,
                 );
 
                 await executeBatchAirdrop(
@@ -134,32 +135,35 @@ export function useAirdrop({
     const fundDelegator = async (
         sender: string,
         delegatorAddr: string,
-        coinType: string,
-        amount: bigint,
-        recipientCount: number,
+        suiGas: number,
+        suiFee?: number,
+        amount?: bigint,
+        coinType?: string,
     ) => {
         const tx = new Transaction();
         tx.setSender(sender);
 
-        const coinInput = isSuiCoin(coinType)
-            ? tx.splitCoins(tx.gas, [tx.pure.u64(amount)])
-            : coinWithBalance({
-                  balance: amount,
-                  type: coinType,
-                  useGasCoin: true,
-              })(tx);
+        const coinInput =
+            !coinType || !amount
+                ? null
+                : isSuiCoin(coinType)
+                  ? tx.splitCoins(tx.gas, [tx.pure.u64(amount)])
+                  : coinWithBalance({
+                        balance: amount,
+                        type: coinType,
+                        useGasCoin: true,
+                    })(tx);
 
-        const gasAmount = BigInt(
-            recipientCount * GAS_PER_RECIPIENT * 10 ** SUI_DECIMALS,
-        );
+        const gasAmount = BigInt(suiGas * 10 ** SUI_DECIMALS);
         const gasInput = tx.splitCoins(tx.gas, [tx.pure.u64(gasAmount)]);
 
-        tx.transferObjects([coinInput, gasInput], delegatorAddr);
+        tx.transferObjects(
+            coinInput ? [coinInput, gasInput] : [gasInput],
+            delegatorAddr,
+        );
 
-        if (process.env.NEXT_PUBLIC_FEE_ADDRESS) {
-            const feeAmount = BigInt(
-                recipientCount * SERVICE_FEE_PER_RECIPIENT * 10 ** SUI_DECIMALS,
-            );
+        if (suiFee && process.env.NEXT_PUBLIC_FEE_ADDRESS) {
+            const feeAmount = BigInt(suiFee * 10 ** SUI_DECIMALS);
             const feeInput = coinWithBalance({
                 balance: feeAmount,
                 type: SUI_TYPE_ARG,
@@ -259,10 +263,11 @@ export function useAirdrop({
 
             const nonSuiCoins = allCoins.data.filter(
                 (coin) =>
-                    coin.coinType !== SUI_TYPE_ARG &&
-                    BigInt(coin.balance) > 0n,
+                    coin.coinType !== SUI_TYPE_ARG && BigInt(coin.balance) > 0n,
             );
 
+            await fundDelegator(address, delegatorAddr, GAS_PER_RECIPIENT);
+            
             if (nonSuiCoins.length > 0) {
                 const tx = new Transaction();
                 tx.setSender(delegatorAddr);
@@ -273,7 +278,8 @@ export function useAirdrop({
                 );
 
                 const txBytes = await tx.build({ client: suiClient });
-                const { signature } = await delegatorKeypair.signTransaction(txBytes);
+                const { signature } =
+                    await delegatorKeypair.signTransaction(txBytes);
 
                 const txResult = await suiClient.executeTransactionBlock({
                     transactionBlock: txBytes,
