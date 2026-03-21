@@ -49,7 +49,6 @@ const PortfolioTable: FC<PortfolioTableProps> = ({
                                 sortField={sortField}
                                 sortOrder={sortOrder}
                             />
-                            <th className="hidden md:table-cell px-6 py-4 text-right">Avg Entry</th>
                             <th className="hidden md:table-cell px-6 py-4 text-right">Current Price</th>
                             <PortfolioTableHeader
                                 title="PNL"

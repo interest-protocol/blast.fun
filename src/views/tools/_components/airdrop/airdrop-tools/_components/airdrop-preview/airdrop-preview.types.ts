@@ -13,4 +13,7 @@ export interface AirdropPreviewProps {
   airdropProgress?: string | null
   isProcessing: boolean
   handleAirdrop: () => Promise<void> | void
+  delegatorHasAssets: boolean
+  isRefunding: boolean
+  refundDelegator: () => Promise<void> | void
 }

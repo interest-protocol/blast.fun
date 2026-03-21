@@ -1,3 +1,5 @@
+"use client";
+
 import { FC } from "react";
 
 import SearchForm from "./_components/search-form";

@@ -1,101 +1,117 @@
-"use client"
+"use client";
 
-import { memo, useCallback, useState, useMemo } from "react"
+import { memo, useCallback, useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { TokenCard } from "../token-card";
+import TokenListLayout from "../token-list-layout";
+import TokenCardSkeleton from "../token-card.skeleton";
+import { Logo } from "@/components/ui/logo";
+import TokenListFilters from "../token-list-filters";
+import FlashBuyInput from "../flash-buy-input";
 
-import { useLatestTokens } from "@/hooks/use-tokens"
-import { useTradeBump } from "@/hooks/use-trade-bump"
-import { sortTokens, } from "@/utils/token-sorting"
-import FlashBuyInput from "../flash-buy-input"
-import TokenListLayout from "../token-list-layout"
-import TokenListFilters from "../token-list-filters"
-import type { TokenListSettings, TokenFilters } from "@/types/token"
-import { EmptyState } from "../_components/empty-state"
-import { LoadingState } from "../_components/loading-state"
-import { ErrorState } from "../_components/error-state"
-import TokenCard from "../token-card"
+import { useTradeBump } from "@/hooks/use-trade-bump";
+import { useCreatorsForList } from "@/hooks/use-creators-for-list";
+import type { TokenListSettings } from "@/types/token";
+import type { NoodlesCoinList } from "@/lib/noodles/client";
+import { sortTokens } from "@/utils/token-sorting";
 
-import { NewlyCreatedProps } from "./newly-created.types"
+import type { NewlyCreatedProps } from "./newly-created.types";
+
+async function fetchNewlyCreatedCoins(
+    filters?: TokenListSettings["filters"],
+): Promise<NoodlesCoinList[]> {
+    const params = new URLSearchParams({
+        isGraduated: "false",
+        orderBy: "published_at",
+        orderDirection: "desc",
+        protocol: "blast-fun-bonding-curve",
+    });
+
+    if (filters?.hasWebsite) params.set("hasWebsite", "true");
+    if (filters?.hasTwitter) params.set("hasX", "true");
+    if (filters?.hasTelegram) params.set("hasTelegram", "true");
+
+    const res = await fetch(`/api/coin/list?${params.toString()}`);
+    if (!res.ok) throw new Error("Failed to fetch newly created coins");
+
+    const json = await res.json();
+    return json.coins ?? [];
+}
 
 export const NewlyCreated = memo(function NewlyCreated({
-    pollInterval = 10000
+    pollInterval = 10000,
 }: NewlyCreatedProps) {
     const [settings, setSettings] = useState<TokenListSettings>({
         sortBy: "date",
         filters: {
-            tabType: 'newly-created'
-        }
-    })
-    const { bumpOrder, isAnimating } = useTradeBump()
+            tabType: "newly-created",
+        },
+    });
+    const { bumpOrder, isAnimating } = useTradeBump();
 
-    // @dev: Build filter params based on settings
-    const filterParams = useMemo<TokenFilters>(() => {
-        return {
-            ...settings.filters,
-            tabType: 'newly-created'
-        }
-    }, [settings.filters])
-
-    const { data, isLoading, error } = useLatestTokens(filterParams, {
-        refetchInterval: pollInterval
-    })
+    const { data, isLoading, error } = useQuery({
+        queryKey: ["coins", "newly-created", settings.filters],
+        queryFn: () => fetchNewlyCreatedCoins(settings.filters),
+        refetchInterval: pollInterval,
+        staleTime: 1000,
+        gcTime: 5000,
+    });
 
     const filteredAndSortedTokens = useMemo(() => {
-        if (!data || data.length === 0) return []
+        if (!data || data.length === 0) return [];
 
-        let tokens = [...data]
+        const sorted = [...data].sort((a, b) => {
+            const aIndex = bumpOrder.indexOf(a.coinType);
+            const bIndex = bumpOrder.indexOf(b.coinType);
 
-        // @dev: Apply additional client-side social filters if needed
-        if (settings.filters.hasWebsite || settings.filters.hasTwitter || settings.filters.hasTelegram) {
-            tokens = tokens.filter((token) => {
-                if (settings.filters.hasWebsite && (!token.website || token.website === '')) return false
-                if (settings.filters.hasTwitter && (!token.twitter || token.twitter === '')) return false
-                if (settings.filters.hasTelegram && (!token.telegram || token.telegram === '')) return false
+            if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+            if (aIndex !== -1) return -1;
+            if (bIndex !== -1) return 1;
+            return 0;
+        });
 
-                return true
-            })
-        }
+        const bumped = sorted.filter((t) => bumpOrder.includes(t.coinType));
+        const nonBumped = sorted.filter((t) => !bumpOrder.includes(t.coinType));
+        const sortedNonBumped = sortTokens(nonBumped, settings.sortBy);
 
-        // sort based on bump order, then apply normal sorting
-        const sorted = [...tokens].sort((a, b) => {
-            const aIndex = bumpOrder.indexOf(a.coinType)
-            const bIndex = bumpOrder.indexOf(b.coinType)
+        return [...bumped, ...sortedNonBumped];
+    }, [data, settings.sortBy, bumpOrder]);
 
-            if (aIndex !== -1 && bIndex !== -1) {
-                return aIndex - bIndex
-            }
-
-            if (aIndex !== -1) return -1
-            if (bIndex !== -1) return 1
-
-            return 0
-        })
-
-        // apply normal sorting to non-bumped tokens
-        const bumped = sorted.filter(t => bumpOrder.includes(t.coinType))
-        const nonBumped = sorted.filter(t => !bumpOrder.includes(t.coinType))
-        const sortedNonBumped = sortTokens(nonBumped, settings.sortBy)
-
-        return [...bumped, ...sortedNonBumped]
-    }, [data, settings, bumpOrder])
+    const creatorsMap = useCreatorsForList(filteredAndSortedTokens);
 
     const renderContent = useCallback(() => {
+        if (error) {
+            return (
+                <div className="p-8 text-center">
+                    <Logo className="w-8 h-8 mx-auto text-destructive mb-2" />
+                    <p className="font-mono text-xs uppercase text-destructive">
+                        ERROR::LOADING::FEED
+                    </p>
+                </div>
+            );
+        }
 
-        if (error) return <ErrorState message="ERROR::LOADING::FEED" />;
+        if (isLoading) {
+            return [...Array(8)].map((_, i) => <TokenCardSkeleton key={i} />);
+        }
 
-        if (isLoading) return <LoadingState />;
-
-        if (filteredAndSortedTokens.length === 0 && !isLoading)
-            return <EmptyState message="	NO::NEW::TOKENS" />;
-
-        return filteredAndSortedTokens.map((pool) => (
-            <TokenCard
-                key={pool.coinType}
-                pool={pool}
-                hasRecentTrade={isAnimating(pool.coinType)}
-                column="newlyCreated"
-            />
-        ))
-    }, [filteredAndSortedTokens, isLoading, error, isAnimating])
+        return filteredAndSortedTokens.map((coin) => {
+            const creator = creatorsMap[coin.coinType];
+            const pool = {
+                ...coin,
+                dev: creator?.address ?? (coin as { dev?: string }).dev,
+                creatorData: creator,
+            };
+            return (
+                <TokenCard
+                    key={coin.coinType}
+                    pool={pool}
+                    hasRecentTrade={isAnimating(coin.coinType)}
+                    column="newlyCreated"
+                />
+            );
+        });
+    }, [filteredAndSortedTokens, creatorsMap, isLoading, error, isAnimating]);
 
     return (
         <TokenListLayout
@@ -115,5 +131,5 @@ export const NewlyCreated = memo(function NewlyCreated({
         >
             {renderContent()}
         </TokenListLayout>
-    )
-})
+    );
+});

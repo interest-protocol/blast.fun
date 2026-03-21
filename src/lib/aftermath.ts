@@ -48,9 +48,9 @@ export async function getSwapQuote({
 
         if (!route) throw new Error("No route found for swap");
 
-        const slippageMultiplier = 1 - slippagePercentage / 100;
+        const slippageMultiplier = 1 - slippagePercentage / 100 - 0.01 / 100;
         const minAmountOut = BigInt(
-            Math.floor(Number(route.coinOut.amount) * slippageMultiplier)
+            Math.floor(Number(route.coinOut.amount) * slippageMultiplier),
         );
 
         return {
@@ -96,6 +96,8 @@ export async function executeSwap({
             slippage: slippagePercentage / 100,
         });
 
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         return tx;
     } catch (error) {
         console.error("Failed to execute swap:", error);
@@ -157,13 +159,15 @@ export async function sellMigratedToken({
         if (!route) {
             throw new Error("No route found for swap");
         }
-
+        
         const tx = await router.getTransactionForCompleteTradeRoute({
             walletAddress: address,
             completeRoute: route,
             slippage: slippagePercentage / 100,
         });
 
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         return tx;
     } catch (error) {
         console.error("Failed to sell migrated token:", error);
@@ -174,7 +178,7 @@ export async function sellMigratedToken({
 export async function getBuyQuote(
     tokenType: string,
     suiAmount: bigint,
-    slippagePercentage = 1
+    slippagePercentage = 1,
 ) {
     return getSwapQuote({
         coinInType: SUI_TYPE_ARG,
@@ -187,7 +191,7 @@ export async function getBuyQuote(
 export async function getSellQuote(
     tokenType: string,
     tokenAmount: bigint,
-    slippagePercentage = 1
+    slippagePercentage = 1,
 ) {
     return getSwapQuote({
         coinInType: tokenType,

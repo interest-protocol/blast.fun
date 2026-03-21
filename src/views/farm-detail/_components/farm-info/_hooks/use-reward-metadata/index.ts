@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react"
-import { nexaClient } from "@/lib/nexa"
 import type { TokenMetadata } from "@/types/token"
 
 export const useRewardMetadata = (rewardCoinType: string | null) => {
@@ -10,7 +9,9 @@ export const useRewardMetadata = (rewardCoinType: string | null) => {
       if (!rewardCoinType) return
 
       try {
-        const metadata = await nexaClient.getCoinMetadata(rewardCoinType)
+        const res = await fetch(`/api/coin/${encodeURIComponent(rewardCoinType)}/metadata`)
+        if (!res.ok) return
+        const metadata = (await res.json()) as TokenMetadata
         if (metadata) setRewardMetadata(metadata)
       } catch (error) {
         console.error("Failed to fetch reward token metadata:", error)

@@ -14,7 +14,7 @@ class TokenPriceSocket {
 
 	constructor() {
 		this.socket = io(URL, {
-			path: '/price-feed-socket/insidex',
+			path: '/price-feed-socket',
 			transports: ['websocket'],
 			reconnection: false,
 			timeout: 10000

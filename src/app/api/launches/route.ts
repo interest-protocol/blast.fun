@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import { getFullnodeUrl, SuiClient } from "@mysten/sui/client"
+
 import { suiClient } from "@/lib/sui-client"
 
 export async function POST(request: NextRequest) {

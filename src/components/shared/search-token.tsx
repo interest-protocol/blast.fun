@@ -11,9 +11,8 @@ import {
     CommandList,
 } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
-import { nexaClient } from "@/lib/nexa";
 import { formatNumberWithSuffix } from "@/utils/format";
-import TokenAvatar from "../tokens/token-avatar";
+import TokenAvatar from "@/components/tokens/token-avatar";
 
 interface SearchResult {
     type: "coin";
@@ -60,8 +59,88 @@ export function SearchToken({ mode = "tab" }: SearchTokenProps) {
 
         try {
             setLoading(true);
-            const results = await nexaClient.searchTokens(searchQuery);
-            setSearchResults(results || []);
+            setSearchResults([]);
+
+            const newlyCreatedParams = new URLSearchParams({
+                protocol: "blast-fun-bonding-curve",
+                isGraduated: "false",
+                orderBy: "published_at",
+                orderDirection: "desc",
+                limit: "50",
+            });
+            const nearGraduationParams = new URLSearchParams({
+                protocol: "blast-fun-bonding-curve",
+                isGraduated: "false",
+                orderBy: "bonding_curve_progress",
+                orderDirection: "desc",
+                bondingCurveProgressMin: "30",
+                limit: "50",
+            });
+            const graduatedParams = new URLSearchParams({
+                protocol: "blast-fun-bonding-curve",
+                isGraduated: "true",
+                limit: "50",
+            });
+
+            const [resNew, resNear, resGraduated] = await Promise.all([
+                fetch(`/api/coin/list?${newlyCreatedParams.toString()}`),
+                fetch(`/api/coin/list?${nearGraduationParams.toString()}`),
+                fetch(`/api/coin/list?${graduatedParams.toString()}`),
+            ]);
+
+            const list = (res: Response): Promise<unknown[]> => {
+                if (!res.ok) return Promise.resolve([]);
+                return res.json().then((j: { coins?: unknown[] }) => j.coins ?? []);
+            };
+
+            const [newly, near, graduated] = await Promise.all([
+                list(resNew),
+                list(resNear),
+                list(resGraduated),
+            ]);
+
+            const seen = new Set<string>();
+            const merged: typeof newly = [];
+            for (const c of [...newly, ...near, ...graduated]) {
+                const coin = c as { coinType: string };
+                if (coin.coinType && !seen.has(coin.coinType)) {
+                    seen.add(coin.coinType);
+                    merged.push(c);
+                }
+            }
+
+            const lower = searchQuery.toLowerCase();
+            const filtered = merged.filter((c: unknown) => {
+                const coin = c as { name?: string; symbol?: string; coinType?: string };
+                return (
+                    coin.name?.toLowerCase().includes(lower) ||
+                    coin.symbol?.toLowerCase().includes(lower) ||
+                    coin.coinType?.toLowerCase().includes(lower)
+                );
+            });
+
+            const results: SearchResult[] = filtered.map((c: unknown) => {
+                const coin = c as {
+                    coinType: string;
+                    name: string;
+                    symbol: string;
+                    iconUrl?: string;
+                    marketCap?: number;
+                    volume24h?: number;
+                };
+                return {
+                    type: "coin" as const,
+                    coinType: coin.coinType,
+                    name: coin.name,
+                    symbol: coin.symbol,
+                    icon: coin.iconUrl,
+                    mc: coin.marketCap,
+                    coinMetadata: { iconUrl: coin.iconUrl, icon_url: coin.iconUrl },
+                    sellVolumeStats1d:
+                        coin.volume24h != null ? { volumeUsd: coin.volume24h } : undefined,
+                };
+            });
+            setSearchResults(results);
         } catch (error) {
             console.error("Search error:", error);
             setSearchResults([]);

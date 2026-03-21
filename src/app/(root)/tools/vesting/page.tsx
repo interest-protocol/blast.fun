@@ -9,3 +9,5 @@ export const metadata = constructMetadata({
 })
 
 const VestingPage: FC = () => <Vesting />;
+
+export default VestingPage;

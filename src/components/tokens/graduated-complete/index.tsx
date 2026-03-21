@@ -1,20 +1,40 @@
 "use client";
 
 import { memo, useCallback, useState, useMemo } from "react";
-
-import FlashBuyInput from "../flash-buy-input";
-import { sortTokens } from "@/utils/token-sorting";
-import { useBondedTokens } from "@/hooks/use-tokens";
-import { useTradeBump } from "@/hooks/use-trade-bump";
-
+import { useQuery } from "@tanstack/react-query";
+import { TokenCard } from "../token-card";
 import TokenListLayout from "../token-list-layout";
+import TokenCardSkeleton from "../token-card.skeleton";
+import { Logo } from "@/components/ui/logo";
 import TokenListFilters from "../token-list-filters";
-import { GraduatedCompleteProps } from "./graduated-complete.types";
-import type { TokenListSettings, TokenFilters, NexaToken } from "@/types/token";
-import { ErrorState } from "../_components/error-state";
-import { LoadingState } from "../_components/loading-state";
-import { EmptyState } from "../_components/empty-state";
-import TokenCard from "../token-card";
+import FlashBuyInput from "../flash-buy-input";
+
+import { useTradeBump } from "@/hooks/use-trade-bump";
+import { useCreatorsForList } from "@/hooks/use-creators-for-list";
+import type { TokenListSettings } from "@/types/token";
+import type { NoodlesCoinList } from "@/lib/noodles/client";
+import { sortTokens } from "@/utils/token-sorting";
+
+import type { GraduatedCompleteProps } from "./graduated-complete.types";
+
+async function fetchGraduatedCoins(
+    filters?: TokenListSettings["filters"],
+): Promise<NoodlesCoinList[]> {
+    const params = new URLSearchParams({
+        protocol: "blast-fun-bonding-curve",
+        isGraduated: "true",
+    });
+
+    if (filters?.hasWebsite) params.set("hasWebsite", "true");
+    if (filters?.hasTwitter) params.set("hasX", "true");
+    if (filters?.hasTelegram) params.set("hasTelegram", "true");
+
+    const res = await fetch(`/api/coin/list?${params.toString()}`);
+    if (!res.ok) throw new Error("Failed to fetch graduated coins");
+
+    const json = await res.json();
+    return json.coins ?? [];
+}
 
 export const GraduatedComplete = memo(function GraduatedComplete({
     pollInterval = 30000,
@@ -25,92 +45,82 @@ export const GraduatedComplete = memo(function GraduatedComplete({
             tabType: "bonded",
         },
     });
-
     const { bumpOrder, isAnimating } = useTradeBump();
 
-    const handleSettingsChange = useCallback((newSettings: TokenListSettings) => {
-        setSettings(newSettings);
-    }, []);
-
-    const filterParams = useMemo<TokenFilters>(() => ({
-        ...settings.filters,
-        tabType: "bonded",
-    }), [settings.filters]);
-
-    const optimizedPollInterval = useMemo(() =>
-        Math.max(pollInterval, 10000),
-        [pollInterval]);
-
-    const { data, isLoading, error } = useBondedTokens(filterParams, {
-        refetchInterval: optimizedPollInterval,
+    const { data, isLoading, error } = useQuery({
+        queryKey: ["coins", "graduated", settings.filters],
+        queryFn: () => fetchGraduatedCoins(settings.filters),
+        refetchInterval: pollInterval,
+        staleTime: 1000,
+        gcTime: 5000,
     });
 
-    const bumpSet = useMemo(() => new Set(bumpOrder), [bumpOrder]);
-
-    const animatingTokens = useMemo(() => {
-        const set = new Set<string>();
-        bumpOrder.forEach(coinType => {
-            if (isAnimating(coinType)) {
-                set.add(coinType);
-            }
-        });
-        return set;
-    }, [bumpOrder, isAnimating]);
-
     const filteredAndSortedTokens = useMemo(() => {
-        if (!data?.length) return [];
+        if (!data || data.length === 0) return [];
 
-        const bumped: NexaToken[] = [];
-        const nonBumped: NexaToken[] = [];
-
-        for (const token of data) {
-            if (settings.filters.hasWebsite && (!token.website || token.website === "")) {
-                continue;
-            }
-            if (settings.filters.hasTwitter && (!token.twitter || token.twitter === "")) {
-                continue;
-            }
-            if (settings.filters.hasTelegram && (!token.telegram || token.telegram === "")) {
-                continue;
-            }
-
-            if (bumpSet.has(token.coinType)) {
-                bumped.push(token);
-            } else {
-                nonBumped.push(token);
-            }
-        }
-
-        bumped.sort((a, b) => {
+        const sorted = [...data].sort((a, b) => {
             const aIndex = bumpOrder.indexOf(a.coinType);
             const bIndex = bumpOrder.indexOf(b.coinType);
-            return aIndex - bIndex;
+
+            if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+            if (aIndex !== -1) return -1;
+            if (bIndex !== -1) return 1;
+            return 0;
         });
 
+        const bumped = sorted.filter((t) => bumpOrder.includes(t.coinType));
+        const nonBumped = sorted.filter((t) => !bumpOrder.includes(t.coinType));
         const sortedNonBumped = sortTokens(nonBumped, settings.sortBy);
 
         return [...bumped, ...sortedNonBumped];
-    }, [data, settings.filters, settings.sortBy, bumpOrder, bumpSet]);
+    }, [data, settings.sortBy, bumpOrder]);
+
+    const creatorsMap = useCreatorsForList(filteredAndSortedTokens);
 
     const renderContent = useCallback(() => {
-        if (error) return <ErrorState message=" ERROR::LOADING::GRADUATED" />;
+        if (error) {
+            return (
+                <div className="p-8 text-center">
+                    <Logo className="w-8 h-8 mx-auto text-destructive mb-2" />
+                    <p className="font-mono text-xs uppercase text-destructive">
+                        ERROR::LOADING::GRADUATED
+                    </p>
+                </div>
+            );
+        }
 
+        if (isLoading) {
+            return [...Array(8)].map((_, i) => <TokenCardSkeleton key={i} />);
+        }
 
-        if (isLoading) return <LoadingState />;
+        if (filteredAndSortedTokens.length === 0) {
+            return (
+                <div className="p-8 text-center">
+                    <Logo className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
+                    <p className="font-mono text-xs uppercase text-muted-foreground">
+                        NO::TOKENS::FOUND
+                    </p>
+                </div>
+            );
+        }
 
-
-        if (filteredAndSortedTokens.length === 0) return <EmptyState message="NO::GRADUATED::TOKENS" />;
-
-
-        return filteredAndSortedTokens.map((pool) => (
-            <TokenCard
-                key={pool.coinType}
-                pool={pool}
-                hasRecentTrade={animatingTokens.has(pool.coinType)}
-                column="graduated"
-            />
-        ));
-    }, [filteredAndSortedTokens, isLoading, error, animatingTokens]);
+        return filteredAndSortedTokens.map((coin) => {
+            const creator = creatorsMap[coin.coinType];
+            const pool = {
+                ...coin,
+                dev: creator?.address ?? (coin as { dev?: string }).dev,
+                creatorData: creator,
+            };
+            return (
+                <TokenCard
+                    key={coin.coinType}
+                    pool={pool}
+                    hasRecentTrade={isAnimating(coin.coinType)}
+                    column="graduated"
+                />
+            );
+        });
+    }, [filteredAndSortedTokens, creatorsMap, isLoading, error, isAnimating]);
 
     return (
         <TokenListLayout
@@ -121,7 +131,7 @@ export const GraduatedComplete = memo(function GraduatedComplete({
                     <FlashBuyInput column="graduated" />
                     <TokenListFilters
                         columnId="graduated"
-                        onSettingsChange={handleSettingsChange}
+                        onSettingsChange={setSettings}
                         defaultSort="marketCap"
                         defaultTab="bonded"
                     />

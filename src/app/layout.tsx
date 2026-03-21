@@ -10,7 +10,6 @@ import ReactScan from "@/components/utils/react-scan"
 import TailwindIndicator from "@/components/utils/tailwind-indicator"
 import { TwitterAuthProvider } from "@/context/twitter.context"
 import { geistMono, geistSans, hegartySans } from "@/fonts"
-import { ApolloProvider } from "@/providers/apollo-provider"
 import SuiProvider from "@/providers/sui-provider"
 import { ThemeProvider } from "@/providers/theme-provider"
 import { cn } from "@/utils"
@@ -64,25 +63,23 @@ export default function RootLayout({
 					<TooltipProvider>
 						<SessionProvider>
 							<TwitterAuthProvider>
-								<ApolloProvider>
-									<SuiProvider>
-										{children}
-										<TermsPrivacyDialog />
-										<TailwindIndicator />
-										<Toaster
-											position="bottom-center"
-											reverseOrder={true}
-											toastOptions={{
-												style: {
-													backgroundColor: "var(--card)",
-													color: "var(--foreground)",
-													padding: "12px 12px",
-													border: "1px solid var(--border)",
-												},
-											}}
-										/>
-									</SuiProvider>
-								</ApolloProvider>
+								<SuiProvider>
+									{children}
+									<TermsPrivacyDialog />
+									<TailwindIndicator />
+									<Toaster
+										position="bottom-center"
+										reverseOrder={true}
+										toastOptions={{
+											style: {
+												backgroundColor: "var(--card)",
+												color: "var(--foreground)",
+												padding: "12px 12px",
+												border: "1px solid var(--border)",
+											},
+										}}
+									/>
+								</SuiProvider>
 							</TwitterAuthProvider>
 						</SessionProvider>
 					</TooltipProvider>

@@ -1,148 +1,158 @@
 "use server"
 
-import { apolloClient } from "@/lib/apollo-client"
-import { CONFIG_KEYS } from "@interest-protocol/memez-fun-sdk"
 import { redisGet, redisSetEx, CACHE_PREFIX, CACHE_TTL } from "@/lib/redis/client"
 import { fetchCreatorData } from "@/lib/fetch-creator-data"
-import { nexaServerClient } from "@/lib/nexa-server"
-import { GET_POOL_BY_COIN_TYPE } from "@/graphql/pools"
+import {
+	fetchNoodlesCoinDetail,
+	fetchNoodlesMarketData,
+	fetchNoodlesCoinLiquidity,
+	fetchNoodlesCoinList,
+} from "@/lib/noodles/client"
+import { BASE_DOMAIN } from "@/constants"
 import type { Token } from "@/types/token"
 
 export async function fetchTokenByCoinType(coinType: string): Promise<Token | null> {
+	const decodedCoinType = decodeURIComponent(coinType)
+	return buildTokenFromNoodles(decodedCoinType)
+}
+
+async function buildTokenFromNoodles(coinType: string): Promise<Token | null> {
+	const [detailRes, marketData, poolId, coinListRes] = await Promise.all([
+		fetchNoodlesCoinDetail(coinType),
+		fetchNoodlesMarketData(coinType),
+		fetchNoodlesCoinLiquidity(coinType),
+		fetchNoodlesCoinList({
+			filters: { coinIds: [coinType] },
+			pagination: { limit: 1 },
+		}),
+	])
+	if (!detailRes?.data?.coin) return null
+
+	const coin = detailRes.data.coin
+	const social = detailRes.data.social_media ?? {}
+	const coinListItem = coinListRes?.data?.[0]
+
+	const priceNum =
+		detailRes.data.price_change?.price != null
+			? parseFloat(detailRes.data.price_change.price)
+			: (marketData?.price ?? 0)
+	const marketCap = coin.market_cap != null ? parseFloat(coin.market_cap) : (marketData?.marketCap ?? 0)
+	const liquidity = coin.liquidity != null ? parseFloat(coin.liquidity) : (marketData?.liquidity ?? 0)
+	const holdersCount = coin.holders ?? marketData?.holdersCount ?? 0
+	const volume24h = marketData?.volume24h ?? 0
+	const decimals = coin.decimals ?? 9
+	const supply = coin.total_supply != null ? parseFloat(coin.total_supply) : 0
+	const circulating = coin.circulating_supply != null ? parseFloat(coin.circulating_supply) : 0
+	const bondingProgress = coinListItem?.bondingCurveProgress ?? 0
+	const resolvedPoolId = coinListItem?.bondingCurvePoolId ?? poolId ?? ""
+
+	let additionalMarketData: Record<string, unknown> | null = null
 	try {
-		const decodedCoinType = decodeURIComponent(coinType)
-		const { data } = await apolloClient.query({
-			query: GET_POOL_BY_COIN_TYPE,
-			variables: { type: decodedCoinType },
-			context: {
-				headers: {
-					"config-key": CONFIG_KEYS.mainnet.XPUMP
-				}
-			},
-			fetchPolicy: "network-only"
-		})
-
-		if (!data?.coinPool) {
-			return null
+		const mdRes = await fetch(
+			`${BASE_DOMAIN}/api/coin/${encodeURIComponent(coinType)}/market-data`,
+			{ headers: { Accept: "application/json" }, next: { revalidate: 10 } }
+		)
+		if (mdRes.ok) {
+			additionalMarketData = (await mdRes.json()) as Record<string, unknown>
 		}
-
-		const pool = data.coinPool
-		
-		// @dev: fetch market data from Nexa to get metadata and market info
-		let marketData: any = null
-		let metadata: any = pool.metadata || {}
-		
-		try {
-			marketData = await nexaServerClient.getMarketData(pool.coinType)
-			if ((marketData as any).coinMetadata) {
-				metadata = (marketData as any).coinMetadata
-			}
-		} catch (error) {
-			console.error("Failed to fetch market data from Nexa:", error)
-		}
-		
-		// @dev: find most liquid pool for migrated tokens
-		let mostLiquidPoolId = (marketData as any)?.mostLiquidPoolId
-		if (pool.migrated && (marketData as any)?.pools && Array.isArray((marketData as any).pools)) {
-			const pools = (marketData as any).pools
-			const mostLiquid = pools.reduce((max: any, p: any) => 
-				(p.liqUsd > (max?.liqUsd || 0)) ? p : max, null)
-			if (mostLiquid?.pool) {
-				mostLiquidPoolId = mostLiquid.pool
-			}
-		}
-		
-		// @dev: construct token object with data from gql + nexa
-		const processedPool: Token = {
-			id: pool.poolId,
-			coinType: pool.coinType,
-			treasuryCap: pool.treasuryCap || "",
-			metadata: {
-				name: metadata.name || "",
-				symbol: metadata.symbol || "",
-				description: metadata.description || "",
-				icon_url: metadata.icon_url || metadata.iconUrl || "",
-				decimals: metadata.decimals || 9,
-				supply: metadata.supply || 0,
-				Website: pool.metadata?.Website,
-				X: pool.metadata?.X,
-				Telegram: pool.metadata?.Telegram,
-				Discord: pool.metadata?.Discord
-			},
-			creator: {
-				address: pool.creatorAddress || "",
-				launchCount: 0,
-				trustedFollowers: "0",
-				followers: "0"
-			},
-			market: {
-				marketCap: (marketData as any)?.marketCap || 0,
-				holdersCount: (marketData as any)?.holdersCount || 0,
-				volume24h: (marketData as any)?.coin24hTradeVolumeUsd || 0,
-				liquidity: (marketData as any)?.totalLiquidityUsd || 0,
-				price: (marketData as any)?.coinPrice || 0,
-				coinPrice: (marketData as any)?.coinPrice || 0,
-				bondingProgress: pool.bondingCurve || 0,
-				circulating: (marketData as any)?.coinSupply,
-				price5MinsAgo: (marketData as any)?.price5MinsAgo,
-				price1HrAgo: (marketData as any)?.price1HrAgo,
-				price4HrAgo: (marketData as any)?.price4HrAgo,
-				price1DayAgo: (marketData as any)?.price1DayAgo
-			},
-			pool: {
-				poolId: pool.poolId,
-				coinType: pool.coinType,
-				bondingCurve: pool.bondingCurve,
-				coinBalance: pool.coinBalance,
-				virtualLiquidity: pool.virtualLiquidity,
-				targetQuoteLiquidity: pool.targetQuoteLiquidity,
-				quoteBalance: pool.quoteBalance,
-				migrated: pool.migrated,
-				curve: pool.curve,
-				coinIpxTreasuryCap: pool.coinIpxTreasuryCap,
-				canMigrate: pool.canMigrate,
-				canonical: pool.canonical,
-				migrationWitness: pool.migrationWitness,
-				isProtected: !!pool.publicKey,
-				publicKey: pool.publicKey,
-				burnTax: pool.burnTax,
-				mostLiquidPoolId: mostLiquidPoolId
-			},
-			createdAt: pool.createdAt || Date.now(),
-			lastTradeAt: pool.lastTradeAt || new Date().toISOString(),
-			nsfw: pool.nsfw
-		}
-
-		// @dev: fetch creator data if we have a creator address
-		if (pool.creatorAddress) {
-			const creatorCacheKey = `${CACHE_PREFIX.CREATOR_DATA}${pool.creatorAddress}`
-			const cachedCreatorData = await redisGet(creatorCacheKey)
-			
-			if (cachedCreatorData) {
-				try {
-					processedPool.creator = JSON.parse(cachedCreatorData)
-				} catch (error) {
-					console.error(`Failed to parse cached creator data for ${pool.creatorAddress}:`, error)
-				}
-			} else {
-				try {
-					const creatorData = await fetchCreatorData({
-						creatorAddressOrHandle: pool.creatorAddress,
-						poolId: pool.poolId
-					})
-					if (creatorData) {
-						processedPool.creator = creatorData
-						await redisSetEx(creatorCacheKey, CACHE_TTL.CREATOR_DATA, JSON.stringify(creatorData))
-					}
-				} catch (error) {
-					console.error("Failed to fetch creator data:", error)
-				}
-			}
-		}
-
-		return processedPool
-	} catch (error) {
-		console.error("Failed to fetch token data:", error)
-		return null
+	} catch {
+		// @dev: continue without additional market data
 	}
+
+	const md = additionalMarketData as {
+		price5MinsAgo?: number
+		price1HrAgo?: number
+		price4HrAgo?: number
+		price1DayAgo?: number
+	} | null
+
+	const market = {
+		marketCap,
+		holdersCount,
+		volume24h,
+		liquidity,
+		price: priceNum,
+		coinPrice: priceNum,
+		bondingProgress,
+		circulating,
+		price5MinsAgo: md?.price5MinsAgo ?? marketData?.price5MinsAgo,
+		price1HrAgo: md?.price1HrAgo ?? marketData?.price1HrAgo,
+		price4HrAgo: md?.price4HrAgo ?? marketData?.price4HrAgo,
+		price1DayAgo: md?.price1DayAgo ?? marketData?.price1DayAgo,
+	}
+
+	const isProtected = coinListItem?.isAntiSniper ?? false
+
+	const token: Token = {
+		id: resolvedPoolId,
+		coinType,
+		treasuryCap: "",
+		poolId: resolvedPoolId,
+		isProtected,
+		metadata: {
+			name: coin.name || "",
+			symbol: coin.symbol || "",
+			description: coin.description || "",
+			icon_url: coin.logo || "",
+			decimals,
+			supply,
+			Website: social?.website,
+			X: social?.x,
+			Discord: social?.discord,
+		},
+		creator: {
+			address: coin.creator || coinListItem?.dev || "",
+			launchCount: 0,
+			trustedFollowers: "0",
+			followers: "0",
+		},
+		market,
+		pool: {
+			poolId: resolvedPoolId,
+			coinType,
+			bondingCurve: bondingProgress,
+			coinBalance: "0",
+			virtualLiquidity: "0",
+			targetQuoteLiquidity: "0",
+			quoteBalance: "0",
+			migrated: coinListItem?.graduatedTime != null,
+			curve: "",
+			coinIpxTreasuryCap: "",
+			canMigrate: false,
+			canonical: false,
+			migrationWitness: null,
+		},
+		createdAt: coin.published_at ? new Date(coin.published_at).getTime() : Date.now(),
+		lastTradeAt: new Date().toISOString(),
+		nsfw: false,
+	}
+
+	const creatorAddress = token.creator.address
+	if (creatorAddress) {
+		const creatorCacheKey = `${CACHE_PREFIX.CREATOR_DATA}${creatorAddress}`
+		const cachedCreatorData = await redisGet(creatorCacheKey)
+
+		if (cachedCreatorData) {
+			try {
+				token.creator = JSON.parse(cachedCreatorData)
+			} catch {
+				// @dev: continue with default creator data
+			}
+		} else {
+			try {
+				const creatorData = await fetchCreatorData({
+					creatorAddressOrHandle: creatorAddress,
+					poolId: resolvedPoolId,
+				})
+				if (creatorData) {
+					token.creator = creatorData
+					await redisSetEx(creatorCacheKey, CACHE_TTL.CREATOR_DATA, JSON.stringify(creatorData))
+				}
+			} catch {
+				// @dev: continue with default creator data
+			}
+		}
+	}
+
+	return token
 }

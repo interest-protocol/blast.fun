@@ -12,7 +12,6 @@ import {
 } from "./_components/leaderboard-utils"
 import { useSuiNSNames } from "@/hooks/use-suins"
 import LeaderboardError from "./_components/leaderboard-error"
-import LeaderboardEmpty from "./_components/leaderboard-empty"
 import LeaderboardTable from "./_components/leaderboard-table"
 import LeaderboardControls from "./_components/leaderboard-controls"
 import LeaderboardSkeleton from "./_components/leaderboard-skeleton"
@@ -142,9 +141,7 @@ const LeaderboardContent: FC = () => {
           <LeaderboardSkeleton />
         ) : error ? (
           <LeaderboardError />
-        ) : data.length === 0 ? (
-          <LeaderboardEmpty />
-        ) : (
+        ) :  (
           <LeaderboardTable
             data={data}
             suinsNames={suinsNames}

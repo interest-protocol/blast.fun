@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { ChartCandlestick, DollarSign, Activity, Home, Users, Lock } from "lucide-react"
 import { cn } from "@/utils"
 import { TradeTerminal } from "./trade-terminal"
-import { NexaChart } from "@/components/shared/nexa-chart"
+import { Chart } from "@/components/shared/chart"
 import { TradesTab } from "./tabs/trades-tab"
 import { VestingTab } from "./tabs/vesting-tab"
 import { HoldersTab } from "./tabs/holders-tab"
@@ -64,7 +64,7 @@ export default function MobileTokenView({
 
 			<div className="flex-1 overflow-hidden">
 				{activeTab === "chart" && (
-					<NexaChart coinType={pool.coinType} className="w-full h-full" />
+					<Chart coinType={pool.coinType} className="w-full h-full" />
 				)}
 
 				{activeTab === "trade" && (

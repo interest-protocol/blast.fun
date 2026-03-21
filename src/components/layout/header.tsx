@@ -5,7 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 
 import { Logo } from "../ui/logo"
-import { UserDropdown } from "../user/user-dropdown"
+import UserDropdown from "../user/user-dropdown"
 import { navigationItems } from "@/constants/navigation"
 import { cn } from "@/utils"
 import { useMounted } from "@/hooks/use-mounted"

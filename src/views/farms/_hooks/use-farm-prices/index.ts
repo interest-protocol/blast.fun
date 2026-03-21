@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react"
-import { nexaClient } from "@/lib/nexa"
+import type { TokenMarketData } from "@/types/token"
+
+async function fetchMarketData(coinType: string): Promise<TokenMarketData | null> {
+	const res = await fetch(`/api/coin/${encodeURIComponent(coinType)}/market-data`)
+	if (!res.ok) return null
+	const data = await res.json()
+	return data as TokenMarketData
+}
 
 export const useFarmPrices = (stakeCoinType: string, rewardCoinType: string) => {
 	const [stakeTokenPrice, setStakeTokenPrice] = useState(0)
@@ -11,7 +18,7 @@ export const useFarmPrices = (stakeCoinType: string, rewardCoinType: string) => 
 
 		setIsLoading(true)
 
-		Promise.all([nexaClient.getMarketData(stakeCoinType), nexaClient.getMarketData(rewardCoinType)])
+		Promise.all([fetchMarketData(stakeCoinType), fetchMarketData(rewardCoinType)])
 			.then(([stakeData, rewardData]) => {
 				if (stakeData?.coinPrice) setStakeTokenPrice(stakeData.coinPrice)
 				if (rewardData?.coinPrice) setRewardTokenPrice(rewardData.coinPrice)

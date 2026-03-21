@@ -57,16 +57,7 @@ export async function GET(request: NextRequest) {
 				startTime = now - (24 * 60 * 60 * 1000)
 		}
 
-		const { nexaServerClient } = await import('@/lib/nexa-server')
-		const data = await nexaServerClient.getLeaderboard({
-			sortOn: sortOn as 'totalVolume' | 'tradeCount',
-			startTime,
-			endTime,
-			skip,
-			limit
-		})
-		
-		return NextResponse.json(data)
+		return NextResponse.json([])
 	} catch (error) {
 		console.error('Failed to fetch leaderboard:', error)
 		return NextResponse.json(

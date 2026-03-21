@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { coinMetadataApi } from "@/lib/coin-metadata-api"
+import { fetchNoodlesCoinDetail } from "@/lib/noodles/client"
 
 export async function GET(
 	_request: Request,
@@ -12,65 +12,41 @@ export async function GET(
 	}
 
 	try {
-		// @dev: Fetch from Interest Protocol REST API directly (no Redis caching)
-		let iconUrl: string | undefined
+		const detail = await fetchNoodlesCoinDetail(decodeURIComponent(coin_type))
+		const iconUrl = detail?.data?.coin?.logo
 
-		try {
-			const metadata = await coinMetadataApi.getCoinMetadata(
-				decodeURIComponent(coin_type)
-			)
-
-			if (metadata?.iconUrl) {
-				iconUrl = metadata.iconUrl
-			}
-		} catch (error) {
-			console.error("Failed to fetch coin metadata from Interest Protocol:", error)
-		}
-
-		// @dev: Return 404 if no icon URL found
 		if (!iconUrl) {
 			const response = new Response(null, { status: 404 })
-			response.headers.set('Cache-Control', 'public, max-age=60, s-maxage=60')
-			response.headers.set('CDN-Cache-Control', 'public, max-age=60')
-			response.headers.set('Vercel-CDN-Cache-Control', 'public, max-age=60')
+			response.headers.set("Cache-Control", "public, max-age=60, s-maxage=60")
+			response.headers.set("CDN-Cache-Control", "public, max-age=60")
+			response.headers.set("Vercel-CDN-Cache-Control", "public, max-age=60")
 			return response
 		}
 
-		// @dev: Check if it's a base64 image
-		if (iconUrl.startsWith('data:image/')) {
-			// @dev: Extract the base64 data and content type
-			const [header, base64Data] = iconUrl.split(',')
+		if (iconUrl.startsWith("data:image/")) {
+			const [header, base64Data] = iconUrl.split(",")
 			const mimeMatch = header.match(/data:([^;]+)/)
-			const mimeType = mimeMatch ? mimeMatch[1] : 'image/png'
-			
-			// @dev: Convert base64 to buffer
-			const buffer = Buffer.from(base64Data, 'base64')
-			
-			const response = new Response(buffer, {
+			const mimeType = mimeMatch ? mimeMatch[1] : "image/png"
+			const buffer = Buffer.from(base64Data, "base64")
+
+			return new Response(buffer, {
 				status: 200,
 				headers: {
-					'Content-Type': mimeType,
-					'Cache-Control': 'public, max-age=1800, s-maxage=1800', // 30 min cache
-					'CDN-Cache-Control': 'public, max-age=1800',
-					'Vercel-CDN-Cache-Control': 'public, max-age=1800'
+					"Content-Type": mimeType,
+					"Cache-Control": "public, max-age=1800, s-maxage=1800",
+					"CDN-Cache-Control": "public, max-age=1800",
+					"Vercel-CDN-Cache-Control": "public, max-age=1800"
 				}
 			})
-			
-			return response
-		} else {
-			// @dev: For regular URLs, redirect to the actual image
-			const response = NextResponse.redirect(iconUrl, { status: 302 })
-			
-			// @dev: Set cache headers for 30 minutes as requested
-			response.headers.set('Cache-Control', 'public, max-age=1800, s-maxage=1800')
-			response.headers.set('CDN-Cache-Control', 'public, max-age=1800')
-			response.headers.set('Vercel-CDN-Cache-Control', 'public, max-age=1800')
-
-			return response
 		}
 
+		const response = NextResponse.redirect(iconUrl, { status: 302 })
+		response.headers.set("Cache-Control", "public, max-age=1800, s-maxage=1800")
+		response.headers.set("CDN-Cache-Control", "public, max-age=1800")
+		response.headers.set("Vercel-CDN-Cache-Control", "public, max-age=1800")
+		return response
 	} catch (error) {
-		console.error("Error fetching icon URL from Redis:", error)
+		console.error("Error fetching coin image:", error)
 		return NextResponse.json({ error: "Internal server error" }, { status: 500 })
 	}
 }
