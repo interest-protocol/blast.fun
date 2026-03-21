@@ -1,11 +1,11 @@
-import { FC } from "react";
+"use client";
 
 import { NewlyCreated } from "@/components/tokens/newly-created";
 import { NearGraduation } from "@/components/tokens/near-graduation";
 import { GraduatedComplete } from "@/components/tokens/graduated-complete";
 import { MobileTokenList } from "@/components/tokens/mobile-token-list";
 
-const DiscoveryPage: FC = () => {
+export default function DiscoveryPage() {
     return (
         <>
             <div className="block lg:hidden">
@@ -19,6 +19,4 @@ const DiscoveryPage: FC = () => {
             </div>
         </>
     );
-};
-
-export default DiscoveryPage;
+}
