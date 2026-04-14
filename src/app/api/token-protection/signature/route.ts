@@ -1,132 +1,135 @@
-import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
-import { MIST_PER_SUI, normalizeSuiAddress, toHex } from "@mysten/sui/utils"
-import { bcs } from "@mysten/sui/bcs"
-import { getServerKeypair } from "@/lib/server-keypair"
-import { getNextNonceFromPool } from "@/lib/memez/get-nonce"
-import { auth } from "@/auth"
-import { pumpSdk } from "@/lib/memez/sdk"
-import { fetchCoinBalance } from "@/lib/fetch-portfolio"
-import { TOTAL_POOL_SUPPLY } from "@/constants"
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { MIST_PER_SUI, normalizeSuiAddress, toHex } from "@mysten/sui/utils";
+import { bcs } from "@mysten/sui/bcs";
+import { getServerKeypair } from "@/lib/server-keypair";
+import { getNextNonceFromPool } from "@/lib/memez/get-nonce";
+import { auth } from "@/auth";
+import { pumpSdk } from "@/lib/memez/sdk";
+import { fetchCoinBalance } from "@/lib/fetch-portfolio";
+import { TOTAL_POOL_SUPPLY } from "@/constants";
 
 // simple in-memory cache to avoid hitting Prisma on every request
-const settingsCache = new Map<
-	string,
-	{ settings: any; updatedAt: number }
->()
-const SETTINGS_TTL_MS = 60_000
+const settingsCache = new Map<string, { settings: any; updatedAt: number }>();
+const SETTINGS_TTL_MS = 60_000;
 
 async function getTokenProtectionSettingsCached(poolId: string) {
-	const cached = settingsCache.get(poolId)
-	const now = Date.now()
+	const cached = settingsCache.get(poolId);
+	const now = Date.now();
 	if (cached && now - cached.updatedAt < SETTINGS_TTL_MS) {
 		return cached.settings as {
-			sniperProtection?: boolean
-			requireTwitter?: boolean
-			revealTraderIdentity?: boolean
-			minFollowerCount?: string | null
-			maxHoldingPercent?: string | null
-		}
+			sniperProtection?: boolean;
+			requireTwitter?: boolean;
+			revealTraderIdentity?: boolean;
+			minFollowerCount?: string | null;
+			maxHoldingPercent?: string | null;
+		};
 	}
 
 	try {
 		const poolSettings = await prisma.tokenProtectionSettings.findUnique({
-			where: { poolId }
-		})
+			where: { poolId },
+		});
 		const settings = (poolSettings?.settings || null) as {
-			sniperProtection?: boolean
-			requireTwitter?: boolean
-			revealTraderIdentity?: boolean
-			minFollowerCount?: string | null
-			maxHoldingPercent?: string | null
-		} | null
+			sniperProtection?: boolean;
+			requireTwitter?: boolean;
+			revealTraderIdentity?: boolean;
+			minFollowerCount?: string | null;
+			maxHoldingPercent?: string | null;
+		} | null;
 
 		if (settings) {
-			settingsCache.set(poolId, { settings, updatedAt: now })
+			settingsCache.set(poolId, { settings, updatedAt: now });
 		}
 
-		return settings
+		return settings;
 	} catch (error) {
 		// If the database is out of connections, fail fast with a clear message
-		if (
-			error instanceof Error &&
-			error.message.includes("Too many database connections opened")
-		) {
-			console.error("Token protection settings DB overloaded:", error.message)
-			throw new Error("DB_CONNECTIONS_EXHAUSTED")
+		if (error instanceof Error && error.message.includes("Too many database connections opened")) {
+			console.error("Token protection settings DB overloaded:", error.message);
+			throw new Error("DB_CONNECTIONS_EXHAUSTED");
 		}
 
-		console.error("Error loading token protection settings:", error)
-		return null
+		console.error("Error loading token protection settings:", error);
+		return null;
 	}
 }
 
 export async function POST(request: NextRequest) {
 	try {
-		const body = await request.json()
-		const { poolId, amount, walletAddress, coinType, decimals } = body
+		const body = await request.json();
+		const { poolId, amount, walletAddress, coinType, decimals } = body;
 
 		// Get authenticated user from session
-		const session = await auth()
-		const twitterId = session?.user?.twitterId || null
-		const twitterUsername = session?.user?.username || null
+		const session = await auth();
+		const twitterId = session?.user?.twitterId || null;
+		const twitterUsername = session?.user?.username || null;
 
 		console.log(session?.user);
 
 		if (!poolId || !amount || !walletAddress || !coinType) {
-			return NextResponse.json({ message: "Missing required fields" }, { status: 400 })
+			return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
 		}
 
-		const settings = await getTokenProtectionSettingsCached(poolId)
+		const settings = await getTokenProtectionSettingsCached(poolId);
 		if (!settings) {
-			return NextResponse.json({ message: "Token not protected" }, { status: 404 })
+			return NextResponse.json({ message: "Token not protected" }, { status: 404 });
 		}
 
 		// check if sniper protection is enabled
 		if (!settings.sniperProtection) {
-			return NextResponse.json({ message: "Token does not have sniper protection enabled" }, { status: 404 })
+			return NextResponse.json({ message: "Token does not have sniper protection enabled" }, { status: 404 });
 		}
 
 		// check if Twitter is required but user is not authenticated
 		if (settings.requireTwitter && !session?.user) {
-			return NextResponse.json({
-				message: "X authentication is required for this token. Please log in with X to continue.",
-				requiresTwitter: true
-			}, { status: 401 })
+			return NextResponse.json(
+				{
+					message: "X authentication is required for this token. Please log in with X to continue.",
+					requiresTwitter: true,
+				},
+				{ status: 401 }
+			);
 		}
 
 		// check if Twitter is required but session doesn't have Twitter ID
 		if (settings.requireTwitter && !twitterId) {
-			return NextResponse.json({
-				message: "X authentication session is invalid. Please log in again.",
-				requiresTwitter: true
-			}, { status: 403 })
+			return NextResponse.json(
+				{
+					message: "X authentication session is invalid. Please log in again.",
+					requiresTwitter: true,
+				},
+				{ status: 403 }
+			);
 		}
 
 		// Check minimum follower count requirement if set
 		if (settings.minFollowerCount && Number(settings.minFollowerCount) > 0 && twitterUsername) {
 			try {
-				const fxTwitterResponse = await fetch(`https://api.fxtwitter.com/${twitterUsername}`)
+				const fxTwitterResponse = await fetch(`https://api.fxtwitter.com/${twitterUsername}`);
 
 				if (fxTwitterResponse.ok) {
-					const fxTwitterData = await fxTwitterResponse.json()
-					const followerCount = fxTwitterData?.user?.followers || 0
-					const requiredFollowers = Number(settings.minFollowerCount)
+					const fxTwitterData = await fxTwitterResponse.json();
+					const followerCount = fxTwitterData?.user?.followers || 0;
+					const requiredFollowers = Number(settings.minFollowerCount);
 
 					if (followerCount < requiredFollowers) {
-						return NextResponse.json({
-							message: `Your X account needs at least ${requiredFollowers} followers to buy this token. You currently have ${followerCount} followers.`,
-							error: "INSUFFICIENT_FOLLOWERS",
-							currentFollowers: followerCount,
-							requiredFollowers: requiredFollowers
-						}, { status: 406 })
+						return NextResponse.json(
+							{
+								message: `Your X account needs at least ${requiredFollowers} followers to buy this token. You currently have ${followerCount} followers.`,
+								error: "INSUFFICIENT_FOLLOWERS",
+								currentFollowers: followerCount,
+								requiredFollowers: requiredFollowers,
+							},
+							{ status: 406 }
+						);
 					}
 				} else {
-					console.error(`Failed to fetch follower count for @${twitterUsername}`)
+					console.error(`Failed to fetch follower count for @${twitterUsername}`);
 					// Don't block the purchase if we can't verify followers
 				}
 			} catch (error) {
-				console.error(`Error checking follower count for @${twitterUsername}:`, error)
+				console.error(`Error checking follower count for @${twitterUsername}:`, error);
 				// Don't block the purchase if we can't verify followers
 			}
 		}
@@ -137,45 +140,50 @@ export async function POST(request: NextRequest) {
 			const existingRelation = await prisma.twitterAccountUserBuyRelation.findFirst({
 				where: {
 					twitterUserId: twitterId,
-					poolId: poolId
-				}
-			})
+					poolId: poolId,
+				},
+			});
 
 			if (existingRelation && existingRelation.address !== walletAddress) {
-				return NextResponse.json({
-					message: `This X account is already bound to a different wallet address for this pool. You must use wallet ${existingRelation.address.slice(0, 6)}...${existingRelation.address.slice(-4)} to buy this token.`,
-					error: "TWITTER_ACCOUNT_BOUND_TO_DIFFERENT_ADDRESS"
-				}, { status: 409 })
+				return NextResponse.json(
+					{
+						message: `This X account is already bound to a different wallet address for this pool. You must use wallet ${existingRelation.address.slice(0, 6)}...${existingRelation.address.slice(-4)} to buy this token.`,
+						error: "TWITTER_ACCOUNT_BOUND_TO_DIFFERENT_ADDRESS",
+					},
+					{ status: 409 }
+				);
 			}
 
 			// If no existing relation, create one to bind this Twitter account to this address for this pool
 			if (!existingRelation) {
-				const amountInMist = BigInt(Math.floor(parseFloat(amount) * Number(MIST_PER_SUI)))
+				const amountInMist = BigInt(Math.floor(parseFloat(amount) * Number(MIST_PER_SUI)));
 				await prisma.twitterAccountUserBuyRelation.create({
 					data: {
 						twitterUserId: twitterId,
 						twitterUsername: twitterUsername || "",
 						poolId: poolId,
 						address: walletAddress,
-						purchases: [{
-							timestamp: new Date().toISOString(),
-							amount: amountInMist.toString()
-						}]
-					}
-				})
+						purchases: [
+							{
+								timestamp: new Date().toISOString(),
+								amount: amountInMist.toString(),
+							},
+						],
+					},
+				});
 			} else {
 				// Update existing relation with new purchase
-				const amountInMist = BigInt(Math.floor(parseFloat(amount) * Number(MIST_PER_SUI)))
-				const purchases = existingRelation.purchases as Array<{ timestamp: string; amount: string }>
+				const amountInMist = BigInt(Math.floor(parseFloat(amount) * Number(MIST_PER_SUI)));
+				const purchases = existingRelation.purchases as Array<{ timestamp: string; amount: string }>;
 				purchases.push({
 					timestamp: new Date().toISOString(),
-					amount: amountInMist.toString()
-				})
+					amount: amountInMist.toString(),
+				});
 
 				await prisma.twitterAccountUserBuyRelation.update({
 					where: { id: existingRelation.id },
-					data: { purchases }
-				})
+					data: { purchases },
+				});
 			}
 		}
 
@@ -183,100 +191,96 @@ export async function POST(request: NextRequest) {
 		if (settings.maxHoldingPercent && Number(settings.maxHoldingPercent) > 0) {
 			try {
 				// Get user's current balance for this token
-				const currentBalance = await fetchCoinBalance(walletAddress, coinType)
-				const currentBalanceBigInt = BigInt(currentBalance)
+				const currentBalance = await fetchCoinBalance(walletAddress, coinType);
+				const currentBalanceBigInt = BigInt(currentBalance);
 
 				// Convert SUI amount to MIST for quote
-				const amountInMist = BigInt(Math.floor(parseFloat(amount) * Number(MIST_PER_SUI)))
+				const amountInMist = BigInt(Math.floor(parseFloat(amount) * Number(MIST_PER_SUI)));
 
 				// Get quote to see how many tokens they would receive
 				const quote = await pumpSdk.quotePump({
 					pool: poolId,
 					amount: amountInMist,
-				})
+				});
 
 				// Calculate percentages using the provided decimals with fallback
-				const tokenDecimals = decimals || 9
-				const totalSupplyHuman = Number(TOTAL_POOL_SUPPLY) / Math.pow(10, tokenDecimals)
-				const currentBalanceHuman = Number(currentBalanceBigInt) / Math.pow(10, tokenDecimals)
-				const quoteAmountOutHuman = Number(quote.memeAmountOut) / Math.pow(10, tokenDecimals)
-				const totalBalanceAfterHuman = currentBalanceHuman + quoteAmountOutHuman
+				const tokenDecimals = decimals || 9;
+				const totalSupplyHuman = Number(TOTAL_POOL_SUPPLY) / Math.pow(10, tokenDecimals);
+				const currentBalanceHuman = Number(currentBalanceBigInt) / Math.pow(10, tokenDecimals);
+				const quoteAmountOutHuman = Number(quote.memeAmountOut) / Math.pow(10, tokenDecimals);
+				const totalBalanceAfterHuman = currentBalanceHuman + quoteAmountOutHuman;
 
-				const percentageAfter = (totalBalanceAfterHuman / totalSupplyHuman) * 100
-				const maxAllowedPercent = Number(settings.maxHoldingPercent) + 0.01
+				const percentageAfter = (totalBalanceAfterHuman / totalSupplyHuman) * 100;
+				const maxAllowedPercent = Number(settings.maxHoldingPercent) + 0.01;
 
 				if (percentageAfter >= maxAllowedPercent) {
-					return NextResponse.json({
-						message: `This purchase would give you ${percentageAfter.toFixed(2)}% of total supply, exceeding the ${settings.maxHoldingPercent}% limit`,
-						error: "MAX_HOLDING_EXCEEDED",
-						currentPercentage: ((currentBalanceHuman / totalSupplyHuman) * 100).toFixed(2),
-						maxAllowed: settings.maxHoldingPercent,
-						wouldBe: percentageAfter.toFixed(2)
-					}, { status: 416 })
+					return NextResponse.json(
+						{
+							message: `This purchase would give you ${percentageAfter.toFixed(2)}% of total supply, exceeding the ${settings.maxHoldingPercent}% limit`,
+							error: "MAX_HOLDING_EXCEEDED",
+							currentPercentage: ((currentBalanceHuman / totalSupplyHuman) * 100).toFixed(2),
+							maxAllowed: settings.maxHoldingPercent,
+							wouldBe: percentageAfter.toFixed(2),
+						},
+						{ status: 416 }
+					);
 				}
 			} catch (error) {
-				console.error("Failed to check max holding percentage:", error)
+				console.error("Failed to check max holding percentage:", error);
 				// Don't block the purchase if we can't verify the holding percentage
 				// This ensures the user experience isn't broken by temporary API issues
 			}
 		}
 
 		try {
-			const keyPair = getServerKeypair()
-			const MessageStruct = bcs.struct('Message', {
+			const keyPair = getServerKeypair();
+			const MessageStruct = bcs.struct("Message", {
 				pool: bcs.Address,
 				amount: bcs.U64,
 				nonce: bcs.U64,
 				sender: bcs.Address,
-			})
+			});
 
 			const currentNonce = await getNextNonceFromPool({
 				poolId,
-				address: walletAddress
-			})
+				address: walletAddress,
+			});
 
-			const amountInMist = BigInt(Math.floor(parseFloat(amount) * Number(MIST_PER_SUI)))
+			const amountInMist = BigInt(Math.floor(parseFloat(amount) * Number(MIST_PER_SUI)));
 			const message = MessageStruct.serialize({
 				pool: normalizeSuiAddress(poolId),
 				amount: amountInMist,
 				nonce: currentNonce,
 				sender: normalizeSuiAddress(walletAddress),
-			}).toBytes()
+			}).toBytes();
 
-			const signature = await keyPair.sign(message)
+			const signature = await keyPair.sign(message);
 
 			return NextResponse.json({
 				signature: toHex(signature),
 				publicKey: toHex(keyPair.getPublicKey().toRawBytes()),
-			})
+			});
 		} catch (signError) {
-			console.error("Signature generation error:", signError)
-			return NextResponse.json(
-				{ message: "Failed to generate signature" },
-				{ status: 500 }
-			)
+			console.error("Signature generation error:", signError);
+			return NextResponse.json({ message: "Failed to generate signature" }, { status: 500 });
 		}
 	} catch (error) {
-		if (
-			error instanceof Error &&
-			error.message === "DB_CONNECTIONS_EXHAUSTED"
-		) {
+		if (error instanceof Error && error.message === "DB_CONNECTIONS_EXHAUSTED") {
 			return NextResponse.json(
 				{
-					message:
-						"Our protection service is temporarily overloaded. Please try again in a few seconds.",
+					message: "Our protection service is temporarily overloaded. Please try again in a few seconds.",
 				},
-				{ status: 503 },
-			)
+				{ status: 503 }
+			);
 		}
 
-		console.error("Protected token signature error:", error)
+		console.error("Protected token signature error:", error);
 		return NextResponse.json(
 			{
 				message: "Internal server error",
-				detail: error instanceof Error ? error.message : String(error) 
+				detail: error instanceof Error ? error.message : String(error),
 			},
 			{ status: 500 }
-		)
+		);
 	}
 }

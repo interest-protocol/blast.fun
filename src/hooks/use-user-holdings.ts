@@ -1,20 +1,20 @@
-import { useQuery } from "@tanstack/react-query"
-import type { Token } from "@/types/token"
+import { useQuery } from "@tanstack/react-query";
+import type { Token } from "@/types/token";
 
 export interface UserHoldings {
-	bought: number
-	sold: number
-	holding: number
-	pnl: number
-	pnlPercentage: number
-	entryPrice: number
-	currentPrice: number
-	balance: number
-	hasPosition: boolean
+	bought: number;
+	sold: number;
+	holding: number;
+	pnl: number;
+	pnlPercentage: number;
+	entryPrice: number;
+	currentPrice: number;
+	balance: number;
+	hasPosition: boolean;
 }
 
 export function useUserHoldings(pool: Token, address?: string | null) {
-	const coinType = pool.coinType
+	const coinType = pool.coinType;
 
 	return useQuery({
 		queryKey: ["userHoldings", address, coinType],
@@ -29,15 +29,13 @@ export function useUserHoldings(pool: Token, address?: string | null) {
 					entryPrice: 0,
 					currentPrice: 0,
 					balance: 0,
-					hasPosition: false
-				}
+					hasPosition: false,
+				};
 			}
 
 			try {
-				const res = await fetch(
-					`/api/market-stats/${encodeURIComponent(address)}/${encodeURIComponent(coinType)}`
-				)
-				const stats = res.ok ? await res.json() : null
+				const res = await fetch(`/api/market-stats/${encodeURIComponent(address)}/${encodeURIComponent(coinType)}`);
+				const stats = res.ok ? await res.json() : null;
 
 				if (!stats || (stats.buyTrades === 0 && stats.sellTrades === 0)) {
 					return {
@@ -49,22 +47,22 @@ export function useUserHoldings(pool: Token, address?: string | null) {
 						entryPrice: 0,
 						currentPrice: 0,
 						balance: 0,
-						hasPosition: false
-					}
+						hasPosition: false,
+					};
 				}
 
-				const decimals = pool.metadata?.decimals || 9
-				const currentPrice = pool.market?.price || 0
+				const decimals = pool.metadata?.decimals || 9;
+				const currentPrice = pool.market?.price || 0;
 
 				// calculate holdings
-				const tokensBought = stats.amountBought / Math.pow(10, decimals)
-				const tokensHeld = Math.abs(stats.currentHolding) / Math.pow(10, decimals)
-				const holdingValue = tokensHeld * currentPrice
+				const tokensBought = stats.amountBought / Math.pow(10, decimals);
+				const tokensHeld = Math.abs(stats.currentHolding) / Math.pow(10, decimals);
+				const holdingValue = tokensHeld * currentPrice;
 
 				// calculate pnl
-				const totalPnl = stats.usdSold + holdingValue - stats.usdBought
-				const pnlPercentage = stats.usdBought > 0 ? (totalPnl / stats.usdBought) * 100 : 0
-				const entryPrice = tokensBought > 0 ? stats.usdBought / tokensBought : 0
+				const totalPnl = stats.usdSold + holdingValue - stats.usdBought;
+				const pnlPercentage = stats.usdBought > 0 ? (totalPnl / stats.usdBought) * 100 : 0;
+				const entryPrice = tokensBought > 0 ? stats.usdBought / tokensBought : 0;
 
 				return {
 					bought: stats.usdBought || 0,
@@ -75,10 +73,10 @@ export function useUserHoldings(pool: Token, address?: string | null) {
 					entryPrice: entryPrice || 0,
 					currentPrice: currentPrice || 0,
 					balance: stats.currentHolding || 0,
-					hasPosition: true
-				}
+					hasPosition: true,
+				};
 			} catch (err) {
-				console.error("Error fetching user holdings:", err)
+				console.error("Error fetching user holdings:", err);
 				return {
 					bought: 0,
 					sold: 0,
@@ -88,11 +86,11 @@ export function useUserHoldings(pool: Token, address?: string | null) {
 					entryPrice: 0,
 					currentPrice: 0,
 					balance: 0,
-					hasPosition: false
-				}
+					hasPosition: false,
+				};
 			}
 		},
 		refetchInterval: 15000,
-		enabled: !!coinType && !!address
-	})
+		enabled: !!coinType && !!address,
+	});
 }

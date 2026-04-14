@@ -6,10 +6,10 @@ import { constructMetadata } from "@/lib/metadata";
 export const metadata = constructMetadata({
 	title: "Farms",
 	description: "Stake eligible memecoins to earn rewards.",
-})
+});
 
 const FarmsPage: FC = () => {
-	return <FarmsContent />
-}
+	return <FarmsContent />;
+};
 
 export default FarmsPage;

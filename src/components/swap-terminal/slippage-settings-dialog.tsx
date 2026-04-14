@@ -7,41 +7,36 @@ import type { SlippageSettingsDialogProps } from "./swap-terminal.types";
 import { SLIPPAGE_OPTIONS } from "./swap-terminal.data";
 
 export const SlippageSettingsDialog: FC<SlippageSettingsDialogProps> = ({
-    open,
-    onOpenChange,
-    slippage,
-    onSlippageChange,
+	open,
+	onOpenChange,
+	slippage,
+	onSlippageChange,
 }) => {
-    const handleSlippageSelect = (value: number) => {
-        onSlippageChange(value);
-        onOpenChange(false);
-    };
+	const handleSlippageSelect = (value: number) => {
+		onSlippageChange(value);
+		onOpenChange(false);
+	};
 
-    return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-sm">
-                <div className="space-y-4">
-                    <h3 className="font-mono text-sm uppercase tracking-wider">
-                        Slippage Tolerance
-                    </h3>
-                    <div className="flex gap-2">
-                        {SLIPPAGE_OPTIONS.map((value) => (
-                            <Button
-                                key={value}
-                                variant={
-                                    slippage === value ? "default" : "outline"
-                                }
-                                size="sm"
-                                onClick={() => handleSlippageSelect(value)}
-                                className="flex-1"
-                            >
-                                {value}%
-                            </Button>
-                        ))}
-                    </div>
-                </div>
-            </DialogContent>
-        </Dialog>
-    );
+	return (
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className="max-w-sm">
+				<div className="space-y-4">
+					<h3 className="font-mono text-sm uppercase tracking-wider">Slippage Tolerance</h3>
+					<div className="flex gap-2">
+						{SLIPPAGE_OPTIONS.map((value) => (
+							<Button
+								key={value}
+								variant={slippage === value ? "default" : "outline"}
+								size="sm"
+								onClick={() => handleSlippageSelect(value)}
+								className="flex-1"
+							>
+								{value}%
+							</Button>
+						))}
+					</div>
+				</div>
+			</DialogContent>
+		</Dialog>
+	);
 };
-

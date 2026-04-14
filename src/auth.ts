@@ -1,14 +1,14 @@
-import NextAuth from "next-auth"
-import { PrismaAdapter } from "@auth/prisma-adapter"
-import type { Adapter } from "next-auth/adapters"
-import authConfig from "@/auth.config"
-import { prisma } from "@/lib/prisma"
+import NextAuth from "next-auth";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import type { Adapter } from "next-auth/adapters";
+import authConfig from "@/auth.config";
+import { prisma } from "@/lib/prisma";
 
 const adapter = {
 	...PrismaAdapter(prisma),
 
 	async createUser(data: any) {
-		const { id, name, username, image, twitterId } = data
+		const { id, name, username, image, twitterId } = data;
 
 		const user = await prisma.user.create({
 			data: {
@@ -18,24 +18,24 @@ const adapter = {
 				profileImageUrl: image,
 				twitterId,
 			},
-		})
+		});
 
 		return {
 			...user,
 			email: `${user.username}@twitter.local`,
 			emailVerified: null,
-		}
+		};
 	},
 
 	async getUser(id: string) {
-		const user = await prisma.user.findUnique({ where: { id } })
-		if (!user) return null
+		const user = await prisma.user.findUnique({ where: { id } });
+		if (!user) return null;
 
 		return {
 			...user,
 			email: `${user.username}@twitter.local`,
 			emailVerified: null,
-		}
+		};
 	},
 
 	async getUserByAccount({ providerAccountId, provider }: { providerAccountId: string; provider: string }) {
@@ -47,19 +47,19 @@ const adapter = {
 				},
 			},
 			include: { user: true },
-		})
+		});
 
-		if (!account?.user) return null
+		if (!account?.user) return null;
 
 		return {
 			...account.user,
 			email: `${account.user.username}@twitter.local`,
 			emailVerified: null,
-		}
+		};
 	},
 
 	async updateUser(data: any) {
-		const { image, ...rest } = data
+		const { image, ...rest } = data;
 
 		const updated = await prisma.user.update({
 			where: { id: rest.id },
@@ -67,19 +67,19 @@ const adapter = {
 				...rest,
 				profileImageUrl: image || undefined,
 			},
-		})
+		});
 
 		return {
 			...updated,
 			email: `${updated.username}@twitter.local`,
 			emailVerified: null,
-		}
+		};
 	},
 
 	async getUserByEmail() {
-		return null
+		return null;
 	},
-}
+};
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
 	...authConfig,
@@ -99,7 +99,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 				httpOnly: true,
 				sameSite: "lax",
 				path: "/",
-				secure: process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
+				secure: process.env.NEXT_PUBLIC_VERCEL_ENV === "production",
 			},
 		},
 	},
@@ -115,7 +115,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 						name: true,
 						profileImageUrl: true,
 					},
-				})
+				});
 
 				if (dbUser) {
 					session.user = {
@@ -125,11 +125,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 						username: dbUser.username,
 						name: dbUser.name,
 						image: dbUser.profileImageUrl,
-					}
+					};
 				}
 			}
 
-			return session
+			return session;
 		},
 	},
-})
+});

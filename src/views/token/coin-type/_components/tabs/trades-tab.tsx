@@ -1,136 +1,129 @@
-"use client"
+"use client";
 
-import { useState, useRef, useMemo, useCallback, useEffect } from "react"
-import { Token } from "@/types/token"
-import { Activity, ExternalLink, User } from "lucide-react"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
-import { formatAddress } from "@mysten/sui/utils"
-import { getTxExplorerUrl } from "@/utils/transaction"
-import { Logo } from "@/components/ui/logo"
-import tokenPriceSocket from "@/lib/websocket/token-price"
-import type { MarketTrade } from "@/lib/memez/fetch-market-trades"
-import { cn } from "@/utils"
-import { formatAmountWithSuffix, formatNumberWithSuffix } from "@/utils/format"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { DEFAULT_TOKEN_DECIMALS } from "@/constants"
-import type { TradeData, CoinTrade, UnifiedTrade } from "@/types/trade"
-import { playSound } from "@/lib/audio"
-import { RelativeAge } from "@/components/shared/relative-age"
-import { useSuiNSNames } from "@/hooks/use-suins"
-import { useTwitterRelations } from "../../_context/twitter-relations.context"
+import { useState, useRef, useMemo, useCallback, useEffect } from "react";
+import { Token } from "@/types/token";
+import { Activity, ExternalLink, User } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { formatAddress } from "@mysten/sui/utils";
+import { getTxExplorerUrl } from "@/utils/transaction";
+import { Logo } from "@/components/ui/logo";
+import tokenPriceSocket from "@/lib/websocket/token-price";
+import type { MarketTrade } from "@/lib/memez/fetch-market-trades";
+import { cn } from "@/utils";
+import { formatAmountWithSuffix, formatNumberWithSuffix } from "@/utils/format";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DEFAULT_TOKEN_DECIMALS } from "@/constants";
+import type { TradeData, CoinTrade, UnifiedTrade } from "@/types/trade";
+import { playSound } from "@/lib/audio";
+import { RelativeAge } from "@/components/shared/relative-age";
+import { useSuiNSNames } from "@/hooks/use-suins";
+import { useTwitterRelations } from "../../_context/twitter-relations.context";
 
 interface TradesTabProps {
-	pool: Token
-	className?: string
+	pool: Token;
+	className?: string;
 }
 
-
 function useRealtimeTrades(pool: Token, poolSymbol?: string) {
-	const [realtimeTrades, setRealtimeTrades] = useState<UnifiedTrade[]>([])
-	const coinType = pool.coinType
+	const [realtimeTrades, setRealtimeTrades] = useState<UnifiedTrade[]>([]);
+	const coinType = pool.coinType;
 
-	const handleNewTrade = useCallback((trade: TradeData) => {
-		const isBuy = trade.coinOut === coinType
-		const coinInDecimals = trade.coinInMetadata?.decimals || DEFAULT_TOKEN_DECIMALS
-		const coinOutDecimals = trade.coinOutMetadata?.decimals || DEFAULT_TOKEN_DECIMALS
-		const amountIn = Number(trade.amountIn) / Math.pow(10, coinInDecimals)
-		const amountOut = Number(trade.amountOut) / Math.pow(10, coinOutDecimals)
+	const handleNewTrade = useCallback(
+		(trade: TradeData) => {
+			const isBuy = trade.coinOut === coinType;
+			const coinInDecimals = trade.coinInMetadata?.decimals || DEFAULT_TOKEN_DECIMALS;
+			const coinOutDecimals = trade.coinOutMetadata?.decimals || DEFAULT_TOKEN_DECIMALS;
+			const amountIn = Number(trade.amountIn) / Math.pow(10, coinInDecimals);
+			const amountOut = Number(trade.amountOut) / Math.pow(10, coinOutDecimals);
 
-		const newTrade: UnifiedTrade = {
-			id: trade._id || trade.digest,
-			timestamp: trade.timestampMs,
-			type: isBuy ? "BUY" : "SELL",
-			amountIn,
-			amountOut,
-			coinIn: trade.coinIn,
-			coinOut: trade.coinOut,
-			coinInSymbol: trade.coinInMetadata?.symbol || (isBuy ? "SUI" : poolSymbol),
-			coinOutSymbol: trade.coinOutMetadata?.symbol || (isBuy ? poolSymbol : "SUI"),
-			coinInIconUrl: trade.coinInMetadata?.iconUrl || trade.coinInMetadata?.icon_url,
-			coinOutIconUrl: trade.coinOutMetadata?.iconUrl || trade.coinOutMetadata?.icon_url,
-			price: isBuy ? trade.priceOut : trade.priceIn,
-			value: isBuy ? amountOut * trade.priceOut : amountIn * trade.priceIn,
-			trader: trade.user,
-			digest: trade.digest,
-			isRealtime: true
-		}
+			const newTrade: UnifiedTrade = {
+				id: trade._id || trade.digest,
+				timestamp: trade.timestampMs,
+				type: isBuy ? "BUY" : "SELL",
+				amountIn,
+				amountOut,
+				coinIn: trade.coinIn,
+				coinOut: trade.coinOut,
+				coinInSymbol: trade.coinInMetadata?.symbol || (isBuy ? "SUI" : poolSymbol),
+				coinOutSymbol: trade.coinOutMetadata?.symbol || (isBuy ? poolSymbol : "SUI"),
+				coinInIconUrl: trade.coinInMetadata?.iconUrl || trade.coinInMetadata?.icon_url,
+				coinOutIconUrl: trade.coinOutMetadata?.iconUrl || trade.coinOutMetadata?.icon_url,
+				price: isBuy ? trade.priceOut : trade.priceIn,
+				value: isBuy ? amountOut * trade.priceOut : amountIn * trade.priceIn,
+				trader: trade.user,
+				digest: trade.digest,
+				isRealtime: true,
+			};
 
-		setRealtimeTrades(prev => [newTrade, ...prev].slice(0, 100))
-		playSound('new_trade')
-	}, [coinType, poolSymbol])
+			setRealtimeTrades((prev) => [newTrade, ...prev].slice(0, 100));
+			playSound("new_trade");
+		},
+		[coinType, poolSymbol]
+	);
 
 	useEffect(() => {
-		if (!coinType) return
+		if (!coinType) return;
 
-		tokenPriceSocket.subscribeToCoinTrades(coinType, handleNewTrade)
+		tokenPriceSocket.subscribeToCoinTrades(coinType, handleNewTrade);
 
 		return () => {
-			tokenPriceSocket.unsubscribeFromCoinTrades(coinType)
-		}
-	}, [coinType, handleNewTrade])
+			tokenPriceSocket.unsubscribeFromCoinTrades(coinType);
+		};
+	}, [coinType, handleNewTrade]);
 
-	return { realtimeTrades }
+	return { realtimeTrades };
 }
 
 export function TradesTab({ pool, className }: TradesTabProps) {
-	const TRADES_PER_PAGE = 20
-	const metadata = pool.metadata
+	const TRADES_PER_PAGE = 20;
+	const metadata = pool.metadata;
 
-	const { addressToTwitter } = useTwitterRelations()
+	const { addressToTwitter } = useTwitterRelations();
 
-	const {
-		data,
-		fetchNextPage,
-		hasNextPage,
-		isFetchingNextPage,
-		isLoading,
-		error
-	} = useInfiniteQuery({
+	const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, error } = useInfiniteQuery({
 		queryKey: ["trades", pool.coinType],
 		queryFn: async ({ pageParam }) => {
 			try {
-				const params = new URLSearchParams({ limit: String(TRADES_PER_PAGE) })
-				if (pageParam != null && pageParam !== "") params.set("cursor", String(pageParam))
-				const res = await fetch(
-					`/api/coin/${encodeURIComponent(pool.coinType)}/trades?${params}`
-				)
-				const data = res.ok ? await res.json() : null
-				return { trades: data?.trades ?? [], nextCursor: data?.nextCursor ?? null }
+				const params = new URLSearchParams({ limit: String(TRADES_PER_PAGE) });
+				if (pageParam != null && pageParam !== "") params.set("cursor", String(pageParam));
+				const res = await fetch(`/api/coin/${encodeURIComponent(pool.coinType)}/trades?${params}`);
+				const data = res.ok ? await res.json() : null;
+				return { trades: data?.trades ?? [], nextCursor: data?.nextCursor ?? null };
 			} catch {
-				return { trades: [], nextCursor: null }
+				return { trades: [], nextCursor: null };
 			}
 		},
 		getNextPageParam: (lastPage) => {
-			const next = (lastPage as { nextCursor?: string | number | null })?.nextCursor
-			return next != null ? next : undefined
+			const next = (lastPage as { nextCursor?: string | number | null })?.nextCursor;
+			return next != null ? next : undefined;
 		},
 		enabled: !!pool.coinType,
 		refetchOnWindowFocus: false,
 		refetchOnMount: false,
 		staleTime: Infinity,
-		initialPageParam: undefined as string | number | undefined
-	})
+		initialPageParam: undefined as string | number | undefined,
+	});
 
-	const { realtimeTrades } = useRealtimeTrades(pool, metadata?.symbol)
+	const { realtimeTrades } = useRealtimeTrades(pool, metadata?.symbol);
 
 	const historicalTrades = useMemo(() => {
-		if (!data?.pages) return []
+		if (!data?.pages) return [];
 
 		return data.pages.flatMap((page) => {
-			const items = (page as { trades?: MarketTrade[] })?.trades ?? (Array.isArray(page) ? (page as MarketTrade[]) : [])
+			const items =
+				(page as { trades?: MarketTrade[] })?.trades ?? (Array.isArray(page) ? (page as MarketTrade[]) : []);
 			return items.map((trade) => {
-				const isBuy = trade.type === "BUY"
-				const quoteAmount = parseFloat(trade.quoteAmount || "0")
-				const coinAmount = parseFloat(trade.coinAmount || "0")
-				const price = parseFloat(trade.price || "0")
-				const volumeUsd = parseFloat(trade.volume || "0") || quoteAmount
+				const isBuy = trade.type === "BUY";
+				const quoteAmount = parseFloat(trade.quoteAmount || "0");
+				const coinAmount = parseFloat(trade.coinAmount || "0");
+				const price = parseFloat(trade.price || "0");
+				const volumeUsd = parseFloat(trade.volume || "0") || quoteAmount;
 
 				return {
 					id: trade.digest,
-					timestamp: typeof trade.time === "string"
-						? new Date(trade.time).getTime()
-						: (trade.time as number) ?? 0,
+					timestamp:
+						typeof trade.time === "string" ? new Date(trade.time).getTime() : ((trade.time as number) ?? 0),
 					type: trade.type,
 					amountIn: isBuy ? quoteAmount : coinAmount,
 					amountOut: isBuy ? coinAmount : quoteAmount,
@@ -144,115 +137,115 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 					value: volumeUsd,
 					trader: trade.trader,
 					digest: trade.digest,
-					isRealtime: false
-				} as UnifiedTrade
-			})
-		})
-	}, [data?.pages, metadata?.icon_url, metadata?.symbol, pool.coinType])
+					isRealtime: false,
+				} as UnifiedTrade;
+			});
+		});
+	}, [data?.pages, metadata?.icon_url, metadata?.symbol, pool.coinType]);
 
 	const unifiedTrades = useMemo(() => {
-		const combined = [...realtimeTrades, ...historicalTrades]
+		const combined = [...realtimeTrades, ...historicalTrades];
 
 		// deduplicate by digest
-		const uniqueTrades = Array.from(new Map(combined.filter(t => t.digest).map(t => [t.digest, t])).values())
-		return uniqueTrades.sort((a, b) => b.timestamp - a.timestamp)
-	}, [realtimeTrades, historicalTrades])
+		const uniqueTrades = Array.from(new Map(combined.filter((t) => t.digest).map((t) => [t.digest, t])).values());
+		return uniqueTrades.sort((a, b) => b.timestamp - a.timestamp);
+	}, [realtimeTrades, historicalTrades]);
 
 	const maxVolume = useMemo(() => {
-		return Math.max(...unifiedTrades.slice(0, 50).map(t => t.value), 1)
-	}, [unifiedTrades])
+		return Math.max(...unifiedTrades.slice(0, 50).map((t) => t.value), 1);
+	}, [unifiedTrades]);
 
 	// @dev: Get unique trader addresses for SuiNS resolution
 	const traderAddresses = useMemo(() => {
-		const addresses = new Set<string>()
-		unifiedTrades.forEach(trade => {
+		const addresses = new Set<string>();
+		unifiedTrades.forEach((trade) => {
 			if (trade.trader && !addressToTwitter.has(trade.trader)) {
-				addresses.add(trade.trader)
+				addresses.add(trade.trader);
 			}
-		})
-		return Array.from(addresses)
-	}, [unifiedTrades, addressToTwitter])
+		});
+		return Array.from(addresses);
+	}, [unifiedTrades, addressToTwitter]);
 
 	// @dev: Fetch SuiNS names for all traders
-	const { data: suinsNames } = useSuiNSNames(traderAddresses)
+	const { data: suinsNames } = useSuiNSNames(traderAddresses);
 
-	const scrollRef = useRef<HTMLDivElement>(null)
-	const loadMoreRef = useRef<HTMLDivElement>(null)
+	const scrollRef = useRef<HTMLDivElement>(null);
+	const loadMoreRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
 		const observer = new IntersectionObserver(
 			(entries) => {
 				if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-					fetchNextPage()
+					fetchNextPage();
 				}
 			},
 			{ threshold: 0.1 }
-		)
+		);
 
 		if (loadMoreRef.current) {
-			observer.observe(loadMoreRef.current)
+			observer.observe(loadMoreRef.current);
 		}
 
-		return () => observer.disconnect()
-	}, [hasNextPage, isFetchingNextPage, fetchNextPage])
+		return () => observer.disconnect();
+	}, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
 	const formatPrice = (price: number) => {
-		if (price == null || !Number.isFinite(price) || price < 0) return "$0.00"
-		if (price === 0) return "$0.00"
+		if (price == null || !Number.isFinite(price) || price < 0) return "$0.00";
+		if (price === 0) return "$0.00";
 
-		if (price >= 1) return `$${price.toFixed(2)}`
-		if (price >= 0.01) return `$${price.toFixed(4)}`
+		if (price >= 1) return `$${price.toFixed(2)}`;
+		if (price >= 0.01) return `$${price.toFixed(4)}`;
 
-		const str = price < 1e-6 ? price.toExponential(4) : price.toString()
-		const decimalMatch = str.match(/^0\.(0*)(\d{1,6})/)
-		const expMatch = str.match(/^([\d.]+)e-?(\d+)$/)
+		const str = price < 1e-6 ? price.toExponential(4) : price.toString();
+		const decimalMatch = str.match(/^0\.(0*)(\d{1,6})/);
+		const expMatch = str.match(/^([\d.]+)e-?(\d+)$/);
 
 		if (decimalMatch) {
-			const [, zeros = "", digits = ""] = decimalMatch
+			const [, zeros = "", digits = ""] = decimalMatch;
 			if (zeros.length > 2) {
 				return (
 					<span>
-						$0.0<sub className="text-[8px] sm:text-[10px]">{zeros.length}</sub>{digits.slice(0, 4)}
+						$0.0<sub className="text-[8px] sm:text-[10px]">{zeros.length}</sub>
+						{digits.slice(0, 4)}
 					</span>
-				)
+				);
 			}
-			return `$${price.toFixed(Math.min(6, zeros.length + digits.length + 2))}`
+			return `$${price.toFixed(Math.min(6, zeros.length + digits.length + 2))}`;
 		}
 		if (expMatch) {
-			const exp = parseInt(expMatch[2], 10)
-			const mantissa = parseFloat(expMatch[1])
-			const zeros = Math.max(1, exp - 1)
-			const sig = mantissa >= 1
-				? String(Math.round(mantissa)).slice(0, 4)
-				: (mantissa * 10000).toFixed(0).replace(/^0+/, "").slice(0, 4) || "1"
+			const exp = parseInt(expMatch[2], 10);
+			const mantissa = parseFloat(expMatch[1]);
+			const zeros = Math.max(1, exp - 1);
+			const sig =
+				mantissa >= 1
+					? String(Math.round(mantissa)).slice(0, 4)
+					: (mantissa * 10000).toFixed(0).replace(/^0+/, "").slice(0, 4) || "1";
 			return (
 				<span>
-					$0.0<sub className="text-[8px] sm:text-[10px]">{zeros}</sub>{sig}
+					$0.0<sub className="text-[8px] sm:text-[10px]">{zeros}</sub>
+					{sig}
 				</span>
-			)
+			);
 		}
-		const fixed = price < 1e-8 ? price.toExponential(2) : price.toFixed(8).replace(/\.?0+$/, "")
-		return `$${fixed || "0"}`
-	}
+		const fixed = price < 1e-8 ? price.toExponential(2) : price.toFixed(8).replace(/\.?0+$/, "");
+		return `$${fixed || "0"}`;
+	};
 
 	const formatValue = (value: number) => {
-		if (value === 0) return "-"
-		if (value < 1) return `$${value.toFixed(4)}`
-		if (value < 1000) return `$${value.toFixed(2)}`
-		return `$${formatAmountWithSuffix(value)}`
-	}
+		if (value === 0) return "-";
+		if (value < 1) return `$${value.toFixed(4)}`;
+		if (value < 1000) return `$${value.toFixed(2)}`;
+		return `$${formatAmountWithSuffix(value)}`;
+	};
 
 	if (isLoading) {
 		return (
 			<div className="p-4 space-y-1">
 				{Array.from({ length: 15 }).map((_, i) => (
-					<div
-						key={i}
-						className="h-12 bg-background/30 animate-pulse"
-					/>
+					<div key={i} className="h-12 bg-background/30 animate-pulse" />
 				))}
 			</div>
-		)
+		);
 	}
 
 	if (error) {
@@ -262,7 +255,7 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 				<p className="font-mono text-sm uppercase text-destructive">ERROR::LOADING::TRADES</p>
 				<p className="font-mono text-xs uppercase text-muted-foreground/60 mt-2">CHECK_CONNECTION</p>
 			</div>
-		)
+		);
 	}
 
 	return (
@@ -271,12 +264,8 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 				{unifiedTrades.length === 0 ? (
 					<div className="text-center py-12">
 						<Activity className="w-12 h-12 mx-auto text-foreground/20 mb-4 animate-pulse" />
-						<p className="font-mono text-sm uppercase text-muted-foreground">
-							AWAITING::TRADES
-						</p>
-						<p className="font-mono text-xs uppercase text-muted-foreground/60 mt-2">
-							BE_THE_FIRST_TO_TRADE
-						</p>
+						<p className="font-mono text-sm uppercase text-muted-foreground">AWAITING::TRADES</p>
+						<p className="font-mono text-xs uppercase text-muted-foreground/60 mt-2">BE_THE_FIRST_TO_TRADE</p>
 					</div>
 				) : (
 					<div className="relative">
@@ -286,15 +275,16 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 							<div className="col-span-5 sm:col-span-5 md:col-span-5 lg:col-span-5 xl:col-span-4">Trade</div>
 							<div className="col-span-1 text-right hidden xl:block">Price</div>
 							<div className="col-span-2 text-right">Value</div>
-							<div className="col-span-3 sm:col-span-3 md:col-span-3 lg:col-span-3 xl:col-span-3 text-right">Trader</div>
+							<div className="col-span-3 sm:col-span-3 md:col-span-3 lg:col-span-3 xl:col-span-3 text-right">
+								Trader
+							</div>
 						</div>
 
 						{unifiedTrades.map((trade) => {
-							const isBuy = trade.type === "BUY"
-							const isNewTrade = trade.isRealtime &&
-								(Date.now() - trade.timestamp) < 5000
-							const volumePercentage = Math.min((trade.value / maxVolume) * 100, 100)
-							const isCreator = trade.trader === pool.creator?.address
+							const isBuy = trade.type === "BUY";
+							const isNewTrade = trade.isRealtime && Date.now() - trade.timestamp < 5000;
+							const volumePercentage = Math.min((trade.value / maxVolume) * 100, 100);
+							const isCreator = trade.trader === pool.creator?.address;
 
 							return (
 								<div
@@ -318,19 +308,19 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 										</div>
 
 										<div className="col-span-1">
-											<span className={cn(
-												"font-mono text-[10px] sm:text-xs font-bold uppercase",
-												isBuy ? "text-green-500" : "text-red-500"
-											)}>
+											<span
+												className={cn(
+													"font-mono text-[10px] sm:text-xs font-bold uppercase",
+													isBuy ? "text-green-500" : "text-red-500"
+												)}
+											>
 												<span className="hidden sm:inline">{trade.type}</span>
 												<span className="sm:hidden">{trade.type.slice(0, 1)}</span>
 											</span>
 										</div>
 
 										<div className="col-span-5 sm:col-span-5 md:col-span-5 lg:col-span-5 xl:col-span-4 flex items-center gap-0.5 sm:gap-1 font-mono text-[10px] sm:text-xs overflow-hidden">
-											<span className="text-foreground">
-												{formatNumberWithSuffix(trade.amountIn)}
-											</span>
+											<span className="text-foreground">{formatNumberWithSuffix(trade.amountIn)}</span>
 											{trade.coinInIconUrl && (
 												<Avatar className="w-3 h-3 sm:w-4 sm:h-4">
 													<AvatarImage src={trade.coinInIconUrl} alt={trade.coinInSymbol} />
@@ -340,7 +330,7 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 												</Avatar>
 											)}
 											<span className="text-muted-foreground hidden sm:inline">
-												{trade.coinInSymbol || '???'}
+												{trade.coinInSymbol || "???"}
 											</span>
 											<span className="text-muted-foreground mx-0.5 sm:mx-1">→</span>
 											<span className="text-foreground">
@@ -355,7 +345,7 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 												</Avatar>
 											)}
 											<span className="text-muted-foreground hidden sm:inline">
-												{trade.coinOutSymbol || '???'}
+												{trade.coinOutSymbol || "???"}
 											</span>
 										</div>
 
@@ -376,9 +366,13 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 													className="font-mono text-[10px] sm:text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
 												>
 													<User className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />
-													<span className="text-primary truncate max-w-[80px] sm:max-w-[120px] md:max-w-[150px]">@{addressToTwitter.get(trade.trader)}</span>
+													<span className="text-primary truncate max-w-[80px] sm:max-w-[120px] md:max-w-[150px]">
+														@{addressToTwitter.get(trade.trader)}
+													</span>
 													{isCreator && (
-														<span className="text-destructive font-bold flex-shrink-0">(DEV)</span>
+														<span className="text-destructive font-bold flex-shrink-0">
+															(DEV)
+														</span>
 													)}
 												</a>
 											) : suinsNames?.[trade.trader] ? (
@@ -388,9 +382,13 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 													rel="noopener noreferrer"
 													className="font-mono text-[10px] sm:text-xs text-primary hover:underline transition-colors flex items-center gap-1 min-w-0"
 												>
-													<span className="truncate max-w-[80px] sm:max-w-[120px] md:max-w-[150px]">{suinsNames[trade.trader]}</span>
+													<span className="truncate max-w-[80px] sm:max-w-[120px] md:max-w-[150px]">
+														{suinsNames[trade.trader]}
+													</span>
 													{isCreator && (
-														<span className="text-destructive font-bold flex-shrink-0">(DEV)</span>
+														<span className="text-destructive font-bold flex-shrink-0">
+															(DEV)
+														</span>
 													)}
 												</a>
 											) : (
@@ -400,10 +398,14 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 													rel="noopener noreferrer"
 													className="font-mono text-[10px] sm:text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
 												>
-													<span className="sm:hidden">{formatAddress(trade.trader).slice(0, 4) + '...'}</span>
+													<span className="sm:hidden">
+														{formatAddress(trade.trader).slice(0, 4) + "..."}
+													</span>
 													<span className="hidden sm:inline">{formatAddress(trade.trader)}</span>
 													{isCreator && (
-														<span className="text-destructive font-bold flex-shrink-0">(DEV)</span>
+														<span className="text-destructive font-bold flex-shrink-0">
+															(DEV)
+														</span>
 													)}
 												</a>
 											)}
@@ -418,19 +420,15 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 										</div>
 									</div>
 								</div>
-							)
+							);
 						})}
 
 						{hasNextPage && (
 							<div ref={loadMoreRef} className="py-4 text-center">
 								{isFetchingNextPage ? (
-									<div className="font-mono text-xs text-muted-foreground">
-										LOADING::MORE::TRADES...
-									</div>
+									<div className="font-mono text-xs text-muted-foreground">LOADING::MORE::TRADES...</div>
 								) : (
-									<div className="font-mono text-xs text-muted-foreground">
-										SCROLL::FOR::MORE
-									</div>
+									<div className="font-mono text-xs text-muted-foreground">SCROLL::FOR::MORE</div>
 								)}
 							</div>
 						)}
@@ -438,5 +436,5 @@ export function TradesTab({ pool, className }: TradesTabProps) {
 				)}
 			</div>
 		</ScrollArea>
-	)
+	);
 }

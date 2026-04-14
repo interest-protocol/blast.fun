@@ -1,7 +1,7 @@
-import { Token } from "@/types/token"
+import { Token } from "@/types/token";
 
 export interface QuickBuyProps {
-    pool: Token;
-    className?: string;
-    column?: 'newlyCreated' | 'nearGraduation' | 'graduated';
+	pool: Token;
+	className?: string;
+	column?: "newlyCreated" | "nearGraduation" | "graduated";
 }

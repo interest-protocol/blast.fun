@@ -1,15 +1,15 @@
 export type SuiWallet = {
-	title: string
-	name: string
-	icon: string
+	title: string;
+	name: string;
+	icon: string;
 	link?: {
-		desktop?: string
+		desktop?: string;
 		mobile?: {
-			ios?: string
-			android?: string
-		}
-	}
-}
+			ios?: string;
+			android?: string;
+		};
+	};
+};
 
 export const SUI_WALLETS: readonly SuiWallet[] = [
 	{
@@ -17,12 +17,10 @@ export const SUI_WALLETS: readonly SuiWallet[] = [
 		name: "Slush",
 		icon: "/wallets/wallet_slush.png",
 		link: {
-			desktop:
-				"https://chromewebstore.google.com/detail/sui-wallet/opcgpfmipidbgpenhmajoajpbobppdil",
+			desktop: "https://chromewebstore.google.com/detail/sui-wallet/opcgpfmipidbgpenhmajoajpbobppdil",
 			mobile: {
 				ios: "https://apps.apple.com/app/slush-a-sui-wallet/id6476572140",
-				android:
-					"https://play.google.com/store/apps/details?id=com.mystenlabs.suiwallet",
+				android: "https://play.google.com/store/apps/details?id=com.mystenlabs.suiwallet",
 			},
 		},
 	},
@@ -31,12 +29,10 @@ export const SUI_WALLETS: readonly SuiWallet[] = [
 		name: "OKX Wallet",
 		icon: "/wallets/ic_okx.jpeg",
 		link: {
-			desktop:
-				"https://chromewebstore.google.com/detail/okx-wallet/mcohilncbfahbmgdjkbpemcciiolgcge",
+			desktop: "https://chromewebstore.google.com/detail/okx-wallet/mcohilncbfahbmgdjkbpemcciiolgcge",
 			mobile: {
 				ios: "https://apps.apple.com/app/okx-buy-bitcoin-btc-crypto/id1327268470",
-				android:
-					"https://play.google.com/store/apps/details?id=com.okinc.okex.gp",
+				android: "https://play.google.com/store/apps/details?id=com.okinc.okex.gp",
 			},
 		},
 	},
@@ -45,8 +41,7 @@ export const SUI_WALLETS: readonly SuiWallet[] = [
 		name: "Suiet",
 		icon: "/wallets/ic_suiet.jpeg",
 		link: {
-			desktop:
-				"https://chromewebstore.google.com/detail/suiet-sui-wallet/khpkpbbcccdmmclmpigdgddabeilkdpd",
+			desktop: "https://chromewebstore.google.com/detail/suiet-sui-wallet/khpkpbbcccdmmclmpigdgddabeilkdpd",
 		},
 	},
 	{
@@ -54,12 +49,10 @@ export const SUI_WALLETS: readonly SuiWallet[] = [
 		name: "Gate Wallet",
 		icon: "/wallets/ic_gate.png",
 		link: {
-			desktop:
-				"https://chromewebstore.google.com/detail/gate-wallet/cpmkedoipcpimgecpmgpldfpohjplkpp",
+			desktop: "https://chromewebstore.google.com/detail/gate-wallet/cpmkedoipcpimgecpmgpldfpohjplkpp",
 			mobile: {
 				ios: "https://apps.apple.com/app/gate-io-trade-btc-eth/id1294998195",
-				android:
-					"https://play.google.com/store/apps/details?id=com.gateio.gateio",
+				android: "https://play.google.com/store/apps/details?id=com.gateio.gateio",
 			},
 		},
 	},
@@ -68,12 +61,10 @@ export const SUI_WALLETS: readonly SuiWallet[] = [
 		name: "Bitget Wallet",
 		icon: "/wallets/ic_bitget.svg",
 		link: {
-			desktop:
-				"https://chromewebstore.google.com/detail/bitget-wallet-formerly-bi/jiidiaalihmmhddjgbnbgdfflelocpak",
+			desktop: "https://chromewebstore.google.com/detail/bitget-wallet-formerly-bi/jiidiaalihmmhddjgbnbgdfflelocpak",
 			mobile: {
 				ios: "https://apps.apple.com/app/bitget-trade-bitcoin-crypto/id1442778704",
-				android:
-					"https://play.google.com/store/apps/details?id=com.bitget.exchange",
+				android: "https://play.google.com/store/apps/details?id=com.bitget.exchange",
 			},
 		},
 	},
@@ -82,8 +73,7 @@ export const SUI_WALLETS: readonly SuiWallet[] = [
 		name: "Bybit Wallet",
 		icon: "/wallets/wallet_bybit.png",
 		link: {
-			desktop:
-				"https://chromewebstore.google.com/detail/bybit-wallet/pdliaogehgdbhbnmkklieghmmjkpigpa",
+			desktop: "https://chromewebstore.google.com/detail/bybit-wallet/pdliaogehgdbhbnmkklieghmmjkpigpa",
 			mobile: {
 				ios: "https://apps.apple.com/app/bybit-buy-trade-crypto/id1488296980",
 				android: "https://play.google.com/store/apps/details?id=com.bybit.app",
@@ -100,12 +90,10 @@ export const SUI_WALLETS: readonly SuiWallet[] = [
 		name: "Surf Wallet",
 		icon: "/wallets/ic_surf.png",
 		link: {
-			desktop:
-				"https://chromewebstore.google.com/detail/surf-wallet/emeeapjkbcbpbpgaagfchmcgglmebnen",
+			desktop: "https://chromewebstore.google.com/detail/surf-wallet/emeeapjkbcbpbpgaagfchmcgglmebnen",
 			mobile: {
 				ios: "https://apps.apple.com/app/surf-wallet/id6467386034",
-				android:
-					"https://play.google.com/store/apps/details?id=com.surf.suiwallet",
+				android: "https://play.google.com/store/apps/details?id=com.surf.suiwallet",
 			},
 		},
 	},
@@ -114,8 +102,7 @@ export const SUI_WALLETS: readonly SuiWallet[] = [
 		name: "Martian Sui Wallet",
 		icon: "/wallets/ic_martian.png",
 		link: {
-			desktop:
-				"https://chromewebstore.google.com/detail/martian-aptos-sui-wallet/efbglgofoippbgcjepnhiblaibcnclgk",
+			desktop: "https://chromewebstore.google.com/detail/martian-aptos-sui-wallet/efbglgofoippbgcjepnhiblaibcnclgk",
 		},
 	},
 	{
@@ -123,12 +110,10 @@ export const SUI_WALLETS: readonly SuiWallet[] = [
 		name: "Nightly",
 		icon: "/wallets/wallet_nightly.webp",
 		link: {
-			desktop:
-				"https://chromewebstore.google.com/detail/nightly/fiikommddbeccaoicoejoniammnalkfa?pli=1",
+			desktop: "https://chromewebstore.google.com/detail/nightly/fiikommddbeccaoicoejoniammnalkfa?pli=1",
 			mobile: {
 				ios: "https://apps.apple.com/app/nightly-multichain-wallet/id6444768157",
-				android:
-					"https://play.google.com/store/apps/details?id=com.nightlymobile",
+				android: "https://play.google.com/store/apps/details?id=com.nightlymobile",
 			},
 		},
 	},
@@ -140,8 +125,7 @@ export const SUI_WALLETS: readonly SuiWallet[] = [
 			desktop: "https://www.tokenpocket.pro/",
 			mobile: {
 				ios: "https://apps.apple.com/app/tokenpocket-crypto-bitcoin/id6444625622",
-				android:
-					"https://play.google.com/store/apps/details?id=vip.mytokenpocket",
+				android: "https://play.google.com/store/apps/details?id=vip.mytokenpocket",
 			},
 		},
 	},
@@ -153,8 +137,7 @@ export const SUI_WALLETS: readonly SuiWallet[] = [
 			desktop: "https://www.binance.com/en/web3wallet",
 			mobile: {
 				ios: "https://apps.apple.com/app/binance-buy-bitcoin-crypto/id1436799971",
-				android:
-					"https://play.google.com/store/apps/details?id=com.binance.dev",
+				android: "https://play.google.com/store/apps/details?id=com.binance.dev",
 			},
 		},
 	},
@@ -163,8 +146,7 @@ export const SUI_WALLETS: readonly SuiWallet[] = [
 		name: "Phantom",
 		icon: "/wallets/ic_phantom.png",
 		link: {
-			desktop:
-				"https://chromewebstore.google.com/detail/phantom/bfnaelmomeimhlpmgjnjophhpkkoljpa",
+			desktop: "https://chromewebstore.google.com/detail/phantom/bfnaelmomeimhlpmgjnjophhpkkoljpa",
 			mobile: {
 				ios: "https://apps.apple.com/app/phantom-crypto-wallet/id1598432977",
 				android: "https://play.google.com/store/apps/details?id=app.phantom",
@@ -176,12 +158,10 @@ export const SUI_WALLETS: readonly SuiWallet[] = [
 		name: "Backpack",
 		icon: "/wallets/wallet-backpack.png",
 		link: {
-			desktop:
-				"https://chromewebstore.google.com/detail/backpack/aflkmfhebedbjioipglgcbcmnbpgliof",
+			desktop: "https://chromewebstore.google.com/detail/backpack/aflkmfhebedbjioipglgcbcmnbpgliof",
 			mobile: {
 				ios: "https://apps.apple.com/app/backpack-buy-trade-crypto/id6445964121",
-				android:
-					"https://play.google.com/store/apps/details?id=app.backpack.mobile",
+				android: "https://play.google.com/store/apps/details?id=app.backpack.mobile",
 			},
 		},
 	},
@@ -192,8 +172,7 @@ export const SUI_WALLETS: readonly SuiWallet[] = [
 		link: {
 			mobile: {
 				ios: "https://apps.apple.com/app/xportal-btc-crypto-wallet/id1519405832",
-				android:
-					"https://play.google.com/store/apps/details?id=com.elrond.maiar.wallet",
+				android: "https://play.google.com/store/apps/details?id=com.elrond.maiar.wallet",
 			},
 		},
 	},
@@ -209,4 +188,4 @@ export const SUI_WALLETS: readonly SuiWallet[] = [
 			},
 		},
 	},
-]
+];

@@ -1,28 +1,26 @@
-"use client"
+"use client";
 
-import { usePathname } from "next/navigation"
+import { usePathname } from "next/navigation";
 
 interface CustomNavConfig {
-	pathPattern: RegExp
-	hideMainNav: boolean
+	pathPattern: RegExp;
+	hideMainNav: boolean;
 }
 
 const customNavConfigs: CustomNavConfig[] = [
 	{
-		pathPattern: /^\/token\/[^\/]+$/,  // /token/[poolId]
-		hideMainNav: true
+		pathPattern: /^\/token\/[^\/]+$/, // /token/[poolId]
+		hideMainNav: true,
 	},
-]
+];
 
 export function useCustomNavigation() {
-	const pathname = usePathname()
+	const pathname = usePathname();
 
-	const config = customNavConfigs.find(config =>
-		config.pathPattern.test(pathname)
-	)
+	const config = customNavConfigs.find((config) => config.pathPattern.test(pathname));
 
 	return {
 		hasCustomNav: !!config,
-		hideMainNav: config?.hideMainNav ?? false
-	}
+		hideMainNav: config?.hideMainNav ?? false,
+	};
 }

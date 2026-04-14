@@ -1,32 +1,32 @@
-"use client"
+"use client";
 
-import { useState, useMemo } from "react"
-import { Token } from "@/types/token"
-import { BarChart3, User, ExternalLink } from "lucide-react"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { useQuery } from "@tanstack/react-query"
-import { formatAddress } from "@mysten/sui/utils"
-import { Logo } from "@/components/ui/logo"
-import { cn } from "@/utils"
-import { formatNumberWithSuffix } from "@/utils/format"
-import { useSuiNSNames } from "@/hooks/use-suins"
-import { useTwitterRelations } from "../../_context/twitter-relations.context"
-import type { NoodlesCoinTrader } from "@/lib/noodles/client"
+import { useState, useMemo } from "react";
+import { Token } from "@/types/token";
+import { BarChart3, User, ExternalLink } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useQuery } from "@tanstack/react-query";
+import { formatAddress } from "@mysten/sui/utils";
+import { Logo } from "@/components/ui/logo";
+import { cn } from "@/utils";
+import { formatNumberWithSuffix } from "@/utils/format";
+import { useSuiNSNames } from "@/hooks/use-suins";
+import { useTwitterRelations } from "../../_context/twitter-relations.context";
+import type { NoodlesCoinTrader } from "@/lib/noodles/client";
 
 interface TradersTabProps {
-	pool: Token
-	className?: string
+	pool: Token;
+	className?: string;
 }
 
-type Period = "1d" | "3d" | "7d" | "30d"
-type SortField = "pnl" | "vol_buy" | "vol_sell" | "tx_buy" | "tx_sell"
+type Period = "1d" | "3d" | "7d" | "30d";
+type SortField = "pnl" | "vol_buy" | "vol_sell" | "tx_buy" | "tx_sell";
 
 const PERIODS: { value: Period; label: string }[] = [
 	{ value: "1d", label: "1D" },
 	{ value: "3d", label: "3D" },
 	{ value: "7d", label: "7D" },
 	{ value: "30d", label: "30D" },
-]
+];
 
 const SORT_OPTIONS: { value: SortField; label: string }[] = [
 	{ value: "pnl", label: "PNL" },
@@ -34,13 +34,13 @@ const SORT_OPTIONS: { value: SortField; label: string }[] = [
 	{ value: "vol_sell", label: "Sell Vol" },
 	{ value: "tx_buy", label: "Buys" },
 	{ value: "tx_sell", label: "Sells" },
-]
+];
 
 export function TradersTab({ pool, className }: TradersTabProps) {
-	const [period, setPeriod] = useState<Period>("7d")
-	const [sortField, setSortField] = useState<SortField>("pnl")
+	const [period, setPeriod] = useState<Period>("7d");
+	const [sortField, setSortField] = useState<SortField>("pnl");
 
-	const { addressToTwitter } = useTwitterRelations()
+	const { addressToTwitter } = useTwitterRelations();
 
 	const { data, isLoading, error } = useQuery({
 		queryKey: ["coin-traders", pool.coinType, period, sortField],
@@ -50,27 +50,23 @@ export function TradersTab({ pool, className }: TradersTabProps) {
 				sortField,
 				sortDirection: "desc",
 				limit: "50",
-			})
-			const res = await fetch(
-				`/api/coin/${encodeURIComponent(pool.coinType)}/traders?${params}`
-			)
-			if (!res.ok) return []
-			const json = await res.json()
-			return (json.traders ?? []) as NoodlesCoinTrader[]
+			});
+			const res = await fetch(`/api/coin/${encodeURIComponent(pool.coinType)}/traders?${params}`);
+			if (!res.ok) return [];
+			const json = await res.json();
+			return (json.traders ?? []) as NoodlesCoinTrader[];
 		},
 		enabled: !!pool.coinType,
 		staleTime: 30_000,
-	})
+	});
 
-	const traders = data ?? []
+	const traders = data ?? [];
 
 	const traderAddresses = useMemo(() => {
-		return traders
-			.map((t) => t.address)
-			.filter((addr) => !addressToTwitter.has(addr))
-	}, [traders, addressToTwitter])
+		return traders.map((t) => t.address).filter((addr) => !addressToTwitter.has(addr));
+	}, [traders, addressToTwitter]);
 
-	const { data: suinsNames } = useSuiNSNames(traderAddresses)
+	const { data: suinsNames } = useSuiNSNames(traderAddresses);
 
 	if (isLoading) {
 		return (
@@ -79,7 +75,7 @@ export function TradersTab({ pool, className }: TradersTabProps) {
 					<div key={i} className="h-12 bg-background/30 animate-pulse" />
 				))}
 			</div>
-		)
+		);
 	}
 
 	if (error) {
@@ -88,7 +84,7 @@ export function TradersTab({ pool, className }: TradersTabProps) {
 				<Logo className="w-12 h-12 mx-auto text-foreground/20 mb-4" />
 				<p className="font-mono text-sm uppercase text-destructive">ERROR::LOADING::TRADERS</p>
 			</div>
-		)
+		);
 	}
 
 	return (
@@ -131,7 +127,9 @@ export function TradersTab({ pool, className }: TradersTabProps) {
 						className="sm:hidden bg-transparent border border-border/50 rounded px-1 py-1 font-mono text-[10px] uppercase text-muted-foreground"
 					>
 						{SORT_OPTIONS.map((s) => (
-							<option key={s.value} value={s.value}>{s.label}</option>
+							<option key={s.value} value={s.value}>
+								{s.label}
+							</option>
 						))}
 					</select>
 				</div>
@@ -154,15 +152,12 @@ export function TradersTab({ pool, className }: TradersTabProps) {
 						</div>
 
 						{traders.map((trader, index) => {
-							const isCreator = trader.address === pool.creator?.address
-							const isProfitable = trader.pnl >= 0
-							const totalVol = trader.volBuy + trader.volSell
+							const isCreator = trader.address === pool.creator?.address;
+							const isProfitable = trader.pnl >= 0;
+							const totalVol = trader.volBuy + trader.volSell;
 
 							return (
-								<div
-									key={trader.address}
-									className="group hover:bg-muted/5 transition-all duration-200"
-								>
+								<div key={trader.address} className="group hover:bg-muted/5 transition-all duration-200">
 									<div className="grid grid-cols-12 gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 items-center border-b border-border/30">
 										<div className="col-span-1 font-mono text-[10px] sm:text-xs text-muted-foreground">
 											{index + 1}
@@ -197,12 +192,16 @@ export function TradersTab({ pool, className }: TradersTabProps) {
 													rel="noopener noreferrer"
 													className="font-mono text-[10px] sm:text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
 												>
-													<span className="sm:hidden">{formatAddress(trader.address).slice(0, 4)}...</span>
+													<span className="sm:hidden">
+														{formatAddress(trader.address).slice(0, 4)}...
+													</span>
 													<span className="hidden sm:inline">{formatAddress(trader.address)}</span>
 												</a>
 											)}
 											{isCreator && (
-												<span className="text-destructive font-mono text-[10px] font-bold flex-shrink-0">(DEV)</span>
+												<span className="text-destructive font-mono text-[10px] font-bold flex-shrink-0">
+													(DEV)
+												</span>
 											)}
 											<a
 												href={`https://suivision.xyz/account/${trader.address}`}
@@ -233,10 +232,12 @@ export function TradersTab({ pool, className }: TradersTabProps) {
 										</div>
 
 										<div className="col-span-4 sm:col-span-4 text-right">
-											<div className={cn(
-												"font-mono text-[10px] sm:text-xs font-semibold",
-												isProfitable ? "text-green-500" : "text-destructive"
-											)}>
+											<div
+												className={cn(
+													"font-mono text-[10px] sm:text-xs font-semibold",
+													isProfitable ? "text-green-500" : "text-destructive"
+												)}
+											>
 												{isProfitable ? "+" : ""}${formatNumberWithSuffix(Math.abs(trader.pnl))}
 											</div>
 											<div className="font-mono text-[9px] sm:text-[10px] text-muted-foreground/60">
@@ -245,11 +246,11 @@ export function TradersTab({ pool, className }: TradersTabProps) {
 										</div>
 									</div>
 								</div>
-							)
+							);
 						})}
 					</div>
 				)}
 			</ScrollArea>
 		</div>
-	)
+	);
 }

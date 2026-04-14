@@ -1,7 +1,7 @@
 export interface FarmStakeProps {
-    stakedAmount: number
-    stakedUsd: number
-    tokenSymbol: string
-    stakeTokenPrice: number
-    staked: bigint
+	stakedAmount: number;
+	stakedUsd: number;
+	tokenSymbol: string;
+	stakeTokenPrice: number;
+	staked: bigint;
 }

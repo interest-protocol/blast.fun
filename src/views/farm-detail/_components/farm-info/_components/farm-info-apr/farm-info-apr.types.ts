@@ -1,4 +1,4 @@
-export interface FarmInfoAprProps{
-    apr: number
-    isLoading: boolean
+export interface FarmInfoAprProps {
+	apr: number;
+	isLoading: boolean;
 }

@@ -1,3 +1,3 @@
 export interface PortfolioContentHeaderProps {
-    onOpenRewards: () => void
+	onOpenRewards: () => void;
 }

@@ -1,52 +1,52 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react";
 
 export interface TokenProtectionSettings {
-	sniperProtection?: boolean
-	requireTwitter?: boolean
-	revealTraderIdentity?: boolean
-	maxHoldingPercent?: string | null
-	minFollowerCount?: string | null
+	sniperProtection?: boolean;
+	requireTwitter?: boolean;
+	revealTraderIdentity?: boolean;
+	maxHoldingPercent?: string | null;
+	minFollowerCount?: string | null;
 }
 
 export function useTokenProtection(poolId: string, isProtected?: boolean) {
-	const [settings, setSettings] = useState<TokenProtectionSettings | null>(null)
-	const [isLoading, setIsLoading] = useState(false)
-	const [error, setError] = useState<string | null>(null)
+	const [settings, setSettings] = useState<TokenProtectionSettings | null>(null);
+	const [isLoading, setIsLoading] = useState(false);
+	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
 		if (!poolId || !isProtected) {
-			setSettings(null)
-			return
+			setSettings(null);
+			return;
 		}
 
 		const fetchSettings = async () => {
-			setIsLoading(true)
-			setError(null)
+			setIsLoading(true);
+			setError(null);
 
 			try {
 				const response = await fetch(`/api/token-protection/settings/${poolId}`, {
 					headers: {
-						'cloudflare-cache': '3600',
-						'cache-control': 'no-store'
-					}
-				})
+						"cloudflare-cache": "3600",
+						"cache-control": "no-store",
+					},
+				});
 				if (response.ok) {
-					const data = await response.json()
-					setSettings(data.settings || null)
+					const data = await response.json();
+					setSettings(data.settings || null);
 				} else {
-					setSettings(null)
+					setSettings(null);
 				}
 			} catch (err) {
-				console.error("Failed to fetch token protection settings:", err)
-				setError("Failed to load protection settings")
-				setSettings(null)
+				console.error("Failed to fetch token protection settings:", err);
+				setError("Failed to load protection settings");
+				setSettings(null);
 			} finally {
-				setIsLoading(false)
+				setIsLoading(false);
 			}
-		}
+		};
 
-		fetchSettings()
-	}, [poolId, isProtected])
+		fetchSettings();
+	}, [poolId, isProtected]);
 
-	return { settings, isLoading, error }
+	return { settings, isLoading, error };
 }

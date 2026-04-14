@@ -10,15 +10,15 @@ import type {
 	HoldersResponse,
 	ServiceResponse,
 	WalletCoin,
-} from "@/types/blockvision"
+} from "@/types/blockvision";
 
 class BlockVisionService {
-	private readonly accountBaseUrl = "https://api.blockvision.org/v2/sui/account"
-	private readonly coinBaseUrl = "https://api.blockvision.org/v2/sui/coin"
-	private readonly apiKey = process.env.BLOCKVISION_API_KEY || process.env.SUIVISION_API_KEY || ""
-	private readonly timeout = 30000 // 30 seconds
-	private readonly retryAttempts = 3
-	private readonly retryDelay = 2000 // 2 seconds
+	private readonly accountBaseUrl = "https://api.blockvision.org/v2/sui/account";
+	private readonly coinBaseUrl = "https://api.blockvision.org/v2/sui/coin";
+	private readonly apiKey = process.env.BLOCKVISION_API_KEY || process.env.SUIVISION_API_KEY || "";
+	private readonly timeout = 30000; // 30 seconds
+	private readonly retryAttempts = 3;
+	private readonly retryDelay = 2000; // 2 seconds
 
 	/**
 	 * Get account coins (fungible tokens) for a given SUI address
@@ -26,50 +26,45 @@ class BlockVisionService {
 	 */
 	async getAccountCoins(account: string): Promise<ServiceResponse<WalletCoin[]>> {
 		try {
-			console.log(`💰 Fetching coins for account: ${account}`)
+			console.log(`💰 Fetching coins for account: ${account}`);
 
-			const response = await this.makeRequest<AccountCoinsResponse>(
-				"GET",
-				"/coins",
-				{ account },
-				this.accountBaseUrl
-			)
+			const response = await this.makeRequest<AccountCoinsResponse>("GET", "/coins", { account }, this.accountBaseUrl);
 
 			if (response.code !== 200) {
 				return {
 					success: false,
 					error: `API error: ${response.message}`,
-				}
+				};
 			}
 
-			const result = response.result
-			
+			const result = response.result;
+
 			// Filter out zero balance coins and scam coins
 			const validCoins = result.coins.filter((coin: CoinInfo) => {
 				// Check multiple conditions for zero balance
-				if (!coin.balance || coin.scam) return false
-				
+				if (!coin.balance || coin.scam) return false;
+
 				// Convert balance string to number and check if it's greater than 0
 				try {
-					const balanceNum = BigInt(coin.balance)
-					return balanceNum > BigInt(0)
+					const balanceNum = BigInt(coin.balance);
+					return balanceNum > BigInt(0);
 				} catch {
 					// If BigInt fails, the balance might be invalid
-					return false
+					return false;
 				}
-			})
+			});
 
 			// Transform to wallet coin format
 			const walletCoins: WalletCoin[] = validCoins.map((coin) => {
-				let processedUsdValue = coin.usdValue || "0"
-				
+				let processedUsdValue = coin.usdValue || "0";
+
 				// Handle scientific notation in USD values
 				if (processedUsdValue.includes("e")) {
-					const numValue = Number(processedUsdValue)
+					const numValue = Number(processedUsdValue);
 					if (numValue < 0.01) {
-						processedUsdValue = "0"
+						processedUsdValue = "0";
 					} else {
-						processedUsdValue = numValue.toFixed(2)
+						processedUsdValue = numValue.toFixed(2);
 					}
 				}
 
@@ -84,25 +79,23 @@ class BlockVisionService {
 					value: processedUsdValue ? parseFloat(processedUsdValue) : undefined,
 					verified: coin.verified,
 					scam: coin.scam,
-				}
-			})
+				};
+			});
 
-			console.log(
-				`✅ Account coins fetched: ${walletCoins.length} valid coins, USD value: $${result.usdValue}`
-			)
+			console.log(`✅ Account coins fetched: ${walletCoins.length} valid coins, USD value: $${result.usdValue}`);
 
 			return {
 				success: true,
 				data: walletCoins,
-			}
+			};
 		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : "Unknown error"
-			console.error(`❌ Failed to fetch account coins for ${account}:`, errorMessage)
+			const errorMessage = error instanceof Error ? error.message : "Unknown error";
+			console.error(`❌ Failed to fetch account coins for ${account}:`, errorMessage);
 
 			return {
 				success: false,
 				error: errorMessage,
-			}
+			};
 		}
 	}
 
@@ -111,38 +104,31 @@ class BlockVisionService {
 	 */
 	async getCoinDetails(coinType: string): Promise<ServiceResponse<CoinDetails>> {
 		try {
-			console.log(`🪙 Fetching coin details for: ${coinType}`)
+			console.log(`🪙 Fetching coin details for: ${coinType}`);
 
-			const response = await this.makeRequest<CoinDetailsResponse>(
-				"GET",
-				"/detail",
-				{ coinType },
-				this.coinBaseUrl
-			)
+			const response = await this.makeRequest<CoinDetailsResponse>("GET", "/detail", { coinType }, this.coinBaseUrl);
 
 			if (response.code !== 200) {
 				return {
 					success: false,
 					error: `API error: ${response.message}`,
-				}
+				};
 			}
 
-			console.log(
-				`✅ Coin details fetched: ${response.result.name} (${response.result.symbol})`
-			)
+			console.log(`✅ Coin details fetched: ${response.result.name} (${response.result.symbol})`);
 
 			return {
 				success: true,
 				data: response.result,
-			}
+			};
 		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : "Unknown error"
-			console.error(`❌ Failed to fetch coin details for ${coinType}:`, errorMessage)
+			const errorMessage = error instanceof Error ? error.message : "Unknown error";
+			console.error(`❌ Failed to fetch coin details for ${coinType}:`, errorMessage);
 
 			return {
 				success: false,
 				error: errorMessage,
-			}
+			};
 		}
 	}
 
@@ -155,63 +141,59 @@ class BlockVisionService {
 		params: Record<string, any>,
 		baseUrl: string
 	): Promise<T> {
-		let lastError: Error
+		let lastError: Error;
 
 		for (let attempt = 1; attempt <= this.retryAttempts; attempt++) {
 			try {
-				const url = new URL(`${baseUrl}${endpoint}`)
-				
+				const url = new URL(`${baseUrl}${endpoint}`);
+
 				if (method === "GET") {
-					Object.keys(params).forEach(key => {
-						url.searchParams.append(key, params[key])
-					})
+					Object.keys(params).forEach((key) => {
+						url.searchParams.append(key, params[key]);
+					});
 				}
 
 				const config: RequestInit = {
 					method,
 					headers: {
-						"accept": "application/json",
+						accept: "application/json",
 						"x-api-key": this.apiKey,
 						...(method === "POST" && { "Content-Type": "application/json" }),
 					},
 					...(method === "POST" && { body: JSON.stringify(params) }),
-				}
+				};
 
-				const controller = new AbortController()
-				const timeoutId = setTimeout(() => controller.abort(), this.timeout)
+				const controller = new AbortController();
+				const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
 				try {
 					const response = await fetch(url.toString(), {
 						...config,
 						signal: controller.signal,
-					})
-					clearTimeout(timeoutId)
+					});
+					clearTimeout(timeoutId);
 
 					if (!response.ok) {
-						throw new Error(`HTTP error! status: ${response.status}`)
+						throw new Error(`HTTP error! status: ${response.status}`);
 					}
 
-					const data = await response.json()
-					return data as T
+					const data = await response.json();
+					return data as T;
 				} catch (error) {
-					clearTimeout(timeoutId)
-					throw error
+					clearTimeout(timeoutId);
+					throw error;
 				}
 			} catch (error) {
-				lastError = error instanceof Error ? error : new Error("Unknown error")
+				lastError = error instanceof Error ? error : new Error("Unknown error");
 
 				if (attempt < this.retryAttempts) {
-					console.warn(
-						`🔄 Request failed, retrying ${attempt}/${this.retryAttempts}: ${lastError.message}`
-					)
-					await new Promise(resolve => 
-						setTimeout(resolve, this.retryDelay * attempt)
-					)
+					console.warn(`🔄 Request failed, retrying ${attempt}/${this.retryAttempts}: ${lastError.message}`);
+					await new Promise((resolve) => setTimeout(resolve, this.retryDelay * attempt));
 				}
 			}
 		}
 
-		throw lastError!
+		throw lastError!;
 	}
 
 	/**
@@ -219,38 +201,38 @@ class BlockVisionService {
 	 */
 	async getCoinHolders(coinType: string, limit: number = 20): Promise<ServiceResponse<CoinHolder[]>> {
 		try {
-			console.log(`👥 Fetching holders for: ${coinType}`)
+			console.log(`👥 Fetching holders for: ${coinType}`);
 
 			const response = await this.makeRequest<HoldersResponse>(
 				"GET",
 				"/holders/",
 				{ coinType, limit },
 				this.coinBaseUrl
-			)
+			);
 
 			if (response.code !== 200) {
 				return {
 					success: false,
 					error: `API error: ${response.message}`,
-				}
+				};
 			}
 
 			console.log(
 				`✅ Holders fetched: ${response.result.data.length} holders found out of ${response.result.total} total`
-			)
+			);
 
 			return {
 				success: true,
 				data: response.result.data,
-			}
+			};
 		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : "Unknown error"
-			console.error(`❌ Failed to fetch holders for ${coinType}:`, errorMessage)
+			const errorMessage = error instanceof Error ? error.message : "Unknown error";
+			console.error(`❌ Failed to fetch holders for ${coinType}:`, errorMessage);
 
 			return {
 				success: false,
 				error: errorMessage,
-			}
+			};
 		}
 	}
 
@@ -259,38 +241,31 @@ class BlockVisionService {
 	 */
 	async getDexPools(coinType: string): Promise<ServiceResponse<DexPool[]>> {
 		try {
-			console.log(`🏊 Fetching DEX pools for: ${coinType}`)
+			console.log(`🏊 Fetching DEX pools for: ${coinType}`);
 
-			const response = await this.makeRequest<DexPoolsResponse>(
-				"GET",
-				"/dex/pools",
-				{ coinType },
-				this.coinBaseUrl
-			)
+			const response = await this.makeRequest<DexPoolsResponse>("GET", "/dex/pools", { coinType }, this.coinBaseUrl);
 
 			if (response.code !== 200) {
 				return {
 					success: false,
 					error: `API error: ${response.message}`,
-				}
+				};
 			}
 
-			console.log(
-				`✅ DEX pools fetched: ${response.result.length} pools found`
-			)
+			console.log(`✅ DEX pools fetched: ${response.result.length} pools found`);
 
 			return {
 				success: true,
 				data: response.result,
-			}
+			};
 		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : "Unknown error"
-			console.error(`❌ Failed to fetch DEX pools for ${coinType}:`, errorMessage)
+			const errorMessage = error instanceof Error ? error.message : "Unknown error";
+			console.error(`❌ Failed to fetch DEX pools for ${coinType}:`, errorMessage);
 
 			return {
 				success: false,
 				error: errorMessage,
-			}
+			};
 		}
 	}
 
@@ -300,12 +275,12 @@ class BlockVisionService {
 	async healthCheck(): Promise<boolean> {
 		try {
 			// Use SUI coin type for health check
-			const suiCoinType = "0x2::sui::SUI"
-			const response = await this.getCoinDetails(suiCoinType)
-			return response.success
+			const suiCoinType = "0x2::sui::SUI";
+			const response = await this.getCoinDetails(suiCoinType);
+			return response.success;
 		} catch (error) {
-			console.error("BlockVision API health check failed:", error)
-			return false
+			console.error("BlockVision API health check failed:", error);
+			return false;
 		}
 	}
 
@@ -319,12 +294,12 @@ class BlockVisionService {
 			coinBaseUrl: this.coinBaseUrl,
 			timeout: this.timeout,
 			retryAttempts: this.retryAttempts,
-		}
+		};
 	}
 }
 
 // Export singleton instance for server-side use
-export const blockVisionService = new BlockVisionService()
+export const blockVisionService = new BlockVisionService();
 
 // Export class for client-side instantiation if needed
-export { BlockVisionService }
+export { BlockVisionService };

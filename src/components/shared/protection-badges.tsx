@@ -1,27 +1,22 @@
-"use client"
+"use client";
 
-import { ShieldCheck, Eye, UserCheck, Percent, Flame } from "lucide-react"
-import { BsTwitterX } from "react-icons/bs"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import type { TokenProtectionSettings } from "@/hooks/use-token-protection"
+import { ShieldCheck, Eye, UserCheck, Percent, Flame } from "lucide-react";
+import { BsTwitterX } from "react-icons/bs";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import type { TokenProtectionSettings } from "@/hooks/use-token-protection";
 
 interface ProtectionBadgesProps {
-	protectionSettings?: TokenProtectionSettings | null
-	isProtected?: boolean
-	size?: "sm" | "md" | "lg"
-	burnTax?: number
+	protectionSettings?: TokenProtectionSettings | null;
+	isProtected?: boolean;
+	size?: "sm" | "md" | "lg";
+	burnTax?: number;
 }
 
-export function ProtectionBadges({ 
-	protectionSettings, 
-	isProtected,
-	size = "sm",
-	burnTax
-}: ProtectionBadgesProps) {
-	if (!protectionSettings && !isProtected && (burnTax === undefined || burnTax === null || burnTax <= 0)) return null
+export function ProtectionBadges({ protectionSettings, isProtected, size = "sm", burnTax }: ProtectionBadgesProps) {
+	if (!protectionSettings && !isProtected && (burnTax === undefined || burnTax === null || burnTax <= 0)) return null;
 
-	const iconSize = size === "sm" ? "w-3 h-3" : size === "md" ? "w-3.5 h-3.5" : "w-4 h-4"
-	const padding = size === "sm" ? "p-0.5" : size === "md" ? "p-1" : "p-1.5"
+	const iconSize = size === "sm" ? "w-3 h-3" : size === "md" ? "w-3.5 h-3.5" : "w-4 h-4";
+	const padding = size === "sm" ? "p-0.5" : size === "md" ? "p-1" : "p-1.5";
 
 	return (
 		<div className="flex items-center gap-1.5">
@@ -123,5 +118,5 @@ export function ProtectionBadges({
 				</Tooltip>
 			)}
 		</div>
-	)
+	);
 }

@@ -1,71 +1,65 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { ChartCandlestick, DollarSign, Activity, Home, Users, Lock } from "lucide-react"
-import { cn } from "@/utils"
-import { TradeTerminal } from "./trade-terminal"
-import { Chart } from "@/components/shared/chart"
-import { TradesTab } from "./tabs/trades-tab"
-import { VestingTab } from "./tabs/vesting-tab"
-import { HoldersTab } from "./tabs/holders-tab"
-import { useHoldersData } from "../_hooks/use-holders-data"
-import HolderDetails from "./holder-details"
-import { TokenInfo } from "./token-info"
-import type { Token } from "@/types/token"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { ChartCandlestick, DollarSign, Activity, Home, Users, Lock } from "lucide-react";
+import { cn } from "@/utils";
+import { TradeTerminal } from "./trade-terminal";
+import { Chart } from "@/components/shared/chart";
+import { TradesTab } from "./tabs/trades-tab";
+import { VestingTab } from "./tabs/vesting-tab";
+import { HoldersTab } from "./tabs/holders-tab";
+import { useHoldersData } from "../_hooks/use-holders-data";
+import HolderDetails from "./holder-details";
+import { TokenInfo } from "./token-info";
+import type { Token } from "@/types/token";
 
 interface MobileTab {
-	id: string
-	label: string
-	icon: React.ComponentType<{ className?: string }>
-	action?: () => void
+	id: string;
+	label: string;
+	icon: React.ComponentType<{ className?: string }>;
+	action?: () => void;
 }
 
 export default function MobileTokenView({
 	pool,
 	referral,
 	realtimePrice,
-	realtimeMarketCap
+	realtimeMarketCap,
 }: {
 	pool: Token;
 	referral?: string;
 	realtimePrice?: number | null;
 	realtimeMarketCap?: number | null;
 }) {
-	const [activeTab, setActiveTab] = useState("chart")
-	const [activitySubTab, setActivitySubTab] = useState<"trades" | "holders" | "projects" | "vesting">("trades")
-	const router = useRouter()
-	const { hasProjects } = useHoldersData(pool.coinType)
+	const [activeTab, setActiveTab] = useState("chart");
+	const [activitySubTab, setActivitySubTab] = useState<"trades" | "holders" | "projects" | "vesting">("trades");
+	const router = useRouter();
+	const { hasProjects } = useHoldersData(pool.coinType);
 
 	const mobileTabs: MobileTab[] = [
 		{ id: "home", label: "Home", icon: Home, action: () => router.push("/") },
 		{ id: "chart", label: "Chart", icon: ChartCandlestick },
 		{ id: "trade", label: "Trade", icon: DollarSign },
 		{ id: "activity", label: "Activity", icon: Activity },
-	]
+	];
 
 	const handleTabClick = (tab: MobileTab) => {
 		if (tab.action) {
-			tab.action()
+			tab.action();
 		} else {
-			setActiveTab(tab.id)
+			setActiveTab(tab.id);
 		}
-	}
+	};
 
 	return (
 		<div className="flex flex-col h-full lg:hidden">
 			{activeTab !== "trade" && (
-				<TokenInfo
-					pool={pool}
-					realtimePrice={realtimePrice || null}
-					realtimeMarketCap={realtimeMarketCap || null}
-				/>
+				<TokenInfo pool={pool} realtimePrice={realtimePrice || null} realtimeMarketCap={realtimeMarketCap || null} />
 			)}
 
 			<div className="flex-1 overflow-hidden">
-				{activeTab === "chart" && (
-					<Chart coinType={pool.coinType} className="w-full h-full" />
-				)}
+				{activeTab === "chart" && <Chart coinType={pool.coinType} className="w-full h-full" />}
 
 				{activeTab === "trade" && (
 					<div className="h-full overflow-y-auto">
@@ -139,12 +133,8 @@ export default function MobileTokenView({
 
 						{/* @dev: Content based on selected sub-tab */}
 						<div className="flex-1 overflow-hidden">
-							{activitySubTab === "trades" && (
-								<TradesTab pool={pool} className="h-full" />
-							)}
-							{activitySubTab === "vesting" && (
-								<VestingTab pool={pool} className="h-full" />
-							)}
+							{activitySubTab === "trades" && <TradesTab pool={pool} className="h-full" />}
+							{activitySubTab === "vesting" && <VestingTab pool={pool} className="h-full" />}
 							{(activitySubTab === "holders" || activitySubTab === "projects") && (
 								<HoldersTab
 									pool={pool}
@@ -161,9 +151,9 @@ export default function MobileTokenView({
 			<div className="bg-background/95 backdrop-blur-xl border-t border-border/50">
 				<div className="flex items-center justify-around h-16">
 					{mobileTabs.map((tab) => {
-						const Icon = tab.icon
-						const isActive = activeTab === tab.id
-						const isHome = tab.id === "home"
+						const Icon = tab.icon;
+						const isActive = activeTab === tab.id;
+						const isHome = tab.id === "home";
 
 						return (
 							<button
@@ -189,10 +179,10 @@ export default function MobileTokenView({
 									{tab.label}
 								</span>
 							</button>
-						)
+						);
 					})}
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

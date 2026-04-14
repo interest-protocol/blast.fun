@@ -1,15 +1,15 @@
-"use client"
+"use client";
 
-import { Moon, Sun } from "lucide-react"
-import { useTheme } from "next-themes"
-import { useMounted } from "@/hooks/use-mounted"
-import { Button } from "../ui/button"
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
+import { useMounted } from "@/hooks/use-mounted";
+import { Button } from "../ui/button";
 
 export const ThemeSwitcher = () => {
-	const { theme, setTheme } = useTheme()
+	const { theme, setTheme } = useTheme();
 
-	const isMounted = useMounted()
-	if (!isMounted) return null
+	const isMounted = useMounted();
+	if (!isMounted) return null;
 
 	return (
 		<Button
@@ -20,5 +20,5 @@ export const ThemeSwitcher = () => {
 		>
 			{theme === "light" ? <Moon className="size-4" /> : <Sun className="size-4" />}
 		</Button>
-	)
-}
+	);
+};

@@ -1,23 +1,23 @@
-import "@/styles/globals.css"
-import "@/styles/animations.css"
+import "@/styles/globals.css";
+import "@/styles/animations.css";
 
-import type { Metadata } from "next"
-import { Analytics } from '@vercel/analytics/next'
-import { GoogleAnalytics } from '@next/third-parties/google'
-import { SessionProvider } from "next-auth/react"
-import { Toaster } from "react-hot-toast"
-import ReactScan from "@/components/utils/react-scan"
-import TailwindIndicator from "@/components/utils/tailwind-indicator"
-import { TwitterAuthProvider } from "@/context/twitter.context"
-import { geistMono, geistSans, hegartySans } from "@/fonts"
-import SuiProvider from "@/providers/sui-provider"
-import { ThemeProvider } from "@/providers/theme-provider"
-import { cn } from "@/utils"
-import { TooltipProvider } from "@/components/ui/tooltip"
-import { siteConfig, BASE_DOMAIN } from "@/constants"
-import { TermsPrivacyDialog } from "@/components/dialogs/terms-privacy-dialog"
+import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
+import { GoogleAnalytics } from "@next/third-parties/google";
+import { SessionProvider } from "next-auth/react";
+import { Toaster } from "react-hot-toast";
+import ReactScan from "@/components/utils/react-scan";
+import TailwindIndicator from "@/components/utils/tailwind-indicator";
+import { TwitterAuthProvider } from "@/context/twitter.context";
+import { geistMono, geistSans, hegartySans } from "@/fonts";
+import SuiProvider from "@/providers/sui-provider";
+import { ThemeProvider } from "@/providers/theme-provider";
+import { cn } from "@/utils";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { siteConfig, BASE_DOMAIN } from "@/constants";
+import { TermsPrivacyDialog } from "@/components/dialogs/terms-privacy-dialog";
 
-const ogImageUrl = `${BASE_DOMAIN}/api/og`
+const ogImageUrl = `${BASE_DOMAIN}/api/og`;
 
 export const metadata: Metadata = {
 	title: {
@@ -48,12 +48,12 @@ export const metadata: Metadata = {
 		images: [ogImageUrl],
 		creator: "@blastdotfun",
 	},
-}
+};
 
 export default function RootLayout({
 	children,
 }: Readonly<{
-	children: React.ReactNode
+	children: React.ReactNode;
 }>) {
 	return (
 		<html lang="en" suppressHydrationWarning>
@@ -87,9 +87,7 @@ export default function RootLayout({
 				<Analytics />
 			</body>
 
-			{process.env.NEXT_PUBLIC_VERCEL_ENV === "production" && (
-				<GoogleAnalytics gaId="G-LFECSPQX7J" />
-			)}
+			{process.env.NEXT_PUBLIC_VERCEL_ENV === "production" && <GoogleAnalytics gaId="G-LFECSPQX7J" />}
 		</html>
-	)
+	);
 }

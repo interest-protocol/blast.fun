@@ -1,50 +1,53 @@
-import { suiClient } from "@/lib/sui-client"
+import { suiClient } from "@/lib/sui-client";
 
-const CACHE_KEY_PREFIX = "suins:"
+const CACHE_KEY_PREFIX = "suins:";
 
 /**
  * Sleep helper for retry delays
  */
 async function sleep(ms: number): Promise<void> {
-	return new Promise(resolve => setTimeout(resolve, ms))
+	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
  * Fetch SuiNS with retry logic for rate limiting
  */
 async function fetchSuiNSWithRetry(address: string, maxRetries = 3): Promise<string | null> {
-	let lastError: any = null
-	
+	let lastError: any = null;
+
 	for (let attempt = 0; attempt < maxRetries; attempt++) {
 		try {
 			const result = await suiClient.resolveNameServiceNames({
 				address: address,
 				format: "dot",
-			})
-			return result.data?.[0] || null
+			});
+			return result.data?.[0] || null;
 		} catch (error: any) {
-			lastError = error
-			
+			lastError = error;
+
 			// @dev: Check if it's a 429 rate limit error
-			const is429Error = error?.status === 429 || 
+			const is429Error =
+				error?.status === 429 ||
 				error?.response?.status === 429 ||
-				error?.message?.includes('429') ||
-				error?.message?.includes('rate limit')
-			
+				error?.message?.includes("429") ||
+				error?.message?.includes("rate limit");
+
 			if (is429Error && attempt < maxRetries - 1) {
 				// @dev: Wait 10 seconds for 429 errors, then exponential backoff
-				const delay = attempt === 0 ? 10000 : Math.pow(2, attempt) * 1000
-				console.warn(`Rate limited fetching SuiNS for ${address}, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`)
-				await sleep(delay)
-				continue
+				const delay = attempt === 0 ? 10000 : Math.pow(2, attempt) * 1000;
+				console.warn(
+					`Rate limited fetching SuiNS for ${address}, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`
+				);
+				await sleep(delay);
+				continue;
 			}
-			
+
 			// @dev: For other errors or max retries reached, break
-			break
+			break;
 		}
 	}
-	
-	throw lastError
+
+	throw lastError;
 }
 
 export class SuiNSCache {
@@ -53,20 +56,20 @@ export class SuiNSCache {
 	 */
 	static async getName(address: string): Promise<string | null> {
 		// @dev: Check session storage first
-		const cached = this.getFromCache(address)
+		const cached = this.getFromCache(address);
 		if (cached !== undefined) {
-			return cached
+			return cached;
 		}
 
 		// @dev: Fetch from network with retry logic
 		try {
-			const name = await fetchSuiNSWithRetry(address)
-			this.saveToCache(address, name)
-			return name
+			const name = await fetchSuiNSWithRetry(address);
+			this.saveToCache(address, name);
+			return name;
 		} catch (error) {
-			console.warn(`Failed to fetch SuiNS name for ${address}:`, error)
-			this.saveToCache(address, null)
-			return null
+			console.warn(`Failed to fetch SuiNS name for ${address}:`, error);
+			this.saveToCache(address, null);
+			return null;
 		}
 	}
 
@@ -74,16 +77,16 @@ export class SuiNSCache {
 	 * Get multiple SuiNS names with caching
 	 */
 	static async getNames(addresses: string[]): Promise<Record<string, string | null>> {
-		const results: Record<string, string | null> = {}
-		const uncachedAddresses: string[] = []
+		const results: Record<string, string | null> = {};
+		const uncachedAddresses: string[] = [];
 
 		// @dev: Check cache for each address
 		for (const address of addresses) {
-			const cached = this.getFromCache(address)
+			const cached = this.getFromCache(address);
 			if (cached !== undefined) {
-				results[address] = cached
+				results[address] = cached;
 			} else {
-				uncachedAddresses.push(address)
+				uncachedAddresses.push(address);
 			}
 		}
 
@@ -91,13 +94,13 @@ export class SuiNSCache {
 		if (uncachedAddresses.length > 0) {
 			await Promise.all(
 				uncachedAddresses.map(async (address) => {
-					const name = await this.getName(address)
-					results[address] = name
+					const name = await this.getName(address);
+					results[address] = name;
 				})
-			)
+			);
 		}
 
-		return results
+		return results;
 	}
 
 	/**
@@ -105,14 +108,14 @@ export class SuiNSCache {
 	 */
 	private static getFromCache(address: string): string | null | undefined {
 		try {
-			const key = `${CACHE_KEY_PREFIX}${address}`
-			const cached = sessionStorage.getItem(key)
-			if (!cached) return undefined
+			const key = `${CACHE_KEY_PREFIX}${address}`;
+			const cached = sessionStorage.getItem(key);
+			if (!cached) return undefined;
 
 			// @dev: SuiNS names never expire, return cached value directly
-			return cached === "null" ? null : cached
+			return cached === "null" ? null : cached;
 		} catch {
-			return undefined
+			return undefined;
 		}
 	}
 
@@ -121,12 +124,12 @@ export class SuiNSCache {
 	 */
 	private static saveToCache(address: string, name: string | null): void {
 		try {
-			const key = `${CACHE_KEY_PREFIX}${address}`
+			const key = `${CACHE_KEY_PREFIX}${address}`;
 			// @dev: Store name directly as string (or "null" for null values)
-			sessionStorage.setItem(key, name === null ? "null" : name)
+			sessionStorage.setItem(key, name === null ? "null" : name);
 		} catch (error) {
 			// @dev: Silently fail if storage is full or unavailable
-			console.warn('Failed to cache SuiNS name:', error)
+			console.warn("Failed to cache SuiNS name:", error);
 		}
 	}
 
@@ -135,10 +138,10 @@ export class SuiNSCache {
 	 */
 	static clearCache(): void {
 		try {
-			const keys = Object.keys(sessionStorage)
+			const keys = Object.keys(sessionStorage);
 			for (const key of keys) {
 				if (key.startsWith(CACHE_KEY_PREFIX)) {
-					sessionStorage.removeItem(key)
+					sessionStorage.removeItem(key);
 				}
 			}
 		} catch {
@@ -150,6 +153,6 @@ export class SuiNSCache {
 	 * Preload SuiNS names for addresses
 	 */
 	static async preload(addresses: string[]): Promise<void> {
-		await this.getNames(addresses)
+		await this.getNames(addresses);
 	}
 }

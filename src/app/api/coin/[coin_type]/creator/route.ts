@@ -1,32 +1,29 @@
-import { NextResponse } from "next/server"
-import { fetchNoodlesCoinDetail } from "@/lib/noodles/client"
-import { fetchCreatorData } from "@/lib/fetch-creator-data"
-import type { TokenCreator } from "@/types/token"
+import { NextResponse } from "next/server";
+import { fetchNoodlesCoinDetail } from "@/lib/noodles/client";
+import { fetchCreatorData } from "@/lib/fetch-creator-data";
+import type { TokenCreator } from "@/types/token";
 
-export const revalidate = 60
+export const revalidate = 60;
 
-export async function GET(
-	_request: Request,
-	{ params }: { params: Promise<{ coin_type: string }> }
-) {
+export async function GET(_request: Request, { params }: { params: Promise<{ coin_type: string }> }) {
 	try {
-		const { coin_type } = await params
-		const coinType = decodeURIComponent(coin_type)
+		const { coin_type } = await params;
+		const coinType = decodeURIComponent(coin_type);
 
-		const detail = await fetchNoodlesCoinDetail(coinType)
-		const creatorAddress = detail?.data?.coin?.creator ?? null
+		const detail = await fetchNoodlesCoinDetail(coinType);
+		const creatorAddress = detail?.data?.coin?.creator ?? null;
 
 		if (!creatorAddress) {
-			return NextResponse.json({ creator: null })
+			return NextResponse.json({ creator: null });
 		}
 
-		let creatorData: TokenCreator
+		let creatorData: TokenCreator;
 		try {
 			creatorData = await fetchCreatorData({
 				creatorAddressOrHandle: creatorAddress,
-			})
+			});
 			if (!creatorData.address) {
-				creatorData = { ...creatorData, address: creatorAddress }
+				creatorData = { ...creatorData, address: creatorAddress };
 			}
 		} catch {
 			creatorData = {
@@ -37,7 +34,7 @@ export async function GET(
 				twitterHandle: null,
 				twitterId: null,
 				hideIdentity: false,
-			}
+			};
 		}
 
 		const creator: TokenCreator = {
@@ -48,11 +45,11 @@ export async function GET(
 			twitterHandle: creatorData.twitterHandle,
 			twitterId: creatorData.twitterId,
 			hideIdentity: creatorData.hideIdentity,
-		}
+		};
 
-		return NextResponse.json({ creator })
+		return NextResponse.json({ creator });
 	} catch (error) {
-		console.error("Error fetching creator for coin:", error)
-		return NextResponse.json({ creator: null }, { status: 500 })
+		console.error("Error fetching creator for coin:", error);
+		return NextResponse.json({ creator: null }, { status: 500 });
 	}
 }

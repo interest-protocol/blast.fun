@@ -1,44 +1,44 @@
-"use client"
+"use client";
 
-import { Zap } from "lucide-react"
-import { useEffect, useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { usePresetStore } from "@/stores/preset-store"
-import { cn } from "@/utils"
+import { Zap } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { usePresetStore } from "@/stores/preset-store";
+import { cn } from "@/utils";
 
 interface TradeSettingsProps {
-	open: boolean
-	onOpenChange: (open: boolean) => void
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
 }
 
 export function TradeSettings({ open, onOpenChange }: TradeSettingsProps) {
 	const { slippage, quickBuyAmounts, quickSellPercentages, setSlippage, setQuickBuyAmounts, setQuickSellPercentages } =
-		usePresetStore()
+		usePresetStore();
 
 	// local state for editing
-	const [localSlippage, setLocalSlippage] = useState(slippage)
-	const [localQuickBuyAmounts, setLocalQuickBuyAmounts] = useState(quickBuyAmounts)
-	const [localQuickSellPercentages, setLocalQuickSellPercentages] = useState(quickSellPercentages)
+	const [localSlippage, setLocalSlippage] = useState(slippage);
+	const [localQuickBuyAmounts, setLocalQuickBuyAmounts] = useState(quickBuyAmounts);
+	const [localQuickSellPercentages, setLocalQuickSellPercentages] = useState(quickSellPercentages);
 
 	// reset local state when dialog opens
 	useEffect(() => {
 		if (open) {
-			setLocalSlippage(slippage)
-			setLocalQuickBuyAmounts(quickBuyAmounts)
-			setLocalQuickSellPercentages(quickSellPercentages)
+			setLocalSlippage(slippage);
+			setLocalQuickBuyAmounts(quickBuyAmounts);
+			setLocalQuickSellPercentages(quickSellPercentages);
 		}
-	}, [open, slippage, quickBuyAmounts, quickSellPercentages])
+	}, [open, slippage, quickBuyAmounts, quickSellPercentages]);
 
 	// auto-save when closing the dialog
 	const handleClose = (newOpen: boolean) => {
 		if (!newOpen) {
-			setSlippage(localSlippage)
-			setQuickBuyAmounts(localQuickBuyAmounts)
-			setQuickSellPercentages(localQuickSellPercentages)
+			setSlippage(localSlippage);
+			setQuickBuyAmounts(localQuickBuyAmounts);
+			setQuickSellPercentages(localQuickSellPercentages);
 		}
 
-		onOpenChange(newOpen)
-	}
+		onOpenChange(newOpen);
+	};
 
 	return (
 		<Dialog open={open} onOpenChange={handleClose}>
@@ -98,9 +98,9 @@ export function TradeSettings({ open, onOpenChange }: TradeSettingsProps) {
 										type="number"
 										value={amount}
 										onChange={(e) => {
-											const newAmounts = [...localQuickBuyAmounts]
-											newAmounts[index] = Number(e.target.value)
-											setLocalQuickBuyAmounts(newAmounts)
+											const newAmounts = [...localQuickBuyAmounts];
+											newAmounts[index] = Number(e.target.value);
+											setLocalQuickBuyAmounts(newAmounts);
 										}}
 										className="w-full rounded border border-border bg-muted/50 px-2 py-2 text-center text-xs focus:border-primary focus:outline-none"
 										step={0.01}
@@ -123,9 +123,9 @@ export function TradeSettings({ open, onOpenChange }: TradeSettingsProps) {
 										type="number"
 										value={percentage}
 										onChange={(e) => {
-											const newPercentages = [...localQuickSellPercentages]
-											newPercentages[index] = Number(e.target.value)
-											setLocalQuickSellPercentages(newPercentages)
+											const newPercentages = [...localQuickSellPercentages];
+											newPercentages[index] = Number(e.target.value);
+											setLocalQuickSellPercentages(newPercentages);
 										}}
 										className="w-full rounded border border-border bg-muted/50 px-2 py-2 pr-6 text-center text-xs focus:border-primary focus:outline-none"
 										step={1}
@@ -142,5 +142,5 @@ export function TradeSettings({ open, onOpenChange }: TradeSettingsProps) {
 				</div>
 			</DialogContent>
 		</Dialog>
-	)
+	);
 }

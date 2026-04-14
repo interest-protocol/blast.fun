@@ -1,29 +1,29 @@
-import { createClient, RedisClientType } from "redis"
-import { env } from "@/env"
+import { createClient, RedisClientType } from "redis";
+import { env } from "@/env";
 
-let redisClient: RedisClientType | null = null
-let isConnecting = false
+let redisClient: RedisClientType | null = null;
+let isConnecting = false;
 
 export async function getRedisClient(): Promise<RedisClientType | null> {
 	if (redisClient?.isReady) {
-		return redisClient
+		return redisClient;
 	}
 
 	if (!env.REDIS_URL) {
-		console.warn("Redis URL not configured, caching disabled")
-		return null
+		console.warn("Redis URL not configured, caching disabled");
+		return null;
 	}
 
 	if (isConnecting) {
 		while (isConnecting) {
-			await new Promise(resolve => setTimeout(resolve, 10))
+			await new Promise((resolve) => setTimeout(resolve, 10));
 		}
 
-		return redisClient
+		return redisClient;
 	}
 
 	try {
-		isConnecting = true
+		isConnecting = true;
 
 		redisClient = createClient({
 			url: env.REDIS_URL,
@@ -31,86 +31,76 @@ export async function getRedisClient(): Promise<RedisClientType | null> {
 				connectTimeout: 5000,
 				reconnectStrategy: (retries) => {
 					if (retries > 3) {
-						console.error("Redis reconnection failed after 3 attempts")
-						return false
+						console.error("Redis reconnection failed after 3 attempts");
+						return false;
 					}
-					return Math.min(retries * 100, 3000)
-				}
-			}
-		})
+					return Math.min(retries * 100, 3000);
+				},
+			},
+		});
 
 		redisClient.on("error", (error) => {
-			console.error("Redis client error:", error)
-		})
+			console.error("Redis client error:", error);
+		});
 
-		await redisClient.connect()
+		await redisClient.connect();
 
-		return redisClient
+		return redisClient;
 	} catch (error) {
-		console.error("Failed to initialize Redis client:", error)
-		redisClient = null
-		return null
+		console.error("Failed to initialize Redis client:", error);
+		redisClient = null;
+		return null;
 	} finally {
-		isConnecting = false
+		isConnecting = false;
 	}
 }
 
-export async function withRedis<T>(
-	operation: (client: RedisClientType) => Promise<T>
-): Promise<T | null> {
-	const client = await getRedisClient()
+export async function withRedis<T>(operation: (client: RedisClientType) => Promise<T>): Promise<T | null> {
+	const client = await getRedisClient();
 	if (!client) {
-		return null
+		return null;
 	}
 
 	try {
-		return await operation(client)
+		return await operation(client);
 	} catch (error) {
-		console.error("Redis operation failed:", error)
-		return null
+		console.error("Redis operation failed:", error);
+		return null;
 	}
 }
 
 export async function redisGet(key: string): Promise<string | null> {
 	return withRedis(async (client) => {
-		return await client.get(key)
-	})
+		return await client.get(key);
+	});
 }
 
-export async function redisSet(
-	key: string,
-	value: string,
-	ttl?: number
-): Promise<boolean> {
+export async function redisSet(key: string, value: string, ttl?: number): Promise<boolean> {
 	const result = await withRedis(async (client) => {
 		if (ttl) {
-			return await client.setEx(key, ttl, value)
+			return await client.setEx(key, ttl, value);
 		}
 
-		return await client.set(key, value)
-	})
+		return await client.set(key, value);
+	});
 
-	return result === "OK"
+	return result === "OK";
 }
 
-export async function redisSetEx(
-	key: string,
-	ttl: number,
-	value: string
-): Promise<boolean> {
+export async function redisSetEx(key: string, ttl: number, value: string): Promise<boolean> {
 	const result = await withRedis(async (client) => {
-		return await client.setEx(key, ttl, value)
-	})
+		return await client.setEx(key, ttl, value);
+	});
 
-	return result === "OK"
+	return result === "OK";
 }
 
 export async function redisDel(key: string): Promise<boolean> {
 	const result = await withRedis(async (client) => {
-		return await client.del(key)
-	})
+		return await client.del(key);
+	});
 
-	return result === 1
+	return result === 1;
 }
 
 export const CACHE_TTL = {
@@ -122,7 +112,7 @@ export const CACHE_TTL = {
 	BONDING_PROGRESS: 30, // 30 seconds
 	ICON_URL: 3600, // 1 hour
 	PROTECTION_SETTINGS: 43200, // 12 hours
-} as const
+} as const;
 
 export const CACHE_PREFIX = {
 	COIN_METADATA: "coin_meta:",
@@ -133,4 +123,4 @@ export const CACHE_PREFIX = {
 	BONDING_PROGRESS: "bonding_progress:",
 	ICON_URL: "icon_url:",
 	PROTECTION_SETTINGS: "protection_settings:",
-} as const
+} as const;

@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
-import { Card } from "@/components/ui/card"
-import { Lock, Unlock, TrendingUp } from "lucide-react"
-import { formatDuration } from "../vesting.utils"
-import { format } from "date-fns"
+import { Card } from "@/components/ui/card";
+import { Lock, Unlock, TrendingUp } from "lucide-react";
+import { formatDuration } from "../vesting.utils";
+import { format } from "date-fns";
 
 interface VestingTimelineProps {
-	lockStartDate: Date
-	vestingStartDate: Date
-	vestingEndDate: Date
-	amount: string
-	symbol?: string
-	usdValue?: string | null
+	lockStartDate: Date;
+	vestingStartDate: Date;
+	vestingEndDate: Date;
+	amount: string;
+	symbol?: string;
+	usdValue?: string | null;
 }
 
 export function VestingTimeline({
@@ -22,15 +22,14 @@ export function VestingTimeline({
 	symbol,
 	usdValue,
 }: VestingTimelineProps) {
-	const lockDuration = vestingStartDate.getTime() - lockStartDate.getTime()
-	const vestingDuration = vestingEndDate.getTime() - vestingStartDate.getTime()
-	const totalDuration = vestingEndDate.getTime() - lockStartDate.getTime()
+	const lockDuration = vestingStartDate.getTime() - lockStartDate.getTime();
+	const vestingDuration = vestingEndDate.getTime() - vestingStartDate.getTime();
+	const totalDuration = vestingEndDate.getTime() - lockStartDate.getTime();
 
 	return (
 		<Card className="p-6">
 			<div className="space-y-4">
 				<h3 className="text-sm font-semibold text-muted-foreground">Vesting Schedule Preview</h3>
-
 
 				{/* Timeline Details */}
 				<div className="grid gap-3 text-sm">
@@ -65,9 +64,7 @@ export function VestingTimeline({
 							<div className="text-xs text-muted-foreground">
 								Unlock duration: {formatDuration(vestingDuration)}
 							</div>
-							<div className="text-xs text-muted-foreground">
-								Tokens unlock linearly over time
-							</div>
+							<div className="text-xs text-muted-foreground">Tokens unlock linearly over time</div>
 						</div>
 					</div>
 
@@ -91,12 +88,10 @@ export function VestingTimeline({
 				<div className="pt-3 border-t">
 					<div className="flex justify-between text-xs">
 						<span className="text-muted-foreground">Total Timeline:</span>
-						<span className="font-medium">
-							{formatDuration(totalDuration)}
-						</span>
+						<span className="font-medium">{formatDuration(totalDuration)}</span>
 					</div>
 				</div>
 			</div>
 		</Card>
-	)
+	);
 }

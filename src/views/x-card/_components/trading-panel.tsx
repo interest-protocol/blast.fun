@@ -1,121 +1,105 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Zap, Loader2 } from "lucide-react"
-import Image from "next/image"
-import { useApp } from "@/context/app.context"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/components/ui/popover"
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipTrigger,
-} from "@/components/ui/tooltip"
-import { useTrading } from "@/hooks/pump/use-trading"
-import { useTokenBalance } from "@/hooks/sui/use-token-balance"
-import { usePortfolio } from "@/hooks/nexa/use-portfolio"
-import type { Token } from "@/types/token"
-import { cn } from "@/utils"
+import { useState } from "react";
+import { Zap, Loader2 } from "lucide-react";
+import Image from "next/image";
+import { useApp } from "@/context/app.context";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useTrading } from "@/hooks/pump/use-trading";
+import { useTokenBalance } from "@/hooks/sui/use-token-balance";
+import { usePortfolio } from "@/hooks/nexa/use-portfolio";
+import type { Token } from "@/types/token";
+import { cn } from "@/utils";
 
 interface TradingPanelProps {
-	pool: Token
-	referrerWallet?: string | null
-	refCode?: string | null
+	pool: Token;
+	referrerWallet?: string | null;
+	refCode?: string | null;
 }
 
 export function TradingPanel({ pool, referrerWallet, refCode }: TradingPanelProps) {
-	const [tradeType, setTradeType] = useState<"buy" | "sell">("buy")
-	const [amount, setAmount] = useState("")
-	const [slippage, setSlippage] = useState("15")
+	const [tradeType, setTradeType] = useState<"buy" | "sell">("buy");
+	const [amount, setAmount] = useState("");
+	const [slippage, setSlippage] = useState("15");
 
-	const { balance: tokenBalance } = useTokenBalance(pool.coinType)
-	const { balance: actualBalance, refetch: refetchPortfolio } = usePortfolio(pool.coinType)
-	const metadata = pool.metadata
-	const decimals = metadata?.decimals || 9
+	const { balance: tokenBalance } = useTokenBalance(pool.coinType);
+	const { balance: actualBalance, refetch: refetchPortfolio } = usePortfolio(pool.coinType);
+	const metadata = pool.metadata;
+	const decimals = metadata?.decimals || 9;
 
 	// use balance from nexa if available, otherwise fall back to token balance
-	const effectiveBalance = actualBalance !== "0" ? actualBalance : tokenBalance
-	const balanceInDisplayUnit = effectiveBalance ? Number(effectiveBalance) / Math.pow(10, decimals) : 0
-	const hasBalance = balanceInDisplayUnit > 0
+	const effectiveBalance = actualBalance !== "0" ? actualBalance : tokenBalance;
+	const balanceInDisplayUnit = effectiveBalance ? Number(effectiveBalance) / Math.pow(10, decimals) : 0;
+	const hasBalance = balanceInDisplayUnit > 0;
 
 	const { isProcessing, error, buy, sell } = useTrading({
 		pool,
 		decimals,
 		actualBalance: effectiveBalance,
 		referrerWallet,
-	})
+	});
 
 	const handleQuickAmount = async (value: number | string) => {
 		if (tradeType === "buy") {
-			setAmount(value.toString())
-			await buy(value.toString(), parseFloat(slippage))
+			setAmount(value.toString());
+			await buy(value.toString(), parseFloat(slippage));
 		} else {
-			const percentage = typeof value === 'string' ? parseInt(value) : value
+			const percentage = typeof value === "string" ? parseInt(value) : value;
 
-			let tokenAmountToSell: number
+			let tokenAmountToSell: number;
 			if (percentage === 100) {
-				tokenAmountToSell = balanceInDisplayUnit
+				tokenAmountToSell = balanceInDisplayUnit;
 			} else {
-				tokenAmountToSell = Math.floor(balanceInDisplayUnit * (percentage / 100) * 1e9) / 1e9
+				tokenAmountToSell = Math.floor(balanceInDisplayUnit * (percentage / 100) * 1e9) / 1e9;
 			}
 
-			setAmount(tokenAmountToSell.toString())
-			await sell(tokenAmountToSell.toString(), parseFloat(slippage))
+			setAmount(tokenAmountToSell.toString());
+			await sell(tokenAmountToSell.toString(), parseFloat(slippage));
 		}
 
-		await refetchPortfolio()
-		setAmount("")
-	}
+		await refetchPortfolio();
+		setAmount("");
+	};
 
 	const handleTrade = async () => {
-		if (!amount || parseFloat(amount) <= 0) return
+		if (!amount || parseFloat(amount) <= 0) return;
 
 		if (tradeType === "buy") {
-			await buy(amount, parseFloat(slippage))
+			await buy(amount, parseFloat(slippage));
 		} else {
-			await sell(amount, parseFloat(slippage))
+			await sell(amount, parseFloat(slippage));
 		}
 
-		await refetchPortfolio()
-		setAmount("")
-	}
+		await refetchPortfolio();
+		setAmount("");
+	};
 
 	return (
 		<div className="p-3 space-y-3">
 			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-2">
-					<div className="font-mono text-xs font-bold uppercase">
-						Trade {metadata?.symbol}
-					</div>
+					<div className="font-mono text-xs font-bold uppercase">Trade {metadata?.symbol}</div>
 					{refCode && (
 						<Tooltip>
 							<TooltipTrigger asChild>
 								<div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-blue-400/50 bg-blue-400/10 cursor-help">
 									<div className="w-1 h-1 bg-blue-400 rounded-full" />
-									<span className="font-mono text-[10px] uppercase text-blue-400">
-										{refCode}
-									</span>
+									<span className="font-mono text-[10px] uppercase text-blue-400">{refCode}</span>
 								</div>
 							</TooltipTrigger>
-							<TooltipContent>
-								The owner of this referral link will earn a commission.
-							</TooltipContent>
+							<TooltipContent>The owner of this referral link will earn a commission.</TooltipContent>
 						</Tooltip>
 					)}
 				</div>
 
 				{hasBalance && (
 					<div className="font-mono text-xs text-muted-foreground">
-						Balance: <span className="text-foreground font-semibold">
-							{balanceInDisplayUnit.toFixed(2)}
-						</span>
+						Balance: <span className="text-foreground font-semibold">{balanceInDisplayUnit.toFixed(2)}</span>
 					</div>
 				)}
 			</div>
@@ -168,10 +152,7 @@ export function TradingPanel({ pool, referrerWallet, refCode }: TradingPanelProp
 				</div>
 				<Popover>
 					<PopoverTrigger asChild>
-						<Button
-							variant="outline"
-							className="w-14 h-10 font-mono text-xs px-2"
-						>
+						<Button variant="outline" className="w-14 h-10 font-mono text-xs px-2">
 							{slippage}%
 						</Button>
 					</PopoverTrigger>
@@ -183,9 +164,7 @@ export function TradingPanel({ pool, referrerWallet, refCode }: TradingPanelProp
 									onClick={() => setSlippage(value)}
 									className={cn(
 										"w-full px-2 py-1.5 rounded font-mono text-xs transition-colors text-left",
-										slippage === value
-											? "bg-primary/20 text-primary"
-											: "hover:bg-accent"
+										slippage === value ? "bg-primary/20 text-primary" : "hover:bg-accent"
 									)}
 								>
 									{value}% slippage
@@ -212,13 +191,7 @@ export function TradingPanel({ pool, referrerWallet, refCode }: TradingPanelProp
 								onClick={() => handleQuickAmount(suiAmount)}
 								disabled={isProcessing}
 							>
-								<Image
-									src="/logo/sui-logo.svg"
-									alt="SUI"
-									width={10}
-									height={10}
-									className="mr-0.5"
-								/>
+								<Image src="/logo/sui-logo.svg" alt="SUI" width={10} height={10} className="mr-0.5" />
 								{suiAmount}
 							</Button>
 						))}
@@ -244,9 +217,7 @@ export function TradingPanel({ pool, referrerWallet, refCode }: TradingPanelProp
 			{/* Error */}
 			{error && (
 				<Alert className="py-1.5 border-destructive/50 bg-destructive/10">
-					<AlertDescription className="font-mono text-[10px] uppercase text-destructive">
-						{error}
-					</AlertDescription>
+					<AlertDescription className="font-mono text-[10px] uppercase text-destructive">{error}</AlertDescription>
 				</Alert>
 			)}
 
@@ -275,5 +246,5 @@ export function TradingPanel({ pool, referrerWallet, refCode }: TradingPanelProp
 				)}
 			</Button>
 		</div>
-	)
+	);
 }

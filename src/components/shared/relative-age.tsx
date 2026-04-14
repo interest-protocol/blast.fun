@@ -1,55 +1,53 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
 
 interface RelativeAgeProps {
-	timestamp: number
-	className?: string
+	timestamp: number;
+	className?: string;
 }
 
 export function RelativeAge({ timestamp, className }: RelativeAgeProps) {
-	const [age, setAge] = useState(() =>
-		Number.isFinite(timestamp) ? "" : "—"
-	)
+	const [age, setAge] = useState(() => (Number.isFinite(timestamp) ? "" : "—"));
 
 	useEffect(() => {
 		if (!Number.isFinite(timestamp)) {
-			setAge("—")
-			return
+			setAge("—");
+			return;
 		}
 		const formatAge = () => {
-			const seconds = Math.floor((Date.now() - timestamp) / 1000)
+			const seconds = Math.floor((Date.now() - timestamp) / 1000);
 
-			if (seconds < 60) return `${seconds}s ago`
+			if (seconds < 60) return `${seconds}s ago`;
 
-			const minutes = Math.floor(seconds / 60)
-			if (minutes < 60) return `${minutes}m ago`
+			const minutes = Math.floor(seconds / 60);
+			if (minutes < 60) return `${minutes}m ago`;
 
-			const hours = Math.floor(minutes / 60)
-			if (hours < 24) return `${hours}h ago`
+			const hours = Math.floor(minutes / 60);
+			if (hours < 24) return `${hours}h ago`;
 
-			return `${Math.floor(hours / 24)}d ago`
-		}
+			return `${Math.floor(hours / 24)}d ago`;
+		};
 
-		setAge(formatAge())
+		setAge(formatAge());
 
-		const secondsOld = Math.floor((Date.now() - timestamp) / 1000)
+		const secondsOld = Math.floor((Date.now() - timestamp) / 1000);
 		if (secondsOld >= 3600) {
-			return
+			return;
 		}
 
 		const interval = setInterval(() => {
-			const newAge = formatAge()
-			setAge(newAge)
+			const newAge = formatAge();
+			setAge(newAge);
 
-			const currentSeconds = Math.floor((Date.now() - timestamp) / 1000)
+			const currentSeconds = Math.floor((Date.now() - timestamp) / 1000);
 			if (currentSeconds >= 3600) {
-				clearInterval(interval)
+				clearInterval(interval);
 			}
-		}, 1000)
+		}, 1000);
 
-		return () => clearInterval(interval)
-	}, [timestamp])
+		return () => clearInterval(interval);
+	}, [timestamp]);
 
-	return <span className={className}>{age}</span>
+	return <span className={className}>{age}</span>;
 }

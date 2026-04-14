@@ -4,9 +4,11 @@ export function processTokenIconUrls(tokens: any[]): any[] {
 		...token,
 		iconUrl: `/api/coin/${token.coinType}/image`,
 		icon_url: undefined,
-		treasuryCapOwner: token.treasuryCapOwner ? {
-			...token.treasuryCapOwner,
-			iconUrl: undefined,
-		} : undefined
-	}))
+		treasuryCapOwner: token.treasuryCapOwner
+			? {
+					...token.treasuryCapOwner,
+					iconUrl: undefined,
+				}
+			: undefined,
+	}));
 }

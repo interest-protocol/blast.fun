@@ -1,3 +1,3 @@
 export interface NearGraduationProps {
-	pollInterval?: number
+	pollInterval?: number;
 }

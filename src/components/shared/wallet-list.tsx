@@ -1,22 +1,22 @@
-"use client"
+"use client";
 
-import { useWallets } from "@mysten/dapp-kit"
-import type { WalletWithRequiredFeatures } from "@mysten/wallet-standard"
-import { ChevronRight } from "lucide-react"
-import Image from "next/image"
-import { useMounted } from "@/hooks/use-mounted"
-import { getWalletUniqueIdentifier } from "@/utils/wallet"
-import { Button } from "../ui/button"
-import { Skeleton } from "../ui/skeleton"
+import { useWallets } from "@mysten/dapp-kit";
+import type { WalletWithRequiredFeatures } from "@mysten/wallet-standard";
+import { ChevronRight } from "lucide-react";
+import Image from "next/image";
+import { useMounted } from "@/hooks/use-mounted";
+import { getWalletUniqueIdentifier } from "@/utils/wallet";
+import { Button } from "../ui/button";
+import { Skeleton } from "../ui/skeleton";
 
 type WalletListProps = {
-	onSelect: (wallet: WalletWithRequiredFeatures) => Promise<void>
-	isConnecting?: boolean
-}
+	onSelect: (wallet: WalletWithRequiredFeatures) => Promise<void>;
+	isConnecting?: boolean;
+};
 
 export function WalletList({ onSelect, isConnecting = false }: WalletListProps) {
-	const wallets = useWallets()
-	const isMounted = useMounted()
+	const wallets = useWallets();
+	const isMounted = useMounted();
 
 	if (!isMounted) {
 		return (
@@ -33,34 +33,34 @@ export function WalletList({ onSelect, isConnecting = false }: WalletListProps) 
 					</div>
 				))}
 			</div>
-		)
+		);
 	}
 
 	// @dev: Check if OKX wallet is installed
-	const hasOKXWallet = wallets.some(wallet => wallet.name === "OKX Wallet")
-	
+	const hasOKXWallet = wallets.some((wallet) => wallet.name === "OKX Wallet");
+
 	// @dev: Custom wallet ordering - Slush first, then OKX, then Phantom, then the rest
 	const sortedWallets = [...wallets].sort((a, b) => {
 		const orderMap: Record<string, number> = {
-			"Slush": 1,
+			Slush: 1,
 			"OKX Wallet": 2,
-			"Phantom": 3,
-		}
-		
-		const aOrder = orderMap[a.name] || 999
-		const bOrder = orderMap[b.name] || 999
-		
+			Phantom: 3,
+		};
+
+		const aOrder = orderMap[a.name] || 999;
+		const bOrder = orderMap[b.name] || 999;
+
 		if (aOrder !== bOrder) {
-			return aOrder - bOrder
+			return aOrder - bOrder;
 		}
-		
-		return a.name.localeCompare(b.name)
-	})
-	
+
+		return a.name.localeCompare(b.name);
+	});
+
 	// @dev: Find the position to insert OKX wallet placeholder if not installed
-	const slushIndex = sortedWallets.findIndex(w => w.name === "Slush")
-	const phantomIndex = sortedWallets.findIndex(w => w.name === "Phantom")
-	const okxInsertIndex = slushIndex !== -1 ? slushIndex + 1 : (phantomIndex !== -1 ? phantomIndex : 0)
+	const slushIndex = sortedWallets.findIndex((w) => w.name === "Slush");
+	const phantomIndex = sortedWallets.findIndex((w) => w.name === "Phantom");
+	const okxInsertIndex = slushIndex !== -1 ? slushIndex + 1 : phantomIndex !== -1 ? phantomIndex : 0;
 
 	return (
 		<div className="w-full flex flex-col gap-2">
@@ -155,37 +155,38 @@ export function WalletList({ onSelect, isConnecting = false }: WalletListProps) 
 				</>
 			)}
 			{/* @dev: Show all wallets normally if OKX is already installed */}
-			{(hasOKXWallet || sortedWallets.length === 0) && sortedWallets.map((wallet) => (
-				<Button
-					key={getWalletUniqueIdentifier(wallet)}
-					onClick={() => onSelect(wallet)}
-					variant="outline"
-					disabled={isConnecting}
-					className="h-16 w-full justify-between px-5 ease-in-out duration-300 rounded-lg text-base"
-				>
-					<div className="flex items-center gap-3">
-						{wallet.icon && typeof wallet.icon === "string" ? (
-							<div className="h-10 w-10 rounded-lg overflow-hidden bg-background flex items-center justify-center shadow-sm border border-border/50">
-								<Image
-									src={wallet.icon}
-									alt={wallet.name}
-									width={32}
-									height={32}
-									className="rounded-md"
-									unoptimized={true}
-								/>
-							</div>
-						) : (
-							wallet.icon
-						)}
+			{(hasOKXWallet || sortedWallets.length === 0) &&
+				sortedWallets.map((wallet) => (
+					<Button
+						key={getWalletUniqueIdentifier(wallet)}
+						onClick={() => onSelect(wallet)}
+						variant="outline"
+						disabled={isConnecting}
+						className="h-16 w-full justify-between px-5 ease-in-out duration-300 rounded-lg text-base"
+					>
+						<div className="flex items-center gap-3">
+							{wallet.icon && typeof wallet.icon === "string" ? (
+								<div className="h-10 w-10 rounded-lg overflow-hidden bg-background flex items-center justify-center shadow-sm border border-border/50">
+									<Image
+										src={wallet.icon}
+										alt={wallet.name}
+										width={32}
+										height={32}
+										className="rounded-md"
+										unoptimized={true}
+									/>
+								</div>
+							) : (
+								wallet.icon
+							)}
 
-						<div className="flex flex-col items-start">
-							<span className="font-semibold text-base">{wallet.name}</span>
+							<div className="flex flex-col items-start">
+								<span className="font-semibold text-base">{wallet.name}</span>
+							</div>
 						</div>
-					</div>
-					<ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-accent transition-colors" />
-				</Button>
-			))}
+						<ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-accent transition-colors" />
+					</Button>
+				))}
 		</div>
-	)
+	);
 }

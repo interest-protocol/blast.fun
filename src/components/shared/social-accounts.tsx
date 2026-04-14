@@ -1,25 +1,21 @@
-"use client"
+"use client";
 
-import { LogOut } from "lucide-react"
-import { BsTwitterX } from "react-icons/bs"
-import { useTwitter } from "@/context/twitter.context"
-import { Button } from "../ui/button"
-import TwitterUserAvatar from "../user/user-avatar"
+import { LogOut } from "lucide-react";
+import { BsTwitterX } from "react-icons/bs";
+import { useTwitter } from "@/context/twitter.context";
+import { Button } from "../ui/button";
+import TwitterUserAvatar from "../user/user-avatar";
 
 export function SocialAccounts() {
-	const { user, isLoggedIn, login, logout } = useTwitter()
+	const { user, isLoggedIn, login, logout } = useTwitter();
 
 	if (!isLoggedIn || !user) {
 		return (
-			<Button
-				variant="outline"
-				className="w-full justify-start"
-				onClick={login}
-			>
+			<Button variant="outline" className="w-full justify-start" onClick={login}>
 				<BsTwitterX className="w-4 h-4 mr-2" />
 				Connect X/Twitter
 			</Button>
-		)
+		);
 	}
 
 	return (
@@ -28,23 +24,14 @@ export function SocialAccounts() {
 
 			<div className="flex flex-col flex-1 min-w-0">
 				<div className="flex items-center gap-2">
-					<span className="font-semibold text-sm">
-						{user.name || user.username}
-					</span>
+					<span className="font-semibold text-sm">{user.name || user.username}</span>
 				</div>
-				<span className="text-xs text-muted-foreground">
-					@{user.username}
-				</span>
+				<span className="text-xs text-muted-foreground">@{user.username}</span>
 			</div>
 
-			<Button
-				variant="ghost"
-				size="icon"
-				onClick={logout}
-				className="text-muted-foreground hover:bg-card/50"
-			>
+			<Button variant="ghost" size="icon" onClick={logout} className="text-muted-foreground hover:bg-card/50">
 				<LogOut className="size-4" />
 			</Button>
 		</div>
-	)
+	);
 }

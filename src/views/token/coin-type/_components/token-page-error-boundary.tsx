@@ -1,27 +1,27 @@
-"use client"
+"use client";
 
-import { Component, type ReactNode } from "react"
+import { Component, type ReactNode } from "react";
 
 interface Props {
-	children: ReactNode
+	children: ReactNode;
 }
 
 interface State {
-	hasError: boolean
+	hasError: boolean;
 }
 
 export class TokenPageErrorBoundary extends Component<Props, State> {
 	constructor(props: Props) {
-		super(props)
-		this.state = { hasError: false }
+		super(props);
+		this.state = { hasError: false };
 	}
 
 	static getDerivedStateFromError(): State {
-		return { hasError: true }
+		return { hasError: true };
 	}
 
 	componentDidCatch(error: Error) {
-		console.error("Token page error:", error)
+		console.error("Token page error:", error);
 	}
 
 	render() {
@@ -36,8 +36,8 @@ export class TokenPageErrorBoundary extends Component<Props, State> {
 						Try again
 					</button>
 				</div>
-			)
+			);
 		}
-		return this.props.children
+		return this.props.children;
 	}
 }

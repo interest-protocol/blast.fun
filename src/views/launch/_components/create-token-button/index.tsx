@@ -1,52 +1,52 @@
-"use client"
+"use client";
 
-import { Terminal } from "lucide-react"
-import { FC, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/utils"
-import { useLaunchCoin } from "../../_hooks/use-launch-coin"
-import toast from "react-hot-toast"
-import { useBalance } from "@/hooks/sui/use-balance"
-import { CreateTokenButtonProps } from "./create-token-button.types"
-import TerminalDialog from "../terminal-dialog"
-import { TokenFormValues } from "../create-token-form/create-token-form.types"
+import { Terminal } from "lucide-react";
+import { FC, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/utils";
+import { useLaunchCoin } from "../../_hooks/use-launch-coin";
+import toast from "react-hot-toast";
+import { useBalance } from "@/hooks/sui/use-balance";
+import { CreateTokenButtonProps } from "./create-token-button.types";
+import TerminalDialog from "../terminal-dialog";
+import { TokenFormValues } from "../create-token-form/create-token-form.types";
 
-const CreateTokenButton:FC<CreateTokenButtonProps> =({ form }) => {
+const CreateTokenButton: FC<CreateTokenButtonProps> = ({ form }) => {
 	const { handleSubmit, reset, getValues, formState } = form;
-	const { isLaunching, logs, result, launchToken, resumeLaunch, pendingToken } = useLaunchCoin()
-	const [showTerminal, setShowTerminal] = useState(false)
-	const { balance } = useBalance('0x2::sui::SUI');
+	const { isLaunching, logs, result, launchToken, resumeLaunch, pendingToken } = useLaunchCoin();
+	const [showTerminal, setShowTerminal] = useState(false);
+	const { balance } = useBalance("0x2::sui::SUI");
 
 	const onSubmit = async (data: TokenFormValues) => {
 		// Validate dev buy amount against balance
 		if (data.devBuyAmount && balance) {
-			const buyAmount = Number(data.devBuyAmount)
-			const userBalance = Number(balance)
-			
+			const buyAmount = Number(data.devBuyAmount);
+			const userBalance = Number(balance);
+
 			if (buyAmount > userBalance) {
-				toast.error("INSUFFICIENT::SUI::BALANCE")
-				return
+				toast.error("INSUFFICIENT::SUI::BALANCE");
+				return;
 			}
 		}
 
-		setShowTerminal(true)
+		setShowTerminal(true);
 		try {
-			await launchToken(data)
-			reset()
+			await launchToken(data);
+			reset();
 		} catch (error) {
 			// keep terminal open on error to show recovery
-			console.error("Launch failed:", error)
+			console.error("Launch failed:", error);
 		}
-	}
+	};
 
 	const handleResume = async () => {
 		try {
-			await resumeLaunch()
-			reset()
+			await resumeLaunch();
+			reset();
 		} catch (error) {
-			console.error("Resume failed:", error)
+			console.error("Resume failed:", error);
 		}
-	}
+	};
 
 	return (
 		<>
@@ -55,9 +55,7 @@ const CreateTokenButton:FC<CreateTokenButtonProps> =({ form }) => {
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-2">
 							<Terminal className="h-3 w-3 text-amber-500" />
-							<span className="font-mono text-xs uppercase text-amber-500">
-								PENDING::LAUNCH
-							</span>
+							<span className="font-mono text-xs uppercase text-amber-500">PENDING::LAUNCH</span>
 						</div>
 						<Button
 							variant="ghost"
@@ -81,7 +79,7 @@ const CreateTokenButton:FC<CreateTokenButtonProps> =({ form }) => {
 					)}
 					variant="outline"
 					disabled={
-						!formState.isValid || 
+						!formState.isValid ||
 						(!!getValues("devBuyAmount") && !!balance && Number(getValues("devBuyAmount")) > Number(balance))
 					}
 					onClick={handleSubmit(onSubmit)}
@@ -101,7 +99,7 @@ const CreateTokenButton:FC<CreateTokenButtonProps> =({ form }) => {
 				onResume={handleResume}
 			/>
 		</>
-	)
-}
+	);
+};
 
 export default CreateTokenButton;

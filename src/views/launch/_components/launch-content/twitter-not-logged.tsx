@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import { Loader2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { useTwitter } from "@/context/twitter.context"
-import { FC } from "react"
+import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useTwitter } from "@/context/twitter.context";
+import { FC } from "react";
 
 const TwitterNotLogged: FC = () => {
-	const { isLoading, login } = useTwitter()
+	const { isLoading, login } = useTwitter();
 
 	return (
 		<div className="container max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[calc(100vh-12rem)]">
@@ -54,7 +54,7 @@ const TwitterNotLogged: FC = () => {
 				</div>
 			</div>
 		</div>
-	)
-}
+	);
+};
 
 export default TwitterNotLogged;

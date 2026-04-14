@@ -1,7 +1,7 @@
-import { cn } from "@/utils"
+import { cn } from "@/utils";
 
 interface LogoProps {
-	className?: string
+	className?: string;
 }
 
 export function Logo({ className }: LogoProps) {
@@ -24,5 +24,5 @@ export function Logo({ className }: LogoProps) {
 			<rect fill="currentColor" x="496.44" y="1165.10" width="73.54" height="231.58" rx="0.84" />
 			<rect fill="currentColor" x="1204.99" y="1164.97" width="72.22" height="231.92" rx="0.92" />
 		</svg>
-	)
+	);
 }

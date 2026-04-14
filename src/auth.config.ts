@@ -1,6 +1,6 @@
-import { type NextAuthConfig } from "next-auth"
-import Twitter from "next-auth/providers/twitter"
-import { env } from "@/env"
+import { type NextAuthConfig } from "next-auth";
+import Twitter from "next-auth/providers/twitter";
+import { env } from "@/env";
 
 export default {
 	secret: env.AUTH_SECRET,
@@ -16,8 +16,8 @@ export default {
 					email: `${profile.data.username}@twitter.local`,
 					image: profile.data.profile_image_url,
 					username: profile.data.username,
-				}
+				};
 			},
 		}),
 	],
-} satisfies NextAuthConfig
+} satisfies NextAuthConfig;

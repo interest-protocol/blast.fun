@@ -1,4 +1,4 @@
 export interface FilterActionsProps {
-    onReset: () => void;
-    onApply: () => void;
+	onReset: () => void;
+	onApply: () => void;
 }

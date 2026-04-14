@@ -1,31 +1,31 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { ExternalLink, TrendingUp, ChartLine } from "lucide-react"
-import type { Token } from "@/types/token"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { TradingPanel } from "./trading-panel"
-import { Chart } from "@/components/shared/chart"
-import { useMarketData } from "@/hooks/use-market-data"
-import { formatNumberWithSuffix, formatAmountWithSuffix } from "@/utils/format"
-import { cn } from "@/utils"
+import { useState } from "react";
+import { ExternalLink, TrendingUp, ChartLine } from "lucide-react";
+import type { Token } from "@/types/token";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { TradingPanel } from "./trading-panel";
+import { Chart } from "@/components/shared/chart";
+import { useMarketData } from "@/hooks/use-market-data";
+import { formatNumberWithSuffix, formatAmountWithSuffix } from "@/utils/format";
+import { cn } from "@/utils";
 
 interface XCardTradingProps {
-	pool: Token
-	referrerWallet?: string | null
-	refCode?: string | null
+	pool: Token;
+	referrerWallet?: string | null;
+	refCode?: string | null;
 }
 
 export function XCardTrading({ pool, referrerWallet, refCode }: XCardTradingProps) {
-	const [activeTab, setActiveTab] = useState<"trade" | "chart">("trade")
-	const { data: marketData } = useMarketData(pool.coinType)
-	const metadata = pool.metadata
+	const [activeTab, setActiveTab] = useState<"trade" | "chart">("trade");
+	const { data: marketData } = useMarketData(pool.coinType);
+	const metadata = pool.metadata;
 
-	const bondingProgress = pool.market?.bondingProgress || 0
-	const marketCap = marketData?.marketCap || 0
-	const totalLiquidity = marketData?.liquidity || 0
-	const holdersCount = marketData?.holdersCount || 0
+	const bondingProgress = pool.market?.bondingProgress || 0;
+	const marketCap = marketData?.marketCap || 0;
+	const totalLiquidity = marketData?.liquidity || 0;
+	const holdersCount = marketData?.holdersCount || 0;
 
 	return (
 		<div className="flex flex-col h-full bg-background">
@@ -41,7 +41,9 @@ export function XCardTrading({ pool, referrerWallet, refCode }: XCardTradingProp
 						<div className="p-3 text-center">
 							<p className="font-mono text-[10px] uppercase text-muted-foreground mb-1">Liquidity</p>
 							<p className="font-mono text-sm font-bold text-blue-500">
-								{marketData ? `$${formatNumberWithSuffix(totalLiquidity)}` : `${formatAmountWithSuffix(pool.pool?.quoteBalance || "0")} SUI`}
+								{marketData
+									? `$${formatNumberWithSuffix(totalLiquidity)}`
+									: `${formatAmountWithSuffix(pool.pool?.quoteBalance || "0")} SUI`}
 							</p>
 						</div>
 						<div className="p-3 text-center">
@@ -53,16 +55,12 @@ export function XCardTrading({ pool, referrerWallet, refCode }: XCardTradingProp
 										style={{ width: `${bondingProgress}%` }}
 									/>
 								</div>
-								<p className="font-mono text-sm font-bold text-purple-500">
-									{bondingProgress.toFixed(0)}%
-								</p>
+								<p className="font-mono text-sm font-bold text-purple-500">{bondingProgress.toFixed(0)}%</p>
 							</div>
 						</div>
 						<div className="p-3 text-center">
 							<p className="font-mono text-[10px] uppercase text-muted-foreground mb-1">Holders</p>
-							<p className="font-mono text-sm font-bold text-orange-500">
-								{holdersCount}
-							</p>
+							<p className="font-mono text-sm font-bold text-orange-500">{holdersCount}</p>
 						</div>
 					</div>
 				</div>
@@ -119,12 +117,8 @@ export function XCardTrading({ pool, referrerWallet, refCode }: XCardTradingProp
 								</AvatarFallback>
 							</Avatar>
 							<div className="flex flex-col">
-								<h1 className="font-mono text-xs font-bold uppercase">
-									{metadata?.name || "[UNNAMED]"}
-								</h1>
-								<p className="font-mono text-[10px] text-muted-foreground">
-									{metadata?.symbol || "[???]"}
-								</p>
+								<h1 className="font-mono text-xs font-bold uppercase">{metadata?.name || "[UNNAMED]"}</h1>
+								<p className="font-mono text-[10px] text-muted-foreground">{metadata?.symbol || "[???]"}</p>
 							</div>
 						</div>
 						<Button
@@ -134,8 +128,8 @@ export function XCardTrading({ pool, referrerWallet, refCode }: XCardTradingProp
 							onClick={() => {
 								const url = refCode
 									? `${window.location.origin}/token/${pool.coinType}?ref=${refCode}`
-									: `${window.location.origin}/token/${pool.coinType}`
-								window.open(url, "_blank")
+									: `${window.location.origin}/token/${pool.coinType}`;
+								window.open(url, "_blank");
 							}}
 						>
 							<ExternalLink className="w-3 h-3 mr-1" />
@@ -145,5 +139,5 @@ export function XCardTrading({ pool, referrerWallet, refCode }: XCardTradingProp
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

@@ -1,63 +1,60 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useResolveSuiNSName } from "@mysten/dapp-kit"
-import { formatAddress } from "@mysten/sui/utils"
-import {
-	Globe,
-	Send,
-} from "lucide-react"
-import { BsTwitterX } from "react-icons/bs"
-import TokenAvatar from "@/components/tokens/token-avatar"
-import { cn } from "@/utils"
-import { formatNumberWithSuffix, formatSmallPrice } from "@/utils/format"
-import type { Token } from "@/types/token"
-import { RelativeAge } from "@/components/shared/relative-age"
-import { UpdateMetadataDialog } from "./update-metadata-dialog"
-import { useApp } from "@/context/app.context"
-import { useTokenProtection } from "@/hooks/use-token-protection"
-import { ProtectionBadges } from "@/components/shared/protection-badges"
-import CopyableAddress from "@/components/shared/copyable-address"
+import { useState } from "react";
+import { useResolveSuiNSName } from "@mysten/dapp-kit";
+import { formatAddress } from "@mysten/sui/utils";
+import { Globe, Send } from "lucide-react";
+import { BsTwitterX } from "react-icons/bs";
+import TokenAvatar from "@/components/tokens/token-avatar";
+import { cn } from "@/utils";
+import { formatNumberWithSuffix, formatSmallPrice } from "@/utils/format";
+import type { Token } from "@/types/token";
+import { RelativeAge } from "@/components/shared/relative-age";
+import { UpdateMetadataDialog } from "./update-metadata-dialog";
+import { useApp } from "@/context/app.context";
+import { useTokenProtection } from "@/hooks/use-token-protection";
+import { ProtectionBadges } from "@/components/shared/protection-badges";
+import CopyableAddress from "@/components/shared/copyable-address";
 
 interface TokenInfoProps {
-	pool: Token
-	realtimePrice: number | null
-	realtimeMarketCap?: number | null
+	pool: Token;
+	realtimePrice: number | null;
+	realtimeMarketCap?: number | null;
 }
 
 export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoProps) {
-	const [updateMetadataDialogOpen, setUpdateMetadataDialogOpen] = useState(false)
-	const { isConnected, address } = useApp()
-	const { settings: protectionSettings } = useTokenProtection(pool.pool?.poolId || "", pool.pool?.isProtected)
+	const [updateMetadataDialogOpen, setUpdateMetadataDialogOpen] = useState(false);
+	const { isConnected, address } = useApp();
+	const { settings: protectionSettings } = useTokenProtection(pool.pool?.poolId || "", pool.pool?.isProtected);
 
-	const metadata = pool.metadata
-	const marketData = pool.market
-	const creatorData = pool.creator
+	const metadata = pool.metadata;
+	const marketData = pool.market;
+	const creatorData = pool.creator;
 
-	const creatorTwitterHandle = creatorData?.twitterHandle
-	const creatorTwitterId = creatorData?.twitterId
-	const creatorWallet = creatorData?.address
-	const showTwitterCreator = !!creatorTwitterHandle
+	const creatorTwitterHandle = creatorData?.twitterHandle;
+	const creatorTwitterId = creatorData?.twitterId;
+	const creatorWallet = creatorData?.address;
+	const showTwitterCreator = !!creatorTwitterHandle;
 
-	const { data: resolvedDomain } = useResolveSuiNSName(!showTwitterCreator && creatorWallet ? creatorWallet : null)
+	const { data: resolvedDomain } = useResolveSuiNSName(!showTwitterCreator && creatorWallet ? creatorWallet : null);
 
-	const safeNum = (val: number | undefined) => (val != null && Number.isFinite(val) ? val : 0)
-	const pct = (curr: number, prev: number) => (prev === 0 ? null : ((curr - prev) / prev) * 100)
+	const safeNum = (val: number | undefined) => (val != null && Number.isFinite(val) ? val : 0);
+	const pct = (curr: number, prev: number) => (prev === 0 ? null : ((curr - prev) / prev) * 100);
 
-	const priceChange5m = pct(safeNum(marketData?.price), safeNum(marketData?.price5MinsAgo))
-	const priceChange1h = pct(safeNum(marketData?.price), safeNum(marketData?.price1HrAgo))
-	const priceChange4h = pct(safeNum(marketData?.price), safeNum(marketData?.price4HrAgo))
-	const priceChange24h = pct(safeNum(marketData?.price), safeNum(marketData?.price1DayAgo))
+	const priceChange5m = pct(safeNum(marketData?.price), safeNum(marketData?.price5MinsAgo));
+	const priceChange1h = pct(safeNum(marketData?.price), safeNum(marketData?.price1HrAgo));
+	const priceChange4h = pct(safeNum(marketData?.price), safeNum(marketData?.price4HrAgo));
+	const priceChange24h = pct(safeNum(marketData?.price), safeNum(marketData?.price1DayAgo));
 
-	const volume24h = marketData?.volume24h || 0
-	const basePrice = marketData?.price || 0
-	const baseMarketCap = marketData?.marketCap || 0
+	const volume24h = marketData?.volume24h || 0;
+	const basePrice = marketData?.price || 0;
+	const baseMarketCap = marketData?.marketCap || 0;
 
-	const currentPrice = realtimePrice || basePrice
-	const currentMarketCap = realtimeMarketCap || baseMarketCap
+	const currentPrice = realtimePrice || basePrice;
+	const currentMarketCap = realtimeMarketCap || baseMarketCap;
 
 	// @dev: Check if current user is the token creator
-	const isCreator = isConnected && address && creatorData?.address && address === creatorData?.address
+	const isCreator = isConnected && address && creatorData?.address && address === creatorData?.address;
 
 	return (
 		<>
@@ -79,11 +76,7 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-1.5">
 									<div className="rounded bg-accent/50 px-1.5 py-0.5 hover:bg-accent/70">
-										<CopyableAddress
-											address={pool.coinType}
-											showLabel={false}
-											className="text-xs"
-										/>
+										<CopyableAddress address={pool.coinType} showLabel={false} className="text-xs" />
 									</div>
 
 									{isCreator && (
@@ -101,7 +94,11 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 										<span className="text-muted-foreground">by</span>
 										{showTwitterCreator ? (
 											<a
-												href={creatorTwitterId ? `https://x.com/i/user/${creatorTwitterId}` : `https://x.com/${creatorTwitterHandle}`}
+												href={
+													creatorTwitterId
+														? `https://x.com/i/user/${creatorTwitterId}`
+														: `https://x.com/${creatorTwitterHandle}`
+												}
 												target="_blank"
 												rel="noopener noreferrer"
 												className="font-medium text-foreground hover:text-blue-400 transition-colors"
@@ -114,9 +111,9 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 												target="_blank"
 												className="hover:underline"
 											>
-											<span className="font-medium text-foreground">
-												{resolvedDomain || formatAddress(creatorWallet || "")}
-											</span>
+												<span className="font-medium text-foreground">
+													{resolvedDomain || formatAddress(creatorWallet || "")}
+												</span>
 											</a>
 										)}
 									</div>
@@ -125,9 +122,7 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 
 							<div className="flex items-center justify-between select-none">
 								<div className="flex items-center gap-2">
-									<h1 className="text-base font-bold text-foreground">
-										{metadata?.name || "[UNNAMED]"}
-									</h1>
+									<h1 className="text-base font-bold text-foreground">{metadata?.name || "[UNNAMED]"}</h1>
 									<span className="text-sm font-bold text-muted-foreground">
 										{metadata?.symbol || "???"}
 									</span>
@@ -168,23 +163,30 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 							{creatorData && (
 								<div className="flex items-center gap-3 text-xs select-none">
 									<span className="text-muted-foreground">
-										<span className="text-foreground font-medium">{creatorData.launchCount ?? 0}</span> launches
+										<span className="text-foreground font-medium">{creatorData.launchCount ?? 0}</span>{" "}
+										launches
 									</span>
 									<span className="text-muted-foreground">
-										<span className="text-foreground font-medium">{creatorData.trustedFollowers ?? "0"}</span> trusted
+										<span className="text-foreground font-medium">
+											{creatorData.trustedFollowers ?? "0"}
+										</span>{" "}
+										trusted
 									</span>
 									<span className="text-muted-foreground">
-										<span className="text-foreground font-medium">{creatorData.followers ?? "0"}</span> followers
+										<span className="text-foreground font-medium">{creatorData.followers ?? "0"}</span>{" "}
+										followers
 									</span>
 								</div>
 							)}
 						</div>
 					</div>
-					
+
 					{/* Protection badges section */}
-					{(pool.pool?.isProtected || protectionSettings || (typeof pool.pool?.burnTax === 'number' && pool.pool?.burnTax > 0)) && (
+					{(pool.pool?.isProtected ||
+						protectionSettings ||
+						(typeof pool.pool?.burnTax === "number" && pool.pool?.burnTax > 0)) && (
 						<div className="px-2 pb-2">
-							<ProtectionBadges 
+							<ProtectionBadges
 								protectionSettings={protectionSettings}
 								isProtected={pool.pool?.isProtected}
 								size="md"
@@ -215,12 +217,16 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 						</div>
 
 						<div className="flex h-full flex-col justify-center border-r border-border py-2">
-							<div className="text-xs font-medium">${formatNumberWithSuffix(Number.isFinite(currentMarketCap) ? currentMarketCap : 0)}</div>
+							<div className="text-xs font-medium">
+								${formatNumberWithSuffix(Number.isFinite(currentMarketCap) ? currentMarketCap : 0)}
+							</div>
 							<div className="text-xs text-muted-foreground">mcap</div>
 						</div>
 
 						<div className="flex h-full flex-col justify-center py-2">
-							<div className="text-xs font-medium">${formatNumberWithSuffix(Number.isFinite(volume24h) ? volume24h : 0)}</div>
+							<div className="text-xs font-medium">
+								${formatNumberWithSuffix(Number.isFinite(volume24h) ? volume24h : 0)}
+							</div>
 							<div className="text-xs text-muted-foreground">volume</div>
 						</div>
 					</div>
@@ -228,48 +234,80 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 					<div className="relative">
 						<div className="grid grid-cols-4 overflow-hidden border-b border-border text-center">
 							<div className="relative flex cursor-pointer flex-col justify-center overflow-hidden border-r border-border py-2">
-								<div className={cn(
-									"text-xs group relative z-10 flex items-center justify-center font-bold",
-									priceChange5m === null ? "text-muted-foreground" : priceChange5m > 0 ? "text-green-400" : "text-red-400"
-								)}>
+								<div
+									className={cn(
+										"text-xs group relative z-10 flex items-center justify-center font-bold",
+										priceChange5m === null
+											? "text-muted-foreground"
+											: priceChange5m > 0
+												? "text-green-400"
+												: "text-red-400"
+									)}
+								>
 									<span className="transition-colors group-hover:text-white">
-										{priceChange5m !== null ? `${priceChange5m > 0 ? '+' : ''}${priceChange5m.toFixed(2)}%` : '0.00%'}
+										{priceChange5m !== null
+											? `${priceChange5m > 0 ? "+" : ""}${priceChange5m.toFixed(2)}%`
+											: "0.00%"}
 									</span>
 								</div>
 								<div className="relative z-10 text-xs text-muted-foreground">5m</div>
 							</div>
 
 							<div className="relative flex cursor-pointer flex-col justify-center overflow-hidden border-r border-border py-2">
-								<div className={cn(
-									"text-xs group relative z-10 flex items-center justify-center font-bold",
-									priceChange1h === null ? "text-muted-foreground" : priceChange1h > 0 ? "text-green-400" : "text-red-400"
-								)}>
+								<div
+									className={cn(
+										"text-xs group relative z-10 flex items-center justify-center font-bold",
+										priceChange1h === null
+											? "text-muted-foreground"
+											: priceChange1h > 0
+												? "text-green-400"
+												: "text-red-400"
+									)}
+								>
 									<span className="transition-colors group-hover:text-white">
-										{priceChange1h !== null ? `${priceChange1h > 0 ? '+' : ''}${priceChange1h.toFixed(2)}%` : '0.00%'}
+										{priceChange1h !== null
+											? `${priceChange1h > 0 ? "+" : ""}${priceChange1h.toFixed(2)}%`
+											: "0.00%"}
 									</span>
 								</div>
 								<div className="relative z-10 text-xs text-muted-foreground">1h</div>
 							</div>
 
 							<div className="relative flex cursor-pointer flex-col justify-center overflow-hidden border-r border-border py-2">
-								<div className={cn(
-									"text-xs group relative z-10 flex items-center justify-center font-bold",
-									priceChange4h === null ? "text-muted-foreground" : priceChange4h > 0 ? "text-green-400" : "text-red-400"
-								)}>
+								<div
+									className={cn(
+										"text-xs group relative z-10 flex items-center justify-center font-bold",
+										priceChange4h === null
+											? "text-muted-foreground"
+											: priceChange4h > 0
+												? "text-green-400"
+												: "text-red-400"
+									)}
+								>
 									<span className="transition-colors group-hover:text-white">
-										{priceChange4h !== null ? `${priceChange4h > 0 ? '+' : ''}${priceChange4h.toFixed(2)}%` : '0.00%'}
+										{priceChange4h !== null
+											? `${priceChange4h > 0 ? "+" : ""}${priceChange4h.toFixed(2)}%`
+											: "0.00%"}
 									</span>
 								</div>
 								<div className="relative z-10 text-xs text-muted-foreground">4h</div>
 							</div>
 
 							<div className="relative flex cursor-pointer flex-col justify-center overflow-hidden py-2">
-								<div className={cn(
-									"text-xs group relative z-10 flex items-center justify-center font-bold",
-									priceChange24h === null ? "text-muted-foreground" : priceChange24h > 0 ? "text-green-400" : "text-red-400"
-								)}>
+								<div
+									className={cn(
+										"text-xs group relative z-10 flex items-center justify-center font-bold",
+										priceChange24h === null
+											? "text-muted-foreground"
+											: priceChange24h > 0
+												? "text-green-400"
+												: "text-red-400"
+									)}
+								>
 									<span className="transition-colors group-hover:text-white">
-										{priceChange24h !== null ? `${priceChange24h > 0 ? '+' : ''}${priceChange24h.toFixed(2)}%` : '0.00%'}
+										{priceChange24h !== null
+											? `${priceChange24h > 0 ? "+" : ""}${priceChange24h.toFixed(2)}%`
+											: "0.00%"}
 									</span>
 								</div>
 								<div className="relative z-10 text-xs text-muted-foreground">24h</div>
@@ -280,11 +318,7 @@ export function TokenInfo({ pool, realtimePrice, realtimeMarketCap }: TokenInfoP
 			</div>
 
 			{/* Update Metadata Dialog */}
-			<UpdateMetadataDialog
-				open={updateMetadataDialogOpen}
-				onOpenChange={setUpdateMetadataDialogOpen}
-				pool={pool}
-			/>
+			<UpdateMetadataDialog open={updateMetadataDialogOpen} onOpenChange={setUpdateMetadataDialogOpen} pool={pool} />
 		</>
-	)
+	);
 }

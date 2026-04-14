@@ -1,24 +1,18 @@
-"use client"
+"use client";
 
-import { LucideIcon } from "lucide-react"
-import Link from "next/link"
-import { Card } from "@/components/ui/card"
+import { LucideIcon } from "lucide-react";
+import Link from "next/link";
+import { Card } from "@/components/ui/card";
 
 interface ToolCardProps {
-	title: string
-	description: string
-	icon: LucideIcon
-	href: string
-	comingSoon?: boolean
+	title: string;
+	description: string;
+	icon: LucideIcon;
+	href: string;
+	comingSoon?: boolean;
 }
 
-export function ToolCard({
-	title,
-	description,
-	icon: Icon,
-	href,
-	comingSoon = false,
-}: ToolCardProps) {
+export function ToolCard({ title, description, icon: Icon, href, comingSoon = false }: ToolCardProps) {
 	const content = (
 		<Card className="h-full p-6 transition-colors hover:border-muted-foreground/50">
 			<div className="flex flex-col h-full">
@@ -37,24 +31,20 @@ export function ToolCard({
 				</div>
 
 				<div className="flex-1">
-					<h3 className="text-lg font-semibold text-foreground mb-2">
-						{title}
-					</h3>
-					<p className="text-sm text-muted-foreground leading-relaxed">
-						{description}
-					</p>
+					<h3 className="text-lg font-semibold text-foreground mb-2">{title}</h3>
+					<p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
 				</div>
 			</div>
 		</Card>
-	)
+	);
 
 	if (comingSoon) {
-		return <div className="opacity-60 cursor-not-allowed">{content}</div>
+		return <div className="opacity-60 cursor-not-allowed">{content}</div>;
 	}
 
 	return (
 		<Link href={href} className="group">
 			{content}
 		</Link>
-	)
+	);
 }

@@ -1,7 +1,7 @@
 export default function EmbedLayout({
 	children,
 }: Readonly<{
-	children: React.ReactNode
+	children: React.ReactNode;
 }>) {
-	return children
+	return children;
 }

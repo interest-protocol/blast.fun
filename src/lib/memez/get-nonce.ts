@@ -1,21 +1,21 @@
-import { PACKAGES, Modules } from "@interest-protocol/memez-fun-sdk"
-import { Transaction } from "@mysten/sui/transactions"
-import { bcs } from "@mysten/sui/bcs"
-import { normalizeSuiAddress, normalizeStructTag } from "@mysten/sui/utils"
-import { suiClient } from "@/lib/sui-client"
-import { pumpSdk } from "./sdk"
+import { PACKAGES, Modules } from "@interest-protocol/memez-fun-sdk";
+import { Transaction } from "@mysten/sui/transactions";
+import { bcs } from "@mysten/sui/bcs";
+import { normalizeSuiAddress, normalizeStructTag } from "@mysten/sui/utils";
+import { suiClient } from "@/lib/sui-client";
+import { pumpSdk } from "./sdk";
 
 export interface GetNonceArgs {
-	poolId: string
-	address: string
-	curveType: string
-	memeCoinType: string
-	quoteCoinType: string
+	poolId: string;
+	address: string;
+	curveType: string;
+	memeCoinType: string;
+	quoteCoinType: string;
 }
 
 export interface GetNonceFromPoolArgs {
-	poolId: string
-	address: string
+	poolId: string;
+	address: string;
 }
 
 /**
@@ -26,54 +26,44 @@ export async function getNextNonce({
 	address,
 	curveType,
 	memeCoinType,
-	quoteCoinType
+	quoteCoinType,
 }: GetNonceArgs): Promise<bigint> {
-	const tx = new Transaction()
+	const tx = new Transaction();
 	tx.moveCall({
 		package: PACKAGES[pumpSdk.network].MEMEZ_FUN.latest,
 		module: Modules.FUN,
-		function: 'next_nonce',
-		arguments: [
-			tx.object(poolId),
-			tx.pure.address(address)
-		],
-		typeArguments: [
-			normalizeStructTag(curveType),
-			normalizeStructTag(memeCoinType),
-			normalizeStructTag(quoteCoinType)
-		],
-	})
+		function: "next_nonce",
+		arguments: [tx.object(poolId), tx.pure.address(address)],
+		typeArguments: [normalizeStructTag(curveType), normalizeStructTag(memeCoinType), normalizeStructTag(quoteCoinType)],
+	});
 
 	const result = await suiClient.devInspectTransactionBlock({
 		transactionBlock: tx,
-		sender: normalizeSuiAddress(address)
-	})
+		sender: normalizeSuiAddress(address),
+	});
 
 	if (!result.results || result.results.length === 0) {
-		throw new Error("Failed to get nonce from contract")
+		throw new Error("Failed to get nonce from contract");
 	}
 
-	const returnValues = result.results[0].returnValues
+	const returnValues = result.results[0].returnValues;
 	if (!returnValues || returnValues.length === 0) {
-		throw new Error("No return value from next_nonce function")
+		throw new Error("No return value from next_nonce function");
 	}
 
 	// parse the returned u64 value
-	const nonce = bcs.u64().parse(new Uint8Array(returnValues[0][0]))
-	return BigInt(nonce)
+	const nonce = bcs.u64().parse(new Uint8Array(returnValues[0][0]));
+	return BigInt(nonce);
 }
 
 /**
  * Get the next nonce by fetching pool type information first
  */
-export async function getNextNonceFromPool({
-	poolId,
-	address
-}: GetNonceFromPoolArgs): Promise<bigint> {
-	const poolData = await pumpSdk.getPumpPool(poolId)
+export async function getNextNonceFromPool({ poolId, address }: GetNonceFromPoolArgs): Promise<bigint> {
+	const poolData = await pumpSdk.getPumpPool(poolId);
 
 	if (!poolData) {
-		throw new Error("Failed to fetch pool data")
+		throw new Error("Failed to fetch pool data");
 	}
 
 	return getNextNonce({
@@ -81,6 +71,6 @@ export async function getNextNonceFromPool({
 		address,
 		curveType: poolData.curveType,
 		memeCoinType: poolData.memeCoinType,
-		quoteCoinType: poolData.quoteCoinType
-	})
+		quoteCoinType: poolData.quoteCoinType,
+	});
 }

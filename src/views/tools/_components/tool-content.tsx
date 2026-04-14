@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { ToolCard } from "./tool-card"
-import { toolItems } from "@/constants/tools"
+import { ToolCard } from "./tool-card";
+import { toolItems } from "@/constants/tools";
 
 export default function ToolsContent() {
 	return (
@@ -10,5 +10,5 @@ export default function ToolsContent() {
 				<ToolCard key={tool.title} {...tool} />
 			))}
 		</div>
-	)
+	);
 }

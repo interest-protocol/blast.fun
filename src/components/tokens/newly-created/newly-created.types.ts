@@ -1,3 +1,3 @@
 export interface NewlyCreatedProps {
-	pollInterval?: number
+	pollInterval?: number;
 }

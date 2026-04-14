@@ -16,8 +16,8 @@ const TermsOfService: FC = () => {
 
 				<IntroductionAndAcceptance />
 				<RiskWarning />
-				<Terms/>
-				
+				<Terms />
+
 				<div className="border-t border-border pt-8 space-y-6">
 					<h2 className="text-2xl font-semibold tracking-tight">29–31. General Terms & Definitions</h2>
 
@@ -25,13 +25,17 @@ const TermsOfService: FC = () => {
 						<p>The same as in the original Terms, except that:</p>
 
 						<ul className="list-disc pl-6 space-y-2">
-							<li><strong>Blast</strong>: The platform and services provided by <strong>GiveRep Labs</strong>.</li>
-							<li><strong>GiveRep Labs</strong>: The BVI entity that owns and operates <strong>Blast</strong>.</li>
+							<li>
+								<strong>Blast</strong>: The platform and services provided by <strong>GiveRep Labs</strong>.
+							</li>
+							<li>
+								<strong>GiveRep Labs</strong>: The BVI entity that owns and operates <strong>Blast</strong>.
+							</li>
 						</ul>
 					</div>
 				</div>
 			</div>
 		</div>
-	)
-}
+	);
+};
 export default TermsOfService;

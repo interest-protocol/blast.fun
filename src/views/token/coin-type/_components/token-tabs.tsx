@@ -1,26 +1,26 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useTheme } from "next-themes"
-import Image from "next/image"
-import Link from "next/link"
-import { Activity, Lock, BarChart3 } from "lucide-react"
-import { cn } from "@/utils"
-import { Token } from "@/types/token"
-import { TradesTab } from "./tabs/trades-tab"
-import { TradersTab } from "./tabs/traders-tab"
-import { VestingTab } from "./tabs/vesting-tab"
+import { useState } from "react";
+import { useTheme } from "next-themes";
+import Image from "next/image";
+import Link from "next/link";
+import { Activity, Lock, BarChart3 } from "lucide-react";
+import { cn } from "@/utils";
+import { Token } from "@/types/token";
+import { TradesTab } from "./tabs/trades-tab";
+import { TradersTab } from "./tabs/traders-tab";
+import { VestingTab } from "./tabs/vesting-tab";
 
 interface TokenTabsProps {
-	pool: Token
-	className?: string
+	pool: Token;
+	className?: string;
 }
 
 interface Tab {
-	id: string
-	label: string
-	icon: React.ComponentType<{ className?: string }>
-	component: React.ComponentType<{ pool: Token; className?: string }>
+	id: string;
+	label: string;
+	icon: React.ComponentType<{ className?: string }>;
+	component: React.ComponentType<{ pool: Token; className?: string }>;
 }
 
 const tabs: Tab[] = [
@@ -28,27 +28,27 @@ const tabs: Tab[] = [
 		id: "trades",
 		label: "Trades",
 		icon: Activity,
-		component: TradesTab
+		component: TradesTab,
 	},
 	{
 		id: "traders",
 		label: "Top Traders",
 		icon: BarChart3,
-		component: TradersTab
+		component: TradersTab,
 	},
 	{
 		id: "vesting",
 		label: "Vesting",
 		icon: Lock,
-		component: VestingTab
+		component: VestingTab,
 	},
-]
+];
 
 export function TokenTabs({ pool, className }: TokenTabsProps) {
-	const [activeTab, setActiveTab] = useState("trades")
-	const { resolvedTheme } = useTheme()
+	const [activeTab, setActiveTab] = useState("trades");
+	const { resolvedTheme } = useTheme();
 
-	const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || TradesTab
+	const ActiveComponent = tabs.find((tab) => tab.id === activeTab)?.component || TradesTab;
 
 	return (
 		<div className={cn("flex flex-col h-full", className)}>
@@ -57,8 +57,8 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 				<div className="flex items-center justify-between p-2">
 					<div className="flex items-center gap-1">
 						{tabs.map((tab) => {
-							const Icon = tab.icon
-							const isActive = activeTab === tab.id
+							const Icon = tab.icon;
+							const isActive = activeTab === tab.id;
 
 							return (
 								<button
@@ -72,11 +72,9 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 									)}
 								>
 									<Icon className="h-3.5 w-3.5" />
-									<span className="hidden sm:inline">
-										{tab.label}
-									</span>
+									<span className="hidden sm:inline">{tab.label}</span>
 								</button>
-							)
+							);
 						})}
 					</div>
 
@@ -86,9 +84,7 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 						rel="noopener noreferrer"
 						className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors group pr-2"
 					>
-						<span className="font-mono text-[10px] font-semibold uppercase tracking-wider">
-							DATA BY
-						</span>
+						<span className="font-mono text-[10px] font-semibold uppercase tracking-wider">DATA BY</span>
 						<Image
 							src="/logo/nexa.svg"
 							alt="Nexa"
@@ -110,5 +106,5 @@ export function TokenTabs({ pool, className }: TokenTabsProps) {
 				<ActiveComponent pool={pool} className="h-full" />
 			</div>
 		</div>
-	)
+	);
 }

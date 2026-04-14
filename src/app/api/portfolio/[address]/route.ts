@@ -1,11 +1,8 @@
-import { NextResponse } from "next/server"
-import {
-	fetchNoodlesPortfolio,
-	type NoodlesPortfolioCoin
-} from "@/lib/noodles/client"
-import type { PortfolioBalanceItem } from "@/types/portfolio"
+import { NextResponse } from "next/server";
+import { fetchNoodlesPortfolio, type NoodlesPortfolioCoin } from "@/lib/noodles/client";
+import type { PortfolioBalanceItem } from "@/types/portfolio";
 
-export const revalidate = 30
+export const revalidate = 30;
 
 function mapNoodlesCoinToBalance(item: NoodlesPortfolioCoin): PortfolioBalanceItem {
 	return {
@@ -22,47 +19,42 @@ function mapNoodlesCoinToBalance(item: NoodlesPortfolioCoin): PortfolioBalanceIt
 			symbol: item.symbol,
 			decimals: item.decimals,
 			icon_url: item.icon_url ?? undefined,
-			iconUrl: item.icon_url ?? undefined
-		}
-	}
+			iconUrl: item.icon_url ?? undefined,
+		},
+	};
 }
 
-export async function GET(
-	_request: Request,
-	{ params }: { params: Promise<{ address: string }> }
-) {
-	const { address } = await params
+export async function GET(_request: Request, { params }: { params: Promise<{ address: string }> }) {
+	const { address } = await params;
 
 	if (!address) {
-		return NextResponse.json({ error: "Address is required" }, { status: 400 })
+		return NextResponse.json({ error: "Address is required" }, { status: 400 });
 	}
 
-	const decodedAddress = decodeURIComponent(address)
+	const decodedAddress = decodeURIComponent(address);
 
 	try {
-		const noodlesRes = await fetchNoodlesPortfolio(decodedAddress)
+		const noodlesRes = await fetchNoodlesPortfolio(decodedAddress);
 		const balances =
-			noodlesRes?.data && Array.isArray(noodlesRes.data)
-				? noodlesRes.data.map(mapNoodlesCoinToBalance)
-				: []
+			noodlesRes?.data && Array.isArray(noodlesRes.data) ? noodlesRes.data.map(mapNoodlesCoinToBalance) : [];
 		return NextResponse.json(
 			{ balances },
 			{
 				headers: {
-					"Cache-Control": "public, s-maxage=30, stale-while-revalidate=60"
-				}
+					"Cache-Control": "public, s-maxage=30, stale-while-revalidate=60",
+				},
 			}
-		)
+		);
 	} catch (error) {
-		console.error("Error fetching portfolio:", error)
+		console.error("Error fetching portfolio:", error);
 		return NextResponse.json(
 			{ balances: [] },
 			{
 				status: 200,
 				headers: {
-					"Cache-Control": "public, s-maxage=10, stale-while-revalidate=30"
-				}
+					"Cache-Control": "public, s-maxage=10, stale-while-revalidate=30",
+				},
 			}
-		)
+		);
 	}
 }

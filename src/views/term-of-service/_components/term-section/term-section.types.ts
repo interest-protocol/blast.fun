@@ -1,6 +1,6 @@
-import { ReactNode } from "react"
+import { ReactNode } from "react";
 
 export interface TermSectionProps {
-  title?: string
-  children: ReactNode
+	title?: string;
+	children: ReactNode;
 }

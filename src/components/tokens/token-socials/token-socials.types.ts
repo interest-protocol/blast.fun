@@ -1,5 +1,5 @@
 export interface TokenSocialsProps {
-    twitter?: string
-    telegram?: string
-    website?: string
+	twitter?: string;
+	telegram?: string;
+	website?: string;
 }

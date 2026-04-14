@@ -1,35 +1,43 @@
-"use client"
+"use client";
 
-import { Terminal, ArrowRight } from "lucide-react"
-import { FC, useEffect, useRef, useState } from "react"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
-import { cn } from "@/utils"
-import { useRouter } from "next/navigation"
-import { TerminalDialogProps } from "./terminal-dialog.types"
+import { Terminal, ArrowRight } from "lucide-react";
+import { FC, useEffect, useRef, useState } from "react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { cn } from "@/utils";
+import { useRouter } from "next/navigation";
+import { TerminalDialogProps } from "./terminal-dialog.types";
 
-const TerminalDialog: FC<TerminalDialogProps> = ({ open, onOpenChange, logs, isLaunching, result, pendingToken, onResume }) => {
-	const logsEndRef = useRef<HTMLDivElement>(null)
-	const [cursorBlink, setCursorBlink] = useState(true)
-	const router = useRouter()
+const TerminalDialog: FC<TerminalDialogProps> = ({
+	open,
+	onOpenChange,
+	logs,
+	isLaunching,
+	result,
+	pendingToken,
+	onResume,
+}) => {
+	const logsEndRef = useRef<HTMLDivElement>(null);
+	const [cursorBlink, setCursorBlink] = useState(true);
+	const router = useRouter();
 
 	useEffect(() => {
 		if (logs.length > 0) {
-			logsEndRef.current?.scrollIntoView({ behavior: "smooth" })
+			logsEndRef.current?.scrollIntoView({ behavior: "smooth" });
 		}
-	}, [logs])
+	}, [logs]);
 
 	useEffect(() => {
 		const interval = setInterval(() => {
-			setCursorBlink((prev) => !prev)
-		}, 500)
-		return () => clearInterval(interval)
-	}, [])
+			setCursorBlink((prev) => !prev);
+		}, 500);
+		return () => clearInterval(interval);
+	}, []);
 
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
 		if (e.key === "Escape" && !isLaunching) {
-			onOpenChange(false)
+			onOpenChange(false);
 		}
-	}
+	};
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -126,9 +134,12 @@ const TerminalDialog: FC<TerminalDialogProps> = ({ open, onOpenChange, logs, isL
 											<div className="flex items-center gap-2 flex-1">
 												<Terminal className="h-3 w-3 text-amber-500 flex-shrink-0" />
 												<div className="flex-1">
-													<div className="text-amber-500 text-xs font-medium">RECOVERY::AVAILABLE</div>
+													<div className="text-amber-500 text-xs font-medium">
+														RECOVERY::AVAILABLE
+													</div>
 													<div className="text-[10px] text-muted-foreground">
-														TREASURY::{pendingToken.treasuryCapObjectId.slice(0, 6)}...{pendingToken.treasuryCapObjectId.slice(-4)}
+														TREASURY::{pendingToken.treasuryCapObjectId.slice(0, 6)}...
+														{pendingToken.treasuryCapObjectId.slice(-4)}
 													</div>
 												</div>
 											</div>
@@ -151,7 +162,7 @@ const TerminalDialog: FC<TerminalDialogProps> = ({ open, onOpenChange, logs, isL
 				</div>
 			</DialogContent>
 		</Dialog>
-	)
-}
+	);
+};
 
 export default TerminalDialog;

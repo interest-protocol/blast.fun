@@ -1,17 +1,17 @@
-import { formatAmount } from "@/utils/format"
-import { POW_9 } from "./farms.const"
+import { formatAmount } from "@/utils/format";
+import { POW_9 } from "./farms.const";
 
 export const parseInputAmount = (input: string): bigint => {
-	if (!input || input === "") return 0n
+	if (!input || input === "") return 0n;
 
-	const cleanInput = input.replace(/,/g, "")
-	const floatValue = parseFloat(cleanInput)
+	const cleanInput = input.replace(/,/g, "");
+	const floatValue = parseFloat(cleanInput);
 
-	if (isNaN(floatValue)) return 0n
+	if (isNaN(floatValue)) return 0n;
 
-	return BigInt(Math.floor(floatValue * Number(POW_9)))
-}
+	return BigInt(Math.floor(floatValue * Number(POW_9)));
+};
 
-export const formatTokenAmount = (amount: bigint, decimals = 9): string =>{
-	return formatAmount(amount, decimals) || "0.00"
-}
+export const formatTokenAmount = (amount: bigint, decimals = 9): string => {
+	return formatAmount(amount, decimals) || "0.00";
+};

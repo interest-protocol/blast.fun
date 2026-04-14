@@ -1,6 +1,6 @@
 export interface FarmTvlProps {
-	tvlAmount: number
-	tvlUsd: number
-	tokenSymbol: string
-    stakeTokenPrice: number
+	tvlAmount: number;
+	tvlUsd: number;
+	tokenSymbol: string;
+	stakeTokenPrice: number;
 }

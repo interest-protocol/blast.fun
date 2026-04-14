@@ -1,8 +1,8 @@
-import { TokenWithMetadata } from "../../_hooks/use-search-creator"
+import { TokenWithMetadata } from "../../_hooks/use-search-creator";
 
 export interface SearchResultsProps {
-  loading: boolean
-  error: string | null
-  searched: boolean
-  tokens: TokenWithMetadata[]
+	loading: boolean;
+	error: string | null;
+	searched: boolean;
+	tokens: TokenWithMetadata[];
 }

@@ -1,24 +1,24 @@
-import React from 'react'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import React from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface MetricsFiltersProps {
-	liquidityMin?: number
-	liquidityMax?: number
-	setLiquidityMin: (min: number | undefined) => void
-	setLiquidityMax: (max: number | undefined) => void
-	volumeMin?: number
-	volumeMax?: number
-	setVolumeMin: (min: number | undefined) => void
-	setVolumeMax: (max: number | undefined) => void
-	marketCapMin?: number
-	marketCapMax?: number
-	setMarketCapMin: (min: number | undefined) => void
-	setMarketCapMax: (max: number | undefined) => void
-	tradeCountMin?: number
-	tradeCountMax?: number
-	setTradeCountMin: (min: number | undefined) => void
-	setTradeCountMax: (max: number | undefined) => void
+	liquidityMin?: number;
+	liquidityMax?: number;
+	setLiquidityMin: (min: number | undefined) => void;
+	setLiquidityMax: (max: number | undefined) => void;
+	volumeMin?: number;
+	volumeMax?: number;
+	setVolumeMin: (min: number | undefined) => void;
+	setVolumeMax: (max: number | undefined) => void;
+	marketCapMin?: number;
+	marketCapMax?: number;
+	setMarketCapMin: (min: number | undefined) => void;
+	setMarketCapMax: (max: number | undefined) => void;
+	tradeCountMin?: number;
+	tradeCountMax?: number;
+	setTradeCountMin: (min: number | undefined) => void;
+	setTradeCountMax: (max: number | undefined) => void;
 }
 
 export function MetricsFilters(props: MetricsFiltersProps) {
@@ -38,8 +38,8 @@ export function MetricsFilters(props: MetricsFiltersProps) {
 		tradeCountMin,
 		tradeCountMax,
 		setTradeCountMin,
-		setTradeCountMax
-	} = props
+		setTradeCountMax,
+	} = props;
 
 	return (
 		<div className="space-y-4">
@@ -50,14 +50,14 @@ export function MetricsFilters(props: MetricsFiltersProps) {
 				<div className="flex gap-2 mt-2">
 					<Input
 						type="number"
-						value={marketCapMin || ''}
+						value={marketCapMin || ""}
 						placeholder="[MIN]"
 						onChange={(e) => setMarketCapMin(e.target.value ? Number(e.target.value) : undefined)}
 						className="font-mono focus:border-primary/50"
 					/>
 					<Input
 						type="number"
-						value={marketCapMax || ''}
+						value={marketCapMax || ""}
 						placeholder="[MAX]"
 						onChange={(e) => setMarketCapMax(e.target.value ? Number(e.target.value) : undefined)}
 						className="font-mono focus:border-primary/50"
@@ -72,14 +72,14 @@ export function MetricsFilters(props: MetricsFiltersProps) {
 				<div className="flex gap-2 mt-2">
 					<Input
 						type="number"
-						value={volumeMin || ''}
+						value={volumeMin || ""}
 						placeholder="[MIN]"
 						onChange={(e) => setVolumeMin(e.target.value ? Number(e.target.value) : undefined)}
 						className="font-mono focus:border-primary/50"
 					/>
 					<Input
 						type="number"
-						value={volumeMax || ''}
+						value={volumeMax || ""}
 						placeholder="[MAX]"
 						onChange={(e) => setVolumeMax(e.target.value ? Number(e.target.value) : undefined)}
 						className="font-mono focus:border-primary/50"
@@ -94,14 +94,14 @@ export function MetricsFilters(props: MetricsFiltersProps) {
 				<div className="flex gap-2 mt-2">
 					<Input
 						type="number"
-						value={liquidityMin || ''}
+						value={liquidityMin || ""}
 						placeholder="[MIN]"
 						onChange={(e) => setLiquidityMin(e.target.value ? Number(e.target.value) : undefined)}
 						className="font-mono focus:border-primary/50"
 					/>
 					<Input
 						type="number"
-						value={liquidityMax || ''}
+						value={liquidityMax || ""}
 						placeholder="[MAX]"
 						onChange={(e) => setLiquidityMax(e.target.value ? Number(e.target.value) : undefined)}
 						className="font-mono focus:border-primary/50"
@@ -110,20 +110,18 @@ export function MetricsFilters(props: MetricsFiltersProps) {
 			</div>
 
 			<div>
-				<Label className="font-mono text-xs uppercase tracking-wider text-foreground/60">
-					TRADE COUNT
-				</Label>
+				<Label className="font-mono text-xs uppercase tracking-wider text-foreground/60">TRADE COUNT</Label>
 				<div className="flex gap-2 mt-2">
 					<Input
 						type="number"
-						value={tradeCountMin || ''}
+						value={tradeCountMin || ""}
 						placeholder="[MIN]"
 						onChange={(e) => setTradeCountMin(e.target.value ? Number(e.target.value) : undefined)}
 						className="font-mono focus:border-primary/50"
 					/>
 					<Input
 						type="number"
-						value={tradeCountMax || ''}
+						value={tradeCountMax || ""}
 						placeholder="[MAX]"
 						onChange={(e) => setTradeCountMax(e.target.value ? Number(e.target.value) : undefined)}
 						className="font-mono focus:border-primary/50"
@@ -131,5 +129,5 @@ export function MetricsFilters(props: MetricsFiltersProps) {
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

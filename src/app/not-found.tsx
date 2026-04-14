@@ -1,8 +1,8 @@
-import { FC } from "react"
-import Link from "next/link"
+import { FC } from "react";
+import Link from "next/link";
 
-import { cn } from "@/utils"
-import { buttonVariants } from "@/components/ui/button"
+import { cn } from "@/utils";
+import { buttonVariants } from "@/components/ui/button";
 
 const NotFound: FC = () => {
 	return (
@@ -19,6 +19,6 @@ const NotFound: FC = () => {
 			</Link>
 		</div>
 	);
-}
+};
 
 export default NotFound;

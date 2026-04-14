@@ -1,3 +1,3 @@
 export interface CreatorStatsProps {
-  data: any;
+	data: any;
 }

@@ -1,57 +1,57 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CreateVesting } from "./create-vesting"
-import { VestingPositions } from "./vesting-positions"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft } from "lucide-react"
-import Link from "next/link"
+import { useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CreateVesting } from "./create-vesting";
+import { VestingPositions } from "./vesting-positions";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 export default function VestingContent() {
-	const searchParams = useSearchParams()
-	const router = useRouter()
-	const pathname = usePathname()
-	const [activeTab, setActiveTab] = useState<string>()
-	const [shouldRefresh, setShouldRefresh] = useState(false)
-	const coinType = searchParams.get("coin_type")
+	const searchParams = useSearchParams();
+	const router = useRouter();
+	const pathname = usePathname();
+	const [activeTab, setActiveTab] = useState<string>();
+	const [shouldRefresh, setShouldRefresh] = useState(false);
+	const coinType = searchParams.get("coin_type");
 
 	useEffect(() => {
-		const tabParam = searchParams.get("tab")
+		const tabParam = searchParams.get("tab");
 		if (tabParam === "create" || tabParam === "my_positions") {
-			setActiveTab(tabParam === "my_positions" ? "positions" : tabParam)
+			setActiveTab(tabParam === "my_positions" ? "positions" : tabParam);
 		} else {
-			setActiveTab("create")
+			setActiveTab("create");
 		}
-	}, [searchParams])
+	}, [searchParams]);
 
 	const handleTabChange = (value: string) => {
-		setActiveTab(value)
-		const urlTab = value === "positions" ? "my_positions" : value
-		const params = new URLSearchParams(searchParams)
-		params.set("tab", urlTab)
+		setActiveTab(value);
+		const urlTab = value === "positions" ? "my_positions" : value;
+		const params = new URLSearchParams(searchParams);
+		params.set("tab", urlTab);
 		// @dev: Preserve coin_type parameter when switching tabs
 		if (coinType) {
-			params.set("coin_type", coinType)
+			params.set("coin_type", coinType);
 		}
-		router.replace(`${pathname}?${params.toString()}`)
-	}
+		router.replace(`${pathname}?${params.toString()}`);
+	};
 
 	const switchToPositionsTab = () => {
-		handleTabChange("positions")
-	}
+		handleTabChange("positions");
+	};
 
 	const handleVestingCreated = () => {
-		switchToPositionsTab()
+		switchToPositionsTab();
 		// @dev: Trigger a refresh of positions after 3 seconds
 		setTimeout(() => {
-			setShouldRefresh(true)
-		}, 3000)
-	}
+			setShouldRefresh(true);
+		}, 3000);
+	};
 
 	if (!activeTab) {
-		return null
+		return null;
 	}
 
 	return (
@@ -67,9 +67,7 @@ export default function VestingContent() {
 				</div>
 				<div className="mb-8">
 					<h1 className="font-bold text-3xl">Token Vesting</h1>
-					<p className="mt-2 text-muted-foreground">
-						Lock your tokens with custom vesting periods
-					</p>
+					<p className="mt-2 text-muted-foreground">Lock your tokens with custom vesting periods</p>
 				</div>
 
 				<Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
@@ -88,5 +86,5 @@ export default function VestingContent() {
 				</Tabs>
 			</div>
 		</div>
-	)
+	);
 }

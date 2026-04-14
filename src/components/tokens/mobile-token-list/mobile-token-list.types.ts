@@ -1,7 +1,7 @@
-export type TabType = "new" | "graduating" | "graduated"
+export type TabType = "new" | "graduating" | "graduated";
 
 export interface TabData {
-    key: TabType
-    label: string
-    pollInterval: number
+	key: TabType;
+	label: string;
+	pollInterval: number;
 }

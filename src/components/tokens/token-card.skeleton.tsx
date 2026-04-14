@@ -38,6 +38,6 @@ const TokenCardSkeleton: FC = () => {
 			</div>
 		</div>
 	);
-}
+};
 
 export default TokenCardSkeleton;

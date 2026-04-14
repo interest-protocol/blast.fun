@@ -1,19 +1,19 @@
-"use client"
+"use client";
 
-import { FC } from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { FC } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
-import { Logo } from "../ui/logo"
-import UserDropdown from "../user/user-dropdown"
-import { navigationItems } from "@/constants/navigation"
-import { cn } from "@/utils"
-import { useMounted } from "@/hooks/use-mounted"
-import TradeTicker from "./trade-ticker"
+import { Logo } from "../ui/logo";
+import UserDropdown from "../user/user-dropdown";
+import { navigationItems } from "@/constants/navigation";
+import { cn } from "@/utils";
+import { useMounted } from "@/hooks/use-mounted";
+import TradeTicker from "./trade-ticker";
 
 const Header: FC = () => {
-	const pathname = usePathname()
-	const mounted = useMounted()
+	const pathname = usePathname();
+	const mounted = useMounted();
 
 	return (
 		<header className="sticky top-0 z-50 border-b border-border/30">
@@ -31,8 +31,8 @@ const Header: FC = () => {
 
 				<div className="hidden lg:flex items-center gap-2">
 					{navigationItems.map((item) => {
-						const Icon = item.icon
-						const isActive = mounted && pathname === item.href
+						const Icon = item.icon;
+						const isActive = mounted && pathname === item.href;
 						return (
 							<Link
 								key={item.href}
@@ -47,7 +47,7 @@ const Header: FC = () => {
 								<Icon className="size-3.5" />
 								{item.label}
 							</Link>
-						)
+						);
 					})}
 				</div>
 
@@ -58,7 +58,7 @@ const Header: FC = () => {
 				</div>
 			</div>
 		</header>
-	)
-}
+	);
+};
 
 export default Header;

@@ -1,19 +1,19 @@
-"use client"
+"use client";
 
-import { ReactNode } from "react"
-import { SuiClientProvider, WalletProvider } from "@mysten/dapp-kit"
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { Network } from "@/types/network"
-import { env } from "@/env"
-import { AppContextProvider } from "@/context/app.context"
-import useNetworkConfig from "@/hooks/use-network-config"
+import { ReactNode } from "react";
+import { SuiClientProvider, WalletProvider } from "@mysten/dapp-kit";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Network } from "@/types/network";
+import { env } from "@/env";
+import { AppContextProvider } from "@/context/app.context";
+import useNetworkConfig from "@/hooks/use-network-config";
 
-import "@mysten/dapp-kit/dist/index.css"
+import "@mysten/dapp-kit/dist/index.css";
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient();
 
 export default function SuiProvider({ children }: { children: ReactNode }) {
-	const { networkConfig } = useNetworkConfig()
+	const { networkConfig } = useNetworkConfig();
 
 	return (
 		<QueryClientProvider client={queryClient}>
@@ -23,5 +23,5 @@ export default function SuiProvider({ children }: { children: ReactNode }) {
 				</WalletProvider>
 			</SuiClientProvider>
 		</QueryClientProvider>
-	)
+	);
 }

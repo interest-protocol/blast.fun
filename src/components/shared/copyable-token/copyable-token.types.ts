@@ -1,5 +1,5 @@
 export interface CopyableTokenProps {
-    symbol: string
-    coinType: string
-    className?: string
+	symbol: string;
+	coinType: string;
+	className?: string;
 }

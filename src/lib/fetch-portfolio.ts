@@ -1,19 +1,19 @@
-import type { PortfolioResponse, PortfolioBalanceItem } from "@/types/portfolio"
-import { BASE_DOMAIN } from "@/constants"
-import { fetchNoodlesCoinLiquidity } from "@/lib/noodles/client"
+import type { PortfolioResponse, PortfolioBalanceItem } from "@/types/portfolio";
+import { BASE_DOMAIN } from "@/constants";
+import { fetchNoodlesCoinLiquidity } from "@/lib/noodles/client";
 
 export async function fetchPortfolio(address: string): Promise<PortfolioResponse> {
 	try {
-		const base = typeof window !== "undefined" ? "" : BASE_DOMAIN
+		const base = typeof window !== "undefined" ? "" : BASE_DOMAIN;
 		const res = await fetch(`${base}/api/portfolio/${encodeURIComponent(address)}`, {
-			headers: { Accept: "application/json" }
-		})
-		if (!res.ok) return { balances: [] }
-		const data = await res.json()
+			headers: { Accept: "application/json" },
+		});
+		if (!res.ok) return { balances: [] };
+		const data = await res.json();
 
-		if (!data || !data.balances) return { balances: [] }
+		if (!data || !data.balances) return { balances: [] };
 
-		const rawBalances = (data.balances || []) as PortfolioBalanceItem[]
+		const rawBalances = (data.balances || []) as PortfolioBalanceItem[];
 		const balances: PortfolioBalanceItem[] = rawBalances.map((item) => ({
 			coinType: item.coinType ?? "",
 			balance: item.balance != null ? String(item.balance) : "0",
@@ -22,42 +22,40 @@ export async function fetchPortfolio(address: string): Promise<PortfolioResponse
 			coinMetadata: item.coinMetadata,
 			marketStats: item.marketStats,
 			averageEntryPrice: Number(item.averageEntryPrice) || 0,
-			unrealizedPnl: Number(item.unrealizedPnl) || 0
-		}))
+			unrealizedPnl: Number(item.unrealizedPnl) || 0,
+		}));
 
 		const balancesWithPoolIds = await Promise.all(
 			balances.map(async (balance) => {
 				try {
-					const poolId = await fetchNoodlesCoinLiquidity(balance.coinType)
+					const poolId = await fetchNoodlesCoinLiquidity(balance.coinType);
 					if (poolId && balance.coinMetadata) {
 						balance.coinMetadata = {
 							...balance.coinMetadata,
 							poolId,
-						}
+						};
 					}
 				} catch {
 					// @dev: continue without poolId
 				}
-				return balance
+				return balance;
 			})
-		)
+		);
 
-		return { balances: balancesWithPoolIds }
+		return { balances: balancesWithPoolIds };
 	} catch (error) {
-		console.error("Failed to fetch portfolio:", error)
-		throw new Error(
-			`Failed to fetch portfolio: ${error instanceof Error ? error.message : "Unknown error"}`
-		)
+		console.error("Failed to fetch portfolio:", error);
+		throw new Error(`Failed to fetch portfolio: ${error instanceof Error ? error.message : "Unknown error"}`);
 	}
 }
 
 export async function fetchCoinBalance(address: string, coinType: string): Promise<string> {
 	try {
-		const portfolio = await fetchPortfolio(address)
-		const coinBalance = portfolio.balances.find((b) => b.coinType === coinType)
-		return coinBalance?.balance || "0"
+		const portfolio = await fetchPortfolio(address);
+		const coinBalance = portfolio.balances.find((b) => b.coinType === coinType);
+		return coinBalance?.balance || "0";
 	} catch (error) {
-		console.error("Failed to fetch coin balance:", error)
-		return "0"
+		console.error("Failed to fetch coin balance:", error);
+		return "0";
 	}
 }

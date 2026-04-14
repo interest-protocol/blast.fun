@@ -1,3 +1,3 @@
 export interface CreatorHoverCardHeaderProps {
-	displayName: string
+	displayName: string;
 }

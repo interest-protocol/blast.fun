@@ -1,3 +1,3 @@
 export interface FarmDetailProps {
-	farmId: string
+	farmId: string;
 }

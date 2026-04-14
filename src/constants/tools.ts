@@ -1,11 +1,11 @@
-import { Send, Clock, TrendingUp, Lock, LucideIcon } from "lucide-react"
+import { Send, Clock, TrendingUp, Lock, LucideIcon } from "lucide-react";
 
 export interface ToolItem {
-	title: string
-	description: string
-	icon: LucideIcon
-	href: string
-	comingSoon?: boolean
+	title: string;
+	description: string;
+	icon: LucideIcon;
+	href: string;
+	comingSoon?: boolean;
 }
 
 export const toolItems: ToolItem[] = [
@@ -30,4 +30,4 @@ export const toolItems: ToolItem[] = [
 		href: "/tools/dca",
 		comingSoon: true,
 	},
-]
+];

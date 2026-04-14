@@ -1,3 +1,3 @@
 export interface EmptyStateProps {
-    message?: string;
+	message?: string;
 }

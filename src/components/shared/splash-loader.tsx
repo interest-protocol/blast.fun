@@ -1,26 +1,21 @@
-"use client"
+"use client";
 
-import { AnimatePresence, motion } from "motion/react"
-import { useEffect, useState } from "react"
-import { Logo } from "@/components/ui/logo"
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useState } from "react";
+import { Logo } from "@/components/ui/logo";
 
-const loadingMessages = [
-	"LOADING::TERMINAL",
-	"CONNECTING::BLOCKCHAIN",
-	"FETCHING::DATA",
-	"PREPARING::INTERFACE",
-]
+const loadingMessages = ["LOADING::TERMINAL", "CONNECTING::BLOCKCHAIN", "FETCHING::DATA", "PREPARING::INTERFACE"];
 
 export function SplashLoader() {
-	const [messageIndex, setMessageIndex] = useState(0)
+	const [messageIndex, setMessageIndex] = useState(0);
 
 	useEffect(() => {
 		const messageInterval = setInterval(() => {
-			setMessageIndex((prev) => (prev + 1) % loadingMessages.length)
-		}, 1200)
+			setMessageIndex((prev) => (prev + 1) % loadingMessages.length);
+		}, 1200);
 
-		return () => clearInterval(messageInterval)
-	}, [])
+		return () => clearInterval(messageInterval);
+	}, []);
 
 	return (
 		<div className="fixed z-[1000] inset-0 flex items-center justify-center bg-background overflow-hidden select-none">
@@ -62,5 +57,5 @@ export function SplashLoader() {
 				</AnimatePresence>
 			</div>
 		</div>
-	)
+	);
 }

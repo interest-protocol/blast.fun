@@ -5,11 +5,11 @@ import { constructMetadata } from "@/lib/metadata";
 
 export const metadata = constructMetadata({
 	title: "Portfolio",
-	description: "Track your crypto portfolio and PNL"
-})
+	description: "Track your crypto portfolio and PNL",
+});
 
 const PortfolioPage: FC = () => {
-	return <Portfolio />
-}
+	return <Portfolio />;
+};
 
-export default PortfolioPage
+export default PortfolioPage;

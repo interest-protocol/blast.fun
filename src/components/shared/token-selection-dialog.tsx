@@ -1,19 +1,19 @@
-"use client"
+"use client";
 
-import { useState, useRef } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog"
-import { Button } from "../ui/button"
-import { Input } from "../ui/input"
-import TokenAvatar from "../tokens/token-avatar"
-import { ChevronDown, Loader2 } from "lucide-react"
-import type { WalletCoin } from "@/types/blockvision"
+import { useState, useRef } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import TokenAvatar from "../tokens/token-avatar";
+import { ChevronDown, Loader2 } from "lucide-react";
+import type { WalletCoin } from "@/types/blockvision";
 
 interface TokenSelectionDialogProps {
-	coins: WalletCoin[]
-	selectedCoin: string
-	onSelectCoin: (coinType: string) => void
-	isLoading?: boolean
-	disabled?: boolean
+	coins: WalletCoin[];
+	selectedCoin: string;
+	onSelectCoin: (coinType: string) => void;
+	isLoading?: boolean;
+	disabled?: boolean;
 }
 
 export function TokenSelectionDialog({
@@ -23,25 +23,22 @@ export function TokenSelectionDialog({
 	isLoading = false,
 	disabled = false,
 }: TokenSelectionDialogProps) {
-	const [open, setOpen] = useState(false)
-	const [searchQuery, setSearchQuery] = useState("")
-	const searchInputRef = useRef<HTMLInputElement>(null)
+	const [open, setOpen] = useState(false);
+	const [searchQuery, setSearchQuery] = useState("");
+	const searchInputRef = useRef<HTMLInputElement>(null);
 
-	const selectedCoinInfo = coins.find(c => c.coinType === selectedCoin)
+	const selectedCoinInfo = coins.find((c) => c.coinType === selectedCoin);
 
 	const filteredCoins = coins.filter((coin) => {
-		const query = searchQuery.toLowerCase()
-		return (
-			coin.symbol.toLowerCase().includes(query) ||
-			coin.name.toLowerCase().includes(query)
-		)
-	})
+		const query = searchQuery.toLowerCase();
+		return coin.symbol.toLowerCase().includes(query) || coin.name.toLowerCase().includes(query);
+	});
 
 	const handleSelect = (coinType: string) => {
-		onSelectCoin(coinType)
-		setOpen(false)
-		setSearchQuery("")
-	}
+		onSelectCoin(coinType);
+		setOpen(false);
+		setSearchQuery("");
+	};
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -67,7 +64,10 @@ export function TokenSelectionDialog({
 							<div className="flex flex-col items-start">
 								<span className="font-mono font-semibold">{selectedCoinInfo.symbol}</span>
 								<span className="text-xs text-muted-foreground font-mono">
-									Balance: {(parseFloat(selectedCoinInfo.balance) / Math.pow(10, selectedCoinInfo.decimals)).toFixed(2)}
+									Balance:{" "}
+									{(
+										parseFloat(selectedCoinInfo.balance) / Math.pow(10, selectedCoinInfo.decimals)
+									).toFixed(2)}
 								</span>
 							</div>
 						</div>
@@ -96,9 +96,7 @@ export function TokenSelectionDialog({
 					<div className="max-h-[400px] overflow-y-auto space-y-2">
 						{filteredCoins.length === 0 ? (
 							<div className="py-8 text-center">
-								<p className="font-mono text-xs uppercase text-muted-foreground">
-									NO TOKENS FOUND
-								</p>
+								<p className="font-mono text-xs uppercase text-muted-foreground">NO TOKENS FOUND</p>
 								<p className="font-mono text-xs uppercase text-muted-foreground/60 mt-1">
 									TRY A DIFFERENT SEARCH
 								</p>
@@ -120,9 +118,7 @@ export function TokenSelectionDialog({
 										/>
 										<div className="flex flex-col items-start flex-1">
 											<span className="font-mono font-semibold">{coin.symbol}</span>
-											<span className="text-xs text-muted-foreground font-mono">
-												{coin.name}
-											</span>
+											<span className="text-xs text-muted-foreground font-mono">{coin.name}</span>
 										</div>
 										<div className="text-right">
 											<span className="font-mono text-sm font-semibold">
@@ -137,5 +133,5 @@ export function TokenSelectionDialog({
 				</div>
 			</DialogContent>
 		</Dialog>
-	)
+	);
 }

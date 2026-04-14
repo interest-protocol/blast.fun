@@ -1,3 +1,3 @@
 export interface ErrorStateProps {
-    message?: string;
+	message?: string;
 }

@@ -1,34 +1,34 @@
-"use client"
+"use client";
 
-import { useEffect, useState, useCallback } from "react"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Loader2 } from "lucide-react"
-import toast from "react-hot-toast"
-import { formatNumberWithSuffix } from "@/utils/format"
-import { useApp } from "@/context/app.context"
-import { SuiJsonRpcClient } from "@mysten/sui/jsonRpc"
-import { Transaction } from "@mysten/sui/transactions"
-import { useSignAndExecuteTransaction } from "@mysten/dapp-kit"
-import type { CoinStruct } from "@mysten/sui/jsonRpc"
-import type { WalletCoin } from "@/types/blockvision"
-import { useTransaction } from "@/hooks/sui/use-transaction"
-import { walletSdk } from "@/lib/memez/sdk"
-import { suiClient } from "@/lib/sui-client"
+import { useEffect, useState, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Loader2 } from "lucide-react";
+import toast from "react-hot-toast";
+import { formatNumberWithSuffix } from "@/utils/format";
+import { useApp } from "@/context/app.context";
+import { SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
+import { Transaction } from "@mysten/sui/transactions";
+import { useSignAndExecuteTransaction } from "@mysten/dapp-kit";
+import type { CoinStruct } from "@mysten/sui/jsonRpc";
+import type { WalletCoin } from "@/types/blockvision";
+import { useTransaction } from "@/hooks/sui/use-transaction";
+import { walletSdk } from "@/lib/memez/sdk";
+import { suiClient } from "@/lib/sui-client";
 
 interface RewardsDialogProps {
-	open: boolean
-	onOpenChange: (open: boolean) => void
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
 }
 
 export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
-	const { address, isConnected } = useApp()
-	const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction()
-	const [walletCoins, setWalletCoins] = useState<WalletCoin[]>([])
-	const [isLoading, setIsLoading] = useState(false)
-	const [claimingCoinType, setClaimingCoinType] = useState<string | null>(null)
-	const [memezWalletAddress, setMemezWalletAddress] = useState<string | null>(null)
-	const { executeTransaction } = useTransaction()
+	const { address, isConnected } = useApp();
+	const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction();
+	const [walletCoins, setWalletCoins] = useState<WalletCoin[]>([]);
+	const [isLoading, setIsLoading] = useState(false);
+	const [claimingCoinType, setClaimingCoinType] = useState<string | null>(null);
+	const [memezWalletAddress, setMemezWalletAddress] = useState<string | null>(null);
+	const { executeTransaction } = useTransaction();
 
 	const mergeAndPrepareReceive = async (
 		coin: WalletCoin,
@@ -36,66 +36,65 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 		suiClient: SuiJsonRpcClient
 	): Promise<{ success: boolean; error?: string }> => {
 		try {
-			const allCoins: CoinStruct[] = []
-			let cursor: string | null | undefined = undefined
-			let hasNextPage = true
-			
+			const allCoins: CoinStruct[] = [];
+			let cursor: string | null | undefined = undefined;
+			let hasNextPage = true;
+
 			while (hasNextPage) {
-				let retries = 0
-				const maxRetries = 3
-				let response = null
-				
+				let retries = 0;
+				const maxRetries = 3;
+				let response = null;
+
 				while (retries < maxRetries) {
 					try {
 						response = await suiClient.getCoins({
 							owner: memezWalletAddress!,
 							coinType: coin.coinType,
 							cursor,
-						})
-						break
+						});
+						break;
 					} catch (error: any) {
-						if (error?.status === 429 || error?.message?.includes('429')) {
-							retries++
+						if (error?.status === 429 || error?.message?.includes("429")) {
+							retries++;
 							if (retries >= maxRetries) {
-								throw new Error(`Rate limited after ${maxRetries} retries`)
+								throw new Error(`Rate limited after ${maxRetries} retries`);
 							}
-							
-							const waitTime = Math.pow(2, retries - 1) * 1000
-							await new Promise(resolve => setTimeout(resolve, waitTime))
+
+							const waitTime = Math.pow(2, retries - 1) * 1000;
+							await new Promise((resolve) => setTimeout(resolve, waitTime));
 						} else {
-							throw error
+							throw error;
 						}
 					}
 				}
-				
+
 				if (!response) {
-					throw new Error("Failed to fetch coins after retries")
+					throw new Error("Failed to fetch coins after retries");
 				}
-				
-				allCoins.push(...response.data)
-				hasNextPage = response.hasNextPage
-				cursor = response.nextCursor
+
+				allCoins.push(...response.data);
+				hasNextPage = response.hasNextPage;
+				cursor = response.nextCursor;
 			}
-			
+
 			if (allCoins.length === 0) {
-				return { success: false, error: "No coins found" }
+				return { success: false, error: "No coins found" };
 			}
-			
-			let finalCoinId = ""
-			
+
+			let finalCoinId = "";
+
 			// merge coins
 			if (allCoins.length > 1) {
-				const BATCH_SIZE = 500
-				let remainingCoins = [...allCoins]
-				
+				const BATCH_SIZE = 500;
+				let remainingCoins = [...allCoins];
+
 				while (remainingCoins.length > 1) {
-					const batches: typeof allCoins[] = []
+					const batches: (typeof allCoins)[] = [];
 					for (let i = 0; i < remainingCoins.length; i += BATCH_SIZE) {
-						batches.push(remainingCoins.slice(i, Math.min(i + BATCH_SIZE, remainingCoins.length)))
+						batches.push(remainingCoins.slice(i, Math.min(i + BATCH_SIZE, remainingCoins.length)));
 					}
-					
+
 					const mergePromises = batches.map(async (batch, index) => {
-				
 						const mergeResponse = await fetch("/api/wallet/merge-coins", {
 							method: "POST",
 							headers: {
@@ -110,106 +109,108 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 								coinType: coin.coinType,
 								walletAddress: memezWalletAddress,
 							}),
-						})
-						
+						});
+
 						if (!mergeResponse.ok) {
-							const errorData = await mergeResponse.json()
-							throw new Error(errorData.error || `Failed to merge batch ${index + 1}`)
+							const errorData = await mergeResponse.json();
+							throw new Error(errorData.error || `Failed to merge batch ${index + 1}`);
 						}
-						
-						const mergeData = await mergeResponse.json()
-						
+
+						const mergeData = await mergeResponse.json();
+
 						if (!mergeData.success) {
-							throw new Error(mergeData.error || `Merge failed for batch ${index + 1}`)
+							throw new Error(mergeData.error || `Merge failed for batch ${index + 1}`);
 						}
-						
-						return mergeData
-					})
-					
+
+						return mergeData;
+					});
+
 					// wait for all parallel merges to complete
-					await Promise.all(mergePromises)
-					await new Promise(resolve => setTimeout(resolve, 3000))
-					
+					await Promise.all(mergePromises);
+					await new Promise((resolve) => setTimeout(resolve, 3000));
+
 					// Fetch all updated coins (with pagination to get all)
-					const updatedCoins: CoinStruct[] = []
-					let cursor: string | null | undefined = undefined
-					let hasNextPage = true
-					
+					const updatedCoins: CoinStruct[] = [];
+					let cursor: string | null | undefined = undefined;
+					let hasNextPage = true;
+
 					while (hasNextPage) {
-						let retries = 0
-						const maxRetries = 3
-						let response = null
-						
+						let retries = 0;
+						const maxRetries = 3;
+						let response = null;
+
 						while (retries < maxRetries) {
 							try {
 								response = await suiClient.getCoins({
 									owner: memezWalletAddress!,
 									coinType: coin.coinType,
 									cursor,
-								})
-								break
+								});
+								break;
 							} catch (error: any) {
-								if (error?.status === 429 || error?.message?.includes('429')) {
-									retries++
+								if (error?.status === 429 || error?.message?.includes("429")) {
+									retries++;
 									if (retries >= maxRetries) {
-										throw new Error(`Rate limited after ${maxRetries} retries while fetching updated coins`)
+										throw new Error(
+											`Rate limited after ${maxRetries} retries while fetching updated coins`
+										);
 									}
-									const waitTime = Math.pow(2, retries - 1) * 1000
-									await new Promise(resolve => setTimeout(resolve, waitTime))
+									const waitTime = Math.pow(2, retries - 1) * 1000;
+									await new Promise((resolve) => setTimeout(resolve, waitTime));
 								} else {
-									throw error
+									throw error;
 								}
 							}
 						}
-						
+
 						if (!response) {
-							throw new Error("Failed to fetch updated coins after retries")
+							throw new Error("Failed to fetch updated coins after retries");
 						}
-						
-						updatedCoins.push(...response.data)
-						hasNextPage = response.hasNextPage
-						cursor = response.nextCursor
+
+						updatedCoins.push(...response.data);
+						hasNextPage = response.hasNextPage;
+						cursor = response.nextCursor;
 					}
-					
-					remainingCoins = updatedCoins
-					
+
+					remainingCoins = updatedCoins;
+
 					if (remainingCoins.length === 1) {
-						finalCoinId = remainingCoins[0].coinObjectId
-						break
+						finalCoinId = remainingCoins[0].coinObjectId;
+						break;
 					}
 				}
 			} else {
-				finalCoinId = allCoins[0].coinObjectId
+				finalCoinId = allCoins[0].coinObjectId;
 			}
-			
+
 			if (!finalCoinId) {
-				throw new Error("No final coin ID after merge")
+				throw new Error("No final coin ID after merge");
 			}
-			
+
 			const { object } = walletSdk.receive({
 				tx,
 				type: `0x2::coin::Coin<${coin.coinType}>`,
 				objectId: finalCoinId,
 				wallet: memezWalletAddress!,
-			})
-			
-			tx.transferObjects([object], address!)
-			
-			return { success: true }
+			});
+
+			tx.transferObjects([object], address!);
+
+			return { success: true };
 		} catch (error) {
-			console.error(`  ❌ Failed to process ${coin.symbol}:`, error)
-			return { 
-				success: false, 
-				error: error instanceof Error ? error.message : "Unknown error" 
-			}
+			console.error(`  ❌ Failed to process ${coin.symbol}:`, error);
+			return {
+				success: false,
+				error: error instanceof Error ? error.message : "Unknown error",
+			};
 		}
-	}
+	};
 
 	// Fetch wallet coins from BlockVision via proxy
 	const fetchWalletCoins = useCallback(async () => {
-		if (!memezWalletAddress) return
+		if (!memezWalletAddress) return;
 
-		setIsLoading(true)
+		setIsLoading(true);
 		try {
 			const response = await fetch("/api/wallet/coins", {
 				method: "POST",
@@ -217,141 +218,142 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({ address: memezWalletAddress }),
-			})
+			});
 
 			if (!response.ok) {
-				throw new Error("Failed to fetch wallet coins")
+				throw new Error("Failed to fetch wallet coins");
 			}
 
-			const data = await response.json()
-			const coins = data.coins || []
-			
-			setWalletCoins(coins)
+			const data = await response.json();
+			const coins = data.coins || [];
+
+			setWalletCoins(coins);
 		} catch (error) {
-			console.error("Error fetching wallet coins:", error)
-			toast.error("Failed to load wallet funds")
-			setWalletCoins([])
+			console.error("Error fetching wallet coins:", error);
+			toast.error("Failed to load wallet funds");
+			setWalletCoins([]);
 		} finally {
-			setIsLoading(false)
+			setIsLoading(false);
 		}
-	}, [memezWalletAddress])
+	}, [memezWalletAddress]);
 
 	// Handle claim button click - simplified using shared function
-	const handleClaim = useCallback(async (coin: WalletCoin) => {		
-		setClaimingCoinType(coin.coinType)
-		const loadingToastId = toast.loading("Preparing your reward...")
-		
-		try {
-			const tx = new Transaction()
-			
-			// Merge and prepare receive for this coin
-			const result = await mergeAndPrepareReceive(coin, tx, suiClient)
-			
-			if (!result.success) {
-				throw new Error(result.error || "Failed to prepare coin")
+	const handleClaim = useCallback(
+		async (coin: WalletCoin) => {
+			setClaimingCoinType(coin.coinType);
+			const loadingToastId = toast.loading("Preparing your reward...");
+
+			try {
+				const tx = new Transaction();
+
+				// Merge and prepare receive for this coin
+				const result = await mergeAndPrepareReceive(coin, tx, suiClient);
+
+				if (!result.success) {
+					throw new Error(result.error || "Failed to prepare coin");
+				}
+
+				// Dismiss loading toast
+				toast.dismiss(loadingToastId);
+
+				// Set gas budget
+				tx.setGasBudget(10000000);
+
+				await executeTransaction(tx);
+
+				toast.success(`${coin.symbol} claimed successfully!`);
+
+				// Refresh wallet coins after claim
+				setTimeout(() => {
+					fetchWalletCoins();
+				}, 2000);
+			} catch (error) {
+				console.error("\n❌ CLAIM FAILED:", error);
+				toast.dismiss(loadingToastId);
+				toast.error(`Failed to claim ${coin.symbol}: ${error instanceof Error ? error.message : "Unknown error"}`);
+			} finally {
+				setClaimingCoinType(null);
 			}
-			
-			// Dismiss loading toast
-			toast.dismiss(loadingToastId)
-			
-			// Set gas budget
-			tx.setGasBudget(10000000)
-			
-			await executeTransaction(tx)
-			
-			toast.success(`${coin.symbol} claimed successfully!`)
-			
-			// Refresh wallet coins after claim
-			setTimeout(() => {
-				fetchWalletCoins()
-			}, 2000)
-			
-		} catch (error) {
-			console.error("\n❌ CLAIM FAILED:", error)
-			toast.dismiss(loadingToastId)
-			toast.error(`Failed to claim ${coin.symbol}: ${error instanceof Error ? error.message : "Unknown error"}`)
-		} finally {
-			setClaimingCoinType(null)
-		}
-	}, [address, mergeAndPrepareReceive, signAndExecuteTransaction, fetchWalletCoins])
+		},
+		[address, mergeAndPrepareReceive, signAndExecuteTransaction, fetchWalletCoins]
+	);
 
 	// Handle claim all button - sequential processing with progress updates
 	const handleClaimAll = useCallback(async () => {
-		if (walletCoins.length === 0) return
+		if (walletCoins.length === 0) return;
 
 		// Limit to 200 coins maximum
-		const MAX_COINS = 10
-		const coinsToProcess = walletCoins.slice(0, MAX_COINS)
-		
-		setClaimingCoinType("all")
-		let progressToastId: string | undefined
-		
+		const MAX_COINS = 10;
+		const coinsToProcess = walletCoins.slice(0, MAX_COINS);
+
+		setClaimingCoinType("all");
+		let progressToastId: string | undefined;
+
 		try {
-			const tx = new Transaction()
-			
+			const tx = new Transaction();
+
 			// Process each coin sequentially with progress updates
-			let successCount = 0
-			const failedCoins: string[] = []
-			
+			let successCount = 0;
+			const failedCoins: string[] = [];
+
 			for (let i = 0; i < coinsToProcess.length; i++) {
-				const coin = coinsToProcess[i]
-				
+				const coin = coinsToProcess[i];
+
 				// Update progress toast
 				if (progressToastId) {
-					toast.dismiss(progressToastId)
+					toast.dismiss(progressToastId);
 				}
-				progressToastId = toast.loading(`Preparing ${coin.symbol} (${i + 1}/${coinsToProcess.length})...`)
-				
-				const result = await mergeAndPrepareReceive(coin, tx, suiClient)
-				
+				progressToastId = toast.loading(`Preparing ${coin.symbol} (${i + 1}/${coinsToProcess.length})...`);
+
+				const result = await mergeAndPrepareReceive(coin, tx, suiClient);
+
 				if (result.success) {
-					successCount++
+					successCount++;
 				} else {
-					failedCoins.push(coin.symbol)
+					failedCoins.push(coin.symbol);
 				}
 			}
-			
+
 			// Dismiss progress toast
 			if (progressToastId) {
-				toast.dismiss(progressToastId)
+				toast.dismiss(progressToastId);
 			}
-			
+
 			if (successCount === 0) {
-				throw new Error("No coins could be prepared for claiming")
+				throw new Error("No coins could be prepared for claiming");
 			}
-			
+
 			// Show warning if some coins failed
 			if (failedCoins.length > 0) {
-				toast.error(`Could not claim: ${failedCoins.join(", ")}`)
+				toast.error(`Could not claim: ${failedCoins.join(", ")}`);
 			}
-			
+
 			// Show warning if we hit the limit
 			if (walletCoins.length > MAX_COINS) {
-				toast(`Processing first ${MAX_COINS} coins. Run claim all again for remaining coins.`)
+				toast(`Processing first ${MAX_COINS} coins. Run claim all again for remaining coins.`);
 			}
-			
+
 			// Set gas budget
-			tx.setGasBudget(10000000)
-			
-			await executeTransaction(tx)
-			
-			toast.success(`Successfully claimed ${successCount} reward(s)!`)
-			
+			tx.setGasBudget(10000000);
+
+			await executeTransaction(tx);
+
+			toast.success(`Successfully claimed ${successCount} reward(s)!`);
+
 			// Refresh wallet coins after claim
 			setTimeout(() => {
-				fetchWalletCoins()
-			}, 2000)
-			
+				fetchWalletCoins();
+			}, 2000);
 		} catch (error) {
-			console.error("\n❌ CLAIM ALL FAILED:", error)
+			console.error("\n❌ CLAIM ALL FAILED:", error);
 			if (progressToastId) {
-				toast.dismiss(progressToastId)
+				toast.dismiss(progressToastId);
 			}
-			toast.error(`Failed to claim rewards: ${error instanceof Error ? error.message : "Unknown error"}`)
+			toast.error(`Failed to claim rewards: ${error instanceof Error ? error.message : "Unknown error"}`);
 		} finally {
-			setClaimingCoinType(null)
+			setClaimingCoinType(null);
 		}
-	}, [address, walletCoins, mergeAndPrepareReceive, signAndExecuteTransaction, fetchWalletCoins])
+	}, [address, walletCoins, mergeAndPrepareReceive, signAndExecuteTransaction, fetchWalletCoins]);
 
 	// Get Memez wallet address when user connects
 	useEffect(() => {
@@ -359,24 +361,24 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 			// Get the Memez wallet address using the SDK
 			const getMemezWallet = async () => {
 				try {
-					const memezAddr = await walletSdk.getWalletAddress(address)
-					console.log("Rewards wallet address:", memezAddr)
-					setMemezWalletAddress(memezAddr)
+					const memezAddr = await walletSdk.getWalletAddress(address);
+					console.log("Rewards wallet address:", memezAddr);
+					setMemezWalletAddress(memezAddr);
 				} catch (error) {
-					console.error("Failed to get reward wallet address:", error)
-					toast.error("Failed to get reward wallet address")
+					console.error("Failed to get reward wallet address:", error);
+					toast.error("Failed to get reward wallet address");
 				}
-			}
-			getMemezWallet()
+			};
+			getMemezWallet();
 		}
-	}, [isConnected, address, walletSdk, open])
+	}, [isConnected, address, walletSdk, open]);
 
 	// Fetch coins when memez wallet address is available
 	useEffect(() => {
 		if (memezWalletAddress && open) {
-			fetchWalletCoins()
+			fetchWalletCoins();
 		}
-	}, [memezWalletAddress, fetchWalletCoins, open])
+	}, [memezWalletAddress, fetchWalletCoins, open]);
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -412,9 +414,7 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 						{isLoading ? (
 							<div className="flex flex-col items-center justify-center py-16">
 								<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-								<p className="mt-3 text-sm font-mono text-muted-foreground">
-									Loading wallet rewards...
-								</p>
+								<p className="mt-3 text-sm font-mono text-muted-foreground">Loading wallet rewards...</p>
 							</div>
 						) : walletCoins.length > 0 ? (
 							<div className="overflow-x-auto">
@@ -449,8 +449,8 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 																alt={coin.symbol}
 																className="h-8 w-8 rounded-full"
 																onError={(e) => {
-																	const target = e.target as HTMLImageElement
-																	target.style.display = "none"
+																	const target = e.target as HTMLImageElement;
+																	target.style.display = "none";
 																}}
 															/>
 														) : (
@@ -464,17 +464,13 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 															<div className="font-mono text-sm font-medium">
 																{coin.symbol}
 															</div>
-															<div className="text-xs text-muted-foreground">
-																{coin.name}
-															</div>
+															<div className="text-xs text-muted-foreground">{coin.name}</div>
 														</div>
 													</div>
 												</td>
 												<td className="p-4 text-right">
 													<span className="font-mono text-sm">
-														{formatNumberWithSuffix(
-															parseFloat(coin.balance), coin.decimals
-														)}
+														{formatNumberWithSuffix(parseFloat(coin.balance), coin.decimals)}
 													</span>
 												</td>
 												<td className="p-4 text-right">
@@ -505,14 +501,12 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 							</div>
 						) : (
 							<div className="flex flex-col items-center justify-center py-16">
-								<p className="text-sm font-mono text-muted-foreground uppercase">
-									No rewards available
-								</p>
+								<p className="text-sm font-mono text-muted-foreground uppercase">No rewards available</p>
 							</div>
 						)}
 					</div>
 				</div>
 			</DialogContent>
 		</Dialog>
-	)
+	);
 }

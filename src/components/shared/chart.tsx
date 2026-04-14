@@ -1,24 +1,24 @@
-"use client"
+"use client";
 
-import { useState, useMemo } from "react"
-import { useTheme } from "next-themes"
-import { cn } from "@/utils"
+import { useState, useMemo } from "react";
+import { useTheme } from "next-themes";
+import { cn } from "@/utils";
 
 interface ChartProps {
-	coinType: string
-	className?: string
+	coinType: string;
+	className?: string;
 }
 
 export function Chart({ coinType, className }: ChartProps) {
-	const [isLoading, setIsLoading] = useState(true)
-	const [loadFailed, setLoadFailed] = useState(false)
-	const { resolvedTheme } = useTheme()
+	const [isLoading, setIsLoading] = useState(true);
+	const [loadFailed, setLoadFailed] = useState(false);
+	const { resolvedTheme } = useTheme();
 
 	const chartUrl = useMemo(() => {
-		const safeCoinType = coinType ?? ""
-		const theme = resolvedTheme === "light" ? "light" : "dark"
-		return `https://noodles.fi/tv-widget?coin=${encodeURIComponent(safeCoinType)}&theme=${theme}`
-	}, [coinType, resolvedTheme])
+		const safeCoinType = coinType ?? "";
+		const theme = resolvedTheme === "light" ? "light" : "dark";
+		return `https://noodles.fi/tv-widget?coin=${encodeURIComponent(safeCoinType)}&theme=${theme}`;
+	}, [coinType, resolvedTheme]);
 
 	if (loadFailed) {
 		return (
@@ -38,7 +38,7 @@ export function Chart({ coinType, className }: ChartProps) {
 					View on Noodles →
 				</a>
 			</div>
-		)
+		);
 	}
 
 	return (
@@ -61,5 +61,5 @@ export function Chart({ coinType, className }: ChartProps) {
 				onError={() => setLoadFailed(true)}
 			/>
 		</div>
-	)
+	);
 }

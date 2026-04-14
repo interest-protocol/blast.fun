@@ -1,3 +1,3 @@
 export interface TrustedFollowersCardProps {
-	count: string
+	count: string;
 }

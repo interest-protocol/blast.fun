@@ -1,32 +1,32 @@
-"use client"
+"use client";
 
-import { signIn, signOut, useSession } from "next-auth/react"
-import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useReducer } from "react"
+import { signIn, signOut, useSession } from "next-auth/react";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useReducer } from "react";
 
 export interface TwitterUser {
-	id: string
-	username: string
-	name: string | null
-	profile_image_url: string | null
+	id: string;
+	username: string;
+	name: string | null;
+	profile_image_url: string | null;
 }
 
 interface TwitterAuthState {
-	user: TwitterUser | null
-	isLoading: boolean
-	isLoggedIn: boolean
-	error: string | null
+	user: TwitterUser | null;
+	isLoading: boolean;
+	isLoggedIn: boolean;
+	error: string | null;
 }
 
 type TwitterAuthAction =
 	| { type: "SET_LOADING"; payload: boolean }
 	| { type: "SET_USER"; payload: TwitterUser | null }
 	| { type: "SET_ERROR"; payload: string | null }
-	| { type: "RESET" }
+	| { type: "RESET" };
 
 interface TwitterAuthContextType extends TwitterAuthState {
-	login: () => Promise<void>
-	logout: () => Promise<void>
-	checkAuthStatus: () => Promise<void>
+	login: () => Promise<void>;
+	logout: () => Promise<void>;
+	checkAuthStatus: () => Promise<void>;
 }
 
 const initialState: TwitterAuthState = {
@@ -34,73 +34,73 @@ const initialState: TwitterAuthState = {
 	isLoading: false,
 	isLoggedIn: false,
 	error: null,
-}
+};
 
-const TwitterAuthContext = createContext<TwitterAuthContextType | undefined>(undefined)
+const TwitterAuthContext = createContext<TwitterAuthContextType | undefined>(undefined);
 
 function twitterAuthReducer(state: TwitterAuthState, action: TwitterAuthAction): TwitterAuthState {
 	switch (action.type) {
 		case "SET_LOADING":
-			return { ...state, isLoading: action.payload, error: null }
+			return { ...state, isLoading: action.payload, error: null };
 		case "SET_USER":
-			return { ...state, user: action.payload, isLoading: false, isLoggedIn: !!action.payload, error: null }
+			return { ...state, user: action.payload, isLoading: false, isLoggedIn: !!action.payload, error: null };
 		case "SET_ERROR":
-			return { ...state, error: action.payload, isLoading: false }
+			return { ...state, error: action.payload, isLoading: false };
 		case "RESET":
-			return initialState
+			return initialState;
 		default:
-			return state
+			return state;
 	}
 }
 
 export function TwitterAuthProvider({ children }: { children: ReactNode }) {
-	const [state, dispatch] = useReducer(twitterAuthReducer, initialState)
-	const { data: session, status } = useSession()
+	const [state, dispatch] = useReducer(twitterAuthReducer, initialState);
+	const { data: session, status } = useSession();
 
 	const login = useCallback(async () => {
 		try {
-			dispatch({ type: "SET_LOADING", payload: true })
-			await signIn("twitter")
+			dispatch({ type: "SET_LOADING", payload: true });
+			await signIn("twitter");
 		} catch (error) {
 			dispatch({
 				type: "SET_ERROR",
 				payload: error instanceof Error ? error.message : "Login failed",
-			})
+			});
 		}
-	}, [])
+	}, []);
 
 	const logout = useCallback(async () => {
 		try {
-			dispatch({ type: "SET_LOADING", payload: true })
-			await signOut({ redirect: true, callbackUrl: "/" })
+			dispatch({ type: "SET_LOADING", payload: true });
+			await signOut({ redirect: true, callbackUrl: "/" });
 		} catch (error) {
 			dispatch({
 				type: "SET_ERROR",
 				payload: error instanceof Error ? error.message : "Logout failed",
-			})
+			});
 		}
-	}, [])
+	}, []);
 
 	const checkAuthStatus = useCallback(async () => {
 		// NextAuth handles this automatically via useSession
 		// We'll update state based on session data in useEffect
-	}, [])
+	}, []);
 
 	useEffect(() => {
 		if (status === "loading") {
-			dispatch({ type: "SET_LOADING", payload: true })
+			dispatch({ type: "SET_LOADING", payload: true });
 		} else if (status === "authenticated" && session?.user) {
 			const user: TwitterUser = {
 				id: session.user.twitterId || "",
 				username: session.user.username || "",
 				name: session.user.name || "",
 				profile_image_url: session.user.image || null,
-			}
-			dispatch({ type: "SET_USER", payload: user })
+			};
+			dispatch({ type: "SET_USER", payload: user });
 		} else {
-			dispatch({ type: "SET_USER", payload: null })
+			dispatch({ type: "SET_USER", payload: null });
 		}
-	}, [session, status])
+	}, [session, status]);
 
 	const contextValue = useMemo(
 		() => ({
@@ -110,16 +110,16 @@ export function TwitterAuthProvider({ children }: { children: ReactNode }) {
 			checkAuthStatus,
 		}),
 		[state, login, logout, checkAuthStatus]
-	)
+	);
 
-	return <TwitterAuthContext.Provider value={contextValue}>{children}</TwitterAuthContext.Provider>
+	return <TwitterAuthContext.Provider value={contextValue}>{children}</TwitterAuthContext.Provider>;
 }
 
 export function useTwitter() {
-	const context = useContext(TwitterAuthContext)
+	const context = useContext(TwitterAuthContext);
 	if (context === undefined) {
-		throw new Error("useTwitterAuth must be used within a TwitterAuthProvider")
+		throw new Error("useTwitterAuth must be used within a TwitterAuthProvider");
 	}
 
-	return context
+	return context;
 }

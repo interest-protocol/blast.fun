@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import { Loader2 } from "lucide-react"
-import { useApp } from "@/context/app.context"
-import { WalletList } from "@/components/shared/wallet-list"
-import { FC } from "react"
+import { Loader2 } from "lucide-react";
+import { useApp } from "@/context/app.context";
+import { WalletList } from "@/components/shared/wallet-list";
+import { FC } from "react";
 
 const WalletNotConnected: FC = () => {
-	const { isConnecting, connect } = useApp()
+	const { isConnecting, connect } = useApp();
 
 	return (
 		<div className="container max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[calc(100vh-12rem)]">
@@ -50,7 +50,7 @@ const WalletNotConnected: FC = () => {
 				</div>
 			</div>
 		</div>
-	)	
-}
+	);
+};
 
 export default WalletNotConnected;

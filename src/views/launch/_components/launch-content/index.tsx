@@ -1,41 +1,37 @@
 /* eslint-disable @next/next/no-img-element */
-"use client"
+"use client";
 
-import { ShieldCheck } from "lucide-react"
-import { useState, useCallback, FC } from "react"
-import TwitterUserAvatar from "@/components/user/user-avatar"
-import { useApp } from "@/context/app.context"
-import { useTwitter } from "@/context/twitter.context"
-import CreateTokenForm from "../create-token-form"
-import { ConfettiProvider } from "@/components/shared/confetti"
-import { Logo } from "@/components/ui/logo"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import WalletNotConnected from "./wallet-not-connected"
-import TwitterNotLogged from "./twitter-not-logged"
-import { TokenFormValues } from "../create-token-form/create-token-form.types"
+import { ShieldCheck } from "lucide-react";
+import { useState, useCallback, FC } from "react";
+import TwitterUserAvatar from "@/components/user/user-avatar";
+import { useApp } from "@/context/app.context";
+import { useTwitter } from "@/context/twitter.context";
+import CreateTokenForm from "../create-token-form";
+import { ConfettiProvider } from "@/components/shared/confetti";
+import { Logo } from "@/components/ui/logo";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import WalletNotConnected from "./wallet-not-connected";
+import TwitterNotLogged from "./twitter-not-logged";
+import { TokenFormValues } from "../create-token-form/create-token-form.types";
 
 const LaunchContent: FC = () => {
-	const { isConnected } = useApp()
-	const { isLoggedIn, user } = useTwitter()
-	const [tokenData, setTokenData] = useState<Partial<TokenFormValues>>({})
-	const [protectionActive, setProtectionActive] = useState(false)
+	const { isConnected } = useApp();
+	const { isLoggedIn, user } = useTwitter();
+	const [tokenData, setTokenData] = useState<Partial<TokenFormValues>>({});
+	const [protectionActive, setProtectionActive] = useState(false);
 
 	const handleFormChange = useCallback((data: Partial<TokenFormValues>) => {
-		setTokenData(data)
-		const hasProtection = !!data.sniperProtection
-		setProtectionActive(hasProtection)
-	}, [])
+		setTokenData(data);
+		const hasProtection = !!data.sniperProtection;
+		setProtectionActive(hasProtection);
+	}, []);
 
 	if (!isConnected) {
-		return (
-			<WalletNotConnected />
-		)
+		return <WalletNotConnected />;
 	}
 
 	if (!isLoggedIn) {
-		return (
-			<TwitterNotLogged />
-		)
+		return <TwitterNotLogged />;
 	}
 
 	return (
@@ -44,7 +40,6 @@ const LaunchContent: FC = () => {
 				<div className="grid lg:grid-cols-3 gap-8 items-start">
 					<div className="lg:col-span-2">
 						<div className="space-y-4">
-
 							<CreateTokenForm onFormChange={handleFormChange} />
 						</div>
 					</div>
@@ -58,7 +53,6 @@ const LaunchContent: FC = () => {
 							</div>
 
 							<div className="p-4 space-y-4">
-
 								{tokenData.imageUrl || tokenData.name || tokenData.symbol ? (
 									<div className="space-y-6">
 										{/* Token Display */}
@@ -169,7 +163,7 @@ const LaunchContent: FC = () => {
 				</div>
 			</div>
 		</ConfettiProvider>
-	)
-}
+	);
+};
 
 export default LaunchContent;

@@ -1,19 +1,19 @@
-import { useMemo } from "react"
-import { useQuery } from "@tanstack/react-query"
-import { PROJECT_WALLETS } from "@/constants/project-wallets"
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { PROJECT_WALLETS } from "@/constants/project-wallets";
 
 interface CoinHolder {
-	account: string
-	balance: string
-	percentage: string
-	name: string
-	image: string
-	website: string
+	account: string;
+	balance: string;
+	percentage: string;
+	name: string;
+	image: string;
+	website: string;
 }
 
 interface HoldersResponse {
-	holders: CoinHolder[]
-	timestamp: number
+	holders: CoinHolder[];
+	timestamp: number;
 }
 
 // @dev: Hook to get holders data and check for projects
@@ -23,24 +23,24 @@ export function useHoldersData(coinType: string) {
 		queryFn: async () => {
 			const response = await fetch(`/api/coin/holders/${encodeURIComponent(coinType)}`, {
 				headers: {
-					'cloudflare-cache': '15',
-					'cache-control': 'no-store'
-				}
-			})
+					"cloudflare-cache": "15",
+					"cache-control": "no-store",
+				},
+			});
 			if (!response.ok) {
-				throw new Error("Failed to fetch holders")
+				throw new Error("Failed to fetch holders");
 			}
-			return response.json()
+			return response.json();
 		},
 		enabled: !!coinType,
 		refetchInterval: 15000,
 		staleTime: 10000,
-	})
-	
+	});
+
 	const projectHolders = useMemo(() => {
-		if (!data?.holders) return []
-		return data.holders.filter(holder => PROJECT_WALLETS[holder.account])
-	}, [data?.holders])
-	
-	return { data, isLoading, error, hasProjects: projectHolders.length > 0 }
+		if (!data?.holders) return [];
+		return data.holders.filter((holder) => PROJECT_WALLETS[holder.account]);
+	}, [data?.holders]);
+
+	return { data, isLoading, error, hasProjects: projectHolders.length > 0 };
 }

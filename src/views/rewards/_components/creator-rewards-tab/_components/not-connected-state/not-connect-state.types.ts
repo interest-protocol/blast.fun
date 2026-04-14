@@ -1,3 +1,3 @@
 export interface NotConnectedStateProps {
-  onConnect: () => void
+	onConnect: () => void;
 }
