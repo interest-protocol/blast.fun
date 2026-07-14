@@ -1,13 +1,13 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { ArrowLeft } from "lucide-react"
+import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { useEffect, useState } from "react"
+import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CreateVesting } from "./create-vesting"
 import { VestingPositions } from "./vesting-positions"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft } from "lucide-react"
-import Link from "next/link"
 
 export default function VestingContent() {
 	const searchParams = useSearchParams()
@@ -44,10 +44,7 @@ export default function VestingContent() {
 
 	const handleVestingCreated = () => {
 		switchToPositionsTab()
-		// @dev: Trigger a refresh of positions after 3 seconds
-		setTimeout(() => {
-			setShouldRefresh(true)
-		}, 3000)
+		setShouldRefresh(true)
 	}
 
 	if (!activeTab) {
@@ -67,9 +64,7 @@ export default function VestingContent() {
 				</div>
 				<div className="mb-8">
 					<h1 className="font-bold text-3xl">Token Vesting</h1>
-					<p className="mt-2 text-muted-foreground">
-						Lock your tokens with custom vesting periods
-					</p>
+					<p className="mt-2 text-muted-foreground">Lock your tokens with custom vesting periods</p>
 				</div>
 
 				<Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">

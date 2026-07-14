@@ -1,66 +1,82 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useApp } from "@/context/app.context"
+import { coinWithBalance } from "@mysten/sui/transactions"
+import { normalizeStructTag, normalizeSuiAddress, SUI_TYPE_ARG } from "@mysten/sui/utils"
+import BigNumber from "bignumber.js"
+import { format } from "date-fns"
+import { AlertCircle, Calendar, CalendarDays, Clock, Loader2, Lock } from "lucide-react"
+import { useEffect, useState } from "react"
+import toast from "react-hot-toast"
+import { TokenAvatar } from "@/components/tokens/token-avatar"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { Calendar as CalendarComponent } from "@/components/ui/calendar"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Loader2, Lock, Calendar, AlertCircle, Clock, CalendarDays } from "lucide-react"
-import { TokenAvatar } from "@/components/tokens/token-avatar"
-import { useTransaction } from "@/hooks/sui/use-transaction"
-import { coinWithBalance, Transaction } from "@mysten/sui/transactions"
-import { parseVestingDuration } from "../vesting.utils"
-import type { WalletCoin } from "@/types/blockvision"
-import toast from "react-hot-toast"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { formatAmount, formatAmountWithSuffix, formatNumberWithSuffix } from "@/utils/format"
-import { VestingTimeline } from "./vesting-timeline"
-import { format } from "date-fns"
-import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { cn } from "@/utils"
-import BigNumber from "bignumber.js"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useApp } from "@/context/app.context"
+import { useTransaction } from "@/hooks/sui/use-transaction"
 import { vestingSdk } from "@/lib/memez/sdk"
+import type { VestingWalletCoin } from "@/lib/memez/vesting-grpc"
+import { cn } from "@/utils"
+import { formatAmount, formatAmountWithSuffix, formatNumberWithSuffix } from "@/utils/format"
+import { parseVestingDuration } from "../vesting.utils"
+import { VestingTimeline } from "./vesting-timeline"
 
 interface CreateVestingProps {
 	onVestingCreated?: () => void
 	initialCoinType?: string | null
 }
 
+const NORMALIZED_SUI_TYPE = normalizeStructTag(SUI_TYPE_ARG)
+const ZERO_ADDRESS = normalizeSuiAddress("0x0")
+
+const safeNormalizeCoinType = (coinType?: string | null) => {
+	if (!coinType) return null
+
+	try {
+		return normalizeStructTag(coinType)
+	} catch {
+		return null
+	}
+}
+
 export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVestingProps) {
 	const { address, setIsConnectDialogOpen } = useApp()
-	const [coins, setCoins] = useState<WalletCoin[]>([])
+	const [coins, setCoins] = useState<VestingWalletCoin[]>([])
 	const [selectedCoin, setSelectedCoin] = useState<string>("")
 	const [amount, setAmount] = useState<string>("")
 	const [recipientAddress, setRecipientAddress] = useState<string>("")
-	
+
 	// @dev: Input mode - duration or date
 	const [inputMode, setInputMode] = useState<"duration" | "date">("duration")
-	
+
 	// @dev: Duration mode states
 	const [lockDurationValue, setLockDurationValue] = useState<string>("0")
 	const [lockDurationUnit, setLockDurationUnit] = useState<string>("days")
 	const [vestingDurationValue, setVestingDurationValue] = useState<string>("")
 	const [vestingDurationUnit, setVestingDurationUnit] = useState<string>("days")
-	
+
 	// @dev: Date mode states
 	const [vestingStartDate, setVestingStartDate] = useState<Date | undefined>()
 	const [vestingEndDate, setVestingEndDate] = useState<Date | undefined>()
-	
+
 	// @dev: Custom percentage dialog states
 	const [customPercentageOpen, setCustomPercentageOpen] = useState(false)
 	const [customPercentageValue, setCustomPercentageValue] = useState<string>("")
-	
+
 	// @dev: Sync between duration and date modes
 	useEffect(() => {
 		if (inputMode === "date") {
@@ -68,7 +84,7 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 			const now = new Date()
 			const lockMs = parseVestingDuration(lockDurationValue || "0", lockDurationUnit)
 			const vestingMs = parseVestingDuration(vestingDurationValue || "0", vestingDurationUnit)
-			
+
 			if (lockMs > 0 || vestingMs > 0) {
 				const startDate = new Date(now.getTime() + lockMs)
 				const endDate = new Date(startDate.getTime() + vestingMs)
@@ -81,7 +97,7 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 				const now = new Date()
 				const lockMs = vestingStartDate.getTime() - now.getTime()
 				const vestingMs = vestingEndDate.getTime() - vestingStartDate.getTime()
-				
+
 				// @dev: Convert to appropriate units
 				if (lockMs > 0) {
 					if (lockMs >= 24 * 60 * 60 * 1000) {
@@ -95,7 +111,7 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 						setLockDurationUnit("minutes")
 					}
 				}
-				
+
 				if (vestingMs > 0) {
 					if (vestingMs >= 24 * 60 * 60 * 1000) {
 						setVestingDurationValue(Math.floor(vestingMs / (24 * 60 * 60 * 1000)).toString())
@@ -110,71 +126,71 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 				}
 			}
 		}
-	// eslint-disable-next-line react-hooks/exhaustive-deps
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [inputMode])
-	
+
 	const [isLoadingCoins, setIsLoadingCoins] = useState(false)
 	const [isCreating, setIsCreating] = useState(false)
 	const { executeTransaction } = useTransaction()
 
 	// @dev: Fetch user's coins
 	useEffect(() => {
-		if (!address) return
+		if (!address) {
+			setCoins([])
+			setSelectedCoin("")
+			return
+		}
+
+		let cancelled = false
 
 		const fetchCoins = async () => {
 			setIsLoadingCoins(true)
 			try {
-				const response = await fetch("/api/wallet/coins", {
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({ address }),
+				const walletCoins = await vestingSdk.getWalletCoins(address)
+				if (cancelled) return
+
+				setCoins(walletCoins)
+				setSelectedCoin((currentCoin) => {
+					const normalizedInitialCoinType = safeNormalizeCoinType(initialCoinType)
+					const preferredCoin = normalizedInitialCoinType
+						? walletCoins.find((coin) => coin.coinType === normalizedInitialCoinType)
+						: undefined
+					const existingCoin = walletCoins.find((coin) => coin.coinType === currentCoin)
+
+					return preferredCoin?.coinType ?? existingCoin?.coinType ?? walletCoins[0]?.coinType ?? ""
 				})
-
-				if (!response.ok) throw new Error("Failed to fetch coins")
-
-				const data = await response.json()
-				if (data.success && data.coins) {
-					// @dev: Sort coins by USD value (highest first)
-					const sortedCoins = [...data.coins].sort((a, b) => {
-						const aValue = a.value || 0
-						const bValue = b.value || 0
-						return bValue - aValue
-					})
-					setCoins(sortedCoins)
-					if (sortedCoins.length > 0 && !selectedCoin) {
-						// @dev: Use initialCoinType if provided and exists in the coins list
-						if (initialCoinType && sortedCoins.some(c => c.coinType === initialCoinType)) {
-							setSelectedCoin(initialCoinType)
-						} else {
-							setSelectedCoin(sortedCoins[0].coinType)
-						}
-					}
-				}
 			} catch (error) {
+				if (cancelled) return
 				console.error("Error fetching coins:", error)
 				toast.error("Failed to load wallet coins")
+				setCoins([])
+				setSelectedCoin("")
 			} finally {
-				setIsLoadingCoins(false)
+				if (!cancelled) setIsLoadingCoins(false)
 			}
 		}
 
-		fetchCoins()
-	}, [address, selectedCoin, initialCoinType])
+		void fetchCoins()
 
-	const selectedCoinData = coins.find(c => c.coinType === selectedCoin)
+		return () => {
+			cancelled = true
+		}
+	}, [address, initialCoinType])
+
+	const selectedCoinData = coins.find((c) => c.coinType === selectedCoin)
 
 	// @dev: Calculate dates based on input mode
 	const calculateDates = () => {
 		const now = new Date()
-		
+
 		if (inputMode === "duration") {
 			const lockDuration = parseVestingDuration(lockDurationValue || "0", lockDurationUnit)
 			const vestingDuration = parseVestingDuration(vestingDurationValue, vestingDurationUnit)
-			
+
 			const lockStart = now
 			const vestingStart = new Date(now.getTime() + lockDuration)
 			const vestingEnd = new Date(vestingStart.getTime() + vestingDuration)
-			
+
 			return {
 				lockStartDate: lockStart,
 				vestingStartDate: vestingStart,
@@ -187,7 +203,7 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 			const lockStart = now
 			const vestingStart = vestingStartDate || now
 			const vestingEnd = vestingEndDate || now
-			
+
 			return {
 				lockStartDate: lockStart,
 				vestingStartDate: vestingStart,
@@ -199,10 +215,9 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 	}
 
 	const dates = calculateDates()
-	const showTimeline = amount && (
-		(inputMode === "duration" && vestingDurationValue) ||
-		(inputMode === "date" && vestingStartDate && vestingEndDate)
-	)
+	const showTimeline =
+		amount &&
+		((inputMode === "duration" && vestingDurationValue) || (inputMode === "date" && vestingStartDate && vestingEndDate))
 
 	const handleCreateVesting = async () => {
 		if (!address) {
@@ -215,8 +230,13 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 			return
 		}
 
-		const parsedAmount = parseFloat(amount)
-		if (isNaN(parsedAmount) || parsedAmount <= 0) {
+		if (!selectedCoinData) {
+			toast.error("Selected token is no longer available")
+			return
+		}
+
+		const parsedAmount = new BigNumber(amount)
+		if (!parsedAmount.isFinite() || parsedAmount.isLessThanOrEqualTo(0)) {
 			toast.error("Please enter a valid amount")
 			return
 		}
@@ -226,12 +246,49 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 			return
 		}
 
+		const decimals = selectedCoinData.decimals
+		const amountInBaseUnits = parsedAmount.shiftedBy(decimals)
+		if (!amountInBaseUnits.isInteger()) {
+			toast.error(`This token supports up to ${decimals} decimal places`)
+			return
+		}
+
+		const amountInSmallestUnit = BigInt(amountInBaseUnits.toFixed(0))
+		const availableBalance = BigInt(selectedCoinData.balance)
+		if (amountInSmallestUnit > vestingSdk.MAX_U64) {
+			toast.error("Amount is too large for a single vesting position")
+			return
+		}
+
+		if (amountInSmallestUnit > availableBalance) {
+			toast.error("Amount exceeds your available balance")
+			return
+		}
+
+		if (normalizeStructTag(selectedCoin) === NORMALIZED_SUI_TYPE && amountInSmallestUnit === availableBalance) {
+			toast.error("Leave some SUI available to pay for gas")
+			return
+		}
+
+		const recipient = recipientAddress.trim()
+		if (recipient && !/^0x[0-9a-fA-F]{1,64}$/.test(recipient)) {
+			toast.error("Please enter a valid recipient address")
+			return
+		}
+		const vestingOwner = recipient ? normalizeSuiAddress(recipient) : address
+		if (vestingOwner === ZERO_ADDRESS) {
+			toast.error("Recipient cannot be the zero address")
+			return
+		}
+
+		const suiBalance = coins.find((coin) => coin.coinType === NORMALIZED_SUI_TYPE)?.balance
+		if (!suiBalance || BigInt(suiBalance) === 0n) {
+			toast.error("SUI is required to pay for transaction gas")
+			return
+		}
+
 		setIsCreating(true)
 		try {
-			// @dev: Convert amount to smallest unit
-			const decimals = selectedCoinData?.decimals || 9
-			const amountInSmallestUnit = BigInt(Math.floor(parsedAmount * Math.pow(10, decimals)))
-
 			// @dev: Create coin object with balance
 			const coin = coinWithBalance({
 				type: selectedCoin,
@@ -240,17 +297,17 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 
 			// @dev: Create vesting position using SDK
 			const { tx } = await vestingSdk.new({
-				owner: recipientAddress || address,
+				owner: vestingOwner,
 				coin: coin,
 				start: Math.floor(dates.vestingStartDate.getTime()),
 				duration: dates.vestingDuration,
 				coinType: selectedCoin,
 			})
-			
-			await executeTransaction(tx)
+
+			await executeTransaction(tx, { showObjectChanges: true })
 
 			toast.success("Vesting position created successfully!")
-			
+
 			// Reset form
 			setAmount("")
 			setRecipientAddress("")
@@ -269,9 +326,8 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 		}
 	}
 
-	const maxAmount = selectedCoinData
-		? formatAmount(selectedCoinData.balance)
-		: "0"
+	const maxAmount = selectedCoinData ? formatAmount(selectedCoinData.balance, selectedCoinData.decimals) : "0"
+	const amountStep = selectedCoinData ? new BigNumber(1).shiftedBy(-selectedCoinData.decimals).toFixed() : "any"
 
 	// @dev: Calculate USD value for selected amount
 	const calculateUsdValue = () => {
@@ -287,7 +343,7 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 	const handlePercentageClick = (percentage: number) => {
 		if (!selectedCoinData) return
 		// @dev: Use raw balance and convert to human-readable format
-		const decimals = selectedCoinData.decimals || 9
+		const decimals = selectedCoinData.decimals
 		const rawBalance = new BigNumber(selectedCoinData.balance.toString())
 		const humanReadableBalance = rawBalance.shiftedBy(-decimals)
 		const amountToSet = humanReadableBalance.multipliedBy(percentage).dividedBy(100)
@@ -310,17 +366,13 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 		<Card>
 			<CardHeader>
 				<CardTitle>Create Token Vesting</CardTitle>
-				<CardDescription>
-					Set up a vesting schedule with optional lock period and linear unlocking
-				</CardDescription>
+				<CardDescription>Set up a vesting schedule with optional lock period and linear unlocking</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-6">
 				{!address ? (
 					<Alert>
 						<AlertCircle className="h-4 w-4" />
-						<AlertDescription>
-							Please connect your wallet to create a vesting position
-						</AlertDescription>
+						<AlertDescription>Please connect your wallet to create a vesting position</AlertDescription>
 					</Alert>
 				) : (
 					<>
@@ -343,9 +395,16 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 												/>
 												<span>{selectedCoinData.symbol || "Unknown"}</span>
 												<span className="text-muted-foreground ml-auto">
-													Balance: {formatAmountWithSuffix(selectedCoinData.balance, selectedCoinData.decimals)}
+													Balance:{" "}
+													{formatAmountWithSuffix(
+														selectedCoinData.balance,
+														selectedCoinData.decimals
+													)}
 													{selectedCoinData.value && selectedCoinData.value > 0 && (
-														<span className="text-xs"> (${selectedCoinData.value.toFixed(2)})</span>
+														<span className="text-xs">
+															{" "}
+															(${selectedCoinData.value.toFixed(2)})
+														</span>
 													)}
 												</span>
 											</div>
@@ -362,7 +421,9 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 													className="w-5 h-5 flex-shrink-0"
 												/>
 												<span className="font-medium min-w-[60px]">{coin.symbol || "Unknown"}</span>
-												<span className="flex-1 text-right">{formatAmountWithSuffix(coin.balance, coin.decimals)}</span>
+												<span className="flex-1 text-right">
+													{formatAmountWithSuffix(coin.balance, coin.decimals)}
+												</span>
 												{coin.value && coin.value > 0.01 && (
 													<span className="text-muted-foreground text-sm min-w-[80px] text-right">
 														${formatNumberWithSuffix(coin.value)}
@@ -384,10 +445,10 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 								placeholder="0.0"
 								value={amount}
 								onChange={(e) => setAmount(e.target.value)}
-								step="0.000000001"
+								step={amountStep}
 								min="0"
 							/>
-							
+
 							{/* Percentage Options */}
 							<div className="flex gap-2">
 								<Button
@@ -420,7 +481,7 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 								>
 									100%
 								</Button>
-								
+
 								<Dialog open={customPercentageOpen} onOpenChange={setCustomPercentageOpen}>
 									<DialogTrigger asChild>
 										<Button
@@ -473,9 +534,7 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 											>
 												Cancel
 											</Button>
-											<Button onClick={handleCustomPercentage}>
-												Apply
-											</Button>
+											<Button onClick={handleCustomPercentage}>Apply</Button>
 										</DialogFooter>
 									</DialogContent>
 								</Dialog>
@@ -487,11 +546,7 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 										<span className="text-xs"> (${selectedCoinData.value.toFixed(2)})</span>
 									)}
 								</p>
-								{usdValue && (
-									<p className="text-sm font-medium">
-										Value to vest: ${usdValue} USD
-									</p>
-								)}
+								{usdValue && <p className="text-sm font-medium">Value to vest: ${usdValue} USD</p>}
 							</div>
 						</div>
 
@@ -504,15 +559,13 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 								value={recipientAddress}
 								onChange={(e) => setRecipientAddress(e.target.value)}
 							/>
-							<p className="text-sm text-muted-foreground">
-								Leave empty to vest for yourself
-							</p>
+							<p className="text-sm text-muted-foreground">Leave empty to vest for yourself</p>
 						</div>
 
 						{/* Vesting Schedule Input */}
 						<div className="space-y-4">
 							<Label>Vesting Schedule</Label>
-							
+
 							<Tabs value={inputMode} onValueChange={(v) => setInputMode(v as "duration" | "date")}>
 								<TabsList className="grid w-full grid-cols-2">
 									<TabsTrigger value="duration">
@@ -640,9 +693,7 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 									{/* Vesting End Date */}
 									<div className="space-y-2">
 										<Label>Vesting End Date</Label>
-										<p className="text-xs text-muted-foreground">
-											When all tokens are fully unlocked
-										</p>
+										<p className="text-xs text-muted-foreground">When all tokens are fully unlocked</p>
 										<Popover>
 											<PopoverTrigger asChild>
 												<Button
@@ -665,9 +716,7 @@ export function CreateVesting({ onVestingCreated, initialCoinType }: CreateVesti
 													mode="single"
 													selected={vestingEndDate}
 													onSelect={setVestingEndDate}
-													disabled={(date: Date) => 
-														date < (vestingStartDate || new Date())
-													}
+													disabled={(date: Date) => date < (vestingStartDate || new Date())}
 													initialFocus
 												/>
 												<div className="p-3 border-t">

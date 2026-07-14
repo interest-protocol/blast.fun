@@ -1,4 +1,4 @@
-import { CoinMetadata } from "@mysten/sui/jsonRpc"
+import type { Vesting } from "@interest-protocol/memez-fun-sdk"
 
 export interface VestingPosition {
 	id: string
@@ -13,6 +13,28 @@ export interface VestingPosition {
 	isDestroyed: boolean
 }
 
+export const toVestingPosition = (vesting: Vesting, currentTime = Date.now()): VestingPosition => {
+	const startTime = Number(vesting.start)
+	const duration = Number(vesting.duration)
+	const endTime = startTime + duration
+	const totalAmount = vesting.balance + vesting.released
+	const elapsed = Math.max(0, Math.min(currentTime - startTime, duration))
+	const vestedAmount = duration > 0 ? (totalAmount * BigInt(elapsed)) / BigInt(duration) : totalAmount
+	const claimableAmount = vestedAmount > vesting.released ? vestedAmount - vesting.released : 0n
+
+	return {
+		id: vesting.objectId,
+		owner: vesting.owner,
+		coinType: vesting.coinType,
+		lockedAmount: totalAmount.toString(),
+		claimedAmount: vesting.released.toString(),
+		claimableAmount: claimableAmount.toString(),
+		startTime,
+		duration,
+		endTime,
+		isDestroyed: false,
+	}
+}
 
 export const formatDuration = (ms: number): string => {
 	const days = Math.floor(ms / (1000 * 60 * 60 * 24))
