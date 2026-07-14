@@ -13,6 +13,15 @@ export interface VestingPosition {
 	isDestroyed: boolean
 }
 
+interface VestingActionState {
+	claimableAmount: string
+	hasStarted: boolean
+	isFullyUnlocked: boolean
+}
+
+export const isVestingActionDisabled = ({ claimableAmount, hasStarted, isFullyUnlocked }: VestingActionState): boolean =>
+	!hasStarted || (!isFullyUnlocked && (!claimableAmount || claimableAmount === "0"))
+
 export const toVestingPosition = (vesting: Vesting, currentTime = Date.now()): VestingPosition => {
 	const startTime = Number(vesting.start)
 	const duration = Number(vesting.duration)

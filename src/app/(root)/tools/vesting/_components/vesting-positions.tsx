@@ -15,7 +15,7 @@ import { vestingSdk } from "@/lib/memez/sdk"
 import type { VestingCoinMetadata } from "@/lib/memez/vesting-grpc"
 import { formatAmount } from "@/utils/format"
 import { useVesting } from "../_hooks/use-vesting"
-import { formatDuration, VestingPosition } from "../vesting.utils"
+import { formatDuration, isVestingActionDisabled, VestingPosition } from "../vesting.utils"
 
 interface VestingPositionsProps {
 	shouldRefresh?: boolean
@@ -77,22 +77,25 @@ export function VestingPositions({ shouldRefresh, onRefreshed }: VestingPosition
 		setClaimingId(position.id)
 		try {
 			if (isFullyVested) {
-				// @dev: Vesting is complete - claim and destroy in one transaction
-				const { tx, coin } = await vestingSdk.claim({
-					vesting: position.id,
-				})
-				tx.transferObjects([coin], address)
+				const vesting = await vestingSdk.get(position.id)
 
-				// @dev: Destroy vesting position after claiming
-				await vestingSdk.uncheckedDestroyZeroBalance({
-					tx,
-					vestingObjectId: position.id,
-					coinType: position.coinType,
-				})
+				if (vesting.balance > 0n) {
+					const { tx, coin } = await vestingSdk.claim({ vesting })
+					tx.transferObjects([coin], address)
+					await vestingSdk.uncheckedDestroyZeroBalance({
+						tx,
+						vestingObjectId: position.id,
+						coinType: position.coinType,
+					})
+					await executeTransaction(tx)
+					toast.success("All tokens claimed and vesting completed!")
+				} else {
+					const { tx } = await vestingSdk.destroyZeroBalance({ vesting })
+					await executeTransaction(tx)
+					toast.success("Vesting completed!")
+				}
 
-				await executeTransaction(tx)
-				toast.success("All tokens claimed and vesting completed!")
-				refetch()
+				void refetch()
 			} else {
 				// @dev: Normal claim for active vesting
 				const { tx, coin } = await vestingSdk.claim({
@@ -102,7 +105,7 @@ export function VestingPositions({ shouldRefresh, onRefreshed }: VestingPosition
 
 				await executeTransaction(tx)
 				toast.success("Successfully claimed vested tokens!")
-				refetch()
+				void refetch()
 			}
 		} catch (error) {
 			console.error("Error processing vesting action:", error)
@@ -286,9 +289,7 @@ export function VestingPositions({ shouldRefresh, onRefreshed }: VestingPosition
 										onClick={() => handleClaimOrDestroy(position)}
 										disabled={
 											claimingId === position.id ||
-											!claimableAmount ||
-											claimableAmount === "0" ||
-											!hasStarted
+											isVestingActionDisabled({ claimableAmount, hasStarted, isFullyUnlocked })
 										}
 										variant={isFullyUnlocked ? "destructive" : "default"}
 										className="flex-1"
