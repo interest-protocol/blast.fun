@@ -1,11 +1,11 @@
-import { FarmsSDK } from '@interest-protocol/farms';
 import { env } from "@/env"
 import { Network } from "@/types/network"
-import { getSuiFullnodeUrl } from "@/lib/sui-network"
+import { FarmsGrpcSDK } from "@/lib/farms-grpc"
+import { suiGrpcClient } from "@/lib/sui-grpc"
+import { suiClient } from "@/lib/sui-client"
 
-const fullNodeUrl = getSuiFullnodeUrl()
-
-export const farmsSdk = new FarmsSDK({
+export const farmsSdk = new FarmsGrpcSDK({
 	network: env.NEXT_PUBLIC_DEFAULT_NETWORK as Network,
-	fullNodeUrl
+	grpcClient: suiGrpcClient,
+	jsonRpcClient: suiClient,
 })
