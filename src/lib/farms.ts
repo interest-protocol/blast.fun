@@ -1,11 +1,9 @@
 import { env } from "@/env"
 import { Network } from "@/types/network"
-import { FarmsGrpcSDK } from "@/lib/farms-grpc"
-import { suiGrpcClient } from "@/lib/sui-grpc"
-import { suiClient } from "@/lib/sui-client"
+import { FarmsGraphQLSDK } from "@/lib/farms-graphql"
+import { suiGraphQLClient } from "@/lib/sui-graphql"
 
-export const farmsSdk = new FarmsGrpcSDK({
+export const farmsSdk = new FarmsGraphQLSDK({
 	network: env.NEXT_PUBLIC_DEFAULT_NETWORK as Network,
-	grpcClient: suiGrpcClient,
-	jsonRpcClient: suiClient,
+	graphQLClient: suiGraphQLClient,
 })

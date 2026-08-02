@@ -1,14 +1,14 @@
 import { useState } from "react"
 import { useApp } from "@/context/app.context"
-import { useTransaction } from "@/hooks/sui/use-transaction"
 import { farmsSdk } from "@/lib/farms"
+import { suiGraphQLClient } from "@/lib/sui-graphql"
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions"
 import toast from "react-hot-toast"
 import type { InterestAccount } from "@interest-protocol/farms"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { parseInputAmount } from "../../farms.utils"
 import { POW_9 } from "../../farms.const"
-import { suiClient } from "@/lib/sui-client"
+import { useGraphQLTransaction } from "./use-graphql-transaction"
 
 interface UseFarmOperationsProps {
 	farmId: string
@@ -32,7 +32,7 @@ export const useFarmOperations = ({
 	onSuccess
 }: UseFarmOperationsProps) => {
 	const { address, wallet } = useApp()
-	const { executeTransaction } = useTransaction()
+	const { executeTransaction } = useGraphQLTransaction()
 	const [isStaking, setIsStaking] = useState(false)
 	const [isHarvesting, setIsHarvesting] = useState(false)
 	const [isUnstaking, setIsUnstaking] = useState(false)
@@ -67,13 +67,14 @@ export const useFarmOperations = ({
 				return
 			}
 
-			const balance = await suiClient.getBalance({
+			const { balance } = await suiGraphQLClient.getBalance({
 				owner: address,
 				coinType: stakeCoinType,
 			})
+			const totalBalance = BigInt(balance.balance)
 
-			if (amountBigInt > BigInt(balance.totalBalance)) {
-				const available = Number(balance.totalBalance) / Number(POW_9)
+			if (amountBigInt > totalBalance) {
+				const available = Number(totalBalance) / Number(POW_9)
 				toast.error(`Insufficient balance. Available: ${formatNumberWithSuffix(available)} ${tokenSymbol}`)
 				setIsStaking(false)
 				return
