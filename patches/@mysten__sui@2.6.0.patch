@@ -25,3 +25,11 @@ index 52b8f1ae1cce85f217d04e2df8e0db0cf14eb803..d9a9a69c52b5d91b092c03fb8646173b
 +const getFullnodeUrl = getJsonRpcFullnodeUrl;
 +
 +export { BaseClient, ClientCache, CoreClient, SimulationError, extractStatusFromEffectsBcs, formatMoveAbortMessage, parseTransactionBcs, parseTransactionEffectsBcs, SuiClient, getFullnodeUrl };
+diff --git a/dist/graphql/core.mjs b/dist/graphql/core.mjs
+index 102d5b5454d452e1982cfae6cf7108da26dc2e1e..4a853091300e2141ea67c90ad5a408b700db917d 100644
+--- a/dist/graphql/core.mjs
++++ b/dist/graphql/core.mjs
+@@ -219 +219,2 @@ var GraphQLCoreClient = class extends CoreClient {
+-				includeBcs: options.include?.bcs ?? false
++				includeBcs: options.include?.bcs ?? false,
++				checksEnabled: options.checksEnabled ?? true
