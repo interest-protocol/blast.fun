@@ -19,15 +19,27 @@ export const useFetchRewards = (address?: string | null) => {
         setError(null)
 
         try {
-            const res = await migratorSdk.getPositions({ owner: address })
+            const positions = []
+            let cursor: string | null = null
 
-            if (!res?.positions?.length) {
+            do {
+                const page = await migratorSdk.getPositions({
+                    owner: address,
+                    cursor,
+                    limit: 50,
+                })
+
+                positions.push(...page.positions)
+                cursor = page.hasNextPage ? (page.nextCursor ?? null) : null
+            } while (cursor)
+
+            if (positions.length === 0) {
                 setRewards([])
                 return
             }
 
             const rewardsList: CreatorRewardProps[] = await Promise.all(
-                res.positions.map(async (p) => {
+                positions.map(async (p) => {
                     let estimatedRewards = "0"
                     let meta
 
@@ -36,12 +48,17 @@ export const useFetchRewards = (address?: string | null) => {
                             bluefinPool: p.blueFinPoolId,
                             memeCoinType: p.memeCoinType,
                             positionOwner: p.objectId,
+                            owner: address,
                         })
 
                         estimatedRewards = pendingFee
                             ? (Number(pendingFee) / 10 ** 9).toString()
                             : "0"
+                    } catch (error) {
+                        console.error(`Error fetching pending fees for ${p.objectId}`, error)
+                    }
 
+                    try {
                         meta = await coinMetadataApi.getCoinMetadata(p.memeCoinType)
                     } catch (error) {
                         console.error(`Error fetching metadata for ${p.objectId}`, error)
