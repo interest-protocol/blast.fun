@@ -1,7 +1,7 @@
 import { env } from "@/env";
 import { Network } from "@/types/network";
 
-// @dev: Sui-maintained public fullnodes serve JSON-RPC and gRPC (sui.rpc.v2) on the same host
+// @dev: Sui-maintained public fullnodes serve gRPC (sui.rpc.v2); JSON-RPC is no longer available there
 const SUI_FULLNODE_URLS: Record<Network, string> = {
     [Network.MAINNET]: "https://fullnode.mainnet.sui.io:443",
     [Network.TESTNET]: "https://fullnode.testnet.sui.io:443",

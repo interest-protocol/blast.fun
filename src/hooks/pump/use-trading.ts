@@ -7,7 +7,7 @@ import { useApp } from "@/context/app.context";
 import { useTransaction } from "@/hooks/sui/use-transaction";
 import { playSound } from "@/lib/audio";
 import { pumpSdk } from "@/lib/memez/sdk";
-import { suiClient } from "@/lib/sui-client";
+import { suiGrpcClient } from "@/lib/sui-grpc";
 import {
     buyMigratedToken,
     sellMigratedToken,
@@ -383,11 +383,11 @@ export function useTrading({
                 toast.success(successMsg, { duration: 3000 });
             } else {
                 // Fetch fresh on-chain balance to avoid ARITHMETIC_ERROR on the Move contract
-                const freshBalanceResponse = await suiClient.getBalance({
+                const { balance: freshBalanceResponse } = await suiGrpcClient.getBalance({
                     owner: address,
                     coinType: pool.coinType,
                 });
-                const freshBalance = BigInt(freshBalanceResponse.totalBalance);
+                const freshBalance = BigInt(freshBalanceResponse.balance);
 
                 if (freshBalance === 0n) {
                     setError(`Insufficient token balance.`);

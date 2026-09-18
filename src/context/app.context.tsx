@@ -7,7 +7,6 @@ import {
     useSwitchAccount,
     useCurrentWallet,
     useCurrentAccount,
-    useSignAndExecuteTransaction,
     useDisconnectWallet,
 } from "@mysten/dapp-kit";
 import { formatAddress } from "@mysten/sui/utils";

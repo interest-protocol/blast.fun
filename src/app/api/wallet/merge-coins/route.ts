@@ -3,7 +3,7 @@ import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519"
 import { toHex, fromHex } from "@mysten/sui/utils"
 import { suiSponsorship, GasStationError } from "@3mate/gas-station-sdk"
 import { walletSdk } from "@/lib/memez/sdk"
-import { suiClient } from "@/lib/sui-client"
+import { suiGrpcClient } from "@/lib/sui-grpc"
 
 const GAS_STATION_API_KEY = process.env.GAS_STATION_API_KEY || ""
 
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
 		
 		tx.setSender(tempAddress)
 		
-		const txBytes = await tx.build({ client: suiClient, onlyTransactionKind: true })
+		const txBytes = await tx.build({ client: suiGrpcClient, onlyTransactionKind: true })
 		const txBytesHex = toHex(txBytes)
 		
 		let sponsorData
@@ -66,21 +66,19 @@ export async function POST(req: NextRequest) {
 
 		const sponsoredTxBytes = fromHex(sponsorData.txBytesHex)
 		const signature = await tempKeypair.signTransaction(sponsoredTxBytes)
-		const result = await suiClient.executeTransactionBlock({
-			transactionBlock: sponsoredTxBytes,
-			signature: [signature.signature, sponsorData.sponsorSignature],
-			options: {
-				showEffects: true,
-				showObjectChanges: true,
-			},
+		const executed = await suiGrpcClient.executeTransaction({
+			transaction: sponsoredTxBytes,
+			signatures: [signature.signature, sponsorData.sponsorSignature],
+			include: { effects: true },
 		})
-		
-		if (result.effects?.status?.status !== "success") {
+		const result = executed.Transaction ?? executed.FailedTransaction
+
+		if (!result.status.success) {
 			return NextResponse.json(
-				{ 
+				{
 					error: "Transaction execution failed",
-					status: result.effects?.status?.status,
-					errorMessage: result.effects?.status?.error
+					status: "failure",
+					errorMessage: result.status.error?.message,
 				},
 				{ status: 500 }
 			)
@@ -91,9 +89,9 @@ export async function POST(req: NextRequest) {
 			transactionDigest: result.digest,
 			mergedCount: coins.length,
 			gasInfo: {
-				computationCost: result.effects?.gasUsed?.computationCost || "0",
-				storageCost: result.effects?.gasUsed?.storageCost || "0",
-				storageRebate: result.effects?.gasUsed?.storageRebate || "0",
+				computationCost: result.effects.gasUsed.computationCost,
+				storageCost: result.effects.gasUsed.storageCost,
+				storageRebate: result.effects.gasUsed.storageRebate,
 			}
 		})
 	} catch (error) {

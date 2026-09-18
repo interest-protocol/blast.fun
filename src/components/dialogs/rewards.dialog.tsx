@@ -7,14 +7,11 @@ import { Loader2 } from "lucide-react"
 import toast from "react-hot-toast"
 import { formatNumberWithSuffix } from "@/utils/format"
 import { useApp } from "@/context/app.context"
-import { SuiJsonRpcClient } from "@mysten/sui/jsonRpc"
 import { Transaction } from "@mysten/sui/transactions"
-import { useSignAndExecuteTransaction } from "@mysten/dapp-kit"
-import type { CoinStruct } from "@mysten/sui/jsonRpc"
 import type { WalletCoin } from "@/types/blockvision"
 import { useTransaction } from "@/hooks/sui/use-transaction"
 import { walletSdk } from "@/lib/memez/sdk"
-import { suiClient } from "@/lib/sui-client"
+import { listAllCoins } from "@/lib/sui-coins"
 
 interface RewardsDialogProps {
 	open: boolean
@@ -23,7 +20,6 @@ interface RewardsDialogProps {
 
 export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 	const { address, isConnected } = useApp()
-	const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction()
 	const [walletCoins, setWalletCoins] = useState<WalletCoin[]>([])
 	const [isLoading, setIsLoading] = useState(false)
 	const [claimingCoinType, setClaimingCoinType] = useState<string | null>(null)
@@ -32,50 +28,10 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 
 	const mergeAndPrepareReceive = async (
 		coin: WalletCoin,
-		tx: Transaction,
-		suiClient: SuiJsonRpcClient
+		tx: Transaction
 	): Promise<{ success: boolean; error?: string }> => {
 		try {
-			const allCoins: CoinStruct[] = []
-			let cursor: string | null | undefined = undefined
-			let hasNextPage = true
-			
-			while (hasNextPage) {
-				let retries = 0
-				const maxRetries = 3
-				let response = null
-				
-				while (retries < maxRetries) {
-					try {
-						response = await suiClient.getCoins({
-							owner: memezWalletAddress!,
-							coinType: coin.coinType,
-							cursor,
-						})
-						break
-					} catch (error: any) {
-						if (error?.status === 429 || error?.message?.includes('429')) {
-							retries++
-							if (retries >= maxRetries) {
-								throw new Error(`Rate limited after ${maxRetries} retries`)
-							}
-							
-							const waitTime = Math.pow(2, retries - 1) * 1000
-							await new Promise(resolve => setTimeout(resolve, waitTime))
-						} else {
-							throw error
-						}
-					}
-				}
-				
-				if (!response) {
-					throw new Error("Failed to fetch coins after retries")
-				}
-				
-				allCoins.push(...response.data)
-				hasNextPage = response.hasNextPage
-				cursor = response.nextCursor
-			}
+			const allCoins = await listAllCoins(memezWalletAddress!, coin.coinType)
 			
 			if (allCoins.length === 0) {
 				return { success: false, error: "No coins found" }
@@ -103,7 +59,7 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 							},
 							body: JSON.stringify({
 								coins: batch.map((c) => ({
-									objectId: c.coinObjectId,
+									objectId: c.objectId,
 									version: c.version,
 									digest: c.digest,
 								})),
@@ -131,55 +87,17 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 					await new Promise(resolve => setTimeout(resolve, 3000))
 					
 					// Fetch all updated coins (with pagination to get all)
-					const updatedCoins: CoinStruct[] = []
-					let cursor: string | null | undefined = undefined
-					let hasNextPage = true
-					
-					while (hasNextPage) {
-						let retries = 0
-						const maxRetries = 3
-						let response = null
-						
-						while (retries < maxRetries) {
-							try {
-								response = await suiClient.getCoins({
-									owner: memezWalletAddress!,
-									coinType: coin.coinType,
-									cursor,
-								})
-								break
-							} catch (error: any) {
-								if (error?.status === 429 || error?.message?.includes('429')) {
-									retries++
-									if (retries >= maxRetries) {
-										throw new Error(`Rate limited after ${maxRetries} retries while fetching updated coins`)
-									}
-									const waitTime = Math.pow(2, retries - 1) * 1000
-									await new Promise(resolve => setTimeout(resolve, waitTime))
-								} else {
-									throw error
-								}
-							}
-						}
-						
-						if (!response) {
-							throw new Error("Failed to fetch updated coins after retries")
-						}
-						
-						updatedCoins.push(...response.data)
-						hasNextPage = response.hasNextPage
-						cursor = response.nextCursor
-					}
+					const updatedCoins = await listAllCoins(memezWalletAddress!, coin.coinType)
 					
 					remainingCoins = updatedCoins
 					
 					if (remainingCoins.length === 1) {
-						finalCoinId = remainingCoins[0].coinObjectId
+						finalCoinId = remainingCoins[0].objectId
 						break
 					}
 				}
 			} else {
-				finalCoinId = allCoins[0].coinObjectId
+				finalCoinId = allCoins[0].objectId
 			}
 			
 			if (!finalCoinId) {
@@ -245,7 +163,7 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 			const tx = new Transaction()
 			
 			// Merge and prepare receive for this coin
-			const result = await mergeAndPrepareReceive(coin, tx, suiClient)
+			const result = await mergeAndPrepareReceive(coin, tx)
 			
 			if (!result.success) {
 				throw new Error(result.error || "Failed to prepare coin")
@@ -273,7 +191,7 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 		} finally {
 			setClaimingCoinType(null)
 		}
-	}, [address, mergeAndPrepareReceive, signAndExecuteTransaction, fetchWalletCoins])
+	}, [address, mergeAndPrepareReceive, fetchWalletCoins])
 
 	// Handle claim all button - sequential processing with progress updates
 	const handleClaimAll = useCallback(async () => {
@@ -302,7 +220,7 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 				}
 				progressToastId = toast.loading(`Preparing ${coin.symbol} (${i + 1}/${coinsToProcess.length})...`)
 				
-				const result = await mergeAndPrepareReceive(coin, tx, suiClient)
+				const result = await mergeAndPrepareReceive(coin, tx)
 				
 				if (result.success) {
 					successCount++
@@ -351,7 +269,7 @@ export function RewardsDialog({ open, onOpenChange }: RewardsDialogProps) {
 		} finally {
 			setClaimingCoinType(null)
 		}
-	}, [address, walletCoins, mergeAndPrepareReceive, signAndExecuteTransaction, fetchWalletCoins])
+	}, [address, walletCoins, mergeAndPrepareReceive, fetchWalletCoins])
 
 	// Get Memez wallet address when user connects
 	useEffect(() => {

@@ -1,21 +1,18 @@
-import { SuiTransactionBlockResponse } from "@mysten/sui/jsonRpc"
+import type { ExecutedTransaction } from "@/types/transaction"
 
-export const throwTransactionIfFailed = (tx: SuiTransactionBlockResponse, customMessage?: string): void => {
-    if (!tx.effects || tx.effects.status.status !== "success") {
-        const digest = tx.digest
-        const error = tx.effects?.status.error || "Unknown error"
-        throw new Error(customMessage || `Transaction ${digest} failed: ${error}`)
-    }
+export const throwTransactionIfFailed = (tx: ExecutedTransaction, customMessage?: string): void => {
+	if (tx.status.success) return
+
+	const error = tx.status.error?.message ?? "Unknown error"
+	throw new Error(customMessage || `Transaction ${tx.digest} failed: ${error}`)
 }
 
-export const getCreatedObjectByType = (tx: SuiTransactionBlockResponse, objectType: string): string | null => {
-	if (!tx.objectChanges) return null
-
-	const object = tx.objectChanges.find(
-		(change) => change.type === "created" && "objectType" in change && change.objectType.includes(objectType)
+export const getCreatedObjectByType = (tx: ExecutedTransaction, objectType: string): string | null => {
+	const created = tx.effects.changedObjects.find(
+		(change) => change.idOperation === "Created" && tx.objectTypes[change.objectId]?.includes(objectType)
 	)
 
-	return object && "objectId" in object ? object.objectId : null
+	return created?.objectId ?? null
 }
 
 export const getTxExplorerUrl = (digest: string, network: "mainnet" | "testnet" = "mainnet"): string => {

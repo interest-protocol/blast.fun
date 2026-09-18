@@ -1,18 +1,20 @@
-import type { SuiTransactionBlockResponse } from "@mysten/sui/jsonRpc"
+import type { SuiClientTypes } from "@mysten/sui/client"
 
-export interface TimedSuiTransactionBlockResponse extends SuiTransactionBlockResponse {
-    time: number
+export type ExecutedTransaction = SuiClientTypes.Transaction<{ effects: true; events: true; objectTypes: true }>
+
+export interface TransactionResult extends ExecutedTransaction {
+	time: number
 }
 
 export interface WaitForTxOptions {
-    timeout?: number
-    pollInterval?: number
+	timeout?: number
+	pollInterval?: number
 }
 
 export interface ExecuteTransactionOptions {
-    showObjectChanges?: boolean
-    showEvents?: boolean
-    showEffects?: boolean
-    showRawEffects?: boolean
-    waitOptions?: WaitForTxOptions
+	showObjectChanges?: boolean
+	showEvents?: boolean
+	showEffects?: boolean
+	showRawEffects?: boolean
+	waitOptions?: WaitForTxOptions
 }

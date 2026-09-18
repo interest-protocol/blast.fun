@@ -2,7 +2,7 @@ import { PACKAGES, Modules } from "@interest-protocol/memez-fun-sdk"
 import { Transaction } from "@mysten/sui/transactions"
 import { bcs } from "@mysten/sui/bcs"
 import { normalizeSuiAddress, normalizeStructTag } from "@mysten/sui/utils"
-import { suiClient } from "@/lib/sui-client"
+import { suiGrpcClient } from "@/lib/sui-grpc"
 import { pumpSdk } from "./sdk"
 
 export interface GetNonceArgs {
@@ -44,22 +44,24 @@ export async function getNextNonce({
 		],
 	})
 
-	const result = await suiClient.devInspectTransactionBlock({
-		transactionBlock: tx,
-		sender: normalizeSuiAddress(address)
+	tx.setSender(normalizeSuiAddress(address))
+
+	const result = await suiGrpcClient.simulateTransaction({
+		transaction: tx,
+		include: { commandResults: true },
 	})
 
-	if (!result.results || result.results.length === 0) {
-		throw new Error("Failed to get nonce from contract")
+	if (result.$kind === "FailedTransaction") {
+		throw new Error(result.FailedTransaction.status.error?.message ?? "Failed to get nonce from contract")
 	}
 
-	const returnValues = result.results[0].returnValues
-	if (!returnValues || returnValues.length === 0) {
+	const returnValue = result.commandResults[0]?.returnValues[0]?.bcs
+	if (!returnValue) {
 		throw new Error("No return value from next_nonce function")
 	}
 
 	// parse the returned u64 value
-	const nonce = bcs.u64().parse(new Uint8Array(returnValues[0][0]))
+	const nonce = bcs.u64().parse(returnValue)
 	return BigInt(nonce)
 }
 

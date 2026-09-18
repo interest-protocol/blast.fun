@@ -1,5 +1,4 @@
 import { createNetworkConfig } from "@mysten/dapp-kit"
-import { getJsonRpcFullnodeUrl } from "@mysten/sui/jsonRpc"
 import { Network } from "@/types/network"
 import { getSuiFullnodeUrl } from "@/lib/sui-network"
 
@@ -11,7 +10,7 @@ const useNetworkConfig = () => {
 		},
 		[Network.TESTNET]: {
 			network: Network.TESTNET,
-			url: getJsonRpcFullnodeUrl(Network.TESTNET),
+			url: getSuiFullnodeUrl(Network.TESTNET),
 		}
 	})
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { suiClient } from "@/lib/sui-client"
+import { suiGrpcClient } from "@/lib/sui-grpc"
 
 export interface Launch {
   coinType: string
@@ -46,7 +46,7 @@ export const useSearchCreator = () => {
       const tokensWithMetadata = await Promise.all(
         launches.map(async (launch) => {
           try {
-            const metadata = await suiClient.getCoinMetadata({ coinType: launch.coinType })
+            const { coinMetadata: metadata } = await suiGrpcClient.getCoinMetadata({ coinType: launch.coinType })
             return {
               ...launch,
               name: metadata?.name,

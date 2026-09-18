@@ -2,7 +2,6 @@ import { MemezPumpSDK, MemezWalletSDK, SHARED_OBJECTS } from "@interest-protocol
 import { env } from "@/env"
 import { MemezMigratorGrpcSDK } from "@/lib/memez/migrator-grpc"
 import { MemezVestingGrpcSDK } from "@/lib/memez/vesting-grpc"
-import { suiClient } from "@/lib/sui-client"
 import { suiGrpcClient } from "@/lib/sui-grpc"
 import { getSuiFullnodeUrl } from "@/lib/sui-network"
 import { Network } from "@/types/network"
@@ -22,7 +21,6 @@ export const migratorSdk = new MemezMigratorGrpcSDK({
 export const vestingSdk = new MemezVestingGrpcSDK({
 	network: env.NEXT_PUBLIC_DEFAULT_NETWORK as Network,
 	grpcClient: suiGrpcClient,
-	jsonRpcClient: suiClient,
 })
 
 export const walletSdk = new MemezWalletSDK({

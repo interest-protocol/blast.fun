@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions";
-import { CoinMetadata } from "@mysten/sui/jsonRpc";
-import { SUI_DECIMALS, SUI_TYPE_ARG } from "@mysten/sui/utils";
-import { suiClient } from "@/lib/sui-client";
+import { normalizeStructTag, SUI_DECIMALS, SUI_TYPE_ARG } from "@mysten/sui/utils";
+import { suiGrpcClient } from "@/lib/sui-grpc";
+import { listAllBalances, listAllCoins } from "@/lib/sui-coins";
 import { useTransaction } from "@/hooks/sui/use-transaction";
 import toast from "react-hot-toast";
 import { AirdropRecipient } from "../_components/airdrop-tools/airdrop-tools.types";
@@ -82,9 +82,12 @@ export function useAirdrop({
         setAirdropProgress("Preparing transaction...");
 
         try {
-            const coinMetadata = (await suiClient.getCoinMetadata({
+            const { coinMetadata } = await suiGrpcClient.getCoinMetadata({
                 coinType: selectedCoin,
-            })) as CoinMetadata;
+            });
+            if (!coinMetadata) {
+                throw new Error(`No coin metadata for ${selectedCoin}`);
+            }
 
             const totalAmountToSend = calculateTotalAmount(
                 coinMetadata.decimals,
@@ -172,7 +175,7 @@ export function useAirdrop({
         }
 
         const txResult = await executeTransaction(tx);
-        await suiClient.waitForTransaction({ digest: txResult.digest });
+        await suiGrpcClient.waitForTransaction({ digest: txResult.digest });
     };
 
     const executeBatchAirdrop = async (
@@ -227,22 +230,22 @@ export function useAirdrop({
                 tx.transferObjects([coinInput], address!);
             }
 
-            const txResult = await delegatorKeypair.signAndExecuteTransaction({
+            const txResult = await suiGrpcClient.signAndExecuteTransaction({
                 transaction: tx,
-                client: suiClient,
+                signer: delegatorKeypair,
             });
 
-            const digest = txResult.Transaction?.digest;
-
-            if (!digest) {
-                throw new Error("Transaction digest not found");
+            if (txResult.$kind === "FailedTransaction") {
+                throw new Error(
+                    txResult.FailedTransaction.status.error?.message ?? "Airdrop batch failed",
+                );
             }
 
             setAirdropProgress(
                 `Sending batch ${batchIndex + 1} of ${totalBatches} (${batchEnd}/${recipients.length} recipients)`,
             );
 
-            await suiClient.waitForTransaction({ digest });
+            await suiGrpcClient.waitForTransaction({ result: txResult });
         }
     };
 
@@ -257,14 +260,17 @@ export function useAirdrop({
                 .getPublicKey()
                 .toSuiAddress();
 
-            const allCoins = await suiClient.getAllCoins({
-                owner: delegatorAddr,
-            });
-
-            const nonSuiCoins = allCoins.data.filter(
-                (coin) =>
-                    coin.coinType !== SUI_TYPE_ARG && BigInt(coin.balance) > 0n,
+            // @dev: gRPC lists coins per type, so enumerate held types first.
+            const nonSuiBalances = (await listAllBalances(delegatorAddr)).filter(
+                (b) =>
+                    normalizeStructTag(b.coinType) !== normalizeStructTag(SUI_TYPE_ARG) &&
+                    BigInt(b.balance) > 0n,
             );
+            const nonSuiCoins = (
+                await Promise.all(
+                    nonSuiBalances.map((b) => listAllCoins(delegatorAddr, b.coinType)),
+                )
+            ).flat();
 
             await fundDelegator(address, delegatorAddr, GAS_PER_RECIPIENT);
             
@@ -273,23 +279,22 @@ export function useAirdrop({
                 tx.setSender(delegatorAddr);
 
                 tx.transferObjects(
-                    nonSuiCoins.map((coin) => tx.object(coin.coinObjectId)),
+                    nonSuiCoins.map((coin) => tx.object(coin.objectId)),
                     tx.pure.address(address),
                 );
 
-                const txBytes = await tx.build({ client: suiClient });
-                const { signature } =
-                    await delegatorKeypair.signTransaction(txBytes);
-
-                const txResult = await suiClient.executeTransactionBlock({
-                    transactionBlock: txBytes,
-                    signature: [signature],
-                    options: { showEffects: true },
+                const txResult = await suiGrpcClient.signAndExecuteTransaction({
+                    transaction: tx,
+                    signer: delegatorKeypair,
                 });
 
-                await suiClient.waitForTransaction({
-                    digest: txResult.digest,
-                });
+                if (txResult.$kind === "FailedTransaction") {
+                    throw new Error(
+                        txResult.FailedTransaction.status.error?.message ?? "Refund failed",
+                    );
+                }
+
+                await suiGrpcClient.waitForTransaction({ result: txResult });
             }
 
             await recoverGas(delegatorKeypair, delegatorAddr, address);
@@ -315,19 +320,18 @@ export function useAirdrop({
         tx.setSender(delegatorAddr);
         tx.transferObjects([tx.gas], recipient);
 
-        const txBytes = await tx.build({ client: suiClient });
-        const { signature } = await delegatorKeypair.signTransaction(txBytes);
-
-        const txResult = await suiClient.executeTransactionBlock({
-            transactionBlock: txBytes,
-            signature: [signature],
-            options: {
-                showEffects: true,
-                showEvents: true,
-            },
+        const txResult = await suiGrpcClient.signAndExecuteTransaction({
+            transaction: tx,
+            signer: delegatorKeypair,
         });
 
-        await suiClient.waitForTransaction({ digest: txResult.digest });
+        if (txResult.$kind === "FailedTransaction") {
+            throw new Error(
+                txResult.FailedTransaction.status.error?.message ?? "Gas recovery failed",
+            );
+        }
+
+        await suiGrpcClient.waitForTransaction({ result: txResult });
         setIsRecoveringGas(false);
     };
 

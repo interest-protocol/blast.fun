@@ -1,4 +1,4 @@
-import { suiClient } from "@/lib/sui-client"
+import { suiGrpcClient } from "@/lib/sui-grpc"
 
 const CACHE_KEY_PREFIX = "suins:"
 
@@ -17,16 +17,17 @@ async function fetchSuiNSWithRetry(address: string, maxRetries = 3): Promise<str
 	
 	for (let attempt = 0; attempt < maxRetries; attempt++) {
 		try {
-			const result = await suiClient.resolveNameServiceNames({
-				address: address,
-				format: "dot",
-			})
-			return result.data?.[0] || null
+			const result = await suiGrpcClient.defaultNameServiceName({ address })
+			return result.data.name || null
 		} catch (error: any) {
+			// @dev: gRPC reports "no name for this address" as NOT_FOUND rather than an empty list
+			if (error?.code === "NOT_FOUND") return null
+
 			lastError = error
 			
-			// @dev: Check if it's a 429 rate limit error
-			const is429Error = error?.status === 429 || 
+			// @dev: Check if it's a rate limit error (gRPC RESOURCE_EXHAUSTED or HTTP 429)
+			const is429Error = error?.code === "RESOURCE_EXHAUSTED" ||
+				error?.status === 429 || 
 				error?.response?.status === 429 ||
 				error?.message?.includes('429') ||
 				error?.message?.includes('rate limit')

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 
-import { suiClient } from "@/lib/sui-client"
+import { suiGrpcClient } from "@/lib/sui-grpc"
 
 export async function POST(request: NextRequest) {
 	try {
@@ -38,19 +38,18 @@ export async function POST(request: NextRequest) {
 		
 		let coinType = ""
 		try {
-			const tx = await suiClient.waitForTransaction({ 
-				digest: tokenTxHash, 
-				options: { showObjectChanges: true } 
+			const result = await suiGrpcClient.waitForTransaction({
+				digest: tokenTxHash,
+				include: { effects: true, objectTypes: true },
 			})
-			
+			const tx = result.Transaction ?? result.FailedTransaction
+
 			// Look for TreasuryCap creation to extract coinType
-			tx.objectChanges?.forEach((change) => {
-				if (
-					change.type === "created" &&
-					typeof change.objectType === "string" &&
-					change.objectType.startsWith("0x2::coin::TreasuryCap<")
-				) {
-					coinType = change.objectType.split("<")[1].split(">")[0]
+			tx.effects.changedObjects.forEach((change) => {
+				// @dev: gRPC reports 0x2 as a full 32-byte address, so match on the module path instead.
+				const match = /::coin::TreasuryCap<(.+)>$/.exec(tx.objectTypes[change.objectId] ?? "")
+				if (change.idOperation === "Created" && match) {
+					coinType = match[1]
 				}
 			})
 		} catch (error) {

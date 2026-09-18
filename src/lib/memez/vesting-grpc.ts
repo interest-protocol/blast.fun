@@ -1,8 +1,8 @@
-import { MemezVestingSDK, parseVesting, type Vesting } from "@interest-protocol/memez-fun-sdk"
+import { MemezVestingSDK, type Vesting } from "@interest-protocol/memez-fun-sdk"
 import type { SuiClientTypes } from "@mysten/sui/client"
 import type { SuiGrpcClient } from "@mysten/sui/grpc"
-import type { SuiJsonRpcClient } from "@mysten/sui/jsonRpc"
 import { normalizeStructTag, SUI_TYPE_ARG } from "@mysten/sui/utils"
+import { listAllBalances } from "@/lib/sui-coins"
 import type { Network } from "@/types/network"
 
 // @dev: Upgrades change the callable package, but live objects retain this defining type.
@@ -38,7 +38,6 @@ export interface VestingWalletCoin {
 interface VestingGrpcSDKArgs {
 	network: Network
 	grpcClient: SuiGrpcClient
-	jsonRpcClient: SuiJsonRpcClient
 }
 
 function getVestingCoinType(type: string): string {
@@ -98,64 +97,31 @@ function normalizeCoinMetadata(
 
 export class MemezVestingGrpcSDK extends MemezVestingSDK {
 	constructor(private readonly args: VestingGrpcSDKArgs) {
+		// @dev: Public fullnodes no longer serve JSON-RPC; every read below goes through gRPC.
 		super({ network: args.network, fullNodeUrl: "grpc://unused" })
 	}
 
-	private async withJsonRpcFallback<T>(grpcRead: () => Promise<T>, jsonRpcRead: () => Promise<T>): Promise<T> {
-		try {
-			return await grpcRead()
-		} catch (grpcError) {
-			try {
-				return await jsonRpcRead()
-			} catch (jsonRpcError) {
-				throw new AggregateError([grpcError, jsonRpcError], "Vesting read failed over gRPC and JSON-RPC")
-			}
-		}
-	}
-
 	override async get(vesting: string): Promise<Vesting> {
-		return this.withJsonRpcFallback(
-			async () => {
-				const { object } = await this.args.grpcClient.getObject({
-					objectId: vesting,
-					include: { json: true },
-				})
+		const { object } = await this.args.grpcClient.getObject({
+			objectId: vesting,
+			include: { json: true },
+		})
 
-				return parseGrpcVesting(object)
-			},
-			async () =>
-				parseVesting(
-					await this.args.jsonRpcClient.getObject({
-						id: vesting,
-						options: { showContent: true, showType: true },
-					})
-				)
-		)
+		return parseGrpcVesting(object)
 	}
 
 	override async getMultiple(vestings: string[]): Promise<Vesting[]> {
 		if (vestings.length === 0) return []
 
-		return this.withJsonRpcFallback(
-			async () => {
-				const { objects } = await this.args.grpcClient.getObjects({
-					objectIds: vestings,
-					include: { json: true },
-				})
+		const { objects } = await this.args.grpcClient.getObjects({
+			objectIds: vestings,
+			include: { json: true },
+		})
 
-				return objects.map((object) => {
-					if (object instanceof Error) throw object
-					return parseGrpcVesting(object)
-				})
-			},
-			async () =>
-				(
-					await this.args.jsonRpcClient.multiGetObjects({
-						ids: vestings,
-						options: { showContent: true, showType: true },
-					})
-				).map(parseVesting)
-		)
+		return objects.map((object) => {
+			if (object instanceof Error) throw object
+			return parseGrpcVesting(object)
+		})
 	}
 
 	async getOwnedVestings({
@@ -167,85 +133,31 @@ export class MemezVestingGrpcSDK extends MemezVestingSDK {
 		cursor?: string | null
 		limit?: number
 	}): Promise<VestingPage> {
-		return this.withJsonRpcFallback(
-			async () => {
-				const response = await this.args.grpcClient.listOwnedObjects({
-					owner,
-					type: VESTING_OBJECT_TYPE,
-					cursor,
-					limit,
-					include: { json: true },
-				})
+		const response = await this.args.grpcClient.listOwnedObjects({
+			owner,
+			type: VESTING_OBJECT_TYPE,
+			cursor,
+			limit,
+			include: { json: true },
+		})
 
-				return {
-					data: response.objects.map(parseGrpcVesting),
-					hasNextPage: response.hasNextPage,
-					nextCursor: response.cursor,
-				}
-			},
-			async () => {
-				const response = await this.args.jsonRpcClient.getOwnedObjects({
-					owner,
-					filter: { StructType: VESTING_OBJECT_TYPE },
-					cursor,
-					limit,
-					options: { showContent: true, showType: true },
-				})
-
-				return {
-					data: response.data.map(parseVesting),
-					hasNextPage: response.hasNextPage,
-					nextCursor: response.nextCursor ?? null,
-				}
-			}
-		)
+		return {
+			data: response.objects.map(parseGrpcVesting),
+			hasNextPage: response.hasNextPage,
+			nextCursor: response.cursor,
+		}
 	}
 
 	async getCoinMetadata(coinType: string): Promise<VestingCoinMetadata | null> {
-		return this.withJsonRpcFallback(
-			async () => {
-				const { coinMetadata } = await this.args.grpcClient.getCoinMetadata({
-					coinType,
-				})
+		const { coinMetadata } = await this.args.grpcClient.getCoinMetadata({ coinType })
 
-				return normalizeCoinMetadata(coinMetadata)
-			},
-			async () => normalizeCoinMetadata(await this.args.jsonRpcClient.getCoinMetadata({ coinType }))
-		)
+		return normalizeCoinMetadata(coinMetadata)
 	}
 
 	async getWalletCoins(owner: string): Promise<VestingWalletCoin[]> {
-		const balances = await this.withJsonRpcFallback(
-			async () => {
-				const data: Array<{ coinType: string; balance: string }> = []
-				let cursor: string | null = null
-
-				do {
-					const page = await this.args.grpcClient.listBalances({
-						owner,
-						cursor,
-						limit: 50,
-					})
-
-					data.push(
-						...page.balances.map((balance) => ({
-							coinType: normalizeStructTag(balance.coinType),
-							balance: balance.balance,
-						}))
-					)
-					cursor = page.hasNextPage ? page.cursor : null
-				} while (cursor)
-
-				return data
-			},
-			async () =>
-				(await this.args.jsonRpcClient.getAllBalances({ owner })).map((balance) => ({
-					coinType: normalizeStructTag(balance.coinType),
-					balance: balance.totalBalance,
-				}))
-		)
-
-		const coins = balances.filter(({ balance }) => BigInt(balance) > 0n)
+		const coins = (await listAllBalances(owner))
+			.map((balance) => ({ coinType: normalizeStructTag(balance.coinType), balance: balance.balance }))
+			.filter(({ balance }) => BigInt(balance) > 0n)
 		const metadata = await Promise.all(coins.map(({ coinType }) => this.getCoinMetadata(coinType).catch(() => null)))
 
 		return coins
